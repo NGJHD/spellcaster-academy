@@ -13,6 +13,11 @@ const SAFE_MARGIN = 56;
 /** Labels never drop into the subtitle band at the bottom of the screen (GD-19). */
 const SUBTITLE_BAND = 150;
 
+/** Last frame's render statistics (read by the `?test` hook for performance checks). */
+export const renderStats = { triangles: 0, calls: 0, frameMs: 0 };
+/** Scene handle for the `?test` hook's triangle breakdown. */
+export const debugScene: { current: import('three').Object3D | null } = { current: null };
+
 const look = new Vector3();
 const framing = new Vector3();
 const projected = new Vector3();
@@ -27,6 +32,9 @@ const toTarget = new Vector3();
 export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | null> }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  debugScene.current = scene;
   const blend = useRef(0);
   const time = useRef(0);
 
@@ -43,6 +51,9 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
   }, [camera]);
 
   useFrame((_, delta) => {
+    renderStats.triangles = gl.info.render.triangles;
+    renderStats.calls = gl.info.render.calls;
+    renderStats.frameMs = delta * 1000;
     const run = getRun();
     if (!run) return;
     time.current += delta;

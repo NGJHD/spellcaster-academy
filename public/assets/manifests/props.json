@@ -214,7 +214,7 @@
     "file": "/assets/props/fir_tree_01.glb",
     "id": "fir_tree_01",
     "license": "CC0-1.0 (Poly Haven)",
-    "lod1Triangles": 17178,
+    "lod1Triangles": 5774,
     "lodFiles": [
       "/assets/props/fir_tree_01_lod1.glb"
     ],
@@ -712,24 +712,24 @@
   "street_lamp_01": {
     "bounds": {
       "max": [
-        0.35217753052711487,
-        3.8705313205718994,
-        0.19299007952213287
+        0.35219308733940125,
+        3.8698530197143555,
+        0.19193099439144135
       ],
       "min": [
-        -0.35217753052711487,
-        0.0,
-        -0.19299006462097168
+        -0.35390034317970276,
+        -3.7160714327910682e-06,
+        -0.19193099439144135
       ]
     },
-    "bytes": 458956,
+    "bytes": 137924,
     "file": "/assets/props/street_lamp_01.glb",
     "id": "street_lamp_01",
     "license": "CC0-1.0 (Poly Haven)",
     "materials": 3,
     "sourceTriangles": 30610,
-    "textureMax": 1024,
-    "triangles": 10000
+    "textureMax": 512,
+    "triangles": 2499
   },
   "treasure_chest": {
     "bounds": {

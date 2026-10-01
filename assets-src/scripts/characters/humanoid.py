@@ -190,10 +190,19 @@ C.pose_action(rig, "Celebrate", [
 ])
 
 os.makedirs(os.path.join(ROOT, "public", "assets", "characters"), exist_ok=True)
-print("DEBUG", [o.name for o in bpy.context.scene.objects])
 out = os.path.join(ROOT, "public", "assets", "characters", f"{who}.glb")
 C.export_glb(out)
 print(f"{who}: {C.triangle_count()} tris -> {out}")
+
+# LOD1 for background use (§14.6): decimate the skinned body before the armature so weights carry over.
+dec = body.modifiers.new("Decimate", "DECIMATE")
+dec.ratio = 0.28
+bpy.context.view_layer.objects.active = body
+bpy.ops.object.modifier_move_to_index(modifier=dec.name, index=0)
+bpy.ops.object.modifier_apply(modifier=dec.name)
+lod = os.path.join(ROOT, "public", "assets", "characters", f"{who}_lod1.glb")
+C.export_glb(lod)
+print(f"{who}_lod1: {C.triangle_count()} tris -> {lod}")
 if "--preview" in args:
     C.render_previews(os.path.join(ROOT, "assets-src", "previews", who), H)
     C.render_close(os.path.join(ROOT, "assets-src", "previews", f"{who}_face.png"), v(0, 0, 1.31), 0.55 * k, angle=20)

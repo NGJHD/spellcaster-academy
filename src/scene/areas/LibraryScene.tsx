@@ -7,6 +7,7 @@ import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { Bookshelf, Box, Column, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { MergeStatic } from '../MergeStatic';
 import { WardAnchor, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
 import { useParts } from '../partsGlb';
@@ -16,8 +17,10 @@ const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
 export function LibraryScene() {
   return (
     <group name="library" position={LIBRARY_ORIGIN}>
+      <MergeStatic>
       <Shell />
       <Shelves />
+      </MergeStatic>
       <ReadingArea />
       <Mosaic />
       <CirclingBooks />

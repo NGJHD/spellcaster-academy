@@ -10,8 +10,10 @@ import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../leve
 import { CHEST_POSITION, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
+import { useRunStore } from '../../state/runStore';
 import { Arch, Banner, Bookshelf, Box, Column, Facade, GableRoof, Planter, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
 import { worldCylinder, worldPlane } from '../surfaces';
 import {
@@ -46,6 +48,8 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
 // ---------- Campus backdrop ----------
 
 function Campus() {
+  // From inside the East Hall the walls hide the grounds; skip the foliage there (frustum culling cannot know).
+  const indoors = useRunStore((s) => s.areaId === 'east-hall');
   const trees = useMemo(() => {
     let s = 7;
     const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
@@ -67,6 +71,7 @@ function Campus() {
   return (
     <group name="campus">
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} material={MAT.grass} geometry={worldPlane(900, 900)} receiveShadow />
+      <MergeStatic>
       <Slab x={[-1.8, 1.8]} y={[-0.01, 0.03]} z={[20.6, 120]} material={MAT.paving} shadows={false} />
       {/* Main academy wing behind the courtyard */}
       <Slab x={[-36, 36]} y={[0, 16.5]} z={[-42, -16]} material={MAT.academyStone} />
@@ -101,8 +106,9 @@ function Campus() {
           </mesh>
         </group>
       ))}
-      {trees.map((t) => (
-        <Prop key={`${t.x.toFixed(1)}-${t.z.toFixed(1)}`} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={t.r} lodDistance={45} shadows={t.id !== 'fir_tree_01'} />
+      </MergeStatic>
+      {!indoors && trees.map((t) => (
+        <Prop key={`${t.x.toFixed(1)}-${t.z.toFixed(1)}`} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={t.r} lodDistance={16} shadows={t.id !== 'fir_tree_01'} />
       ))}
       {[-2.9, 2.9].flatMap((x) => [30, 42, 56, 72].map((z) => <Prop key={`${x}-${z}`} id="street_lamp_01" position={[x, 0, z]} height={3.6} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />))}
       {[[-9, 30], [12, 44]].map(([x = 0, z = 0], i) => (
@@ -117,18 +123,22 @@ function Campus() {
 function ArrivalGate() {
   return (
     <group name="arrival-gate">
-      <Facade position={[-8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
-      <Facade position={[8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
-      <Slab x={[-GATE_HALF, GATE_HALF]} y={[GATE_HEIGHT + 0.6, 7.5]} z={[GATE_Z - 0.6, GATE_Z + 0.6]} material={MAT.academyStone} />
-      <Arch position={[0, GATE_HEIGHT - 0.3, GATE_Z + 0.62]} width={GATE_HALF * 2} thickness={0.4} material={MAT.academyStoneDark} />
+      <MergeStatic>
+        <Facade position={[-8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
+        <Facade position={[8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
+        <Slab x={[-GATE_HALF, GATE_HALF]} y={[GATE_HEIGHT + 0.6, 7.5]} z={[GATE_Z - 0.6, GATE_Z + 0.6]} material={MAT.academyStone} />
+        <Arch position={[0, GATE_HEIGHT - 0.3, GATE_Z + 0.62]} width={GATE_HALF * 2} thickness={0.4} material={MAT.academyStoneDark} />
+        {[-1, 1].map((s) => (
+          <group key={s}>
+            <Slab x={s < 0 ? [-5.4, -2.5] : [2.5, 5.4]} y={[0, 9.5]} z={[GATE_Z - 1.2, GATE_Z + 1.2]} material={MAT.academyStoneDark} />
+            <mesh position={[3.95 * s, 10.6, GATE_Z]} rotation={[0, Math.PI / 4, 0]} material={MAT.slate}>
+              <coneGeometry args={[2.3, 2.4, 4]} />
+            </mesh>
+          </group>
+        ))}
+      </MergeStatic>
       {[-1, 1].map((s) => (
-        <group key={s}>
-          <Slab x={s < 0 ? [-5.4, -2.5] : [2.5, 5.4]} y={[0, 9.5]} z={[GATE_Z - 1.2, GATE_Z + 1.2]} material={MAT.academyStoneDark} />
-          <mesh position={[3.95 * s, 10.6, GATE_Z]} rotation={[0, Math.PI / 4, 0]} material={MAT.slate} castShadow>
-            <coneGeometry args={[2.3, 2.4, 4]} />
-          </mesh>
-          <Banner position={[3.95 * s, 8.6, GATE_Z + 1.24]} height={3.6} />
-        </group>
+        <Banner key={s} position={[3.95 * s, 8.6, GATE_Z + 1.24]} height={3.6} />
       ))}
       <GateDoors />
       {(['left', 'centre', 'right'] as const).map((k, i) => (
@@ -191,6 +201,7 @@ function Courtyard({ celebration }: { celebration: boolean }) {
   const beat = useBeatIndex();
   return (
     <group name="courtyard">
+      <MergeStatic>
       <Slab x={[-14, 14]} y={[-0.01, 0.02]} z={[-14, 19.4]} material={MAT.paving} shadows={false} />
       <Facade position={[-14.5, 0, 2.5]} length={35} height={8} rotationY={Math.PI / 2} bay={5} windows={[[3, 2.6]]} />
       <Facade position={[0, 0, -14.5]} length={30} height={8} bay={5} windows={[[3, 2.6]]} />
@@ -206,8 +217,11 @@ function Courtyard({ celebration }: { celebration: boolean }) {
       {[-10.5, -7.5, -4.6, 4.6, 7.5, 10.5].map((x) => (
         <Arch key={x} position={[x, 3.4, 15.75]} width={2.6} thickness={0.3} />
       ))}
+      </MergeStatic>
       <Fountain celebration={celebration} />
-      <TrainingCircle />
+      <MergeStatic shadows={false}>
+        <TrainingCircle />
+      </MergeStatic>
       {COURTYARD_DUMMY_POSITIONS.map((p, i) => (
         <DormantTarget key={i} encounterId="courtyard-c1" targetId={`dummy-${i + 1}`} kind="dummy" position={p} />
       ))}
@@ -268,10 +282,13 @@ function TrainingCircle() {
 // ---------- East Hall ----------
 
 function EastHall() {
+  // Mira only needs to exist while the player is in the hall (keeps the courtyard views lighter).
+  const inHall = useRunStore((s) => s.areaId === 'east-hall');
   const H = 5;
   const W = 2.5;
   return (
     <group name="east-hall">
+      <MergeStatic>
       <Slab x={[15, 44]} y={[-0.01, 0.02]} z={[-W, W]} material={MAT.paving} shadows={false} />
       <Rug position={[29.5, 0.02, 0]} size={[29, 1.8]} />
       <Slab x={[15, 44]} y={[0, H]} z={[-W - 0.3, -W]} material={MAT.plaster} />
@@ -287,6 +304,7 @@ function EastHall() {
       ))}
       <Slab x={[43.9, 44]} y={[0, 3.6]} z={[-1.3, 1.3]} material={MAT.darkOak} />
       <Arch position={[43.95, 3.6, 0]} width={2.6} rotationY={Math.PI / 2} material={MAT.academyStoneDark} />
+      </MergeStatic>
       {[20, 27, 34, 41].map((x) => (
         <group key={x}>
           <WallLamp position={[x, 3.0, -W + 0.02]} />
@@ -294,14 +312,16 @@ function EastHall() {
           <pointLight position={[x, 3.7, 0]} color="#ffc98a" intensity={10} distance={10} decay={2} />
         </group>
       ))}
-      {[18, 24, 37].map((x) => (
-        <Slab key={x} x={[x - 0.8, x + 0.8]} y={[1.4, 2.6]} z={[W - 0.05, W]} material={MAT.darkOak} shadows={false} />
-      ))}
-      {[22, 39].map((x) => (
-        <WindowPane key={x} position={[x, 2.6, -W + 0.01]} size={[1.4, 2.4]} />
-      ))}
+      <MergeStatic shadows={false}>
+        {[18, 24, 37].map((x) => (
+          <Slab key={x} x={[x - 0.8, x + 0.8]} y={[1.4, 2.6]} z={[W - 0.05, W]} material={MAT.darkOak} shadows={false} />
+        ))}
+        {[22, 39].map((x) => (
+          <WindowPane key={x} position={[x, 2.6, -W + 0.01]} size={[1.4, 2.4]} />
+        ))}
+      </MergeStatic>
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
-      <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-2.2} />
+      {inHall && <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-2.2} />}
       <Chest />
       <Prop id="GothicCabinet_01" position={[21, 0, -W + 0.35]} height={2.1} />
       <Prop id="vintage_grandfather_clock_01" position={[36.5, 0, -W + 0.3]} height={2.2} />

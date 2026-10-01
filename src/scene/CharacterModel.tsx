@@ -6,7 +6,7 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import type { Speaker } from '../content/dialogue';
 import { useRunStore } from '../state/runStore';
 
-export type CharacterId = 'mira' | 'orin' | 'student_a' | 'student_b';
+export type CharacterId = 'mira' | 'orin' | 'student_a' | 'student_b' | 'student_a_lod1' | 'student_b_lod1';
 export type CharacterClip = 'Idle' | 'Wave' | 'TalkShort' | 'Celebrate';
 
 const base = `${import.meta.env.BASE_URL}assets/characters/`;

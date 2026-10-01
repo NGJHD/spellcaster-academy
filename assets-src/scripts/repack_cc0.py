@@ -26,6 +26,7 @@ BUDGETS = {
     "island_tree_02": (24000, 512),
     "jacaranda_tree": (28000, 512),
     "treasure_chest": (20000, 1024),
+    "street_lamp_01": (2500, 512),
     "gothic_cabinet_01": (15000, 1024),
     "fir_tree_01": (16000, 512),
     "shrub_01": (8000, 512),
@@ -113,6 +114,40 @@ def decimate_to(budget):
     return scene_triangles()
 
 
+def thin_islands(keep_ratio, max_island_tris=40, seed=7):
+    """Remove a share of small disconnected islands (leaf cards) — collapse decimation cannot."""
+    import random
+
+    import bmesh
+
+    rng = random.Random(seed)
+    for obj in [o for o in bpy.context.scene.objects if o.type == "MESH"]:
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bm.faces.ensure_lookup_table()
+        seen = set()
+        doomed = []
+        for f in bm.faces:
+            if f.index in seen:
+                continue
+            island = []
+            stack = [f]
+            seen.add(f.index)
+            while stack:
+                cur = stack.pop()
+                island.append(cur)
+                for e in cur.edges:
+                    for nf in e.link_faces:
+                        if nf.index not in seen:
+                            seen.add(nf.index)
+                            stack.append(nf)
+            if len(island) <= max_island_tris and rng.random() > keep_ratio:
+                doomed.extend(island)
+        bmesh.ops.delete(bm, geom=list(set(doomed)), context="FACES")
+        bm.to_mesh(obj.data)
+        bm.free()
+
+
 def downscale_images(max_size):
     for img in bpy.data.images:
         if img.size[0] == 0:
@@ -198,6 +233,8 @@ def repack(model_id):
     }
     if model_id in LOD1:
         downscale_images(512)
+        if model_id in JOIN_FIRST:
+            thin_islands(0.3)
         lod_tris = decimate_to(LOD1[model_id])
         lod_out = os.path.join(OUT, f"{model_id}_lod1.glb")
         export(lod_out, webp)

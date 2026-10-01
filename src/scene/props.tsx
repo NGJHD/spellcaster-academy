@@ -435,7 +435,8 @@ export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height 
   return (
     <Suspense fallback={<StudentFallback position={position} rotationY={rotationY} robe={robe} height={height} />}>
       <group position={position} rotation={[0, rotationY, 0]} scale={height / (id === 'student_a' ? 1.4 : 1.5)}>
-        <CharacterModel id={id} clip="Celebrate" />
+        {/* Background students always use the lighter LOD1 (§14.6). */}
+        <CharacterModel id={id === 'student_a' ? 'student_a_lod1' : 'student_b_lod1'} clip="Celebrate" />
       </group>
     </Suspense>
   );

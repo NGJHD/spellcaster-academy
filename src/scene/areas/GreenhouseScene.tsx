@@ -8,6 +8,7 @@ import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { Box, Shrub, Slab } from '../kit';
 import { MAT } from '../materials';
+import { MergeStatic } from '../MergeStatic';
 import { DormantTarget, StaticWarden, WardAnchor, spawnPosition, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
 
@@ -18,8 +19,10 @@ const WARDEN_BEAT = beatIndexOf('greenhouse-warden-scene');
 export function GreenhouseScene() {
   return (
     <group name="greenhouse" position={GREENHOUSE_ORIGIN}>
+      <MergeStatic>
       <Frame />
       <Beds />
+      </MergeStatic>
       <Channel />
       <VineBridge />
       {(['pod-1', 'pod-2'] as const).map((id) => (

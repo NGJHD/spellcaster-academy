@@ -6,6 +6,7 @@ import { GALLERY_ORIGIN, GALLERY_ZONES, MIRA_GALLERY_POSITION } from '../../leve
 import { getRun } from '../../state/gameStore';
 import { Arch, Box, Column, Slab, StandingLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { MergeStatic } from '../MergeStatic';
 import { Mira, Student } from '../props';
 
 const W = 6;
@@ -20,6 +21,7 @@ export function GalleryScene() {
   ];
   return (
     <group name="gallery" position={GALLERY_ORIGIN}>
+      <MergeStatic>
       <Slab x={[-W, W]} y={[-0.1, 0]} z={[-63, 2]} material={MAT.lightOak} shadows={false} />
       <Slab x={[-W - 0.4, -W]} y={[0, H]} z={[-63, 2]} material={MAT.academyStone} />
       <Slab x={[W, W + 0.4]} y={[0, H]} z={[-63, 2]} material={MAT.academyStone} />
@@ -37,6 +39,7 @@ export function GalleryScene() {
       ))}
       {/* Observation balcony silhouettes */}
       <Slab x={[-W, -W + 1.6]} y={[4.6, 4.8]} z={[-60, -2]} material={MAT.darkOak} />
+      </MergeStatic>
       {[-10, -22, -35, -47].map((z, i) => (
         <Student key={z} position={[-W + 0.8, 4.8, z]} rotationY={Math.PI / 2} height={1.4 + (i % 2) * 0.1} />
       ))}

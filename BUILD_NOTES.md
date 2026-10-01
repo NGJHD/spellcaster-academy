@@ -110,6 +110,23 @@ Development/test URL options (dev builds, or any build with `?test`):
 - Typecheck, lint, production build clean. Build JS: game 246 kB, vendor 472 kB, three.js 876 kB (gzip 69/147/229 kB).
 - Measured headless level length (Standard, auto-continue dialogue, no reading pauses): 16 min at 28 WPM, 19 min at 19 WPM — real first plays with reading should land in the LD-1 20–30 min window.
 
+## Performance (2026-10-02, RTX 5060 Ti, Edge, 1600×900, Medium)
+
+Measured with `node scripts/perf.mjs` (render stats include the shadow pass) and `node scripts/breakdown.mjs` (visible triangles per object):
+
+| View | fps | draw calls | rendered tris (incl. shadows) |
+| --- | --- | --- | --- |
+| Arrival flyover | 60 | 871 | 810 k |
+| Courtyard combat | 60 | 309 | 302 k |
+| East Hall | 60 | 424 | 395 k |
+| Library combat | 60 | 639 | 562 k |
+| Greenhouse combat | 60 | 670 | 906 k |
+| Gallery | 60 | 433 | 517 k |
+| Tower / Observatory boss | 60 | 134–166 | 136–145 k |
+| Celebration | 60 | 1038 | 1.09 M (≈450 k visible) |
+
+Optimisations: static architecture batched per material (`MergeStatic`), tree LOD0 only within 16 m, fir LOD1 thinned to 5.8 k by removing leaf islands, street lamps 2.5 k, background students on LOD1 (11.8 k), indoor views skip campus foliage, East Hall Mira only mounted in the hall. Not yet profiled on integrated graphics — Low quality (no shadows, dpr 1) is the fallback.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

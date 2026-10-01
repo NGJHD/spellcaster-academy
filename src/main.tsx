@@ -9,11 +9,28 @@ installHowlerAudio();
 
 // Test hook for Playwright (`?test` only): read-only access to the live run.
 if (new URLSearchParams(window.location.search).has('test')) {
-  void import('./state/gameStore').then(({ getRun }) => {
+  void Promise.all([import('./state/gameStore'), import('./player/RunDriver')]).then(([{ getRun }, { renderStats, debugScene }]) => {
     (window as unknown as { __spellcaster: unknown }).__spellcaster = {
       beat: () => getRun()?.director.currentBeat?.id ?? null,
       area: () => getRun()?.currentAreaId ?? null,
       focus: () => getRun()?.focus ?? null,
+      render: () => ({ ...renderStats }),
+      scene: () => debugScene.current,
+      /** Visible triangles per top-level named group (performance investigation). */
+      breakdown: () => {
+        const out: Record<string, number> = {};
+        debugScene.current?.traverseVisible((o) => {
+          const mesh = o as import('three').Mesh;
+          if (!mesh.isMesh) return;
+          const g = mesh.geometry;
+          const tris = (g.index ? g.index.count : (g.attributes.position?.count ?? 0)) / 3;
+          let key = mesh.name || '';
+          for (let p = mesh.parent; p && !key; p = p.parent) key = p.name;
+          key ||= 'unnamed';
+          out[key] = (out[key] ?? 0) + Math.round(tris);
+        });
+        return out;
+      },
     };
   });
 }

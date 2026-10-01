@@ -6,6 +6,7 @@ import { PLAQUE_POSITIONS, PORTRAITS_ORIGIN } from '../../level/areas/portraits'
 import { getRun } from '../../state/gameStore';
 import { Arch, Bench, Box, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { MergeStatic } from '../MergeStatic';
 import { Mira } from '../props';
 import { Prop } from '../Prop';
 
@@ -16,6 +17,7 @@ const PORTRAIT_TINTS = ['#5a3a2a', '#2f3b55', '#4a3a24', '#3a2a40', '#2e4a3a', '
 export function PortraitsScene() {
   return (
     <group name="portraits" position={PORTRAITS_ORIGIN}>
+      <MergeStatic>
       <Slab x={[-W, W]} y={[-0.1, 0]} z={[-41, 2]} material={MAT.paving} shadows={false} />
       <Rug position={[0, 0, -19.5]} size={[2.2, 40]} />
       <Slab x={[-W - 0.3, -W]} y={[0, H]} z={[-41, 2]} material={MAT.plaster} />
@@ -34,6 +36,7 @@ export function PortraitsScene() {
           <pointLight position={[0, 4.2, z - 1]} color="#ffcf98" intensity={7} distance={8} decay={2} />
         </group>
       ))}
+      </MergeStatic>
       <FocusFountain />
       <CommunicationMirror />
       {PLAQUE_POSITIONS.map((p, i) => (
