@@ -1,0 +1,170 @@
+{
+  "mira": {
+    "id": "mira",
+    "file": "/assets/characters/mira.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Wave",
+      "TalkShort",
+      "Celebrate"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.25,
+      "height": 1.45
+    },
+    "wordAnchor": [
+      0,
+      1.7,
+      0
+    ],
+    "lodFiles": [
+      "/assets/characters/mira.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 29914,
+    "materials": 7,
+    "bounds": {
+      "min": [
+        -0.2882615327835083,
+        -0.006639265455305576,
+        -0.19246229529380798
+      ],
+      "max": [
+        0.28845250606536865,
+        1.4718432426452637,
+        0.19244448840618134
+      ]
+    },
+    "bytes": 1233980,
+    "source": "assets-src/scripts/characters/humanoid.py"
+  },
+  "orin": {
+    "id": "orin",
+    "file": "/assets/characters/orin.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Wave",
+      "TalkShort",
+      "Celebrate"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.3,
+      "height": 1.85
+    },
+    "wordAnchor": [
+      0,
+      2.1,
+      0
+    ],
+    "lodFiles": [
+      "/assets/characters/orin.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 29638,
+    "materials": 7,
+    "bounds": {
+      "min": [
+        -0.3678171932697296,
+        -0.008470757864415646,
+        -0.2455553114414215
+      ],
+      "max": [
+        0.3680576682090759,
+        1.872150182723999,
+        0.24553252756595612
+      ]
+    },
+    "bytes": 1196420,
+    "source": "assets-src/scripts/characters/humanoid.py"
+  },
+  "student_a": {
+    "id": "student_a",
+    "file": "/assets/characters/student_a.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Wave",
+      "TalkShort",
+      "Celebrate"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.25,
+      "height": 1.4
+    },
+    "wordAnchor": [
+      0,
+      1.65,
+      0
+    ],
+    "lodFiles": [
+      "/assets/characters/student_a.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 29914,
+    "materials": 7,
+    "bounds": {
+      "min": [
+        -0.2783215045928955,
+        -0.006410322152078152,
+        -0.18582569062709808
+      ],
+      "max": [
+        0.2785058617591858,
+        1.4210901260375977,
+        0.18580842018127441
+      ]
+    },
+    "bytes": 1234108,
+    "source": "assets-src/scripts/characters/humanoid.py"
+  },
+  "student_b": {
+    "id": "student_b",
+    "file": "/assets/characters/student_b.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Wave",
+      "TalkShort",
+      "Celebrate"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.25,
+      "height": 1.5
+    },
+    "wordAnchor": [
+      0,
+      1.75,
+      0
+    ],
+    "lodFiles": [
+      "/assets/characters/student_b.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 29912,
+    "materials": 7,
+    "bounds": {
+      "min": [
+        -0.2982301712036133,
+        -0.006868199910968542,
+        -0.19909895956516266
+      ],
+      "max": [
+        0.2984251379966736,
+        1.5225965976715088,
+        0.1990804672241211
+      ]
+    },
+    "bytes": 1233964,
+    "source": "assets-src/scripts/characters/humanoid.py"
+  }
+}

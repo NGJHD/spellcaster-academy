@@ -117,3 +117,18 @@ test('final boss through to the results screen', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'RESUME', exact: true })).toBeDisabled();
   await expect(page.getByText('Level 1 Complete')).toBeVisible();
 });
+
+test('full Level 1 from START to results (Gentle, 10× time)', async ({ page }) => {
+  test.setTimeout(600_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => {
+    if (m.type() === 'error' && !/favicon|404/.test(m.text())) errors.push(m.text());
+  });
+  await startNewGame(page, '&speed=10', 'Gentle');
+  await playUntil(page, async () => (await page.locator('.results').count()) > 0, 560_000);
+  await expect(page.getByRole('heading', { name: 'LEVEL 1 COMPLETE' })).toBeVisible();
+  await expect(page.getByText('Star pages')).toBeVisible();
+  // Definition of done: no recurring console errors during a full playthrough.
+  expect(errors).toEqual([]);
+});

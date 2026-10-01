@@ -1,88 +1,118 @@
 # Build Notes — Spellcaster Academy: The Broken Ward
 
-Running log of decisions, environment facts and milestone status. `CLAUDE.md` is the spec; this file records how it is being built.
+Running log of decisions, environment facts, architecture and milestone status. `CLAUDE.md` is the spec; this file records how it was built and what is verified.
 
 ## Environment
 
 - Windows 11, Node 24.19, npm 11.17 (package manager: **npm**; do not switch).
 - Blender 5.2 at `C:\Program Files\Blender Foundation\Blender 5.2\blender.exe` (not on PATH — call by full path).
-- Git repo initialised on `main` (2026-09-29). No remote yet.
+- Playwright drives the locally installed **Microsoft Edge** (`channel: 'msedge'`) — the Chromium download from cdn.playwright.dev timed out on this network. WebGL runs on the GPU via `--use-angle=d3d11`.
+- The Claude-in-Chrome automation window reports `visibilityState: hidden` (rAF never runs), so visual checks use `scripts/screens.mjs` (Playwright + Edge) instead.
 
-## Stack (pinned majors)
+## Stack
 
 | Package | Version | Note |
 | --- | --- | --- |
 | react / react-dom | 19.3 | R3F 9 requires `<19.4` |
-| three | 0.186 | |
-| @react-three/fiber | 9.8 | |
-| @react-three/drei | 10.7 | |
-| zustand | 5.0 | |
-| vite | 8.3 | |
-| vitest | 5.0 | |
-| typescript | ~6.0.3 | TS 7 is out, but typescript-eslint supports `<6.1` only |
-| eslint | 10 + typescript-eslint 8 + react-hooks 7 | flat config |
+| three | 0.186 | `PCFSoftShadowMap` is removed in r186 — use `PCFShadowMap` |
+| @react-three/fiber / drei | 9.8 / 10.7 | |
+| zustand | 5.0 | coarse state only |
+| howler | 2.2 | SFX; music is a Web Audio engine on Howler's context |
+| @fontsource/opendyslexic | 5.3 | OFL-licensed dyslexia-friendly font |
+| vite / vitest | 8.3 / 5.0 | vendor and three.js split into cached chunks |
+| typescript | ~6.0.3 | typescript-eslint supports `<6.1` only |
+| eslint 10 + typescript-eslint 8 + react-hooks 7 | | `react-hooks/immutability` is off for R3F scene folders only (imperative three.js updates in `useFrame` are mandated by §4.4) |
+| @playwright/test | 1.63 | |
 
-Not installed yet: `@react-three/rapier` (the on-rails camera needs no physics; add when something does), Howler (audio milestone), Playwright (added with the first critical browser-flow test).
+`@react-three/rapier` is intentionally **not** installed: nothing in an on-rails level needs physics (engineering principle 9). Add it only if a later feature truly needs collision.
 
-## Decisions from the owner (2026-09-29)
+## Decisions from the owner
 
-1. Start with Milestone 1; build milestone by milestone.
-2. Art: build gameplay with clearly labelled placeholders first, then replace them asset by asset via Blender `bpy` scripts. Hard-surface assets (architecture, props, anchors, Grimoire, armour, Warden) are well within scripted reach. Organic creatures and characters are the risk area; reference images and permission to use CC0 textures/HDRIs would raise quality. Still to confirm with the owner.
-3. Sound effects are self-made (synthesised in code or generated WAVs).
-4. No voice acting — all dialogue is subtitles.
-5. British spelling everywhere, including typed words (`honour`, `colour`).
-6. Git initialised.
+- 2026-09-29: build milestone by milestone; sound effects self-made; no voice acting (subtitles only); **British spelling** everywhere including typed words; git initialised.
+- 2026-10-01: "continue through all the milestones without stopping"; **CC0 assets approved** (Poly Haven textures, HDRIs and models are used; sources recorded in `assets-src/cc0/sources.json`).
+- Owner feedback on Milestone 1 placeholders: "Looks quite cartoonish. Can it be more realistic" → realism pass in Milestone 8 (see Visual direction).
 
 ## Spec conflict resolutions
 
 The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:
 
-- Runtime target is 20–30 minutes; the title screen offers START/RESUME; completion buttons follow LD-19.
-- Checkpoint list is the extended LD set (`arrival-gate-complete`, `east-hall-complete`, `portrait-hall-complete`, `lower-stairwell-complete`, …).
-- FP arm clips `FP_Walk/Run/Jump/Land` are dropped (on rails, no jumping).
-- Grimoire "dodging" becomes telegraphed Focus hits — the player cannot move.
-- Arrival Gate uses LD-8's three words; the Tab/Escape demos from §7.1 are short optional prompts.
-- Positive rank titles from §7.11 are kept alongside the LD-19 metrics.
-- Target platform: typical Windows laptop, Chrome/Edge primary, Firefox secondary.
+- Runtime target 20–30 min; START/RESUME title; LD-19 completion buttons; extended LD checkpoint list.
+- FP arm clips `FP_Walk/Run/Jump/Land` dropped (on rails). Fallen banner pole is decorative.
+- Grimoire "dodging" = telegraphed Focus hits (gusts) — the player never moves.
+- Arrival Gate uses LD-8's three words; Tab/Escape are taught by short barks.
+- The §1A `library`/`garden` route choice is **not** in the authoritative LD flow (LD-4), so it is not implemented; the pre-boss menu (LD-16) is the only choice beat.
+- Difficulty can be changed from the pause menu at any time **outside** an active encounter (and at the pre-boss choice); it applies from the next encounter. Assist mode is a separate toggle and is auto-enabled after repeated failures (Warden: 2 Focus resets; Gallery P3: 3 broken streaks).
+- Positive rank titles from §7.11 are shown alongside the LD-19 metrics.
+- Practice Gallery dummies and gallery Mira are in the gallery; ending staging was moved clear of the fountain.
 
-## Architecture notes
+## How to run
 
-### Rail system (`src/level/rail/`)
+```bash
+npm run dev            # http://localhost:5173
+npm run test           # unit + content + headless full playthroughs + asset validation (97 tests)
+npm run test:e2e       # Playwright (Edge): 8 browser flows incl. a full Level 1 run
+npm run typecheck && npm run lint && npm run build
+npm run audio          # regenerate synthesised SFX into public/audio/sfx
+node scripts/fetch-cc0.mjs                     # re-download CC0 sources (raw models are git-ignored)
+blender --background --python assets-src/scripts/repack_cc0.py [-- ids…]
+blender --background --python assets-src/scripts/creatures/<name>.py -- [--preview]
+blender --background --python assets-src/scripts/characters/humanoid.py -- <mira|orin|student_a|student_b> [--preview]
+node scripts/build-manifests.mjs               # refresh public/assets/manifests/{creatures,characters}.json
+node scripts/screens.mjs http://localhost:5199/ "<beat>@<ms>" …   # screenshots of beats
+```
 
-- Pure TypeScript, no React. Uses three.js math only (`CatmullRomCurve3`, centripetal).
-- `railTypes.ts` — route data model. Camera nodes and look points are **named** records (GD-2); beats reference them by name.
-- Beat kinds so far: `rail-travel` (spline glide), `camera-reveal` (fixed position, eased pans across look points, then holds), `loading-transition` (fade out → cut → fade in).
-- Position and look target run on separate splines so framing can be art-directed.
-- Reduced motion: travel beats marked `fade-cut` become a 0.9 s fade cut; reveal pans are halved.
-- Travel-speed setting scales `rail-travel` durations only (between-encounter travel).
-- `RailDirector` plays beats in order, carries leftover frame time across beat boundaries, and clamps frame delta to 0.1 s so a tab switch never jumps the camera.
-- `validateRoute` checks names, timings, duplicate IDs and **camera continuity** (a beat must start where the previous one ended unless it is a fade transition). A unit test runs it on the authored Level 1 route.
+Development/test URL options (dev builds, or any build with `?test`):
+
+- `/dev/assets` — asset viewer: orbit, animation switching, wireframe, game/neutral lighting, LOD1 toggle, collider/anchor/bounds, triangle and material counts.
+- `?beat=<beat-id>` — START begins a new run at that beat. `?speed=<n>` — time scale (≤20). `?rails` — show camera rails. `?test` exposes a read-only `window.__spellcaster` hook for Playwright.
+
+## Architecture
+
+- **Level data** (`src/level/areas/*.ts`, assembled in `level1Route.ts`): every area is a shot list of beats — camera beats (`rail-travel`, `camera-reveal`, `loading-transition`) and gated beats (`dialogue`, `encounter`, `checkpoint`, `choice`, `results`). Camera nodes and look points are **named** (GD-2). `validateRoute` proves the camera never jumps; `level1Content.test.ts` checks every line, encounter, star page and cosmetic resolves.
+- **LevelDirector** advances camera beats on time and waits for gated beats; nothing else can advance the story. Frame delta is clamped to 0.1 s.
+- **Encounters** (`EncounterRunner`): waves (parallel or sequential), wave rules (`clear`, `qualify` for Gallery P1, `streak` for P3), boss hazards with wind-ups, optional/bonus targets, conditional rewards. Each wave is a resume point.
+- **Enemy brains** (`EnemyBrain.ts`): data-driven FSM (appear → active ⇄ wind-up/hit/recover → stunned → dispelling → gone) with authored movement (approach/patrol/orbit/static). Targeted enemies slow to 35 %; enemy time slows while mid-word per difficulty.
+- **Typing** (`src/typing`): framework-free engine (initial-letter targeting, duplicate initials need a 2nd letter then fall back to the most central target, Tab cycling, buffered mistakes with Backspace, Gentle reject mode); metrics recorder built on accepted-input **segments** (5 s idle gap, pause/hidden suspend) with the LD-19 formulas; deterministic word assigner (unique initials, no repeats, seeded per encounter/wave/attempt).
+- **GameRun** (`src/game/GameRun.ts`): one playthrough — beats, encounters, typing, Focus/resets, rewards, barks/dialogue, choice, autosave, results. Plain TS; fully playable headless (see `playthrough.test.ts`).
+- **Saves** (`saveData.ts`): versioned autosave written to a temp key, validated, promoted; previous valid save kept as backup. Resume = beat + wave; only *committed* typing metrics are saved (committed at wave/encounter/checkpoint completion) so reloads never double count. Starting a new run while a save exists defers saving until the new run's first checkpoint (LD-5). Profile stores best results and cosmetics separately.
+- **Rendering**: `RunDriver` advances the run, places the camera (with gentle locked-target framing and optional shake), drives the fade overlay and projects HTML word labels (clamped above the subtitle band, with off-screen arrows). `World` mounts only the current area plus the previous one briefly (area streaming). `Atmosphere` = per-area HDRI lighting, one camera-following shadow sun, sky/stars, fog.
+- **Audio**: 19 synthesised SFX (`scripts/generate-audio.mjs`, ~1 MB) via Howler with per-category volumes; procedural music moods per GD-20 state with cross-fades. Game is fully playable muted.
+
+## Visual direction and asset pipeline (Milestone 8)
+
+- **Surfaces**: Poly Haven CC0 PBR sets (colour, normal, packed AO/roughness/metal) applied to the shared material library; geometry helpers generate **metre-based UVs** so textures keep real-world scale on any size (`src/scene/surfaces.ts`).
+- **Lighting**: CC0 HDRIs for image-based lighting per area (day, interior, greenhouse, night, sunrise).
+- **Architecture**: façade kit (plinth, pilasters, cornice, framed arched windows, crenellations) and gable roofs; dark glass outside, lit glass inside.
+- **CC0 props** (41 Poly Haven models) repacked by Blender (`repack_cc0.py`): trees joined then decimated to budget (fir 7 M → 17 k tris), WebP textures, LOD1 for trees/shrubs used via drei `Detailed`. Raw downloads are git-ignored; repacked GLBs (~36 MB) are committed. The jacaranda tree was dropped (texture-heavy, 8 MB even at LOD1).
+- **Original creatures & characters** (Blender scripts, `assets-src/scripts/`): organic forms are modelled as blended **volumes** (metaball ellipsoids/capsules → voxel remesh → smooth → decimate), coloured by zone, rigged with automatic weights, animated with eased keyframes, exported as GLB with named actions.
+  - Mischief sprite (russet/grey/teal), Mossling, Ink wisp — rigged, Idle/Move/Attack/Hit/Dispel; Attack anticipation is scrubbed by the gameplay wind-up so telegraphs match timing exactly.
+  - Mira, Keeper Orin, two students — carved eye sockets, seated eyes with iris/pupil, hair volumes, robe/satchel; Idle/Wave/TalkShort/Celebrate; characters gesture while their subtitle is showing.
+  - Ward Warden (48 k tris) and armour guardian (31 k) — pivoted rigid parts driven by gameplay state (rise, attacks, plate release, repair, bow).
+- **Validation** (`scripts/validate-assets.test.mjs`): every GLB exists and parses, has normals and finite transforms, required animations present and non-empty, plausible scale, word anchor above the asset, §15 triangle budgets, no exported cameras/lights; every prop referenced in scene code exists. Manifests in §14.7 format are generated by `scripts/build-manifests.mjs`.
+- Previews of every Blender asset are rendered to `assets-src/previews/` (front/side/three-quarter, faces close-up).
 
 ## Milestone status
 
-### Milestone 1 — Foundation (complete 2026-09-29)
+- [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.
+- [x] **M2 Typing combat slice** — typing engine + metrics + tests, HTML labels, target lock, wand projectile, Focus and restart.
+- [x] **M3 Courtyard** — Arrival tutorial, courtyard encounters, first anchor, checkpoints/autosave/resume, HUD and settings.
+- [x] **M4 Library** — East Hall, books, shielded wisps, Great Grimoire (3 phases), second anchor.
+- [x] **M5 Greenhouse** — Portraits (fountain, constellations bonus), vine bridge, pods/mosslings/pollen priority encounters, Warden rescue, third anchor.
+- [x] **M6 Final path** — Stairwell commands + malfunction, Practice Gallery (accuracy/priority/streak rules with assist), Tower floors, pre-boss menu, Ward Warden (shell, runes ×2, repair).
+- [x] **M7 Completion** — Celebration ending, results (all LD-19 metrics, rank, two true positive messages), 8 star pages, 2 cosmetics, audio, accessibility (reduced motion/shake/effects, font size, high contrast, OpenDyslexic, auto-continue, optional WPM, volumes, full screen, travel speed), quality presets.
+- [x] **M8 Polish & verification** — realism pass (above), asset validation and `/dev/assets`, Playwright full path, balance check via headless playthroughs.
 
-- [x] Vite + React + strict TypeScript + ESLint + Vitest scaffold
-- [x] Rail data model, math, director, validator
-- [x] Level 1 preview route (Arrival Gate → Courtyard → East Hall), 17 beats, placeholder geometry
-- [x] R3F canvas + `RailCameraController` (writes camera and fade overlay imperatively; store only sees beat changes)
-- [x] Zustand game store + settings store (persisted, versioned, sanitised field by field; defaults to OS reduced-motion)
-- [x] Title screen (START; RESUME disabled until autosave exists), pause menu (resume / controls / settings / return to title), Escape handling, auto-pause on window blur and tab hide
-- [x] Area title card, dev beat label, `?rails` rail gizmos, dev-only `?beat=<id>` start
-- [x] 21 unit tests passing; typecheck, lint and production build clean; no console errors in browser
+## Verification (2026-10-01)
 
-Verified in Chrome: title screen, opening fade and flyover, crystal reveal, courtyard reveal, East Hall reveal pan.
+- `npm run test`: **97 passed** — typing engine, metrics formulas, word content, difficulty filtering, settings, store flow, route/content integrity, asset validation, and **headless full-level playthroughs** at Gentle (slow typist with mistakes), Standard and Challenge, plus save → reload → resume without double counting.
+- `npm run test:e2e`: **8 passed** in Edge — title/RESUME state, Arrival tutorial by typing, target lock + combat, pause during combat freezes attacks, anchor + checkpoint + reload + RESUME, difficulty change at a checkpoint, final boss → results → RESUME disabled + completion crest, and a **complete Level 1 run from START to results with zero console errors**.
+- Typecheck, lint, production build clean. Build JS: game 241 kB, vendor 472 kB, three.js 876 kB (gzip 69/147/229 kB).
+- Measured headless level length (Standard, auto-continue dialogue, no reading pauses): 16 min at 28 WPM, 19 min at 19 WPM — real first plays with reading should land in the LD-1 20–30 min window.
 
-Known limitations:
-- Production bundle is ~1.2 MB (three.js); code-splitting comes with per-area loading.
-- Placeholder art is intentionally flat primitives (see "Visual direction" below).
-- The Claude-in-Chrome automation window reports `visibilityState: hidden`, so rAF does not run there; use `?beat=` plus screenshots for visual checks rather than real-time playback.
+## Known limitations / next steps
 
-## Dev URLs
-
-- `/?rails` — show camera splines (gold), look splines (blue dashed) and node names.
-- `/?beat=courtyard-fountain-reveal` — dev build only; START begins at that beat.
-
-## Visual direction
-
-2026-09-29: the owner saw the placeholders and asked for a more realistic look. Next step is a look-development pass on the Arrival Gate to set the visual bar before building further areas.
+- Still code-built (clearly labelled placeholders, same gameplay hooks): Pip, runaway books, training dummies, thorn pods, pollen puffs, Great Grimoire, ward anchors, gate crystals, first-person forearm/hand, stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
+- Character faces are stylised volume sculpts — readable at dialogue distance, not close-up hero quality. Creature LOD1/LOD2 files are not yet generated (single LOD within budget).
+- Manual checks in §17 that need a human at a real keyboard have not been done by a person: deliberately slow Gentle play, intentional-mistake Standard play by feel, focus loss / tab switching by hand, browser resizing at several resolutions, refresh at every checkpoint, low-end laptop performance profiling. Automated equivalents exist for most flows.
+- Firefox has not been tested (Edge/Chromium only).
+- Music is procedural placeholder material; SFX are synthesised.

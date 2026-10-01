@@ -1186,3 +1186,55 @@ kbd {
     animation: none;
   }
 }
+
+/* ---------- /dev/assets viewer ---------- */
+
+.asset-viewer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+}
+
+.asset-viewer__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  overflow-y: auto;
+  background: var(--panel);
+  font-size: 0.9rem;
+}
+
+.asset-viewer__panel h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--gold-strong);
+}
+
+.asset-viewer__panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.asset-viewer__panel label:has(input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.asset-viewer__panel dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.8rem;
+  margin: 0;
+}
+
+.asset-viewer__panel dt {
+  color: var(--ink-muted);
+}
+
+.asset-viewer__panel dd {
+  margin: 0;
+}
