@@ -1,7 +1,7 @@
 /** PLACEHOLDER Whispering Library (§14A.19). Local coordinates; see src/level/areas/library.ts. */
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import type { Group } from 'three';
+import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
+import type { Group, Object3D } from 'three';
 import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
@@ -9,6 +9,7 @@ import { Bookshelf, Box, Column, Rug, Slab, StandingLamp, WallLamp, WindowPane }
 import { MAT } from '../materials';
 import { WardAnchor, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
+import { useParts } from '../partsGlb';
 
 const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
 
@@ -170,48 +171,52 @@ function CirclingBooks() {
   );
 }
 
+interface GrimoireRig {
+  coverL: Object3D | null;
+  coverR: Object3D | null;
+  /** Code stand-in covers rotate about Y; GLB covers about Z. */
+  axis: 'y' | 'z';
+  /** Hinge direction (the GLB is flipped so the open pages face up). */
+  sign: 1 | -1;
+}
+
 /** The Great Grimoire (§14A.8): dormant and chained until it wakes; settles back afterwards. */
 function Grimoire() {
   const root = useRef<Group>(null);
-  const coverL = useRef<Group>(null);
-  const coverR = useRef<Group>(null);
   const chains = useRef<Group>(null);
+  const rig = useRef<GrimoireRig>({ coverL: null, coverR: null, axis: 'z', sign: -1 });
   const beat = useBeatIndex();
   const time = useRef(0);
   const hover = useRef(0);
+  const open = useRef(0);
   useFrame((_, dt) => {
     time.current += dt;
     const run = getRun();
     const settled = run?.flags.has('grimoire-settled') ?? false;
     const awake = beat >= WAKE_BEAT && !settled;
-    const p1 = run?.encounterProgress('grimoire-g1');
-    const opened = p1?.complete ?? false;
-    hover.current += ((awake ? 1 : 0) - hover.current) * (1 - Math.exp(-1.5 * Math.min(dt, 0.1)));
+    const opened = run?.encounterProgress('grimoire-g1').complete ?? false;
+    const k = 1 - Math.exp(-1.5 * Math.min(dt, 0.1));
+    hover.current += ((awake ? 1 : 0) - hover.current) * k;
     const h = hover.current;
     if (root.current) {
-      root.current.position.y = 1.14 + h * (1.3 + Math.sin(time.current * 1.1) * 0.12);
-      root.current.rotation.x = -Math.PI / 2 + h * 1.25;
+      root.current.position.y = 1.08 + h * (1.3 + Math.sin(time.current * 1.1) * 0.12);
+      root.current.rotation.x = h * 1.25;
       root.current.rotation.z = Math.sin(time.current * 0.7) * 0.05 * h;
     }
-    const openAngle = settled ? 0.9 : opened ? 1.2 + Math.sin(time.current * 2.2) * 0.1 : 0.04;
-    if (coverL.current) coverL.current.rotation.y += (openAngle - coverL.current.rotation.y) * 0.08;
-    if (coverR.current) coverR.current.rotation.y += (-openAngle - coverR.current.rotation.y) * 0.08;
+    // Heavy covers: slow to open, with a little strain while clasped (§14A.8 hinge weight).
+    const goal = settled ? 0.25 : opened ? Math.sin(time.current * 2.2) * 0.06 : awake ? 1.35 + Math.sin(time.current * 14) * 0.03 : 1.45;
+    open.current += (goal - open.current) * (1 - Math.exp(-2 * Math.min(dt, 0.1)));
+    const { coverL, coverR, axis, sign } = rig.current;
+    if (coverL) coverL.rotation[axis] = sign * open.current;
+    if (coverR) coverR.rotation[axis] = -sign * open.current;
     if (chains.current) chains.current.visible = beat < WAKE_BEAT;
   });
   return (
     <group position={[0, 0, -20]}>
-      <group ref={root} position={[0, 1.14, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <Box position={[0, 0, 0.09]} size={[1.0, 1.3, 0.16]} material={MAT.parchment} />
-        <group ref={coverL} position={[0, 0, 0.18]}>
-          <Box position={[-0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
-          <mesh position={[-0.52, 0, 0.03]} material={MAT.wardGold}>
-            <torusGeometry args={[0.28, 0.02, 8, 40]} />
-          </mesh>
-        </group>
-        <group ref={coverR} position={[0, 0, 0.18]}>
-          <Box position={[0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
-        </group>
-        <Box position={[0, 0, 0]} size={[0.1, 1.38, 0.06]} material={MAT.agedBrass} />
+      <group ref={root} position={[0, 1.08, 0]}>
+        <Suspense fallback={<GrimoireFallback rig={rig} />}>
+          <GrimoireGLB rig={rig} />
+        </Suspense>
       </group>
       <group ref={chains}>
         {[-0.6, 0.6].map((x) => (
@@ -219,6 +224,40 @@ function Grimoire() {
             <torusGeometry args={[0.25, 0.025, 6, 20]} />
           </mesh>
         ))}
+      </group>
+    </group>
+  );
+}
+
+function GrimoireGLB({ rig }: { rig: RefObject<GrimoireRig> }) {
+  const parts = useParts('grimoire');
+  useEffect(() => {
+    rig.current.coverL = parts.get('Cover_L') ?? null;
+    rig.current.coverR = parts.get('Cover_R') ?? null;
+    rig.current.axis = 'z';
+    rig.current.sign = -1;
+  }, [parts, rig]);
+  // Modelled covers-up; flipped about the spine so the open pages face the player.
+  return <primitive object={parts.root} rotation={[0, 0, Math.PI]} />;
+}
+
+function GrimoireFallback({ rig }: { rig: RefObject<GrimoireRig> }) {
+  const coverL = useRef<Group>(null);
+  const coverR = useRef<Group>(null);
+  useEffect(() => {
+    rig.current.coverL = coverL.current;
+    rig.current.coverR = coverR.current;
+    rig.current.axis = 'y';
+    rig.current.sign = 1;
+  }, [rig]);
+  return (
+    <group rotation={[-Math.PI / 2, 0, 0]}>
+      <Box position={[0, 0, 0.09]} size={[1.0, 1.3, 0.16]} material={MAT.parchment} />
+      <group ref={coverL} position={[0, 0, 0.18]}>
+        <Box position={[-0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
+      </group>
+      <group ref={coverR} position={[0, 0, 0.18]}>
+        <Box position={[0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
       </group>
     </group>
   );

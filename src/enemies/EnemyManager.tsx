@@ -6,11 +6,10 @@ import { useRunStore } from '../state/runStore';
 import type { TargetSpawn } from '../level/levelTypes';
 import { CreatureModel, creatureUrl } from './CreatureModel';
 import { Guardian } from './GuardianGLB';
+import { Book, Dummy, ThornPod } from './PropTargets';
 import { APPEAR_SEC, DISPEL_SEC, isShielded, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
 import {
-  BookModel,
   ClaspModel,
-  DummyModel,
   emptyPose,
   FlyingPageModel,
   MosslingModel,
@@ -19,7 +18,6 @@ import {
   RuneModel,
   SpriteModel,
   StarPageModel,
-  ThornPodModel,
   WispModel,
   WispShield,
   type TargetPose,
@@ -45,15 +43,15 @@ function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose
 function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
   switch (spawn.kind) {
     case 'dummy':
-      return <DummyModel pose={pose} practice={spawn.variant === 'practice'} />;
+      return <Dummy pose={pose} practice={spawn.variant === 'practice'} />;
     case 'sprite':
       return <SpriteModel pose={pose} variant={spawn.variant} />;
     case 'book':
-      return <BookModel pose={pose} variant={spawn.variant} />;
+      return <Book pose={pose} variant={spawn.variant} />;
     case 'wisp':
       return <WispModel pose={pose} />;
     case 'thorn-pod':
-      return <ThornPodModel pose={pose} />;
+      return <ThornPod pose={pose} />;
     case 'mossling':
       return <MosslingModel pose={pose} />;
     case 'pollen':

@@ -27,6 +27,7 @@ describe.each(Object.entries(ASSETS))('%s assets', (folder, assets) => {
       expect(found, `animation ${clip}`).toBeDefined();
       expect(found.channels, `animation ${clip} channels`).toBeGreaterThan(0);
     }
+    for (const node of meta.nodes ?? []) expect(a.nodeNames, `named part ${node}`).toContain(node);
     const height = a.bounds.max[1] - a.bounds.min[1];
     expect(height, 'height (m)').toBeGreaterThanOrEqual(meta.height[0]);
     expect(height, 'height (m)').toBeLessThanOrEqual(meta.height[1]);

@@ -11,6 +11,7 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 import creatures from '../../public/assets/manifests/creatures.json';
 import characters from '../../public/assets/manifests/characters.json';
 import props from '../../public/assets/manifests/props.json';
+import originals from '../../public/assets/manifests/props_original.json';
 import { applySurfaceTextures } from '../scene/surfaces';
 
 interface Entry {
@@ -26,6 +27,7 @@ interface Entry {
 const ENTRIES: Entry[] = [
   ...Object.values(creatures).map((c) => ({ ...c, group: 'Creatures' })),
   ...Object.values(characters).map((c) => ({ ...c, group: 'Characters' })),
+  ...Object.values(originals).map((c) => ({ ...c, group: 'Original props' })),
   ...Object.values(props as Record<string, { id: string; file: string; license: string; lodFiles?: string[] }>).map((p) => ({
     id: p.id,
     file: p.file,
@@ -115,7 +117,7 @@ export function AssetViewer() {
         <label>
           Asset
           <select value={index} onChange={(e) => setIndex(Number(e.target.value))}>
-            {['Creatures', 'Characters', 'CC0 props'].map((g) => (
+            {['Creatures', 'Characters', 'Original props', 'CC0 props'].map((g) => (
               <optgroup key={g} label={g}>
                 {ENTRIES.map((en, i) =>
                   en.group === g ? (

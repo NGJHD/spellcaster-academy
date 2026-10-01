@@ -1,0 +1,261 @@
+{
+  "fp_arm": {
+    "id": "fp_arm",
+    "file": "/assets/props_original/fp_arm.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "none",
+      "radius": 0,
+      "height": 0
+    },
+    "wordAnchor": [
+      0,
+      0.6,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/fp_arm.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 16964,
+    "materials": 7,
+    "bounds": {
+      "min": [
+        -0.02425973303616047,
+        -0.3018355667591095,
+        -0.35378503799438477
+      ],
+      "max": [
+        0.17186754941940308,
+        0.03246815502643585,
+        0.5417070984840393
+      ]
+    },
+    "bytes": 435328,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "pip": {
+    "id": "pip",
+    "file": "/assets/props_original/pip.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "sphere",
+      "radius": 0.12,
+      "height": 0.24
+    },
+    "wordAnchor": [
+      0,
+      0.35,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/pip.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 10728,
+    "materials": 2,
+    "bounds": {
+      "min": [
+        -0.14150000689551234,
+        -0.12349999996910062,
+        -0.13412306563124704
+      ],
+      "max": [
+        0.14150000689551234,
+        0.12349999996910062,
+        0.13412306563124704
+      ]
+    },
+    "bytes": 278708,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "training_dummy": {
+    "id": "training_dummy",
+    "file": "/assets/props_original/training_dummy.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.3,
+      "height": 1.65
+    },
+    "wordAnchor": [
+      0,
+      2,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/training_dummy.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 16480,
+    "materials": 6,
+    "bounds": {
+      "min": [
+        -0.37833958864212036,
+        -0.009879038669168949,
+        -0.37825047969818115
+      ],
+      "max": [
+        0.3783190846443176,
+        1.8097182512283325,
+        0.3783179223537445
+      ]
+    },
+    "bytes": 409948,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "runaway_book": {
+    "id": "runaway_book",
+    "file": "/assets/props_original/runaway_book.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "box",
+      "radius": 0.25,
+      "height": 0.1
+    },
+    "wordAnchor": [
+      0,
+      0.45,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/runaway_book.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 4416,
+    "materials": 4,
+    "bounds": {
+      "min": [
+        -0.3100000023841858,
+        -0.007655959576368332,
+        -0.22124184668064117
+      ],
+      "max": [
+        0.325000012293458,
+        0.062330125365406275,
+        0.22131460905075073
+      ]
+    },
+    "bytes": 112268,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "thorn_pod": {
+    "id": "thorn_pod",
+    "file": "/assets/props_original/thorn_pod.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.3,
+      "height": 1.4
+    },
+    "wordAnchor": [
+      0,
+      1.7,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/thorn_pod.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 16292,
+    "materials": 6,
+    "bounds": {
+      "min": [
+        -0.444185733795166,
+        -0.04930342361330986,
+        -0.44399017095565796
+      ],
+      "max": [
+        0.44376224279403687,
+        1.489180564880371,
+        0.4440040588378906
+      ]
+    },
+    "bytes": 446384,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "ward_anchor": {
+    "id": "ward_anchor",
+    "file": "/assets/props_original/ward_anchor.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "cylinder",
+      "radius": 0.9,
+      "height": 1.8
+    },
+    "wordAnchor": [
+      0,
+      2,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/ward_anchor.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 13768,
+    "materials": 3,
+    "bounds": {
+      "min": [
+        -0.8531461293350304,
+        0,
+        -0.9093368649482727
+      ],
+      "max": [
+        0.7912952303886414,
+        1.7400530576705933,
+        0.6652132381544291
+      ]
+    },
+    "bytes": 343460,
+    "source": "assets-src/scripts/props/hero_props.py"
+  },
+  "grimoire": {
+    "id": "grimoire",
+    "file": "/assets/props_original/grimoire.glb",
+    "unitScaleMeters": 1,
+    "animations": [],
+    "collision": {
+      "shape": "box",
+      "radius": 0.7,
+      "height": 0.3
+    },
+    "wordAnchor": [
+      0,
+      0.6,
+      0
+    ],
+    "lodFiles": [
+      "/assets/props_original/grimoire.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 9312,
+    "materials": 5,
+    "bounds": {
+      "min": [
+        -1.0493828058242798,
+        -0.009568169713020325,
+        -0.759303092956543
+      ],
+      "max": [
+        1.0494980812072754,
+        0.23011009395122528,
+        1.0000000149011612
+      ]
+    },
+    "bytes": 232076,
+    "source": "assets-src/scripts/props/hero_props.py"
+  }
+}

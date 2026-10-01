@@ -7,7 +7,7 @@ import { Suspense, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Color, Mesh, Vector3, type Group, type MeshStandardMaterial } from 'three';
 import { emptyPose, type TargetPose } from '../enemies/TargetVisuals';
-import { DummyModel, ThornPodModel } from '../enemies/TargetVisuals';
+import { Dummy, ThornPod } from '../enemies/PropTargets';
 import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
@@ -15,6 +15,7 @@ import { useRunStore } from '../state/runStore';
 import { CharacterModel } from './CharacterModel';
 import { Guardian } from '../enemies/GuardianGLB';
 import { MAT } from './materials';
+import { useParts } from './partsGlb';
 
 /** Current beat index (re-renders only when the beat changes). */
 export function useBeatIndex(): number {
@@ -32,7 +33,7 @@ const ANCHOR_THEME = {
   greenhouse: { base: MAT.academyStoneDark, accent: '#8ff0a8' },
 } as const;
 
-export function WardAnchor({ position, encounterId, theme }: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
+function WardAnchorFallback({ position, encounterId, theme }: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
   const rings = useRef<(Group | null)[]>([]);
   const shard = useRef<Group>(null);
   const column = useRef<Mesh>(null);
@@ -153,7 +154,7 @@ export function DormantTarget({ encounterId, targetId, kind, position, rotationY
     g.visible = !done && !live;
   });
   const model: ReactNode =
-    kind === 'dummy' ? <DummyModel pose={pose} practice={false} /> : kind === 'guardian' ? <Guardian pose={pose} /> : <ThornPodModel pose={pose} />;
+    kind === 'dummy' ? <Dummy pose={pose} practice={false} /> : kind === 'guardian' ? <Guardian pose={pose} /> : <ThornPod pose={pose} />;
   return (
     <group ref={group} position={position} rotation={[0, rotationY, 0]}>
       {model}
@@ -522,6 +523,83 @@ export function WardenModel({ state, scale = 1 }: { state: { current: WardenStat
   return (
     <Suspense fallback={<WardenFallback state={state} scale={scale} />}>
       <WardenGLB state={state} scale={scale} />
+    </Suspense>
+  );
+}
+
+// ---------- Ward anchor GLB (assets-src/scripts/props/hero_props.py) ----------
+
+function WardAnchorGLB({ position, encounterId, theme }: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
+  const parts = useParts('ward_anchor');
+  const rig = useMemo(() => {
+    const nodes = [0, 1, 2].map((i) => {
+      const mats: MeshStandardMaterial[] = [];
+      parts.get(`Node_${i}`)?.traverse((o) => {
+        if (o instanceof Mesh) {
+          const m = (o.material as MeshStandardMaterial).clone();
+          o.material = m;
+          mats.push(m);
+        }
+      });
+      return mats;
+    });
+    return {
+      rings: [0, 1, 2].map((i) => parts.get(`Ring_${i}`)),
+      shard: parts.get('Shard'),
+      nodes,
+    };
+  }, [parts]);
+  const accent = useMemo(() => new Color(ANCHOR_THEME[theme].accent), [theme]);
+  const dim = useMemo(() => new Color('#1d2a3a'), []);
+  const column = useRef<Mesh>(null);
+  const level = useRef(0);
+  const time = useRef(0);
+
+  useFrame((_, dt) => {
+    time.current += dt;
+    const p = getRun()?.encounterProgress(encounterId);
+    const goal = p ? (p.complete ? 1 : p.total ? p.done / p.total : 0) : 0;
+    level.current = damp(level.current, goal, 3, dt);
+    const l = level.current;
+    const restored = p?.complete ?? false;
+    // Broken: misaligned rings and dim, flickering nodes. Restored: aligned, turning smoothly, column of light.
+    rig.rings.forEach((r, i) => {
+      if (!r) return;
+      const mis = (1 - l) * (0.5 + i * 0.3);
+      r.rotation.set(mis * (i % 2 ? 1 : -1), restored ? time.current * (0.4 + i * 0.2) : Math.sin(time.current * 0.5 + i) * 0.1 * (1 - l), mis * 0.6);
+    });
+    rig.nodes.forEach((mats, i) => {
+      const lit = l * 3 > i + 0.5;
+      for (const m of mats) {
+        m.emissive.copy(lit ? accent : dim);
+        m.emissiveIntensity = lit ? 3 : 0.4 + Math.abs(Math.sin(time.current * 3 + i)) * 0.3 * (1 - l);
+      }
+    });
+    if (rig.shard) {
+      rig.shard.position.y = 1.5 + Math.sin(time.current * 1.4) * 0.05 * (0.3 + l);
+      rig.shard.rotation.y = time.current * (0.2 + l);
+    }
+    if (column.current) {
+      column.current.visible = restored;
+      column.current.scale.y = damp(column.current.scale.y, restored ? 1 : 0.01, 2, dt);
+    }
+  });
+
+  return (
+    <group position={position}>
+      <primitive object={parts.root} />
+      <mesh ref={column} position={[0, 12, 0]} visible={false}>
+        <cylinderGeometry args={[0.12, 0.3, 22, 16, 1, true]} />
+        <meshBasicMaterial color={ANCHOR_THEME[theme].accent} transparent opacity={0.28} depthWrite={false} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+export function WardAnchor(props: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
+  return (
+    <Suspense fallback={<WardAnchorFallback {...props} />}>
+      <WardAnchorGLB {...props} />
     </Suspense>
   );
 }

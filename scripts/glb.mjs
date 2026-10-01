@@ -83,6 +83,7 @@ export function analyseGlb(path) {
     cameras: (json.cameras ?? []).length,
     lights: json.extensions?.KHR_lights_punctual?.lights?.length ?? 0,
     animations: (json.animations ?? []).map((a) => ({ name: a.name, channels: a.channels.length })),
+    nodeNames: (json.nodes ?? []).map((n) => n.name),
     images: (json.images ?? []).map((i) => i.mimeType ?? 'uri'),
     bounds: { min: lo, max: hi },
   };

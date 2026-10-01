@@ -1,7 +1,8 @@
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { Vector3, type Group } from 'three';
+import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
+import { Color, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
 import { MAT } from '../scene/materials';
+import { useParts } from '../scene/partsGlb';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 
@@ -17,12 +18,19 @@ const offset = new Vector3();
  * PLACEHOLDER Pip (§14A.2): brass astrolabe rings around a warm opalescent core. Follows the camera
  * with soft inertia and overlap; brightens while speaking.
  */
+interface PipRig {
+  rings: Object3D[];
+  fins: Object3D[];
+  core: MeshStandardMaterial[];
+}
+
 export function PipCompanion() {
   const root = useRef<Group>(null);
-  const rings = useRef<(Group | null)[]>([]);
+  const rig = useRef<PipRig>({ rings: [], fins: [], core: [] });
   const time = useRef(0);
-  const core = useMemo(() => MAT.wardGold.clone(), []);
   const placed = useRef(false);
+  const warm = useMemo(() => new Color('#ffb640'), []);
+  const cool = useMemo(() => new Color('#bfe0ff'), []);
 
   useFrame((state, delta) => {
     const g = root.current;
@@ -37,22 +45,57 @@ export function PipCompanion() {
       g.position.copy(goal);
       placed.current = true;
     }
+    // Soft inertia: Pip lags behind camera moves and settles (never a rigid UI icon).
     const k = 1 - Math.exp(-FOLLOW_RATE * Math.min(delta, 0.1));
     g.position.lerp(goal, k);
     g.lookAt(state.camera.position);
 
     const speaking = useRunStore.getState().subtitle?.speaker === 'pip';
-    core.emissiveIntensity += ((speaking ? 2.6 : 1.4) - core.emissiveIntensity) * k;
-    core.emissive.setRGB(1, speaking ? 0.8 : 0.68, speaking ? 0.45 : 0.25);
-    rings.current.forEach((r, i) => {
-      if (!r) return;
-      r.rotation.x = time.current * (0.4 + i * 0.25);
-      r.rotation.y = time.current * (0.25 + i * 0.3) * (i % 2 ? -1 : 1);
+    for (const m of rig.current.core) {
+      m.emissiveIntensity += ((speaking ? 4 : 2.2) - m.emissiveIntensity) * k;
+      m.emissive.lerp(speaking ? cool : warm, k);
+    }
+    const dt = Math.min(delta, 0.1);
+    rig.current.rings.forEach((r, i) => {
+      r.rotateX(dt * (0.4 + i * 0.25));
+      r.rotateY(dt * (0.25 + i * 0.3) * (i % 2 ? -1 : 1));
+    });
+    rig.current.fins.forEach((f, i) => {
+      const lift = speaking ? 0.35 + Math.sin(time.current * 9 + i) * 0.15 : 0.05 * Math.sin(time.current * 1.5);
+      f.rotation.z = (i === 0 ? 1 : -1) * lift;
     });
   });
 
   return (
     <group ref={root} scale={0.85}>
+      <Suspense fallback={<FallbackPip rig={rig} />}>
+        <PipGLB rig={rig} />
+      </Suspense>
+    </group>
+  );
+}
+
+function PipGLB({ rig }: { rig: RefObject<PipRig> }) {
+  const parts = useParts('pip', false);
+  useEffect(() => {
+    rig.current.rings = [0, 1, 2].map((i) => parts.get(`Ring_${i}`)).filter((o): o is Object3D => !!o);
+    rig.current.fins = ['Fin_L', 'Fin_R'].map((n) => parts.get(n)).filter((o): o is Object3D => !!o);
+    rig.current.core = parts.materials('Opal');
+  }, [parts, rig]);
+  return <primitive object={parts.root} />;
+}
+
+/** Code-built stand-in while the GLB loads. */
+function FallbackPip({ rig }: { rig: RefObject<PipRig> }) {
+  const core = useMemo(() => MAT.wardGold.clone(), []);
+  const rings = useRef<(Group | null)[]>([]);
+  useEffect(() => {
+    rig.current.rings = rings.current.filter((o): o is Group => !!o);
+    rig.current.core = [core];
+    rig.current.fins = [];
+  }, [core, rig]);
+  return (
+    <>
       <mesh material={core}>
         <sphereGeometry args={[0.065, 24, 18]} />
       </mesh>
@@ -63,11 +106,6 @@ export function PipCompanion() {
           </mesh>
         </group>
       ))}
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[0.06 * s, 0.075, 0.02]} rotation={[0, 0, -0.5 * s]} material={MAT.agedBrass}>
-          <boxGeometry args={[0.05, 0.012, 0.004]} />
-        </mesh>
-      ))}
-    </group>
+    </>
   );
 }

@@ -433,6 +433,8 @@ def part(name, volumes, pivot, material, voxel=0.012, smooth=3, target_tris=8000
 
 
 def parent_keep(child, parent):
+    # Matrices of freshly created/moved objects are stale until the view layer updates.
+    bpy.context.view_layer.update()
     world = child.matrix_world.copy()
     child.parent = parent
     child.matrix_world = world
