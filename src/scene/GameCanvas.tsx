@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import type { RefObject } from 'react';
-import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three';
+import { ACESFilmicToneMapping, PCFShadowMap, SRGBColorSpace } from 'three';
 import { EnemyManager } from '../enemies/EnemyManager';
 import { PipCompanion } from '../player/PipCompanion';
 import { RunDriver } from '../player/RunDriver';
@@ -20,7 +20,7 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
   return (
     <Canvas
       className="game-canvas"
-      shadows={quality === 'low' ? false : { type: PCFSoftShadowMap }}
+      shadows={quality === 'low' ? false : { type: PCFShadowMap }}
       dpr={[...DPR[quality]]}
       camera={{ fov: 62, near: 0.05, far: 900, position: [0, 24, 95] }}
       gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
