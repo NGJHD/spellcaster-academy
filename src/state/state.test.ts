@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useGameStore } from './gameStore';
 import { defaultSettings, sanitizeSettings } from './settings';
+import { getRun, setGameStorage, useGameStore } from './gameStore';
+
+function memoryStorage() {
+  const m = new Map<string, string>();
+  return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) };
+}
 
 describe('settings sanitising', () => {
   it('returns defaults for missing or corrupt data', () => {
@@ -10,14 +15,12 @@ describe('settings sanitising', () => {
   });
 
   it('keeps valid fields and replaces invalid ones', () => {
-    expect(sanitizeSettings({ reducedMotion: true, travelSpeed: 'warp' })).toEqual({
-      reducedMotion: true,
-      travelSpeed: 'normal',
-    });
-    expect(sanitizeSettings({ travelSpeed: 'slow', unknownField: 1 })).toEqual({
-      reducedMotion: false,
-      travelSpeed: 'slow',
-    });
+    const s = sanitizeSettings({ reducedMotion: true, travelSpeed: 'warp', volumes: { music: 2, sfx: 0.3 } });
+    expect(s.reducedMotion).toBe(true);
+    expect(s.travelSpeed).toBe('normal');
+    expect(s.volumes.music).toBe(1);
+    expect(s.volumes.sfx).toBe(0.3);
+    expect(s.quality).toBe('medium');
   });
 
   it('respects the OS reduced-motion preference as the default', () => {
@@ -26,27 +29,27 @@ describe('settings sanitising', () => {
 });
 
 describe('game store pause flow', () => {
-  beforeEach(() => useGameStore.setState({ mode: 'menu', modeBeforePause: 'exploration' }));
+  beforeEach(() => {
+    setGameStorage(memoryStorage());
+    useGameStore.setState({ mode: 'menu', modeBeforePause: 'exploration' });
+  });
 
   it('cannot pause from the title menu', () => {
     useGameStore.getState().pause();
     expect(useGameStore.getState().mode).toBe('menu');
   });
 
-  it('returns to the mode that was active before pausing', () => {
+  it('pausing and resuming returns to the previous mode and creates a run', () => {
     const store = useGameStore.getState();
-    store.startLevel();
+    store.startNewRun('standard');
+    expect(getRun()).not.toBeNull();
     useGameStore.setState({ mode: 'combat' });
     store.pause();
     expect(useGameStore.getState().mode).toBe('paused');
-    store.pause(); // double pause is harmless
+    store.pause();
     store.resume();
     expect(useGameStore.getState().mode).toBe('combat');
-  });
-
-  it('starting a level bumps the run id', () => {
-    const before = useGameStore.getState().runId;
-    useGameStore.getState().startLevel();
-    expect(useGameStore.getState().runId).toBe(before + 1);
+    store.quitToMenu();
+    expect(getRun()).toBeNull();
   });
 });

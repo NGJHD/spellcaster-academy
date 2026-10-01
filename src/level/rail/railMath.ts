@@ -1,12 +1,12 @@
 import { CatmullRomCurve3, Vector3 } from 'three';
 import { ease } from './easing';
 import type {
+  CameraBeat,
   CameraNode,
   CameraPose,
   CameraRevealBeat,
+  CameraSpace,
   LoadingTransitionBeat,
-  RailBeat,
-  RailRoute,
   RailSettings,
   RailTravelBeat,
   Vec3,
@@ -34,13 +34,13 @@ function setPose(out: CameraPose, position: Vec3, lookAt: Vec3, fade: number): v
   out.fade = fade;
 }
 
-export function getNode(route: RailRoute, id: string): CameraNode {
+export function getNode(route: CameraSpace, id: string): CameraNode {
   const node = route.nodes[id];
   if (!node) throw new Error(`Unknown camera node "${id}" in route "${route.id}"`);
   return node;
 }
 
-export function getLookPoint(route: RailRoute, id: string): Vec3 {
+export function getLookPoint(route: CameraSpace, id: string): Vec3 {
   const point = route.lookPoints[id];
   if (!point) throw new Error(`Unknown look point "${id}" in route "${route.id}"`);
   return point;
@@ -51,7 +51,7 @@ export interface TravelCurves {
   readonly lookAt: CatmullRomCurve3;
 }
 
-export function buildTravelCurves(route: RailRoute, beat: RailTravelBeat): TravelCurves {
+export function buildTravelCurves(route: CameraSpace, beat: RailTravelBeat): TravelCurves {
   const nodes = beat.nodes.map((id) => getNode(route, id));
   return {
     position: new CatmullRomCurve3(nodes.map((n) => new Vector3(...n.position)), false, 'centripetal'),
@@ -59,7 +59,7 @@ export function buildTravelCurves(route: RailRoute, beat: RailTravelBeat): Trave
   };
 }
 
-function revealLookSequence(route: RailRoute, beat: CameraRevealBeat): Vec3[] {
+function revealLookSequence(route: CameraSpace, beat: CameraRevealBeat): Vec3[] {
   const node = getNode(route, beat.atNode);
   const targets = beat.lookTargets.map((id) => getLookPoint(route, id));
   return beat.returnToNode && targets.length > 0 ? [node.lookAt, ...targets, node.lookAt] : [node.lookAt, ...targets];
@@ -73,7 +73,7 @@ function revealPanSec(beat: CameraRevealBeat, settings: RailSettings): number {
   return settings.reducedMotion ? beat.panSec * REDUCED_MOTION_PAN_SCALE : beat.panSec;
 }
 
-export function beatDurationSec(route: RailRoute, beat: RailBeat, settings: RailSettings): number {
+export function beatDurationSec(route: CameraSpace, beat: CameraBeat, settings: RailSettings): number {
   switch (beat.kind) {
     case 'rail-travel':
       return usesFadeCut(beat, settings)
@@ -90,7 +90,7 @@ export function beatDurationSec(route: RailRoute, beat: RailBeat, settings: Rail
 }
 
 /** Pose at the very start of a beat. `previous` is the end pose of the prior beat, if any. */
-export function beatStartPose(route: RailRoute, beat: RailBeat, out: CameraPose, previous?: CameraPose): CameraPose {
+export function beatStartPose(route: CameraSpace, beat: CameraBeat, out: CameraPose, previous?: CameraPose): CameraPose {
   switch (beat.kind) {
     case 'rail-travel': {
       const first = getNode(route, beat.nodes[0] ?? '');
@@ -115,7 +115,7 @@ export function beatStartPose(route: RailRoute, beat: RailBeat, out: CameraPose,
   }
 }
 
-export function beatEndPose(route: RailRoute, beat: RailBeat, out: CameraPose): CameraPose {
+export function beatEndPose(route: CameraSpace, beat: CameraBeat, out: CameraPose): CameraPose {
   switch (beat.kind) {
     case 'rail-travel': {
       const last = getNode(route, beat.nodes[beat.nodes.length - 1] ?? '');
@@ -141,8 +141,8 @@ export function beatEndPose(route: RailRoute, beat: RailBeat, out: CameraPose): 
  * `start` is the pose captured when the beat began (needed to fade out from the previous shot).
  */
 export function evaluateBeat(
-  route: RailRoute,
-  beat: RailBeat,
+  route: CameraSpace,
+  beat: CameraBeat,
   elapsedSec: number,
   settings: RailSettings,
   start: CameraPose,
@@ -163,7 +163,7 @@ export function evaluateBeat(
 }
 
 function evaluateTravel(
-  route: RailRoute,
+  route: CameraSpace,
   beat: RailTravelBeat,
   elapsedSec: number,
   settings: RailSettings,
@@ -191,7 +191,7 @@ const scratchFrom = new Vector3();
 const scratchTo = new Vector3();
 
 function evaluateReveal(
-  route: RailRoute,
+  route: CameraSpace,
   beat: CameraRevealBeat,
   elapsedSec: number,
   settings: RailSettings,
@@ -218,7 +218,7 @@ function evaluateReveal(
 }
 
 function evaluateLoading(
-  route: RailRoute,
+  route: CameraSpace,
   beat: LoadingTransitionBeat,
   elapsedSec: number,
   start: CameraPose,

@@ -1,4 +1,5 @@
 import type { Vector3 } from 'three';
+import type { AreaId } from '../../game/types';
 
 export type Vec3 = readonly [number, number, number];
 
@@ -10,16 +11,14 @@ export interface CameraNode {
 
 export type EasingName = 'linear' | 'easeInOutSine' | 'easeInOutCubic' | 'easeOutCubic';
 
-export type AreaId = 'arrival-gate' | 'sunlit-courtyard' | 'east-hall';
-
-interface BeatBase {
+export interface CameraBeatBase {
   /** Stable identifier used for checkpoints, resume and debugging. */
   readonly id: string;
   readonly areaId: AreaId;
 }
 
 /** Camera glides along a Catmull–Rom spline through named nodes. */
-export interface RailTravelBeat extends BeatBase {
+export interface RailTravelBeat extends CameraBeatBase {
   readonly kind: 'rail-travel';
   readonly nodes: readonly string[];
   readonly durationSec: number;
@@ -29,7 +28,7 @@ export interface RailTravelBeat extends BeatBase {
 }
 
 /** Camera holds position at a node and pans its look target across named look points. */
-export interface CameraRevealBeat extends BeatBase {
+export interface CameraRevealBeat extends CameraBeatBase {
   readonly kind: 'camera-reveal';
   readonly atNode: string;
   /** Look points visited in order. Empty means a pure hold on the node's own framing. */
@@ -41,7 +40,7 @@ export interface CameraRevealBeat extends BeatBase {
 }
 
 /** Fade to black, cut to a node, fade back in. Used for area loading and doors. */
-export interface LoadingTransitionBeat extends BeatBase {
+export interface LoadingTransitionBeat extends CameraBeatBase {
   readonly kind: 'loading-transition';
   readonly toNode: string;
   readonly fadeOutSec: number;
@@ -49,13 +48,16 @@ export interface LoadingTransitionBeat extends BeatBase {
   readonly fadeInSec: number;
 }
 
-export type RailBeat = RailTravelBeat | CameraRevealBeat | LoadingTransitionBeat;
+export type CameraBeat = RailTravelBeat | CameraRevealBeat | LoadingTransitionBeat;
 
-export interface RailRoute {
+export const isCameraBeat = (beat: { kind: string }): beat is CameraBeat =>
+  beat.kind === 'rail-travel' || beat.kind === 'camera-reveal' || beat.kind === 'loading-transition';
+
+/** Named camera nodes and look points shared by all beats of a route. */
+export interface CameraSpace {
   readonly id: string;
   readonly nodes: Readonly<Record<string, CameraNode>>;
   readonly lookPoints: Readonly<Record<string, Vec3>>;
-  readonly beats: readonly RailBeat[];
 }
 
 export interface CameraPose {

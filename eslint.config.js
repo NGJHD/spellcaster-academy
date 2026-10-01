@@ -11,4 +11,10 @@ export default defineConfig(
     extends: [js.configs.recommended, tseslint.configs.strict, reactHooks.configs.flat.recommended],
     languageOptions: { globals: globals.browser },
   },
+  {
+    // R3F scene code mutates three.js objects imperatively inside useFrame by design (CLAUDE.md §4.4),
+    // which the React Compiler immutability rule cannot distinguish from mutating React state.
+    files: ['src/scene/**/*.{ts,tsx}', 'src/enemies/**/*.{ts,tsx}', 'src/player/**/*.{ts,tsx}', 'src/spells/**/*.{ts,tsx}'],
+    rules: { 'react-hooks/immutability': 'off' },
+  },
 );

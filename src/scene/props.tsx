@@ -1,0 +1,405 @@
+/**
+ * PLACEHOLDER story props whose state follows the run (anchors, crystals, Grimoire, Warden,
+ * characters). Everything is read imperatively from the run each frame — no React state per frame.
+ */
+import { useFrame } from '@react-three/fiber';
+import { useMemo, useRef, type ReactNode } from 'react';
+import { Color, Vector3, type Group, type Mesh, type MeshStandardMaterial } from 'three';
+import { emptyPose, type TargetPose } from '../enemies/TargetVisuals';
+import { DummyModel, GuardianModel, ThornPodModel } from '../enemies/TargetVisuals';
+import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
+import type { Vec3 } from '../level/rail/railTypes';
+import { getRun } from '../state/gameStore';
+import { useRunStore } from '../state/runStore';
+import { MAT } from './materials';
+
+/** Current beat index (re-renders only when the beat changes). */
+export function useBeatIndex(): number {
+  const beatId = useRunStore((s) => s.beatId);
+  return beatId ? beatIndexOf(beatId) : -1;
+}
+
+const damp = (current: number, goal: number, rate: number, dt: number) => current + (goal - current) * (1 - Math.exp(-rate * Math.min(dt, 0.1)));
+
+// ---------- Ward anchor (§14A.14) ----------
+
+const ANCHOR_THEME = {
+  courtyard: { base: MAT.academyStone, accent: '#ffcf6a' },
+  library: { base: MAT.darkOak, accent: '#9fc8ff' },
+  greenhouse: { base: MAT.academyStoneDark, accent: '#8ff0a8' },
+} as const;
+
+export function WardAnchor({ position, encounterId, theme }: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
+  const rings = useRef<(Group | null)[]>([]);
+  const shard = useRef<Group>(null);
+  const column = useRef<Mesh>(null);
+  const nodes = useMemo(() => [0, 1, 2].map(() => MAT.crystalDim.clone()), []);
+  const accent = useMemo(() => new Color(ANCHOR_THEME[theme].accent), [theme]);
+  const level = useRef(0);
+  const time = useRef(0);
+
+  useFrame((_, dt) => {
+    time.current += dt;
+    const run = getRun();
+    const p = run?.encounterProgress(encounterId);
+    const goal = p ? (p.complete ? 1 : p.total ? p.done / p.total : 0) : 0;
+    level.current = damp(level.current, goal, 3, dt);
+    const l = level.current;
+    const restored = p?.complete ?? false;
+    rings.current.forEach((r, i) => {
+      if (!r) return;
+      const misalign = (1 - l) * (0.6 + i * 0.35);
+      r.rotation.set(misalign * (i % 2 ? 1 : -1), restored ? time.current * (0.4 + i * 0.2) : Math.sin(time.current * 0.5 + i) * 0.1 * (1 - l), misalign * 0.6);
+    });
+    nodes.forEach((m, i) => {
+      const lit = l * 3 > i + 0.5;
+      m.emissive.copy(lit ? accent : new Color('#1d2a3a'));
+      m.emissiveIntensity = lit ? 1.8 : 0.3 + Math.abs(Math.sin(time.current * 3 + i)) * 0.25 * (1 - l);
+    });
+    if (shard.current) {
+      shard.current.position.y = 1.5 + Math.sin(time.current * 1.4) * 0.05 * (0.3 + l);
+      shard.current.rotation.y = time.current * (0.2 + l);
+    }
+    if (column.current) {
+      column.current.visible = restored;
+      column.current.scale.y = damp(column.current.scale.y, restored ? 1 : 0.01, 2, dt);
+    }
+  });
+
+  const base = ANCHOR_THEME[theme].base;
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.35, 0]} material={base} castShadow receiveShadow>
+        <cylinderGeometry args={[0.75, 0.95, 0.7, 3]} />
+      </mesh>
+      <mesh position={[0, 0.78, 0]} material={MAT.agedBrass} castShadow>
+        <cylinderGeometry args={[0.5, 0.6, 0.16, 24]} />
+      </mesh>
+      {[0, 1, 2].map((i) => {
+        const a = (i / 3) * Math.PI * 2;
+        return (
+          <group key={i}>
+            <mesh position={[Math.cos(a) * 0.62, 1.15, Math.sin(a) * 0.62]} material={MAT.agedBrass} castShadow>
+              <cylinderGeometry args={[0.04, 0.05, 0.75, 10]} />
+            </mesh>
+            <mesh position={[Math.cos(a) * 0.62, 1.6, Math.sin(a) * 0.62]} material={nodes[i]}>
+              <octahedronGeometry args={[0.1]} />
+            </mesh>
+          </group>
+        );
+      })}
+      {[0.55, 0.45, 0.35].map((r, i) => (
+        <group key={r} position={[0, 1.5, 0]} ref={(g) => void (rings.current[i] = g)}>
+          <mesh material={MAT.agedBrass} castShadow>
+            <torusGeometry args={[r, 0.022, 8, 48]} />
+          </mesh>
+        </group>
+      ))}
+      <group ref={shard} position={[0, 1.5, 0]}>
+        <mesh material={MAT.crystal} scale={[0.6, 1.5, 0.6]}>
+          <octahedronGeometry args={[0.16]} />
+        </mesh>
+      </group>
+      <mesh ref={column} position={[0, 12, 0]} visible={false}>
+        <cylinderGeometry args={[0.12, 0.3, 22, 16, 1, true]} />
+        <meshBasicMaterial color={ANCHOR_THEME[theme].accent} transparent opacity={0.28} depthWrite={false} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------- Glowing crystals / markers that light up as their encounter progresses ----------
+
+export function ProgressCrystal({ position, encounterId, index, scale = 1 }: { position: Vec3; encounterId: string; index: number; scale?: number }) {
+  const mat = useMemo(() => MAT.crystalDim.clone(), []);
+  const ref = useRef<Group>(null);
+  const time = useRef(0);
+  useFrame((_, dt) => {
+    time.current += dt;
+    const p = getRun()?.encounterProgress(encounterId);
+    const lit = !!p && p.done > index;
+    mat.emissive.set(lit ? '#7fc4ff' : '#2a4a70');
+    mat.emissiveIntensity = damp(mat.emissiveIntensity, lit ? 2.4 : 0.6 + Math.sin(time.current * 2 + index) * 0.2, 4, dt);
+    if (ref.current) ref.current.rotation.y = time.current * (lit ? 1.2 : 0.3);
+  });
+  return (
+    <group ref={ref} position={position} scale={scale}>
+      <mesh material={mat} scale={[1, 1.6, 1]}>
+        <octahedronGeometry args={[0.24]} />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------- Dormant enemies shown before their encounter spawns them ----------
+
+/**
+ * Shows a resting version of an encounter target until the live target exists (dummies on stands,
+ * guardians on plinths, closed thorn pods). Hidden once the encounter is complete.
+ */
+export function DormantTarget({ encounterId, targetId, kind, position, rotationY = 0 }: { encounterId: string; targetId: string; kind: 'dummy' | 'guardian' | 'thorn-pod'; position: Vec3; rotationY?: number }) {
+  const group = useRef<Group>(null);
+  const pose = useRef<TargetPose>({ ...emptyPose(), defeated: kind === 'thorn-pod', dispel: kind === 'thorn-pod' ? 1 : 0 });
+  useFrame((_, dt) => {
+    pose.current.time += dt;
+    const run = getRun();
+    const g = group.current;
+    if (!g || !run) return;
+    const done = run.progress.completedEncounterIds.includes(encounterId);
+    const live = run.findTarget(targetId) !== undefined || run.isRetired(targetId);
+    g.visible = !done && !live;
+  });
+  const model: ReactNode =
+    kind === 'dummy' ? <DummyModel pose={pose} practice={false} /> : kind === 'guardian' ? <GuardianModel pose={pose} /> : <ThornPodModel pose={pose} />;
+  return (
+    <group ref={group} position={position} rotation={[0, rotationY, 0]}>
+      {model}
+    </group>
+  );
+}
+
+/** Spawn position of a target in an encounter definition (so dormant props line up exactly). */
+export function spawnPosition(encounterId: string, targetId: string): Vec3 {
+  const def = LEVEL1_ENCOUNTERS.get(encounterId);
+  for (const w of def?.waves ?? []) for (const t of w.targets) if (t.id === targetId) return t.position;
+  return [0, 0, 0];
+}
+
+// ---------- Ward Warden (§14A.13) ----------
+
+export interface WardenState {
+  /** 0 = dormant/kneeling, 1 = fully risen. */
+  rise: number;
+  /** 0…1 how many shell plates have separated. */
+  shellOpen: number;
+  /** Core exposure / brightness. */
+  core: number;
+  /** Final calm, repaired form. */
+  calm: number;
+  /** -1 left arc, 1 right arc, 0 none: drives the attack pose. */
+  attack: number;
+  /** Bow in the ending. */
+  bow: number;
+}
+
+export function WardenModel({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
+  const root = useRef<Group>(null);
+  const torso = useRef<Group>(null);
+  const armL = useRef<Group>(null);
+  const armR = useRef<Group>(null);
+  const halo = useRef<Group>(null);
+  const plates = useRef<(Group | null)[]>([]);
+  const core = useMemo(() => MAT.wardGold.clone(), []);
+  const seam = useMemo(() => MAT.wardGold.clone(), []);
+  const time = useRef(0);
+
+  useFrame((_, dt) => {
+    time.current += dt;
+    const s = state.current;
+    const t = time.current;
+    if (!root.current || !torso.current || !armL.current || !armR.current || !halo.current) return;
+    root.current.position.y = (1 - s.rise) * -1.2 + Math.sin(t * 0.9) * 0.08 * s.rise;
+    torso.current.rotation.x = (1 - s.rise) * 0.5 + s.bow * 0.55;
+    armL.current.rotation.z = 0.25 + s.rise * 0.2 + (s.attack < 0 ? 1.1 : 0);
+    armR.current.rotation.z = -0.25 - s.rise * 0.2 - (s.attack > 0 ? 1.1 : 0);
+    armL.current.rotation.x = -s.calm * 0.3;
+    armR.current.rotation.x = -s.calm * 0.3;
+    halo.current.rotation.z = t * (0.2 + (1 - s.calm) * 0.4);
+    core.emissiveIntensity = 1.2 + s.core * 2.5 + Math.sin(t * 6) * 0.3 * (1 - s.calm);
+    seam.emissiveIntensity = 1 + s.calm * 1.5;
+    plates.current.forEach((p, i) => {
+      if (!p) return;
+      const open = Math.min(1, Math.max(0, s.shellOpen * 5 - i)) * (1 - s.calm);
+      const a = (i / 5) * Math.PI * 2 + t * 0.4;
+      p.position.set(Math.cos(a) * open * 2.6, 1.9 + Math.sin(a * 2) * 0.3 * open, Math.sin(a) * open * 1.2 + 0.55 * (1 - open));
+      p.rotation.y = open * a;
+    });
+  });
+
+  return (
+    <group ref={root} scale={scale}>
+      <group ref={torso} position={[0, 1.8, 0]}>
+        <mesh scale={[1, 1.15, 0.7]} material={MAT.wardStone} castShadow>
+          <sphereGeometry args={[0.75, 32, 24]} />
+        </mesh>
+        <mesh position={[0, 0.05, 0.42]} material={core}>
+          <icosahedronGeometry args={[0.26, 1]} />
+        </mesh>
+        <group position={[0, 1.1, 0.05]}>
+          <mesh scale={[0.8, 1, 0.85]} material={MAT.marble} castShadow>
+            <sphereGeometry args={[0.38, 28, 20]} />
+          </mesh>
+          <mesh position={[0, 0.02, 0.31]} scale={[1, 0.12, 0.2]} material={seam}>
+            <sphereGeometry args={[0.2, 16, 8]} />
+          </mesh>
+          <group ref={halo} position={[0, 0.1, -0.35]}>
+            <mesh material={MAT.agedBrass}>
+              <torusGeometry args={[0.62, 0.035, 10, 64]} />
+            </mesh>
+            {Array.from({ length: 8 }, (_, i) => (
+              <mesh key={i} position={[Math.cos((i / 8) * Math.PI * 2) * 0.62, Math.sin((i / 8) * Math.PI * 2) * 0.62, 0]} material={seam}>
+                <octahedronGeometry args={[0.05]} />
+              </mesh>
+            ))}
+          </group>
+        </group>
+        {[-1, 1].map((sgn) => (
+          <group key={sgn} ref={sgn < 0 ? armL : armR} position={[0.85 * sgn, 0.45, 0]}>
+            <mesh material={MAT.wardStone} castShadow>
+              <sphereGeometry args={[0.3, 20, 16]} />
+            </mesh>
+            <mesh position={[0.1 * sgn, -0.75, 0]} material={MAT.wardStone} castShadow>
+              <capsuleGeometry args={[0.16, 0.9, 8, 14]} />
+            </mesh>
+            <mesh position={[0.12 * sgn, -1.45, 0.05]} material={MAT.marble} castShadow>
+              <sphereGeometry args={[0.2, 16, 12]} />
+            </mesh>
+          </group>
+        ))}
+        <mesh position={[0, -1.0, 0]} scale={[0.8, 1, 0.6]} material={MAT.wardStone} castShadow>
+          <coneGeometry args={[0.55, 1.3, 24]} />
+        </mesh>
+      </group>
+      {Array.from({ length: 5 }, (_, i) => (
+        <group key={i} ref={(g) => void (plates.current[i] = g)} position={[0, 1.9, 0.55]}>
+          <mesh scale={[1, 0.8, 0.3]} material={MAT.wardStone} castShadow>
+            <sphereGeometry args={[0.32, 16, 12]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** A Warden that simply hovers calmly (sightings, ending balcony). */
+export function StaticWarden({ position, scale = 1, visible = true, rotationY = 0 }: { position: Vec3; scale?: number; visible?: boolean; rotationY?: number }) {
+  const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.3, calm: 0, attack: 0, bow: 0 });
+  return (
+    <group position={position} visible={visible} rotation={[0, rotationY, 0]}>
+      <WardenModel state={state} scale={scale} />
+    </group>
+  );
+}
+
+// ---------- Characters ----------
+
+export function Mira({ position, rotationY = 0, waving = false }: { position: Vec3; rotationY?: number; waving?: boolean }) {
+  const arm = useRef<Group>(null);
+  const body = useRef<Group>(null);
+  const time = useRef(position[0] * 3.1 + position[2]);
+  useFrame((_, dt) => {
+    time.current += dt;
+    if (body.current) body.current.position.y = Math.sin(time.current * 1.5) * 0.008;
+    if (arm.current) arm.current.rotation.z = waving ? -2.4 + Math.sin(time.current * 6) * 0.35 : -0.15;
+  });
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <group ref={body}>
+        <mesh position={[0, 0.5, 0]} material={MAT.navyCloth} castShadow>
+          <cylinderGeometry args={[0.16, 0.3, 1.0, 20]} />
+        </mesh>
+        <mesh position={[0, 1.05, 0]} scale={[1, 1.1, 0.8]} material={MAT.navyCloth} castShadow>
+          <sphereGeometry args={[0.2, 20, 16]} />
+        </mesh>
+        <mesh position={[0, 1.3, 0]} material={MAT.skin} castShadow>
+          <cylinderGeometry args={[0.05, 0.06, 0.1, 10]} />
+        </mesh>
+        <mesh position={[0, 1.44, 0.01]} scale={[0.9, 1.05, 0.95]} material={MAT.skin} castShadow>
+          <sphereGeometry args={[0.13, 24, 20]} />
+        </mesh>
+        <mesh position={[0, 1.5, -0.02]} scale={[1, 0.85, 1.05]} material={MAT.hair} castShadow>
+          <sphereGeometry args={[0.142, 24, 20, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+        </mesh>
+        {[-1, 1].map((s) => (
+          <mesh key={s} position={[0.045 * s, 1.46, 0.115]} material={MAT.eyeDark}>
+            <sphereGeometry args={[0.014, 10, 8]} />
+          </mesh>
+        ))}
+        <mesh position={[-0.23, 1.05, 0]} rotation={[0, 0, 0.12]} material={MAT.navyCloth} castShadow>
+          <capsuleGeometry args={[0.055, 0.45, 6, 10]} />
+        </mesh>
+        <group ref={arm} position={[0.23, 1.22, 0]}>
+          <mesh position={[0, -0.24, 0]} material={MAT.navyCloth} castShadow>
+            <capsuleGeometry args={[0.055, 0.45, 6, 10]} />
+          </mesh>
+        </group>
+        <mesh position={[0.2, 0.85, -0.12]} rotation={[0, 0, -0.2]} material={MAT.lightOak} castShadow>
+          <boxGeometry args={[0.22, 0.3, 0.1]} />
+        </mesh>
+        <mesh position={[0.1, 1.15, 0.17]} material={MAT.wardGold}>
+          <circleGeometry args={[0.03, 12]} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+export function KeeperOrin({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh position={[0, 0.65, 0]} material={MAT.burgundyLeather} castShadow>
+        <cylinderGeometry args={[0.22, 0.42, 1.3, 24]} />
+      </mesh>
+      <mesh position={[0, 1.45, 0]} scale={[1, 1.1, 0.8]} material={MAT.burgundyLeather} castShadow>
+        <sphereGeometry args={[0.27, 24, 18]} />
+      </mesh>
+      <mesh position={[0, 1.88, 0]} material={MAT.skin} castShadow>
+        <sphereGeometry args={[0.15, 24, 20]} />
+      </mesh>
+      <mesh position={[0, 1.78, 0.06]} scale={[1, 1.3, 0.7]} material={MAT.plaster} castShadow>
+        <sphereGeometry args={[0.12, 16, 12, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55]} />
+      </mesh>
+      <mesh position={[0, 1.6, 0.2]} material={MAT.agedBrass}>
+        <torusGeometry args={[0.07, 0.012, 8, 24]} />
+      </mesh>
+      <mesh position={[0.35, 0.95, 0.05]} rotation={[0, 0, -0.08]} material={MAT.darkOak} castShadow>
+        <cylinderGeometry args={[0.025, 0.03, 1.9, 10]} />
+      </mesh>
+      <mesh position={[0.43, 1.92, 0.05]} material={MAT.crystal}>
+        <octahedronGeometry args={[0.06]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Background student silhouette for the celebration (authored idle sway, no random jitter). */
+export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45 }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number }) {
+  const ref = useRef<Group>(null);
+  const phase = useMemo(() => position[0] * 1.7 + position[2], [position]);
+  useFrame((state) => {
+    if (ref.current) ref.current.rotation.z = Math.sin(state.clock.elapsedTime * 1.2 + phase) * 0.02;
+  });
+  const k = height / 1.45;
+  return (
+    <group ref={ref} position={position} rotation={[0, rotationY, 0]} scale={k}>
+      <mesh position={[0, 0.55, 0]} material={robe} castShadow>
+        <cylinderGeometry args={[0.15, 0.3, 1.1, 16]} />
+      </mesh>
+      <mesh position={[0, 1.38, 0]} material={MAT.skin} castShadow>
+        <sphereGeometry args={[0.13, 16, 12]} />
+      </mesh>
+      <mesh position={[0, 1.44, -0.02]} material={MAT.hair}>
+        <sphereGeometry args={[0.138, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+      </mesh>
+    </group>
+  );
+}
+
+export function FloatingLantern({ position, seed = 1 }: { position: Vec3; seed?: number }) {
+  const ref = useRef<Group>(null);
+  useFrame((state) => {
+    if (ref.current) ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.7 + seed) * 0.15;
+  });
+  return (
+    <group ref={ref} position={position}>
+      <mesh material={MAT.lampGlow}>
+        <cylinderGeometry args={[0.14, 0.11, 0.3, 12]} />
+      </mesh>
+      <mesh position={[0, 0.17, 0]} material={MAT.agedBrass}>
+        <coneGeometry args={[0.15, 0.1, 12]} />
+      </mesh>
+    </group>
+  );
+}
+
+export const UP = new Vector3(0, 1, 0);

@@ -2,6 +2,7 @@ import { Html, Line } from '@react-three/drei';
 import { useMemo } from 'react';
 import { LEVEL1_ROUTE } from '../level/level1Route';
 import { buildTravelCurves } from '../level/rail/railMath';
+import type { CameraNode, Vec3 } from '../level/rail/railTypes';
 
 /** Debug view of authored rails (GD-2): position splines, look splines and named nodes. */
 export function RailGizmos() {
@@ -23,14 +24,14 @@ export function RailGizmos() {
           <Line points={rail.lookAt} color="#33ccff" lineWidth={1} dashed dashSize={0.5} gapSize={0.3} />
         </group>
       ))}
-      {Object.entries(LEVEL1_ROUTE.nodes).map(([name, node]) => (
+      {(Object.entries(LEVEL1_ROUTE.nodes) as [string, CameraNode][]).map(([name, node]) => (
         <mesh key={name} position={node.position}>
           <sphereGeometry args={[0.15, 12, 8]} />
           <meshBasicMaterial color="#ffcc33" />
           <Html center distanceFactor={12} className="rail-gizmo-label">{name}</Html>
         </mesh>
       ))}
-      {Object.entries(LEVEL1_ROUTE.lookPoints).map(([name, point]) => (
+      {(Object.entries(LEVEL1_ROUTE.lookPoints) as [string, Vec3][]).map(([name, point]) => (
         <mesh key={name} position={point}>
           <octahedronGeometry args={[0.2]} />
           <meshBasicMaterial color="#33ccff" wireframe />

@@ -1,0 +1,74 @@
+import { Environment, Lightformer, Sky, Stars } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
+import { Color, Fog, Vector3, type DirectionalLight } from 'three';
+import type { AreaId } from '../game/types';
+import { useSettingsStore } from '../state/settingsStore';
+import { AREA_LOOKS } from './areaLooks';
+
+const sunDir = new Vector3();
+const forward = new Vector3();
+
+/**
+ * Lighting and atmosphere for the current area: one shadow-casting sun that follows the camera,
+ * a hemisphere fill, fog, sky/stars, and a procedural environment map for PBR reflections.
+ */
+export function Atmosphere({ areaId }: { areaId: AreaId }) {
+  const look = AREA_LOOKS[areaId];
+  const scene = useThree((s) => s.scene);
+  const gl = useThree((s) => s.gl);
+  const quality = useSettingsStore((s) => s.quality);
+  const sun = useRef<DirectionalLight>(null);
+
+  useEffect(() => {
+    scene.background = new Color(look.background);
+    scene.fog = new Fog(look.fog[0], look.fog[1], look.fog[2]);
+    gl.toneMappingExposure = look.exposure;
+    scene.environmentIntensity = look.envIntensity;
+  }, [scene, gl, look]);
+
+  useFrame((state) => {
+    const light = sun.current;
+    if (!light || !look.sun) return;
+    // Keep the shadow frustum around what the camera sees (one shadow light only, §15).
+    state.camera.getWorldDirection(forward);
+    sunDir.set(...look.sun.position).normalize();
+    const cx = state.camera.position.x + forward.x * 10;
+    const cz = state.camera.position.z + forward.z * 10;
+    light.target.position.set(cx, state.camera.position.y - 1.6, cz);
+    light.position.set(cx + sunDir.x * 60, state.camera.position.y + sunDir.y * 60, cz + sunDir.z * 60);
+    light.target.updateMatrixWorld();
+  });
+
+  const shadowSize = quality === 'high' ? 2048 : 1024;
+  return (
+    <>
+      <hemisphereLight args={[look.hemi[0], look.hemi[1], look.hemi[2]]} />
+      {look.sun && (
+        <directionalLight
+          ref={sun}
+          color={look.sun.color}
+          intensity={look.sun.intensity}
+          castShadow={quality !== 'low'}
+          shadow-mapSize={[shadowSize, shadowSize]}
+          shadow-bias={-0.0004}
+          shadow-normalBias={0.03}
+          shadow-camera-left={-30}
+          shadow-camera-right={30}
+          shadow-camera-top={30}
+          shadow-camera-bottom={-30}
+          shadow-camera-near={1}
+          shadow-camera-far={160}
+        />
+      )}
+      {look.sky === 'afternoon' && <Sky distance={700} sunPosition={look.sun?.position ?? [0, 1, 0]} turbidity={4.5} rayleigh={1.1} mieCoefficient={0.004} mieDirectionalG={0.8} />}
+      {look.sky === 'dawn' && <Sky distance={700} sunPosition={look.sun?.position ?? [1, 0.1, 0]} turbidity={7} rayleigh={2.4} mieCoefficient={0.006} mieDirectionalG={0.85} />}
+      {look.sky === 'night' && <Stars radius={300} depth={60} count={quality === 'low' ? 1500 : 4000} factor={5} saturation={0.2} fade speed={0.3} />}
+      <Environment resolution={128} frames={1}>
+        <Lightformer form="rect" intensity={look.sky === 'night' ? 0.6 : 1.6} color={look.hemi[0]} position={[0, 8, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
+        <Lightformer form="rect" intensity={0.8} color={look.sun?.color ?? '#ffffff'} position={[-8, 3, 6]} scale={[10, 4, 1]} />
+        <Lightformer form="rect" intensity={0.4} color={look.hemi[1]} position={[0, -4, 0]} rotation-x={-Math.PI / 2} scale={[20, 20, 1]} />
+      </Environment>
+    </>
+  );
+}

@@ -1,28 +1,36 @@
-import { Sky } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import type { RefObject } from 'react';
-import { RailCameraController } from '../player/RailCameraController';
-import { Lighting, SUN_POSITION } from './Lighting';
-import { PlaceholderAcademy } from './placeholders/PlaceholderAcademy';
+import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three';
+import { EnemyManager } from '../enemies/EnemyManager';
+import { PipCompanion } from '../player/PipCompanion';
+import { RunDriver } from '../player/RunDriver';
+import { Wand } from '../player/Wand';
+import { SpellEffects } from '../spells/SpellEffects';
+import { useSettingsStore } from '../state/settingsStore';
 import { RailGizmos } from './RailGizmos';
+import { World } from './World';
 
 /** `?rails` in the URL shows the authored camera rails and node names. */
 const SHOW_RAILS = new URLSearchParams(window.location.search).has('rails');
 
+const DPR = { low: [1, 1], medium: [1, 1.5], high: [1, 2] } as const;
+
 export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | null> }) {
+  const quality = useSettingsStore((s) => s.quality);
   return (
     <Canvas
       className="game-canvas"
-      shadows
-      dpr={[1, 1.75]}
-      camera={{ fov: 60, near: 0.1, far: 700, position: [0, 24, 95] }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      shadows={quality === 'low' ? false : { type: PCFSoftShadowMap }}
+      dpr={[...DPR[quality]]}
+      camera={{ fov: 62, near: 0.05, far: 900, position: [0, 24, 95] }}
+      gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
     >
-      <Sky distance={600} sunPosition={SUN_POSITION} turbidity={5} rayleigh={1.2} mieCoefficient={0.004} />
-      <fog attach="fog" args={['#d8e2ec', 80, 420]} />
-      <Lighting />
-      <PlaceholderAcademy />
-      <RailCameraController fadeRef={fadeRef} />
+      <RunDriver fadeRef={fadeRef} />
+      <World />
+      <EnemyManager />
+      <SpellEffects />
+      <Wand />
+      <PipCompanion />
       {SHOW_RAILS && <RailGizmos />}
     </Canvas>
   );
