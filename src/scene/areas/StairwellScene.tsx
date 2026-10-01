@@ -4,7 +4,8 @@ import { useMemo, useRef } from 'react';
 import { BackSide, type Group } from 'three';
 import { STAIRWELL_ORIGIN, STAIR_GUARDS, stairFloor } from '../../level/areas/stairwell';
 import { getRun } from '../../state/gameStore';
-import { GuardianModel, emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
+import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
+import { Guardian } from '../../enemies/GuardianGLB';
 import { WallLamp } from '../kit';
 import { MAT } from '../materials';
 import { DormantTarget } from '../props';
@@ -112,7 +113,7 @@ function CommandedGuard({ deg, floor, flag }: { deg: number; floor: number; flag
   });
   return (
     <group ref={group}>
-      <GuardianModel pose={pose} />
+      <Guardian pose={pose} />
     </group>
   );
 }

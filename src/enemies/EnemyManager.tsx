@@ -5,6 +5,7 @@ import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import type { TargetSpawn } from '../level/levelTypes';
 import { CreatureModel, creatureUrl } from './CreatureModel';
+import { Guardian } from './GuardianGLB';
 import { APPEAR_SEC, DISPEL_SEC, isShielded, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
 import {
   BookModel,
@@ -12,7 +13,6 @@ import {
   DummyModel,
   emptyPose,
   FlyingPageModel,
-  GuardianModel,
   MosslingModel,
   PlateModel,
   PollenModel,
@@ -59,7 +59,7 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
     case 'pollen':
       return <PollenModel pose={pose} />;
     case 'guardian':
-      return <GuardianModel pose={pose} />;
+      return <Guardian pose={pose} />;
     case 'star-page':
       return <StarPageModel pose={pose} cosmetic={spawn.variant === 'cosmetic'} />;
     case 'clasp':

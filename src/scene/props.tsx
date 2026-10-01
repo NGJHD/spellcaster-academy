@@ -3,14 +3,17 @@
  * characters). Everything is read imperatively from the run each frame — no React state per frame.
  */
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, type ReactNode } from 'react';
-import { Color, Vector3, type Group, type Mesh, type MeshStandardMaterial } from 'three';
+import { Suspense, useMemo, useRef, type ReactNode } from 'react';
+import { useGLTF } from '@react-three/drei';
+import { Color, Mesh, Vector3, type Group, type MeshStandardMaterial } from 'three';
 import { emptyPose, type TargetPose } from '../enemies/TargetVisuals';
-import { DummyModel, GuardianModel, ThornPodModel } from '../enemies/TargetVisuals';
+import { DummyModel, ThornPodModel } from '../enemies/TargetVisuals';
 import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
+import { CharacterModel } from './CharacterModel';
+import { Guardian } from '../enemies/GuardianGLB';
 import { MAT } from './materials';
 
 /** Current beat index (re-renders only when the beat changes). */
@@ -150,7 +153,7 @@ export function DormantTarget({ encounterId, targetId, kind, position, rotationY
     g.visible = !done && !live;
   });
   const model: ReactNode =
-    kind === 'dummy' ? <DummyModel pose={pose} practice={false} /> : kind === 'guardian' ? <GuardianModel pose={pose} /> : <ThornPodModel pose={pose} />;
+    kind === 'dummy' ? <DummyModel pose={pose} practice={false} /> : kind === 'guardian' ? <Guardian pose={pose} /> : <ThornPodModel pose={pose} />;
   return (
     <group ref={group} position={position} rotation={[0, rotationY, 0]}>
       {model}
@@ -182,7 +185,7 @@ export interface WardenState {
   bow: number;
 }
 
-export function WardenModel({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
+function WardenFallback({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
   const root = useRef<Group>(null);
   const torso = useRef<Group>(null);
   const armL = useRef<Group>(null);
@@ -283,7 +286,7 @@ export function StaticWarden({ position, scale = 1, visible = true, rotationY = 
 
 // ---------- Characters ----------
 
-export function Mira({ position, rotationY = 0, waving = false }: { position: Vec3; rotationY?: number; waving?: boolean }) {
+function MiraFallback({ position, rotationY = 0, waving = false }: { position: Vec3; rotationY?: number; waving?: boolean }) {
   const arm = useRef<Group>(null);
   const body = useRef<Group>(null);
   const time = useRef(position[0] * 3.1 + position[2]);
@@ -334,7 +337,7 @@ export function Mira({ position, rotationY = 0, waving = false }: { position: Ve
   );
 }
 
-export function KeeperOrin({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
+function OrinFallback({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh position={[0, 0.65, 0]} material={MAT.burgundyLeather} castShadow>
@@ -363,7 +366,7 @@ export function KeeperOrin({ position, rotationY = 0 }: { position: Vec3; rotati
 }
 
 /** Background student silhouette for the celebration (authored idle sway, no random jitter). */
-export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45 }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number }) {
+function StudentFallback({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45 }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number }) {
   const ref = useRef<Group>(null);
   const phase = useMemo(() => position[0] * 1.7 + position[2], [position]);
   useFrame((state) => {
@@ -403,3 +406,122 @@ export function FloatingLantern({ position, seed = 1 }: { position: Vec3; seed?:
 }
 
 export const UP = new Vector3(0, 1, 0);
+
+// ---------- Characters (rigged GLBs with code-built fallbacks while streaming) ----------
+
+export function Mira({ position, rotationY = 0, waving = false }: { position: Vec3; rotationY?: number; waving?: boolean }) {
+  return (
+    <Suspense fallback={<MiraFallback position={position} rotationY={rotationY} waving={waving} />}>
+      <group position={position} rotation={[0, rotationY, 0]}>
+        <CharacterModel id="mira" clip={waving ? 'Wave' : 'Idle'} speaker="mira" />
+      </group>
+    </Suspense>
+  );
+}
+
+export function KeeperOrin({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
+  return (
+    <Suspense fallback={<OrinFallback position={position} rotationY={rotationY} />}>
+      <group position={position} rotation={[0, rotationY, 0]}>
+        <CharacterModel id="orin" speaker="orin" />
+      </group>
+    </Suspense>
+  );
+}
+
+export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45 }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number }) {
+  const id = robe === MAT.navyCloth ? 'student_a' : 'student_b';
+  return (
+    <Suspense fallback={<StudentFallback position={position} rotationY={rotationY} robe={robe} height={height} />}>
+      <group position={position} rotation={[0, rotationY, 0]} scale={height / (id === 'student_a' ? 1.4 : 1.5)}>
+        <CharacterModel id={id} clip="Celebrate" />
+      </group>
+    </Suspense>
+  );
+}
+
+// ---------- Ward Warden GLB (assets-src/scripts/creatures/ward_warden.py) ----------
+
+const WARDEN_URL = `${import.meta.env.BASE_URL}assets/creatures/ward_warden.glb`;
+
+function WardenGLB({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
+  const gltf = useGLTF(WARDEN_URL);
+  const parts = useMemo(() => {
+    const root = gltf.scene.clone(true);
+    const energy: MeshStandardMaterial[] = [];
+    root.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      const m = o.material as MeshStandardMaterial;
+      if (m.name === 'Stone') o.material = MAT.wardStone;
+      else if (m.name === 'Mask') o.material = MAT.marble;
+      else if (m.name === 'Energy') {
+        const e = m.clone();
+        energy.push(e);
+        o.material = e;
+      }
+    });
+    return {
+      root,
+      torso: root.getObjectByName('Torso'),
+      armL: root.getObjectByName('Arm_L'),
+      armR: root.getObjectByName('Arm_R'),
+      halo: root.getObjectByName('Halo'),
+      energy,
+    };
+  }, [gltf.scene]);
+  const lift = useRef<Group>(null);
+  const plates = useRef<(Group | null)[]>([]);
+  const time = useRef(0);
+
+  useFrame((_, dt) => {
+    time.current += dt;
+    const s = state.current;
+    const t = time.current;
+    if (lift.current) lift.current.position.y = (1 - s.rise) * -1.2 + Math.sin(t * 0.9) * 0.08 * s.rise;
+    if (parts.torso) parts.torso.rotation.x = (1 - s.rise) * 0.5 + s.bow * 0.55;
+    if (parts.armL) {
+      parts.armL.rotation.z = 0.1 + s.rise * 0.1 + (s.attack < 0 ? 1.1 * -s.attack : 0);
+      parts.armL.rotation.x = -s.calm * 0.25;
+    }
+    if (parts.armR) {
+      parts.armR.rotation.z = -0.1 - s.rise * 0.1 - (s.attack > 0 ? 1.1 * s.attack : 0);
+      parts.armR.rotation.x = -s.calm * 0.25;
+    }
+    parts.halo?.rotateY(dt * (0.2 + (1 - s.calm) * 0.4));
+    const glow = 2 + s.core * 4 + Math.sin(t * 6) * 0.6 * (1 - s.calm) + s.calm * 2;
+    for (const m of parts.energy) m.emissiveIntensity = glow;
+    plates.current.forEach((p, i) => {
+      if (!p) return;
+      const open = Math.min(1, Math.max(0, s.shellOpen * 5 - i)) * (1 - s.calm);
+      const a = (i / 5) * Math.PI * 2 + t * 0.4;
+      p.position.set(Math.cos(a) * open * 2.6, 1.9 + Math.sin(a * 2) * 0.3 * open, Math.sin(a) * open * 1.2 + 0.55 * (1 - open));
+      p.rotation.y = open * a;
+      p.visible = open > 0.02 || s.calm < 0.5;
+    });
+  });
+
+  return (
+    <group scale={scale}>
+      <group ref={lift}>
+        <primitive object={parts.root} />
+      </group>
+      {Array.from({ length: 5 }, (_, i) => (
+        <group key={i} ref={(g) => void (plates.current[i] = g)} position={[0, 1.9, 0.55]}>
+          <mesh scale={[1, 0.8, 0.3]} material={MAT.wardStone} castShadow>
+            <sphereGeometry args={[0.32, 20, 14]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+export function WardenModel({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
+  return (
+    <Suspense fallback={<WardenFallback state={state} scale={scale} />}>
+      <WardenGLB state={state} scale={scale} />
+    </Suspense>
+  );
+}

@@ -371,3 +371,82 @@ def render_previews(path_prefix, target_height, views=((0, "front"), (90, "side"
         bpy.ops.render.render(write_still=True)
     for o in lights + [cam]:
         bpy.data.objects.remove(o, do_unlink=True)
+
+
+def render_close(path, centre, distance, angle=0):
+    """Close-up render (faces) using the same neutral setup as the turntables."""
+    import math as _m
+
+    scene = bpy.context.scene
+    lights = []
+    for energy, rot in ((3.2, (50, 0, 35)), (1.2, (60, 0, -140))):
+        data = bpy.data.lights.new("L", "SUN")
+        data.energy = energy
+        o = bpy.data.objects.new("L", data)
+        o.rotation_euler = tuple(_m.radians(a) for a in rot)
+        scene.collection.objects.link(o)
+        lights.append(o)
+    cam_data = bpy.data.cameras.new("CloseCam")
+    cam_data.lens = 70
+    cam = bpy.data.objects.new("CloseCam", cam_data)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    c = Vector(centre)
+    a = _m.radians(angle)
+    cam.location = c + Vector((_m.sin(a) * distance, -_m.cos(a) * distance, 0.02))
+    cam.rotation_euler = (c - cam.location).to_track_quat("-Z", "Y").to_euler()
+    scene.render.filepath = path
+    bpy.ops.render.render(write_still=True)
+    for o in lights + [cam]:
+        bpy.data.objects.remove(o, do_unlink=True)
+
+
+# ---------- Rigid, pivoted parts (bosses, armour) ----------
+
+
+def smart_uv(obj):
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.02)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def set_origin(obj, pivot):
+    bpy.context.scene.cursor.location = pivot
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
+
+
+def part(name, volumes, pivot, material, voxel=0.012, smooth=3, target_tris=8000):
+    """A smooth rigid part from volumes, with its origin at `pivot`, UVs and one material."""
+    obj = build_volume_mesh(name, volumes, voxel=voxel, smooth=smooth, target_tris=target_tris)
+    set_origin(obj, pivot)
+    smart_uv(obj)
+    obj.data.materials.clear()
+    obj.data.materials.append(material)
+    return obj
+
+
+def parent_keep(child, parent):
+    world = child.matrix_world.copy()
+    child.parent = parent
+    child.matrix_world = world
+
+
+def torus(name, location, major, minor, material, rotation=(0, 0, 0), segments=(48, 12)):
+    bpy.ops.mesh.primitive_torus_add(location=location, major_radius=major, minor_radius=minor, major_segments=segments[0], minor_segments=segments[1])
+    obj = bpy.context.active_object
+    obj.name = name
+    obj.rotation_euler = tuple(math.radians(a) for a in rotation)
+    bpy.ops.object.shade_smooth()
+    obj.data.materials.append(material)
+    return obj
+
+
+def export_static(path):
+    bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_apply=True, export_animations=False, export_cameras=False, export_lights=False)

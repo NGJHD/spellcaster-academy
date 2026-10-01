@@ -7,6 +7,17 @@ import { getRun } from '../../state/gameStore';
 import { Box, WallLamp } from '../kit';
 import { Prop } from '../Prop';
 import { MAT } from '../materials';
+import { worldCircle, worldCylinder } from '../surfaces';
+
+/** Inside face of the round tower wall (same textured stone, rendered from within). */
+let towerWall: import('three').MeshStandardMaterial | null = null;
+function towerWallMaterial() {
+  if (!towerWall) {
+    towerWall = MAT.academyStone.clone();
+    towerWall.side = BackSide;
+  }
+  return towerWall;
+}
 import { DormantTarget } from '../props';
 
 const R = 9;
@@ -34,13 +45,8 @@ function Floor({ floor }: { floor: number }) {
   const light = FLOOR_LIGHT[floor] ?? '#ffc98a';
   return (
     <group position={[0, y, 0]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} material={floor === 2 ? MAT.paving : MAT.lightOak} receiveShadow>
-        <circleGeometry args={[R, 48]} />
-      </mesh>
-      <mesh position={[0, 4.5, 0]}>
-        <cylinderGeometry args={[R, R, 9, 48, 1, true]} />
-        <meshStandardMaterial color="#c4a982" roughness={0.9} side={BackSide} />
-      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} material={floor === 2 ? MAT.paving : MAT.lightOak} geometry={worldCircle(R, 48)} receiveShadow />
+      <mesh position={[0, 4.5, 0]} material={towerWallMaterial()} geometry={worldCylinder(R, R, 9, 48, true)} receiveShadow />
       <mesh position={[0, 9, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.darkOak}>
         <circleGeometry args={[R, 48]} />
       </mesh>

@@ -8,6 +8,7 @@ import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
 import { Box } from '../kit';
 import { MAT } from '../materials';
+import { worldCircle } from '../surfaces';
 import { WardenModel, useBeatIndex, type WardenState } from '../props';
 
 const R = 14;
@@ -29,9 +30,7 @@ export function ObservatoryScene() {
 function Arena() {
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} material={MAT.marble} receiveShadow>
-        <circleGeometry args={[R, 64]} />
-      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} material={MAT.marble} geometry={worldCircle(R, 64)} receiveShadow />
       {[3, 6, 9, 12].map((r) => (
         <mesh key={r} position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.agedBrass}>
           <ringGeometry args={[r - 0.06, r, 96]} />
