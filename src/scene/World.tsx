@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import type { AreaId } from '../game/types';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
@@ -72,9 +72,14 @@ export function World() {
 
   return (
     <>
-      <Atmosphere areaId={area} />
+      <Suspense fallback={null}>
+        <Atmosphere areaId={area} />
+      </Suspense>
       {[...mounted].map((key) => (
-        <group key={key}>{scenes[key]}</group>
+        // Each area streams its own assets; one area loading never blanks another.
+        <Suspense key={key} fallback={null}>
+          <group>{scenes[key]}</group>
+        </Suspense>
       ))}
     </>
   );

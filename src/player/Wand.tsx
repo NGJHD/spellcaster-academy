@@ -77,7 +77,7 @@ export function Wand() {
         <mesh position={[0.05, -0.12, 0.17]} rotation={[0.62, 0, 0.18]} material={MAT.navyCloth}>
           <cylinderGeometry args={[0.042, 0.06, 0.34, 20]} />
         </mesh>
-        <mesh position={[0.018, -0.045, 0.035]} rotation={[0.62, 0, 0.18]} material={MAT.lightOak}>
+        <mesh position={[0.018, -0.045, 0.035]} rotation={[0.62, 0, 0.18]} material={MAT.cuffLeather}>
           <cylinderGeometry args={[0.04, 0.043, 0.05, 20]} />
         </mesh>
         <mesh position={[0, -0.005, -0.012]} rotation={[0.3, 0, 0.1]} scale={[0.75, 0.6, 1.0]} material={MAT.skin}>

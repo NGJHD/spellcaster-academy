@@ -7,6 +7,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react';
 import { Color, Object3D, Quaternion, Vector3, type InstancedMesh, type Material } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
 import { MAT } from './materials';
+import { worldBox, worldCylinder } from './surfaces';
 
 type V3 = readonly [number, number, number];
 
@@ -24,9 +25,7 @@ export function Box({
   shadows?: boolean;
 }) {
   return (
-    <mesh position={position} rotation={rotation} material={material} castShadow={shadows} receiveShadow>
-      <boxGeometry args={size} />
-    </mesh>
+    <mesh position={position} rotation={rotation} material={material} geometry={worldBox(size[0], size[1], size[2])} castShadow={shadows} receiveShadow />
   );
 }
 
@@ -60,9 +59,7 @@ export function Column({ position, height, radius = 0.32, material = MAT.academy
       <mesh position={[0, 0.15, 0]} material={MAT.academyStoneDark} castShadow receiveShadow>
         <cylinderGeometry args={[radius * 1.35, radius * 1.45, 0.3, 20]} />
       </mesh>
-      <mesh position={[0, height / 2, 0]} material={material} castShadow receiveShadow>
-        <cylinderGeometry args={[radius * 0.92, radius, height - 0.5, 24]} />
-      </mesh>
+      <mesh position={[0, height / 2, 0]} material={material} geometry={worldCylinder(radius * 0.92, radius, height - 0.5, 24)} castShadow receiveShadow />
       <mesh position={[0, height - 0.12, 0]} material={MAT.academyStoneDark} castShadow>
         <cylinderGeometry args={[radius * 1.4, radius * 1.05, 0.24, 20]} />
       </mesh>
@@ -79,7 +76,7 @@ export function Arch({ position, width, thickness = 0.35, rotationY = 0, materia
   );
 }
 
-export function WindowPane({ position, size, rotationY = 0, material = MAT.windowGlow }: { position: V3; size: readonly [number, number]; rotationY?: number; material?: Material }) {
+export function WindowPane({ position, size, rotationY = 0, material = MAT.windowLit }: { position: V3; size: readonly [number, number]; rotationY?: number; material?: Material }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh material={material}>
@@ -312,3 +309,93 @@ export function Steps({ from, to, width = 2, count = 12, material = MAT.academyS
   );
 }
 
+
+interface FacadeProps {
+  /** Centre of the wall's base. The decorated face points along local +Z (rotate with `rotationY`). */
+  readonly position: V3;
+  readonly length: number;
+  readonly height: number;
+  readonly thickness?: number;
+  readonly rotationY?: number;
+  /** Bay width: one pilaster and one window column per bay. */
+  readonly bay?: number;
+  /** Window rows as [sill height, window height]. */
+  readonly windows?: readonly (readonly [number, number])[];
+  readonly crenellations?: boolean;
+  readonly glass?: Material;
+  readonly wall?: Material;
+}
+
+/**
+ * Academy façade (§14A.15 wall modules): plinth, pilasters, cornice, framed arched windows and
+ * optional crenellations, so large walls read as constructed masonry rather than flat boxes.
+ */
+export function Facade({
+  position,
+  length,
+  height,
+  thickness = 1,
+  rotationY = 0,
+  bay = 5,
+  windows = [],
+  crenellations = false,
+  glass = MAT.windowGlow,
+  wall = MAT.academyStone,
+}: FacadeProps) {
+  const bays = Math.max(1, Math.round(length / bay));
+  const step = length / bays;
+  const face = thickness / 2;
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <Box position={[0, height / 2, 0]} size={[length, height, thickness]} material={wall} />
+      <Box position={[0, 0.35, face + 0.08]} size={[length + 0.2, 0.7, 0.16]} material={MAT.academyStoneDark} />
+      <Box position={[0, height - 0.25, face + 0.14]} size={[length + 0.4, 0.5, 0.28]} material={MAT.academyStoneDark} />
+      <Box position={[0, height - 0.6, face + 0.07]} size={[length + 0.2, 0.18, 0.14]} material={MAT.academyStoneDark} />
+      {Array.from({ length: bays + 1 }, (_, i) => -length / 2 + i * step).map((x) => (
+        <Box key={`p${x.toFixed(2)}`} position={[x, height / 2, face + 0.1]} size={[0.55, height - 0.9, 0.2]} material={MAT.academyStoneDark} />
+      ))}
+      {windows.flatMap(([sill, h]) =>
+        Array.from({ length: bays }, (_, i) => -length / 2 + (i + 0.5) * step).map((x) => {
+          const w = Math.min(1.6, step * 0.42);
+          return (
+            <group key={`w${x.toFixed(2)}-${sill}`} position={[x, sill, face]}>
+              <mesh position={[0, h / 2, 0.01]} material={glass}>
+                <planeGeometry args={[w, h]} />
+              </mesh>
+              <mesh position={[0, h, 0.012]} material={glass}>
+                <circleGeometry args={[w / 2, 20, 0, Math.PI]} />
+              </mesh>
+              <Box position={[-w / 2 - 0.09, h / 2, 0.06]} size={[0.18, h, 0.14]} material={MAT.academyStoneDark} />
+              <Box position={[w / 2 + 0.09, h / 2, 0.06]} size={[0.18, h, 0.14]} material={MAT.academyStoneDark} />
+              <Box position={[0, -0.06, 0.1]} size={[w + 0.5, 0.12, 0.22]} material={MAT.academyStoneDark} />
+              <mesh position={[0, h, 0.06]} material={MAT.academyStoneDark}>
+                <torusGeometry args={[w / 2 + 0.09, 0.09, 8, 20, Math.PI]} />
+              </mesh>
+              <Box position={[0, h / 2, 0.02]} size={[0.05, h, 0.04]} material={MAT.darkSteel} shadows={false} />
+            </group>
+          );
+        }),
+      )}
+      {crenellations &&
+        Array.from({ length: Math.floor(length / 1.2) }, (_, i) => -length / 2 + 0.6 + i * 1.2).map((x, i) =>
+          i % 2 === 0 ? <Box key={`c${i}`} position={[x, height + 0.4, 0]} size={[0.7, 0.8, thickness]} material={wall} /> : null,
+        )}
+    </group>
+  );
+}
+
+/** Gable roof along local X: two slate slopes and stone gable ends. */
+export function GableRoof({ position, length, span, rise, rotationY = 0 }: { position: V3; length: number; span: number; rise: number; rotationY?: number }) {
+  const slope = Math.hypot(span / 2, rise);
+  const angle = Math.atan2(rise, span / 2);
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      {[-1, 1].map((s) => (
+        <group key={s} position={[0, rise / 2, (s * span) / 4]} rotation={[s * angle, 0, 0]}>
+          <Box position={[0, 0, 0]} size={[length + 0.6, 0.2, slope + 0.4]} material={MAT.slate} />
+        </group>
+      ))}
+      <Box position={[0, rise + 0.1, 0]} size={[length + 0.7, 0.25, 0.35]} material={MAT.academyStoneDark} />
+    </group>
+  );
+}

@@ -24,7 +24,7 @@ export const MAT = {
   parchment: std('#ecdcb7', 0.85, 0, { side: DoubleSide }),
   canvas: std('#cdbb94', 0.95),
   plaster: std('#e3d3b4', 0.95),
-  carpet: std('#2b4783', 1),
+  carpet: std('#2a3a62', 0.95),
   grass: std('#6b8a48', 1),
   hedge: std('#3d6634', 1),
   leaf: std('#4d8a3c', 0.8, 0, { side: DoubleSide }),
@@ -53,7 +53,11 @@ export const MAT = {
   wardGold: std('#ffe3a0', 0.3, 0, { emissive: '#ffb640', emissiveIntensity: 1.6 }),
   wardBlue: std('#cfe6ff', 0.3, 0, { emissive: '#6fb6ff', emissiveIntensity: 1.8 }),
   lampGlow: std('#ffd89a', 0.5, 0, { emissive: '#ffb65c', emissiveIntensity: 1.4 }),
-  windowGlow: std('#ffe2b0', 0.4, 0, { emissive: '#ffc070', emissiveIntensity: 0.9 }),
+  // Leaded glass: dark by day with a faint warm glow from inside.
+  windowGlow: std('#1e2833', 0.08, 0.7, { emissive: '#ffb468', emissiveIntensity: 0.06 }),
+  /** Interior windows letting daylight in. */
+  windowLit: std('#fff1d8', 0.4, 0, { emissive: '#ffe1b0', emissiveIntensity: 0.75 }),
+  cuffLeather: std('#6e4a2c', 0.65),
   eyeAmber: std('#ffb84d', 0.3, 0, { emissive: '#ff9a1f', emissiveIntensity: 2 }),
   eyeCyan: std('#bff6ff', 0.3, 0, { emissive: '#55e6ff', emissiveIntensity: 2.4 }),
   eyeDark: std('#16110c', 0.2),

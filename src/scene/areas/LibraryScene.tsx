@@ -8,6 +8,7 @@ import { getRun } from '../../state/gameStore';
 import { Bookshelf, Box, Column, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { WardAnchor, useBeatIndex } from '../props';
+import { Prop } from '../Prop';
 
 const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
 
@@ -97,12 +98,12 @@ function ReadingArea() {
     <group>
       {[-3.2, 3.2].map((x) => (
         <group key={x} position={[x, 0, -7]}>
-          <Box position={[0, 0.78, 0]} size={[1.2, 0.08, 2.6]} material={MAT.darkOak} />
-          {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} position={[0.5 * sx, 0.38, 1.15 * sz]} size={[0.08, 0.76, 0.08]} material={MAT.darkOak} />))}
-          <mesh position={[0, 0.95, 0.6]} material={MAT.lampGlow}>
-            <sphereGeometry args={[0.1, 12, 10]} />
-          </mesh>
-          <Box position={[0.1, 0.84, -0.4]} size={[0.4, 0.04, 0.55]} material={MAT.parchment} shadows={false} />
+          <Prop id="WoodenTable_01" position={[0, 0, 0]} height={0.78} rotationY={Math.PI / 2} />
+          {[-0.7, 0.7].map((dz) => (
+            <Prop key={dz} id="WoodenChair_01" position={[x < 0 ? 0.75 : -0.75, 0, dz]} height={0.95} rotationY={x < 0 ? -Math.PI / 2 : Math.PI / 2} />
+          ))}
+          <Prop id="vintage_oil_lamp" position={[0.1, 0.78, 0.5]} height={0.38} />
+          <Prop id="book_encyclopedia_set_01" position={[0, 0.78, -0.45]} height={0.28} rotationY={x} />
         </group>
       ))}
       <group position={[0, 0, -20]}>
@@ -113,6 +114,12 @@ function ReadingArea() {
           <cylinderGeometry args={[0.8, 0.8, 0.06, 32]} />
         </mesh>
       </group>
+      <Prop id="lantern_chandelier_01" position={[0, 6.4, -7]} height={2.2} shadows={false} />
+      <Prop id="lantern_chandelier_01" position={[0, 6.4, -24]} height={2.2} shadows={false} />
+      <Prop id="GothicCabinet_01" position={[-7.6, 0, -29.5]} height={2.2} />
+      <Prop id="vintage_grandfather_clock_01" position={[7.4, 0, -2.8]} height={2.3} rotationY={-Math.PI / 2} />
+      <Prop id="brass_candleholders" position={[3.2, 0.78, -6.6]} height={0.35} />
+      <Prop id="mantel_clock_01" position={[-3.2, 0.78, -6.3]} height={0.3} />
     </group>
   );
 }

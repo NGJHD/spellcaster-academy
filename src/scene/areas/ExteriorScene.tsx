@@ -10,8 +10,10 @@ import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../leve
 import { CHEST_POSITION, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
-import { Arch, Banner, Bench, Bookshelf, Box, Column, Planter, Rug, Shrub, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
+import { Arch, Banner, Bookshelf, Box, Column, Facade, GableRoof, Planter, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { Prop } from '../Prop';
+import { worldCylinder, worldPlane } from '../surfaces';
 import {
   DormantTarget,
   FloatingLantern,
@@ -47,41 +49,38 @@ function Campus() {
   const trees = useMemo(() => {
     let s = 7;
     const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-    const out: { x: number; z: number; h: number }[] = [];
-    while (out.length < 70) {
-      const x = (rand() - 0.5) * 180;
-      const z = 24 + rand() * 100;
-      if (Math.abs(x) < 8) continue;
-      out.push({ x, z, h: 6 + rand() * 6 });
+    const kinds = ['island_tree_01', 'island_tree_02'] as const;
+    const out: { id: string; x: number; z: number; h: number; r: number }[] = [];
+    // Broadleaf trees framing the arrival path, then a ring of firs in the distance.
+    while (out.length < 18) {
+      const x = (rand() < 0.5 ? -1 : 1) * (9 + rand() * 26);
+      const z = 26 + rand() * 60;
+      out.push({ id: kinds[out.length % 2] ?? 'island_tree_01', x, z, h: 8 + rand() * 4, r: rand() * Math.PI * 2 });
+    }
+    for (let i = 0; i < 26; i++) {
+      const a = (i / 26) * Math.PI * 1.2 - Math.PI * 0.1;
+      const radius = 110 + rand() * 40;
+      out.push({ id: 'fir_tree_01', x: Math.cos(a) * radius, z: Math.sin(a) * radius * 0.6 + 40, h: 13 + rand() * 6, r: rand() * 6 });
     }
     return out;
   }, []);
   return (
     <group name="campus">
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} material={MAT.grass} receiveShadow>
-        <planeGeometry args={[1000, 1000]} />
-      </mesh>
+      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} material={MAT.grass} geometry={worldPlane(900, 900)} receiveShadow />
       <Slab x={[-1.8, 1.8]} y={[-0.01, 0.03]} z={[20.6, 120]} material={MAT.paving} shadows={false} />
       {/* Main academy wing behind the courtyard */}
-      <Slab x={[-36, 36]} y={[0, 17]} z={[-42, -15]} material={MAT.academyStone} />
-      <mesh position={[0, 17, -28.5]} rotation={[0, 0, 0]} material={MAT.slate} castShadow>
-        <cylinderGeometry args={[0.1, 15, 7, 4, 1, false, Math.PI / 4]} />
-      </mesh>
-      {[-28, -20, -12, -4, 4, 12, 20, 28].flatMap((x) =>
-        [4, 10].map((y) => <WindowPane key={`${x}-${y}`} position={[x, y + 1.6, -14.95]} size={[1.6, 3.2]} />),
-      )}
+      <Slab x={[-36, 36]} y={[0, 16.5]} z={[-42, -16]} material={MAT.academyStone} />
+      <Facade position={[0, 0, -15.5]} length={72} height={17} bay={6} windows={[[3.2, 3], [9.8, 3.4]]} />
+      <GableRoof position={[0, 17, -28.75]} length={72} span={27.5} rise={7} />
       {/* Library wing (tall windows) and greenhouse glimpse */}
-      <Slab x={[-70, -40]} y={[0, 14]} z={[-40, -10]} material={MAT.academyStoneDark} />
-      {[-66, -58, -50, -44].map((x) => (
-        <WindowPane key={x} position={[x, 7, -9.95]} size={[2, 7]} />
-      ))}
+      <Slab x={[-70, -40]} y={[0, 13.5]} z={[-40, -11]} material={MAT.academyStoneDark} />
+      <Facade position={[-55, 0, -10.5]} length={30} height={14} bay={6} windows={[[3.5, 7]]} wall={MAT.academyStoneDark} />
+      <GableRoof position={[-55, 14, -25.25]} length={30} span={29.5} rise={6} />
       <mesh position={[60, 5, -25]} material={MAT.glass}>
         <boxGeometry args={[26, 10, 18]} />
       </mesh>
       {/* Moon Tower and observatory dome */}
-      <mesh position={[0, 22, -60]} material={MAT.academyStone} castShadow>
-        <cylinderGeometry args={[7, 7.8, 44, 40]} />
-      </mesh>
+      <mesh position={[0, 22, -60]} material={MAT.academyStone} geometry={worldCylinder(7, 7.8, 44, 40)} castShadow />
       {[10, 20, 30].map((y) => (
         <mesh key={y} position={[0, y, -60]} material={MAT.academyStoneDark}>
           <torusGeometry args={[7.3, 0.25, 8, 40]} />
@@ -102,15 +101,13 @@ function Campus() {
           </mesh>
         </group>
       ))}
-      {trees.map(({ x, z, h }) => (
-        <group key={`${x.toFixed(1)}-${z.toFixed(1)}`} position={[x, 0, z]}>
-          <mesh position={[0, h * 0.25, 0]} material={MAT.bark} castShadow>
-            <cylinderGeometry args={[0.18, 0.32, h * 0.5, 8]} />
-          </mesh>
-          <Shrub position={[0, h * 0.35, 0]} size={h * 0.45} seed={Math.round(x * 13 + z)} />
-        </group>
+      {trees.map((t) => (
+        <Prop key={`${t.x.toFixed(1)}-${t.z.toFixed(1)}`} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={t.r} lodDistance={45} shadows={t.id !== 'fir_tree_01'} />
       ))}
-      {[-2.8, 2.8].flatMap((x) => [30, 40, 52, 66].map((z) => <StandingLamp key={`${x}-${z}`} position={[x, 0, z]} />))}
+      {[-2.9, 2.9].flatMap((x) => [30, 42, 56, 72].map((z) => <Prop key={`${x}-${z}`} id="street_lamp_01" position={[x, 0, z]} height={3.6} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />))}
+      {[[-9, 30], [12, 44]].map(([x = 0, z = 0], i) => (
+        <Prop key={`rock${i}`} id="rock_moss_set_01" position={[x, 0, z]} scale={0.35} rotationY={i * 1.7} />
+      ))}
     </group>
   );
 }
@@ -120,8 +117,8 @@ function Campus() {
 function ArrivalGate() {
   return (
     <group name="arrival-gate">
-      <Slab x={[-15, -GATE_HALF]} y={[0, 7.5]} z={[GATE_Z - 0.6, GATE_Z + 0.6]} material={MAT.academyStone} />
-      <Slab x={[GATE_HALF, 15]} y={[0, 7.5]} z={[GATE_Z - 0.6, GATE_Z + 0.6]} material={MAT.academyStone} />
+      <Facade position={[-8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
+      <Facade position={[8.75, 0, GATE_Z]} length={12.5} height={7.5} thickness={1.2} bay={4} crenellations />
       <Slab x={[-GATE_HALF, GATE_HALF]} y={[GATE_HEIGHT + 0.6, 7.5]} z={[GATE_Z - 0.6, GATE_Z + 0.6]} material={MAT.academyStone} />
       <Arch position={[0, GATE_HEIGHT - 0.3, GATE_Z + 0.62]} width={GATE_HALF * 2} thickness={0.4} material={MAT.academyStoneDark} />
       {[-1, 1].map((s) => (
@@ -137,8 +134,9 @@ function ArrivalGate() {
       {(['left', 'centre', 'right'] as const).map((k, i) => (
         <ProgressCrystal key={k} position={CRYSTAL_POSITIONS[k]} encounterId="arrival-crystals" index={i} />
       ))}
-      <Slab x={[-15, -6]} y={[0, 1.5]} z={[21.5, 23]} material={MAT.hedge} />
-      <Slab x={[6, 15]} y={[0, 1.5]} z={[21.5, 23]} material={MAT.hedge} />
+      {[-14, -11.5, -9, -6.5, 6.5, 9, 11.5, 14].map((x, i) => (
+        <Prop key={x} id={`shrub_0${(i % 4) + 1}`} position={[x, 0, 22.3]} height={1.5} rotationY={i * 2.1} />
+      ))}
       {/* Decorative fallen banner pole (no jump tutorial: §GD-4). */}
       <mesh position={[-6.5, 0.12, 25]} rotation={[Math.PI / 2, 0, 0.7]} material={MAT.darkOak} castShadow>
         <cylinderGeometry args={[0.07, 0.07, 3.4, 10]} />
@@ -194,18 +192,12 @@ function Courtyard({ celebration }: { celebration: boolean }) {
   return (
     <group name="courtyard">
       <Slab x={[-14, 14]} y={[-0.01, 0.02]} z={[-14, 19.4]} material={MAT.paving} shadows={false} />
-      <Slab x={[-15, -14]} y={[0, 8]} z={[-15, 20]} material={MAT.academyStone} />
-      <Slab x={[-15, 15]} y={[0, 8]} z={[-15, -14]} material={MAT.academyStone} />
+      <Facade position={[-14.5, 0, 2.5]} length={35} height={8} rotationY={Math.PI / 2} bay={5} windows={[[3, 2.6]]} />
+      <Facade position={[0, 0, -14.5]} length={30} height={8} bay={5} windows={[[3, 2.6]]} />
       <Slab x={[14, 15]} y={[0, 8]} z={[DOOR_HALF, 20]} material={MAT.academyStone} />
       <Slab x={[14, 15]} y={[0, 8]} z={[-15, -DOOR_HALF]} material={MAT.academyStone} />
       <Slab x={[14, 15]} y={[DOOR_HEIGHT, 8]} z={[-DOOR_HALF, DOOR_HALF]} material={MAT.academyStone} />
       <Arch position={[13.95, DOOR_HEIGHT, 0]} width={DOOR_HALF * 2} rotationY={Math.PI / 2} material={MAT.academyStoneDark} />
-      {[-10, -5, 0, 5, 10].map((z) => (
-        <WindowPane key={z} position={[-13.95, 4.5, z]} size={[1.4, 2.6]} rotationY={Math.PI / 2} />
-      ))}
-      {[-9, -3, 3, 9].map((x) => (
-        <WindowPane key={x} position={[x, 4.5, -13.95]} size={[1.4, 2.6]} />
-      ))}
       {/* Arcade along the gate wall */}
       {[-12, -9, -6, -3.2, 3.2, 6, 9, 12].map((x) => (
         <Column key={x} position={[x, 0, 16]} height={4.2} />
@@ -221,7 +213,7 @@ function Courtyard({ celebration }: { celebration: boolean }) {
       ))}
       <WardAnchor position={COURTYARD_ANCHOR_POSITION} encounterId="courtyard-anchor" theme="courtyard" />
       {[[-10, 4], [10, 4], [-10, -10], [10, 7]].map(([x = 0, z = 0]) => (
-        <Bench key={`b${x}${z}`} position={[x, 0, z]} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />
+        <Prop key={`b${x}${z}`} id="painted_wooden_bench" position={[x, 0, z]} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />
       ))}
       {[[-12, 12], [12, 12], [-12, -12], [12, -12], [-12, 0]].map(([x = 0, z = 0], i) => (
         <Planter key={`p${x}${z}`} position={[x, 0, z]} seed={i + 3} />
@@ -241,18 +233,14 @@ function Fountain({ celebration }: { celebration: boolean }) {
   });
   return (
     <group name="fountain">
-      <mesh position={[0, 0.3, 0]} material={MAT.academyStone} castShadow receiveShadow>
-        <cylinderGeometry args={[3, 3.25, 0.6, 48]} />
-      </mesh>
-      <mesh position={[0, 0.61, 0]} material={MAT.academyStoneDark}>
+      <mesh position={[0, 0.3, 0]} material={MAT.academyStone} geometry={worldCylinder(3, 3.25, 0.6, 48)} castShadow receiveShadow />
+      <mesh position={[0, 0.61, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.academyStoneDark}>
         <torusGeometry args={[3, 0.12, 10, 48]} />
       </mesh>
       <mesh ref={water} position={[0, 0.64, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
         <circleGeometry args={[2.85, 48]} />
       </mesh>
-      <mesh position={[0, 1.3, 0]} material={MAT.academyStone} castShadow>
-        <cylinderGeometry args={[0.3, 0.48, 1.8, 20]} />
-      </mesh>
+      <mesh position={[0, 1.3, 0]} material={MAT.academyStone} geometry={worldCylinder(0.3, 0.48, 1.8, 20)} castShadow />
       <mesh position={[0, 2.25, 0]} material={MAT.academyStone} castShadow>
         <cylinderGeometry args={[1.15, 0.38, 0.38, 32]} />
       </mesh>
@@ -315,31 +303,27 @@ function EastHall() {
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
       <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-2.2} />
       <Chest />
+      <Prop id="GothicCabinet_01" position={[21, 0, -W + 0.35]} height={2.1} />
+      <Prop id="vintage_grandfather_clock_01" position={[36.5, 0, -W + 0.3]} height={2.2} />
+      <Prop id="WoodenTable_01" position={[35, 0, W - 0.5]} height={0.78} rotationY={Math.PI / 2} />
+      <Prop id="book_encyclopedia_set_01" position={[35, 0.78, W - 0.5]} height={0.3} rotationY={Math.PI} />
+      <Prop id="Lantern_01" position={[34.6, 0.78, W - 0.35]} height={0.4} />
+      <Prop id="potted_plant_02" position={[16.5, 0, W - 0.5]} height={1.3} />
     </group>
   );
 }
 
 function Chest() {
-  const lid = useRef<Group>(null);
+  const glow = useRef<import('three').PointLight>(null);
   useFrame((_, dt) => {
     const open = getRun()?.flags.has('chest-open') ?? false;
-    if (lid.current) lid.current.rotation.x += ((open ? -1.6 : 0) - lid.current.rotation.x) * (1 - Math.exp(-3 * Math.min(dt, 0.1)));
+    if (glow.current) glow.current.intensity += ((open ? 6 : 0) - glow.current.intensity) * (1 - Math.exp(-3 * Math.min(dt, 0.1)));
   });
   const [x, , z] = CHEST_POSITION;
   return (
     <group position={[x, 0, z]}>
-      <Box position={[0, 0.27, 0]} size={[0.9, 0.5, 0.55]} material={MAT.darkOak} />
-      {[-0.3, 0.3].map((dx) => (
-        <Box key={dx} position={[dx, 0.27, 0]} size={[0.06, 0.52, 0.57]} material={MAT.agedBrass} />
-      ))}
-      <group ref={lid} position={[0, 0.52, -0.27]}>
-        <mesh position={[0, 0.06, 0.27]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1, 1]} material={MAT.darkOak} castShadow>
-          <cylinderGeometry args={[0.18, 0.18, 0.9, 20, 1, false, 0, Math.PI]} />
-        </mesh>
-      </group>
-      <mesh position={[0, 0.4, 0.29]} material={MAT.wardGold}>
-        <torusGeometry args={[0.07, 0.012, 8, 20]} />
-      </mesh>
+      <Prop id="treasure_chest" position={[0, 0, 0]} height={0.6} rotationY={-0.84} />
+      <pointLight ref={glow} position={[0, 0.8, 0.2]} color="#ffd88a" intensity={0} distance={4} />
     </group>
   );
 }
@@ -361,13 +345,9 @@ function CelebrationDressing() {
       ))}
       {[-6, 6].map((x) => (
         <group key={x} position={[x, 0, -7]}>
-          <Box position={[0, 0.75, 0]} size={[2.2, 0.08, 0.9]} material={MAT.lightOak} />
-          <Box position={[0, 0.38, 0]} size={[0.1, 0.75, 0.1]} material={MAT.darkOak} />
-          {[-0.6, 0, 0.6].map((dx) => (
-            <mesh key={dx} position={[dx, 0.85, 0]} material={MAT.lampGlow}>
-              <sphereGeometry args={[0.08, 12, 10]} />
-            </mesh>
-          ))}
+          <Prop id="WoodenTable_01" position={[0, 0, 0]} height={0.78} />
+          <Prop id="wooden_lantern_01" position={[-0.4, 0.78, 0]} height={0.35} />
+          <Prop id="brass_candleholders" position={[0.4, 0.78, 0]} height={0.3} />
         </group>
       ))}
       <StaticWarden position={[0, 31.5, -53.5]} scale={0.75} />

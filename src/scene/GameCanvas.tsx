@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import type { RefObject } from 'react';
+import { Suspense, type RefObject } from 'react';
 import { ACESFilmicToneMapping, PCFShadowMap, SRGBColorSpace } from 'three';
 import { EnemyManager } from '../enemies/EnemyManager';
 import { PipCompanion } from '../player/PipCompanion';
@@ -8,7 +8,10 @@ import { Wand } from '../player/Wand';
 import { SpellEffects } from '../spells/SpellEffects';
 import { useSettingsStore } from '../state/settingsStore';
 import { RailGizmos } from './RailGizmos';
+import { applySurfaceTextures } from './surfaces';
 import { World } from './World';
+
+applySurfaceTextures();
 
 /** `?rails` in the URL shows the authored camera rails and node names. */
 const SHOW_RAILS = new URLSearchParams(window.location.search).has('rails');
@@ -26,7 +29,9 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
     >
       <RunDriver fadeRef={fadeRef} />
-      <World />
+      <Suspense fallback={null}>
+        <World />
+      </Suspense>
       <EnemyManager />
       <SpellEffects />
       <Wand />

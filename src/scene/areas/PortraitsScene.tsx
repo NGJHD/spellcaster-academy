@@ -7,6 +7,7 @@ import { getRun } from '../../state/gameStore';
 import { Arch, Bench, Box, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { Mira } from '../props';
+import { Prop } from '../Prop';
 
 const W = 3;
 const H = 5.5;
@@ -47,6 +48,10 @@ export function PortraitsScene() {
       ))}
       <Bench position={[-2.2, 0, -16]} rotationY={Math.PI / 2} upholstered />
       <Bench position={[2.2, 0, -24]} rotationY={-Math.PI / 2} upholstered />
+      <Prop id="gothic_statue" position={[0, 0, -39.6]} height={2.3} />
+      <Prop id="potted_plant_02" position={[-2.4, 0, -35]} height={1.3} />
+      <Prop id="potted_plant_02" position={[2.4, 0, -6]} height={1.3} rotationY={2} />
+      <Prop id="brass_candleholders" position={[2.2, 0.9, -13.2]} height={0.3} />
     </group>
   );
 }

@@ -4,7 +4,8 @@ import { useRef } from 'react';
 import { BackSide, type Group } from 'three';
 import { TOWER_FLOOR_HEIGHT, TOWER_ORIGIN } from '../../level/areas/moonTower';
 import { getRun } from '../../state/gameStore';
-import { Box, Shrub, WallLamp } from '../kit';
+import { Box, WallLamp } from '../kit';
+import { Prop } from '../Prop';
 import { MAT } from '../materials';
 import { DormantTarget } from '../props';
 
@@ -76,9 +77,12 @@ function Floor({ floor }: { floor: number }) {
         [-4.5, 4.5].map((x) => (
           <group key={x} position={[x, 0, 1.5]}>
             <Box position={[0, 0.35, 0]} size={[1.6, 0.7, 1.0]} material={MAT.academyStoneDark} />
-            <Shrub position={[0, 0.6, 0]} size={0.8} seed={x + 3} material={MAT.moss} />
+            <Prop id="fern_02" position={[0, 0.7, 0]} height={0.8} rotationY={x} />
           </group>
         ))}
+      <Prop id="lantern_chandelier_01" position={[0, 8.6, 2]} height={1.6} shadows={false} />
+      {floor === 1 && <Prop id="vintage_grandfather_clock_01" position={[-6.5, 0, -5]} height={2.2} rotationY={0.9} />}
+      {floor === 2 && <Prop id="brass_candleholders" position={[3, 0, -6.8]} height={0.9} />}
       <pointLight position={[0, 6, 0]} color={light} intensity={22} distance={18} decay={2} />
     </group>
   );

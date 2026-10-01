@@ -12,7 +12,13 @@ export interface AreaLook {
   readonly exposure: number;
   /** Environment-map intensity for PBR reflections. */
   readonly envIntensity: number;
+  /** CC0 HDRI used for image-based lighting (public/assets/hdri/<id>_1k.hdr). */
+  readonly hdri: string;
 }
+
+const DAY = 'kloofendal_48d_partly_cloudy_puresky';
+const INTERIOR = 'afrikaans_church_interior';
+const NIGHT = 'kloppenheim_02_puresky';
 
 const EXTERIOR: AreaLook = {
   sky: 'afternoon',
@@ -22,6 +28,7 @@ const EXTERIOR: AreaLook = {
   hemi: ['#d8e6ff', '#6b5a40', 0.75],
   exposure: 1.0,
   envIntensity: 0.9,
+  hdri: DAY,
 };
 
 export const AREA_LOOKS: Record<AreaId, AreaLook> = {
@@ -36,6 +43,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#ffdcae', '#3b2a1c', 0.45],
     exposure: 1.05,
     envIntensity: 0.5,
+    hdri: INTERIOR,
   },
   'hall-of-portraits': {
     sky: 'interior',
@@ -45,6 +53,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#ffe2bd', '#3a2b20', 0.55],
     exposure: 1.05,
     envIntensity: 0.5,
+    hdri: INTERIOR,
   },
   'enchanted-greenhouse': {
     sky: 'afternoon',
@@ -54,6 +63,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#e5f7e2', '#3e5a33', 0.85],
     exposure: 1.0,
     envIntensity: 0.9,
+    hdri: 'abandoned_greenhouse',
   },
   'lower-stairwell': {
     sky: 'interior',
@@ -63,6 +73,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#f4d9b5', '#2b221b', 0.45],
     exposure: 1.1,
     envIntensity: 0.4,
+    hdri: INTERIOR,
   },
   'practice-gallery': {
     sky: 'interior',
@@ -72,6 +83,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#fff0da', '#3a3026', 0.6],
     exposure: 1.05,
     envIntensity: 0.6,
+    hdri: INTERIOR,
   },
   'moon-tower': {
     sky: 'night',
@@ -81,6 +93,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#9db4e6', '#2a2420', 0.45],
     exposure: 1.15,
     envIntensity: 0.5,
+    hdri: NIGHT,
   },
   observatory: {
     sky: 'night',
@@ -90,6 +103,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#8ea8de', '#1d1f2a', 0.5],
     exposure: 1.2,
     envIntensity: 0.6,
+    hdri: NIGHT,
   },
   'celebration-courtyard': {
     sky: 'dawn',
@@ -99,6 +113,7 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     hemi: ['#ffe0c2', '#5c4a3a', 0.8],
     exposure: 1.0,
     envIntensity: 0.9,
+    hdri: 'belfast_sunset_puresky',
   },
 };
 

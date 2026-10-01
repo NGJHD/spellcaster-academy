@@ -1,0 +1,888 @@
+{
+  "GothicCabinet_01": {
+    "bounds": {
+      "max": [
+        0.8595719337463379,
+        2.36090087890625,
+        0.671389102935791
+      ],
+      "min": [
+        -0.8595718145370483,
+        -4.256165993865579e-06,
+        -0.45731282234191895
+      ]
+    },
+    "bytes": 674932,
+    "file": "/assets/props/GothicCabinet_01.glb",
+    "id": "GothicCabinet_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 12170,
+    "textureMax": 1024,
+    "triangles": 9997
+  },
+  "Lantern_01": {
+    "bounds": {
+      "max": [
+        0.06117653846740723,
+        0.2941656708717346,
+        0.048550885170698166
+      ],
+      "min": [
+        -0.06101853772997856,
+        1.8042912415694445e-05,
+        -0.04857563599944115
+      ]
+    },
+    "bytes": 608444,
+    "file": "/assets/props/Lantern_01.glb",
+    "id": "Lantern_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 33902,
+    "textureMax": 1024,
+    "triangles": 9998
+  },
+  "WoodenChair_01": {
+    "bounds": {
+      "max": [
+        0.3440864086151123,
+        2.2721478939056396,
+        0.2913857400417328
+      ],
+      "min": [
+        -0.3440864086151123,
+        -0.0013669622130692005,
+        -0.3671490550041199
+      ]
+    },
+    "bytes": 577852,
+    "file": "/assets/props/WoodenChair_01.glb",
+    "id": "WoodenChair_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 19992,
+    "textureMax": 1024,
+    "triangles": 10000
+  },
+  "WoodenTable_01": {
+    "bounds": {
+      "max": [
+        0.8998239636421204,
+        0.5488492250442505,
+        0.3285874128341675
+      ],
+      "min": [
+        -0.8998239636421204,
+        -4.5886007882245394e-08,
+        -0.32858723402023315
+      ]
+    },
+    "bytes": 286516,
+    "file": "/assets/props/WoodenTable_01.glb",
+    "id": "WoodenTable_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 952,
+    "textureMax": 1024,
+    "triangles": 952
+  },
+  "book_encyclopedia_set_01": {
+    "bounds": {
+      "max": [
+        0.5319809317588806,
+        0.23741821944713593,
+        0.10133218765258789
+      ],
+      "min": [
+        -0.019316475838422775,
+        -2.2134376109761433e-08,
+        -0.06224953383207321
+      ]
+    },
+    "bytes": 1207832,
+    "file": "/assets/props/book_encyclopedia_set_01.glb",
+    "id": "book_encyclopedia_set_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 67306,
+    "textureMax": 1024,
+    "triangles": 7983
+  },
+  "brass_candleholders": {
+    "bounds": {
+      "max": [
+        0.6042367219924927,
+        0.8347945213317871,
+        0.182412788271904
+      ],
+      "min": [
+        -0.4487031400203705,
+        -0.0004652440547943115,
+        -0.18226955831050873
+      ]
+    },
+    "bytes": 2134436,
+    "file": "/assets/props/brass_candleholders.glb",
+    "id": "brass_candleholders",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 5,
+    "sourceTriangles": 41936,
+    "textureMax": 1024,
+    "triangles": 9996
+  },
+  "fancy_picture_frame_01": {
+    "bounds": {
+      "max": [
+        0.301515132188797,
+        0.23206321895122528,
+        0.0218921210616827
+      ],
+      "min": [
+        -0.301515132188797,
+        -0.23206323385238647,
+        0.001899046590551734
+      ]
+    },
+    "bytes": 739780,
+    "file": "/assets/props/fancy_picture_frame_01.glb",
+    "id": "fancy_picture_frame_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 938,
+    "textureMax": 1024,
+    "triangles": 938
+  },
+  "fancy_picture_frame_02": {
+    "bounds": {
+      "max": [
+        0.3283344507217407,
+        0.38003090023994446,
+        0.09037653356790543
+      ],
+      "min": [
+        -0.3322964310646057,
+        -0.39103221893310547,
+        0.0013333752285689116
+      ]
+    },
+    "bytes": 1141476,
+    "file": "/assets/props/fancy_picture_frame_02.glb",
+    "id": "fancy_picture_frame_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 35102,
+    "textureMax": 1024,
+    "triangles": 10001
+  },
+  "fern_02": {
+    "bounds": {
+      "max": [
+        1.4443871974945068,
+        0.39718443155288696,
+        1.3021531105041504
+      ],
+      "min": [
+        -0.5281425714492798,
+        -0.030510280281305313,
+        -0.421874463558197
+      ]
+    },
+    "bytes": 225424,
+    "file": "/assets/props/fern_02.glb",
+    "id": "fern_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 6232,
+    "textureMax": 512,
+    "triangles": 5995
+  },
+  "fir_tree_01": {
+    "bounds": {
+      "max": [
+        15.557872772216797,
+        18.846092224121094,
+        3.1900103092193604
+      ],
+      "min": [
+        -3.218834400177002,
+        -0.09878470748662949,
+        -4.89939546585083
+      ]
+    },
+    "bytes": 1502452,
+    "file": "/assets/props/fir_tree_01.glb",
+    "id": "fir_tree_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 17178,
+    "lodFiles": [
+      "/assets/props/fir_tree_01_lod1.glb"
+    ],
+    "materials": 6,
+    "sourceTriangles": 6982937,
+    "textureMax": 512,
+    "triangles": 17210
+  },
+  "flower_gazania": {
+    "bounds": {
+      "max": [
+        0.8056557774543762,
+        0.2619268000125885,
+        0.3803573250770569
+      ],
+      "min": [
+        -0.7752754092216492,
+        -0.1396447718143463,
+        -0.4317083954811096
+      ]
+    },
+    "bytes": 500872,
+    "file": "/assets/props/flower_gazania.glb",
+    "id": "flower_gazania",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 14340,
+    "textureMax": 512,
+    "triangles": 3994
+  },
+  "flower_ursinia": {
+    "bounds": {
+      "max": [
+        0.8919110894203186,
+        0.16195109486579895,
+        0.20177718997001648
+      ],
+      "min": [
+        -1.301723599433899,
+        -0.009447453543543816,
+        -0.1404857486486435
+      ]
+    },
+    "bytes": 241136,
+    "file": "/assets/props/flower_ursinia.glb",
+    "id": "flower_ursinia",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 24917,
+    "textureMax": 512,
+    "triangles": 3996
+  },
+  "gothic_statue": {
+    "bounds": {
+      "max": [
+        0.6942664980888367,
+        1.7239775657653809,
+        0.3743695020675659
+      ],
+      "min": [
+        -0.7831975221633911,
+        -0.015920281410217285,
+        -1.1893885135650635
+      ]
+    },
+    "bytes": 1484264,
+    "file": "/assets/props/gothic_statue.glb",
+    "id": "gothic_statue",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 27739,
+    "textureMax": 1024,
+    "triangles": 20000
+  },
+  "hanging_picture_frame_02": {
+    "bounds": {
+      "max": [
+        0.3762068748474121,
+        0.22135353088378906,
+        0.035109858959913254
+      ],
+      "min": [
+        -0.37560656666755676,
+        -0.27864643931388855,
+        0.0020347151439636946
+      ]
+    },
+    "bytes": 1606440,
+    "file": "/assets/props/hanging_picture_frame_02.glb",
+    "id": "hanging_picture_frame_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 3678,
+    "textureMax": 1024,
+    "triangles": 3678
+  },
+  "island_tree_01": {
+    "bounds": {
+      "max": [
+        2.4059910774230957,
+        5.002493858337402,
+        2.2231810092926025
+      ],
+      "min": [
+        -2.340670585632324,
+        -0.019878048449754715,
+        -2.580608367919922
+      ]
+    },
+    "bytes": 2538816,
+    "file": "/assets/props/island_tree_01.glb",
+    "id": "island_tree_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 7000,
+    "lodFiles": [
+      "/assets/props/island_tree_01_lod1.glb"
+    ],
+    "materials": 3,
+    "sourceTriangles": 1599403,
+    "textureMax": 512,
+    "triangles": 24000
+  },
+  "island_tree_02": {
+    "bounds": {
+      "max": [
+        2.103999376296997,
+        3.4080183506011963,
+        2.956875801086426
+      ],
+      "min": [
+        -2.0069262981414795,
+        -0.013353412039577961,
+        -1.110792875289917
+      ]
+    },
+    "bytes": 2550176,
+    "file": "/assets/props/island_tree_02.glb",
+    "id": "island_tree_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 7000,
+    "lodFiles": [
+      "/assets/props/island_tree_02_lod1.glb"
+    ],
+    "materials": 3,
+    "sourceTriangles": 1072212,
+    "textureMax": 512,
+    "triangles": 24000
+  },
+  "lantern_chandelier_01": {
+    "bounds": {
+      "max": [
+        0.29379767179489136,
+        0.012329237535595894,
+        0.2873518168926239
+      ],
+      "min": [
+        -0.28537261486053467,
+        -0.8652586340904236,
+        -0.28728485107421875
+      ]
+    },
+    "bytes": 1534980,
+    "file": "/assets/props/lantern_chandelier_01.glb",
+    "id": "lantern_chandelier_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 5971,
+    "textureMax": 1024,
+    "triangles": 5971
+  },
+  "large_castle_door": {
+    "bounds": {
+      "max": [
+        0.9618338346481323,
+        2.93505597114563,
+        0.22747816145420074
+      ],
+      "min": [
+        -1.0502818822860718,
+        -0.02969646453857422,
+        -0.11142875254154205
+      ]
+    },
+    "bytes": 1049224,
+    "file": "/assets/props/large_castle_door.glb",
+    "id": "large_castle_door",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 12640,
+    "textureMax": 1024,
+    "triangles": 11996
+  },
+  "mantel_clock_01": {
+    "bounds": {
+      "max": [
+        0.17116132378578186,
+        0.16093450784683228,
+        0.06307154148817062
+      ],
+      "min": [
+        -0.17116132378578186,
+        0.00047052750596776605,
+        -0.06307154148817062
+      ]
+    },
+    "bytes": 535004,
+    "file": "/assets/props/mantel_clock_01.glb",
+    "id": "mantel_clock_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 25721,
+    "textureMax": 1024,
+    "triangles": 9999
+  },
+  "nettle_plant": {
+    "bounds": {
+      "max": [
+        1.0302826166152954,
+        0.21269269287586212,
+        0.04623976722359657
+      ],
+      "min": [
+        -0.052640561014413834,
+        -0.005408997181802988,
+        -0.04862619936466217
+      ]
+    },
+    "bytes": 359348,
+    "file": "/assets/props/nettle_plant.glb",
+    "id": "nettle_plant",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 31304,
+    "textureMax": 512,
+    "triangles": 4994
+  },
+  "painted_wooden_bench": {
+    "bounds": {
+      "max": [
+        0.5888825058937073,
+        0.8887919783592224,
+        0.24284429848194122
+      ],
+      "min": [
+        -0.5760610699653625,
+        -0.0004994967021048069,
+        -0.25369879603385925
+      ]
+    },
+    "bytes": 305100,
+    "file": "/assets/props/painted_wooden_bench.glb",
+    "id": "painted_wooden_bench",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 630,
+    "textureMax": 1024,
+    "triangles": 630
+  },
+  "periwinkle_plant": {
+    "bounds": {
+      "max": [
+        0.6753476858139038,
+        0.41353076696395874,
+        0.13072101771831512
+      ],
+      "min": [
+        -0.5600489974021912,
+        -3.8599740946665406e-05,
+        -0.19020293653011322
+      ]
+    },
+    "bytes": 588760,
+    "file": "/assets/props/periwinkle_plant.glb",
+    "id": "periwinkle_plant",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 34350,
+    "textureMax": 512,
+    "triangles": 4998
+  },
+  "planter_pot_clay": {
+    "bounds": {
+      "max": [
+        0.13199056684970856,
+        0.2222723364830017,
+        0.1431802362203598
+      ],
+      "min": [
+        -0.13400615751743317,
+        0.00040199398063123226,
+        -0.12028281390666962
+      ]
+    },
+    "bytes": 276876,
+    "file": "/assets/props/planter_pot_clay.glb",
+    "id": "planter_pot_clay",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 3080,
+    "textureMax": 1024,
+    "triangles": 3080
+  },
+  "potted_plant_01": {
+    "bounds": {
+      "max": [
+        0.24918268620967865,
+        1.343178153038025,
+        0.2663065791130066
+      ],
+      "min": [
+        -0.33776894211769104,
+        -0.013706624507904053,
+        -0.3641584813594818
+      ]
+    },
+    "bytes": 904716,
+    "file": "/assets/props/potted_plant_01.glb",
+    "id": "potted_plant_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 176226,
+    "textureMax": 512,
+    "triangles": 7996
+  },
+  "potted_plant_02": {
+    "bounds": {
+      "max": [
+        0.3043689429759979,
+        0.8412004113197327,
+        0.23665288090705872
+      ],
+      "min": [
+        -0.3965373933315277,
+        -0.0006654704920947552,
+        -0.42116832733154297
+      ]
+    },
+    "bytes": 799656,
+    "file": "/assets/props/potted_plant_02.glb",
+    "id": "potted_plant_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 69806,
+    "textureMax": 512,
+    "triangles": 7999
+  },
+  "potted_plant_04": {
+    "bounds": {
+      "max": [
+        0.08394316583871841,
+        0.26783305406570435,
+        0.1008082702755928
+      ],
+      "min": [
+        -0.08394315838813782,
+        0.0003753884811885655,
+        -0.08394315838813782
+      ]
+    },
+    "bytes": 344040,
+    "file": "/assets/props/potted_plant_04.glb",
+    "id": "potted_plant_04",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 8929,
+    "textureMax": 512,
+    "triangles": 7995
+  },
+  "rock_moss_set_01": {
+    "bounds": {
+      "max": [
+        4.077941417694092,
+        1.1114939451217651,
+        3.1280431747436523
+      ],
+      "min": [
+        -3.905087947845459,
+        -0.6631407737731934,
+        -3.830191135406494
+      ]
+    },
+    "bytes": 526348,
+    "file": "/assets/props/rock_moss_set_01.glb",
+    "id": "rock_moss_set_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 63127,
+    "textureMax": 1024,
+    "triangles": 7992
+  },
+  "shrub_01": {
+    "bounds": {
+      "max": [
+        0.731915295124054,
+        0.3884752094745636,
+        0.10545922815799713
+      ],
+      "min": [
+        -1.8546924591064453,
+        -0.00798740889877081,
+        -0.1140170767903328
+      ]
+    },
+    "bytes": 466772,
+    "file": "/assets/props/shrub_01.glb",
+    "id": "shrub_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 2000,
+    "lodFiles": [
+      "/assets/props/shrub_01_lod1.glb"
+    ],
+    "materials": 1,
+    "sourceTriangles": 156012,
+    "textureMax": 512,
+    "triangles": 8000
+  },
+  "shrub_02": {
+    "bounds": {
+      "max": [
+        4.264221668243408,
+        1.941365361213684,
+        1.343301773071289
+      ],
+      "min": [
+        -2.3084514141082764,
+        -0.6014981865882874,
+        -1.18500816822052
+      ]
+    },
+    "bytes": 355244,
+    "file": "/assets/props/shrub_02.glb",
+    "id": "shrub_02",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 1997,
+    "lodFiles": [
+      "/assets/props/shrub_02_lod1.glb"
+    ],
+    "materials": 1,
+    "sourceTriangles": 27254,
+    "textureMax": 512,
+    "triangles": 7997
+  },
+  "shrub_03": {
+    "bounds": {
+      "max": [
+        1.2933756113052368,
+        0.4009580910205841,
+        0.07849743962287903
+      ],
+      "min": [
+        -0.07354381680488586,
+        -0.0018257149495184422,
+        -0.07270558923482895
+      ]
+    },
+    "bytes": 313672,
+    "file": "/assets/props/shrub_03.glb",
+    "id": "shrub_03",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 1996,
+    "lodFiles": [
+      "/assets/props/shrub_03_lod1.glb"
+    ],
+    "materials": 1,
+    "sourceTriangles": 8287,
+    "textureMax": 512,
+    "triangles": 7996
+  },
+  "shrub_04": {
+    "bounds": {
+      "max": [
+        0.5592220425605774,
+        0.2132824808359146,
+        0.0710594430565834
+      ],
+      "min": [
+        -0.02409493923187256,
+        -0.005181340035051107,
+        -0.07498317211866379
+      ]
+    },
+    "bytes": 351832,
+    "file": "/assets/props/shrub_04.glb",
+    "id": "shrub_04",
+    "license": "CC0-1.0 (Poly Haven)",
+    "lod1Triangles": 2000,
+    "lodFiles": [
+      "/assets/props/shrub_04_lod1.glb"
+    ],
+    "materials": 1,
+    "sourceTriangles": 27327,
+    "textureMax": 512,
+    "triangles": 7999
+  },
+  "street_lamp_01": {
+    "bounds": {
+      "max": [
+        0.35217753052711487,
+        3.8705313205718994,
+        0.19299007952213287
+      ],
+      "min": [
+        -0.35217753052711487,
+        0.0,
+        -0.19299006462097168
+      ]
+    },
+    "bytes": 458956,
+    "file": "/assets/props/street_lamp_01.glb",
+    "id": "street_lamp_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 30610,
+    "textureMax": 1024,
+    "triangles": 10000
+  },
+  "treasure_chest": {
+    "bounds": {
+      "max": [
+        0.4795040488243103,
+        0.6174242496490479,
+        0.2620605528354645
+      ],
+      "min": [
+        -0.4795040488243103,
+        -0.0013628378510475159,
+        -0.2606101334095001
+      ]
+    },
+    "bytes": 1255228,
+    "file": "/assets/props/treasure_chest.glb",
+    "id": "treasure_chest",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 103330,
+    "textureMax": 1024,
+    "triangles": 19997
+  },
+  "vintage_grandfather_clock_01": {
+    "bounds": {
+      "max": [
+        0.375578373670578,
+        2.1905269622802734,
+        0.17564402520656586
+      ],
+      "min": [
+        -0.2500464618206024,
+        -6.496906280517578e-05,
+        -0.2509726583957672
+      ]
+    },
+    "bytes": 669840,
+    "file": "/assets/props/vintage_grandfather_clock_01.glb",
+    "id": "vintage_grandfather_clock_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 8582,
+    "textureMax": 1024,
+    "triangles": 8582
+  },
+  "vintage_oil_lamp": {
+    "bounds": {
+      "max": [
+        0.10999996960163116,
+        0.8016371726989746,
+        0.10999996960163116
+      ],
+      "min": [
+        -0.11000002920627594,
+        -1.822867901069003e-08,
+        -0.11000002175569534
+      ]
+    },
+    "bytes": 438344,
+    "file": "/assets/props/vintage_oil_lamp.glb",
+    "id": "vintage_oil_lamp",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 7208,
+    "textureMax": 1024,
+    "triangles": 7208
+  },
+  "wild_rooibos_bush": {
+    "bounds": {
+      "max": [
+        1.9454090595245361,
+        0.538504958152771,
+        0.3064473271369934
+      ],
+      "min": [
+        -0.33257192373275757,
+        -0.005427597556263208,
+        -0.5368897318840027
+      ]
+    },
+    "bytes": 614540,
+    "file": "/assets/props/wild_rooibos_bush.glb",
+    "id": "wild_rooibos_bush",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 27519,
+    "textureMax": 512,
+    "triangles": 7997
+  },
+  "wooden_barrels_01": {
+    "bounds": {
+      "max": [
+        2.1081833839416504,
+        0.9146116971969604,
+        1.4119327068328857
+      ],
+      "min": [
+        -2.335252523422241,
+        -0.04078930616378784,
+        -1.9418878555297852
+      ]
+    },
+    "bytes": 1504800,
+    "file": "/assets/props/wooden_barrels_01.glb",
+    "id": "wooden_barrels_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 3,
+    "sourceTriangles": 33142,
+    "textureMax": 1024,
+    "triangles": 10954
+  },
+  "wooden_bookshelf_worn": {
+    "bounds": {
+      "max": [
+        0.68697589635849,
+        2.0634419918060303,
+        0.29065099358558655
+      ],
+      "min": [
+        -0.68697589635849,
+        -5.960464477539063e-08,
+        -0.29065102338790894
+      ]
+    },
+    "bytes": 830872,
+    "file": "/assets/props/wooden_bookshelf_worn.glb",
+    "id": "wooden_bookshelf_worn",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 1,
+    "sourceTriangles": 10106,
+    "textureMax": 1024,
+    "triangles": 10106
+  },
+  "wooden_lantern_01": {
+    "bounds": {
+      "max": [
+        0.1105310469865799,
+        0.5187614560127258,
+        0.12418060004711151
+      ],
+      "min": [
+        -0.11051704734563828,
+        -0.011375105008482933,
+        -0.11054381728172302
+      ]
+    },
+    "bytes": 721672,
+    "file": "/assets/props/wooden_lantern_01.glb",
+    "id": "wooden_lantern_01",
+    "license": "CC0-1.0 (Poly Haven)",
+    "materials": 2,
+    "sourceTriangles": 8321,
+    "textureMax": 1024,
+    "triangles": 8321
+  }
+}

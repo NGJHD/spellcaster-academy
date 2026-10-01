@@ -1,0 +1,158 @@
+/**
+ * Photo-scanned PBR surfaces (CC0, Poly Haven) applied to the shared materials, plus geometry
+ * helpers whose UVs are in metres so a texture keeps its real-world scale on any size of surface.
+ * The `arm` map packs AO (R), roughness (G) and metalness (B) — exactly three.js's channel layout.
+ */
+import {
+  BoxGeometry,
+  BufferAttribute,
+  CircleGeometry,
+  CylinderGeometry,
+  LinearSRGBColorSpace,
+  PlaneGeometry,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  Vector2,
+  type BufferGeometry,
+  type MeshStandardMaterial,
+  type Texture,
+} from 'three';
+import { MAT } from './materials';
+
+interface SurfaceSpec {
+  readonly texture: string;
+  /** Real-world size covered by one texture tile, in metres. */
+  readonly tileMetres: number;
+  readonly normalScale?: number;
+  /** Multiplies the albedo map (keeps the academy's warm palette consistent). */
+  readonly tint?: string;
+}
+
+/** Which CC0 set dresses which shared material (§14A.29 material library). */
+export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
+  academyStone: { texture: 'large_sandstone_blocks_01', tileMetres: 4.5, tint: '#f5e6cc', normalScale: 0.6 },
+  academyStoneDark: { texture: 'sandstone_blocks_08', tileMetres: 3, tint: '#dccaa8', normalScale: 0.7 },
+  paving: { texture: 'monastery_stone_floor', tileMetres: 3.5, tint: '#f0e4d0' },
+  wardStone: { texture: 'marble_01', tileMetres: 2, tint: '#f4f0e6' },
+  marble: { texture: 'marble_01', tileMetres: 3 },
+  lightOak: { texture: 'wood_floor_worn', tileMetres: 2 },
+  darkOak: { texture: 'dark_wooden_planks', tileMetres: 2, tint: '#b49a88' },
+  plaster: { texture: 'plastered_wall_04', tileMetres: 3, tint: '#fff1dc' },
+  slate: { texture: 'roof_slates_02', tileMetres: 2.5, tint: '#6f7886' },
+  grass: { texture: 'leafy_grass', tileMetres: 3, tint: '#a8c87a' },
+  soil: { texture: 'farm_soil', tileMetres: 2 },
+  burgundyLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#c25a5a' },
+  greenLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#5f9a78' },
+  blueLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#6f8ac8' },
+  bark: { texture: 'fine_grained_wood', tileMetres: 1 },
+  moss: { texture: 'mossy_rock', tileMetres: 1.2, tint: '#cfe0a0' },
+};
+
+const loader = new TextureLoader();
+const cache = new Map<string, Texture>();
+
+function load(path: string, srgb: boolean, repeat: number): Texture {
+  const key = `${path}|${repeat}`;
+  const cached = cache.get(key);
+  if (cached) return cached;
+  const tex = loader.load(path);
+  tex.colorSpace = srgb ? SRGBColorSpace : LinearSRGBColorSpace;
+  tex.wrapS = RepeatWrapping;
+  tex.wrapT = RepeatWrapping;
+  tex.repeat.set(repeat, repeat);
+  tex.anisotropy = 8;
+  cache.set(key, tex);
+  return tex;
+}
+
+let applied = false;
+
+/** Attach PBR texture sets to the shared materials once. Safe to call repeatedly. */
+export function applySurfaceTextures(): void {
+  if (applied) return;
+  applied = true;
+  const base = `${import.meta.env.BASE_URL}assets/textures/`;
+  for (const [key, spec] of Object.entries(SURFACES) as [keyof typeof MAT, SurfaceSpec][]) {
+    const material = MAT[key] as MeshStandardMaterial;
+    const repeat = 1 / spec.tileMetres;
+    const dir = `${base}${spec.texture}/`;
+    material.map = load(`${dir}diff.jpg`, true, repeat);
+    material.normalMap = load(`${dir}nor.jpg`, false, repeat);
+    material.normalScale = new Vector2(spec.normalScale ?? 1, spec.normalScale ?? 1);
+    const arm = load(`${dir}arm.jpg`, false, repeat);
+    material.aoMap = arm;
+    material.roughnessMap = arm;
+    material.roughness = 1;
+    if (material.metalness > 0) material.metalnessMap = arm;
+    material.color.set(spec.tint ?? '#ffffff');
+    material.needsUpdate = true;
+  }
+}
+
+// ---------- Geometry with metre-based UVs ----------
+
+const geoCache = new Map<string, BufferGeometry>();
+
+function cached<T extends BufferGeometry>(key: string, make: () => T): T {
+  const hit = geoCache.get(key);
+  if (hit) return hit as T;
+  const g = make();
+  geoCache.set(key, g);
+  return g;
+}
+
+/** Box whose UVs measure metres on every face. */
+export function worldBox(w: number, h: number, d: number): BoxGeometry {
+  return cached(`box:${w}:${h}:${d}`, () => {
+    const g = new BoxGeometry(w, h, d);
+    const uv = g.getAttribute('uv') as BufferAttribute;
+    // Face order: +x, −x, +y, −y, +z, −z; 4 vertices each.
+    const spans: [number, number][] = [
+      [d, h],
+      [d, h],
+      [w, d],
+      [w, d],
+      [w, h],
+      [w, h],
+    ];
+    spans.forEach(([su, sv], face) => {
+      for (let i = 0; i < 4; i++) {
+        const k = face * 4 + i;
+        uv.setXY(k, uv.getX(k) * su, uv.getY(k) * sv);
+      }
+    });
+    uv.needsUpdate = true;
+    return g;
+  });
+}
+
+export function worldPlane(w: number, h: number): PlaneGeometry {
+  return cached(`plane:${w}:${h}`, () => {
+    const g = new PlaneGeometry(w, h);
+    scaleUv(g, w, h);
+    return g;
+  });
+}
+
+export function worldCircle(radius: number, segments = 64): CircleGeometry {
+  return cached(`circle:${radius}:${segments}`, () => {
+    const g = new CircleGeometry(radius, segments);
+    scaleUv(g, radius * 2, radius * 2);
+    return g;
+  });
+}
+
+export function worldCylinder(rTop: number, rBottom: number, h: number, segments = 24, open = false): CylinderGeometry {
+  return cached(`cyl:${rTop}:${rBottom}:${h}:${segments}:${open}`, () => {
+    const g = new CylinderGeometry(rTop, rBottom, h, segments, 1, open);
+    scaleUv(g, Math.PI * (rTop + rBottom), h);
+    return g;
+  });
+}
+
+function scaleUv(g: BufferGeometry, su: number, sv: number): void {
+  const uv = g.getAttribute('uv') as BufferAttribute;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * su, uv.getY(i) * sv);
+  uv.needsUpdate = true;
+}

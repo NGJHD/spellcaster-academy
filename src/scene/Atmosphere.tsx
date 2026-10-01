@@ -1,4 +1,4 @@
-import { Environment, Lightformer, Sky, Stars } from '@react-three/drei';
+import { Environment, Sky, Stars } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { Color, Fog, Vector3, type DirectionalLight } from 'three';
@@ -64,11 +64,8 @@ export function Atmosphere({ areaId }: { areaId: AreaId }) {
       {look.sky === 'afternoon' && <Sky distance={700} sunPosition={look.sun?.position ?? [0, 1, 0]} turbidity={4.5} rayleigh={1.1} mieCoefficient={0.004} mieDirectionalG={0.8} />}
       {look.sky === 'dawn' && <Sky distance={700} sunPosition={look.sun?.position ?? [1, 0.1, 0]} turbidity={7} rayleigh={2.4} mieCoefficient={0.006} mieDirectionalG={0.85} />}
       {look.sky === 'night' && <Stars radius={300} depth={60} count={quality === 'low' ? 1500 : 4000} factor={5} saturation={0.2} fade speed={0.3} />}
-      <Environment resolution={128} frames={1}>
-        <Lightformer form="rect" intensity={look.sky === 'night' ? 0.6 : 1.6} color={look.hemi[0]} position={[0, 8, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
-        <Lightformer form="rect" intensity={0.8} color={look.sun?.color ?? '#ffffff'} position={[-8, 3, 6]} scale={[10, 4, 1]} />
-        <Lightformer form="rect" intensity={0.4} color={look.hemi[1]} position={[0, -4, 0]} rotation-x={-Math.PI / 2} scale={[20, 20, 1]} />
-      </Environment>
+      {/* CC0 HDRI image-based lighting for physically plausible reflections (lighting only, not the backdrop). */}
+      <Environment files={`${import.meta.env.BASE_URL}assets/hdri/${look.hdri}_1k.hdr`} />
     </>
   );
 }

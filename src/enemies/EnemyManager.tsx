@@ -1,9 +1,10 @@
 import { useFrame } from '@react-three/fiber';
-import { useRef, type ReactNode, type RefObject } from 'react';
+import { Suspense, useRef, type ReactNode, type RefObject } from 'react';
 import type { Group } from 'three';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import type { TargetSpawn } from '../level/levelTypes';
+import { CreatureModel, creatureUrl } from './CreatureModel';
 import { APPEAR_SEC, DISPEL_SEC, isShielded, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
 import {
   BookModel,
@@ -20,6 +21,7 @@ import {
   StarPageModel,
   ThornPodModel,
   WispModel,
+  WispShield,
   type TargetPose,
 } from './TargetVisuals';
 
@@ -27,7 +29,20 @@ const HIT_SEC = 0.5;
 /** Kinds that turn to face the camera (creatures); props keep their authored orientation. */
 const FACES_CAMERA = new Set(['sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
 
+/** Rigged GLB when one exists for the kind, with the code-built stand-in while it streams in. */
 function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
+  const url = creatureUrl(spawn.kind, spawn.variant);
+  const fallback = <PlaceholderModel spawn={spawn} pose={pose} />;
+  if (!url) return fallback;
+  return (
+    <Suspense fallback={fallback}>
+      <CreatureModel url={url} pose={pose} />
+      {spawn.kind === 'wisp' && <WispShield pose={pose} />}
+    </Suspense>
+  );
+}
+
+function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
   switch (spawn.kind) {
     case 'dummy':
       return <DummyModel pose={pose} practice={spawn.variant === 'practice'} />;
@@ -72,6 +87,7 @@ function writePose(t: TargetRuntime, p: TargetPose): void {
   const m = t.spawn.movement;
   p.moving = !!m && ((m.kind === 'approach' && !t.atPathEnd) || m.kind === 'patrol') && t.attackPhase === 'idle';
   p.frosted = t.frostTimer > 0;
+  p.recovering = t.attackPhase === 'recover';
 }
 
 const easeOutBack = (x: number) => {

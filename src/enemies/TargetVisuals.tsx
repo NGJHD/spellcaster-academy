@@ -21,6 +21,8 @@ export interface TargetPose {
   moving: boolean;
   frosted: boolean;
   defeated: boolean;
+  /** The strike has landed and the creature is recovering. */
+  recovering: boolean;
 }
 
 export const emptyPose = (): TargetPose => ({
@@ -34,6 +36,7 @@ export const emptyPose = (): TargetPose => ({
   moving: false,
   frosted: false,
   defeated: false,
+  recovering: false,
 });
 
 type PoseRef = RefObject<TargetPose>;
@@ -254,6 +257,33 @@ export function WispModel({ pose }: { pose: PoseRef }) {
           <meshBasicMaterial color="#7fc4ff" transparent opacity={0.16} depthWrite={false} />
         </mesh>
       </group>
+    </group>
+  );
+}
+
+/** The wisp's luminous rune shield disc (§14A.7), shown until the shield word is typed. */
+export function WispShield({ pose }: { pose: PoseRef }) {
+  const shield = useRef<Group>(null);
+  useFrame(() => {
+    const p = pose.current;
+    if (!shield.current) return;
+    const s = p.shielded ? 1 : Math.max(0, 1 - p.stunned * 3);
+    shield.current.scale.setScalar(s + p.stunned * 0.6);
+    shield.current.visible = s > 0.01;
+    shield.current.rotation.z = p.time * 0.6;
+  });
+  return (
+    <group ref={shield} position={[0, 0.85, 0.45]}>
+      <mesh material={MAT.wardBlue}>
+        <torusGeometry args={[0.42, 0.02, 10, 48]} />
+      </mesh>
+      <mesh material={MAT.wardBlue}>
+        <torusGeometry args={[0.3, 0.01, 8, 6]} />
+      </mesh>
+      <mesh>
+        <circleGeometry args={[0.42, 48]} />
+        <meshBasicMaterial color="#7fc4ff" transparent opacity={0.16} depthWrite={false} />
+      </mesh>
     </group>
   );
 }
