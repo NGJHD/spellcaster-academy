@@ -15,6 +15,8 @@ export interface AudioApi {
   setVolumes(volumes: AudioVolumes): void;
   /** Resume the audio context after the first user gesture. */
   unlock(): void;
+  /** Soften the music while someone is talking. */
+  duckMusic(ducked: boolean): void;
 }
 
 let impl: AudioApi = {
@@ -22,6 +24,7 @@ let impl: AudioApi = {
   setMusic: () => {},
   setVolumes: () => {},
   unlock: () => {},
+  duckMusic: () => {},
 };
 
 export const audio: AudioApi = {
@@ -29,6 +32,7 @@ export const audio: AudioApi = {
   setMusic: (id) => impl.setMusic(id),
   setVolumes: (v) => impl.setVolumes(v),
   unlock: () => impl.unlock(),
+  duckMusic: (ducked) => impl.duckMusic(ducked),
 };
 
 export function installAudio(api: AudioApi): void {

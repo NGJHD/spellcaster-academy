@@ -58,6 +58,8 @@ const MOODS: Record<MusicId, Mood> = {
 };
 
 const LOOKAHEAD_SEC = 0.25;
+/** Music level while dialogue is playing. */
+const DUCK_LEVEL = 0.35;
 const CROSSFADE_SEC = 2.2;
 /** Battle music cuts in (and out) quickly so the change in danger is heard at once. */
 const BATTLE_FADE_SEC = 0.8;
@@ -83,6 +85,7 @@ export class MusicEngine {
   private timer: number | null = null;
   private noise: AudioBuffer | null = null;
   private readonly meter: AnalyserNode;
+  private readonly duckGain: GainNode;
   private readonly meterData = new Float32Array(1024);
   /** Mood currently playing (diagnostics). */
   current: MusicId | null = null;
@@ -97,10 +100,12 @@ export class MusicEngine {
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.ratio.value = 4;
-    this.out.connect(comp).connect(destination);
+    // Ducking stage: music softens while someone is talking (owner feedback).
+    this.duckGain = ctx.createGain();
+    this.out.connect(comp).connect(this.duckGain).connect(destination);
     this.meter = ctx.createAnalyser();
     this.meter.fftSize = 1024;
-    this.out.connect(this.meter);
+    this.duckGain.connect(this.meter);
     this.reverb = ctx.createConvolver();
     this.reverb.buffer = this.makeImpulse(2.6);
     const reverbReturn = ctx.createGain();
@@ -152,6 +157,13 @@ export class MusicEngine {
     // Battles start on the beat at once; story moods ease in.
     this.voice = { mood, bus, padFilter, wet, seed, nextBeatTime: now + 0.05, beat: 0 };
     this.timer ??= window.setInterval(() => this.schedule(), 100);
+  }
+
+  /** Dip the music under dialogue: quick to soften, slower to swell back. */
+  duck(ducked: boolean): void {
+    const now = this.ctx.currentTime;
+    this.duckGain.gain.cancelScheduledValues(now);
+    this.duckGain.gain.setTargetAtTime(ducked ? DUCK_LEVEL : 1, now, ducked ? 0.08 : 0.35);
   }
 
   /** RMS level of the music output, for diagnostics and tests. */

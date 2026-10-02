@@ -70,6 +70,7 @@ Running log of decisions, environment facts, architecture and milestone status. 
   - **Music:**
     - The score was silent in game. It shared Howler's AudioContext, which Howler suspends or replaces, leaving the engine waiting on a dead context.
     - The music now runs on its own AudioContext, continuously underneath all sound effects. It is about 1.8× louder, with a compressor to prevent clipping.
+    - The music ducks to 35% while any subtitle is on screen: 80 ms to soften, about 1 s to swell back. Measured average level was 0.019 while talking versus 0.052 between lines.
     - `window.__spellcaster.music()` (with `?test`) reports the context state, the mood and the output level.
 
 ## Spec conflict resolutions

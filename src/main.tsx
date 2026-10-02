@@ -3,10 +3,16 @@ import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import { installHowlerAudio, musicDiagnostics } from './audio/HowlerAudio';
 import { installBrowserVoice } from './audio/voice';
+import { audio } from './audio/AudioManager';
+import { useRunStore } from './state/runStore';
 import { getSettings } from './state/settingsStore';
 import './styles/global.css';
 
 installHowlerAudio();
+// Soften the music whenever a line of dialogue is on screen (spoken or not).
+useRunStore.subscribe((state, prev) => {
+  if ((state.subtitle === null) !== (prev.subtitle === null)) audio.duckMusic(state.subtitle !== null);
+});
 installBrowserVoice(() => {
   const s = getSettings();
   return { enabled: s.spokenDialogue, volume: s.volumes.voice * s.volumes.master };
