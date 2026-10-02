@@ -48,7 +48,6 @@ function runSettings(): RunSettings {
   const s = getSettings();
   return {
     rail: { reducedMotion: s.reducedMotion, travelSpeed: TRAVEL_SPEED_MULTIPLIER[s.travelSpeed] },
-    autoContinue: s.autoContinue,
     reducedShake: s.reducedShake,
   };
 }

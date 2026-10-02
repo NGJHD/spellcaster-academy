@@ -130,12 +130,13 @@ describe('TypingEngine', () => {
     expect(e.lockedId).toBe('near');
   });
 
-  it('Tab cycles targets by screen order when not mid-word', () => {
+  it('Tab cycles targets by screen order, even mid-word (dropping the partial word)', () => {
     const e = engine([{ id: 'a', word: 'star' }, { id: 'b', word: 'moon' }], false, { a: 2, b: 1 });
     expect(e.cycle()).toEqual([{ type: 'lock', targetId: 'b' }]);
     expect(e.cycle()).toEqual([{ type: 'unlock', targetId: 'b' }, { type: 'lock', targetId: 'a' }]);
     e.typeLetter('s');
-    expect(e.cycle()).toEqual([]);
+    expect(e.cycle()).toEqual([{ type: 'unlock', targetId: 'a' }, { type: 'lock', targetId: 'b' }]);
+    expect(e.view.correctLength).toBe(0);
   });
 
   it('releases the lock when the target disappears and restarts when its word changes', () => {

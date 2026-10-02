@@ -19,9 +19,9 @@ import type { TypingCandidate } from '../../typing/TypingEngine';
 import { WordAssigner, createRng, hashString } from '../../typing/WordAssigner';
 import type { EncounterDef, HazardAttack, TargetSpawn, Wave, WordSpec } from '../levelTypes';
 
-export const INTRO_SEC = 0.8;
-export const SEQUENTIAL_GAP_SEC = 0.6;
-export const RESOLVE_SEC = 1.2;
+export const INTRO_SEC = 0.3;
+export const SEQUENTIAL_GAP_SEC = 0.3;
+export const RESOLVE_SEC = 0.5;
 
 export type EncounterState = 'intro' | 'active' | 'wave-gap' | 'resolving' | 'complete';
 
@@ -159,7 +159,7 @@ export class EncounterRunner {
         events.push({ type: 'words-changed' });
       }
       if (t.spawn.optional && t.phase === 'active' && !t.defeated && t.spawn.leaveAfterSec !== undefined) {
-        if (t.activeTime >= t.spawn.leaveAfterSec) {
+        if (t.activeTime >= t.spawn.leaveAfterSec && t.id !== lockedId) {
           setPhase(t, 'leaving');
           events.push({ type: 'target-left', target: t });
           events.push({ type: 'words-changed' });
@@ -181,6 +181,10 @@ export class EncounterRunner {
     if (!t || t.defeated) return { defeated: false, firstDefeat: false };
     const word = t.words[t.stage] ?? '';
     interruptAttack(t);
+    // Every completed word buys a breather: the target's attack clock and the arena hazard clock restart,
+    // so a creature that has just been hit never lands a blow while the next word is still appearing.
+    t.attackTimer = 0;
+    this.hazardTimer = 0;
     t.sinceHit = -PROJECTILE_SEC;
     this.trackRules(word, mistakes);
 
@@ -196,6 +200,7 @@ export class EncounterRunner {
     t.defeated = true;
     setPhase(t, 'dispelling');
     t.phaseTime = -PROJECTILE_SEC;
+    this.hazardWindup = null;
     const firstDefeat = this.defeatsThisWave === 0;
     if (!t.spawn.optional) this.defeatsThisWave++;
     this.totalDefeats++;
@@ -374,6 +379,12 @@ export class EncounterRunner {
   private updateHazard(simDt: number, events: EncounterEvent[]): void {
     const h = this.def.hazard;
     if (!h || this.def.kind !== 'combat') return;
+    // Hazards only run while there is something to type; no damage between targets or words.
+    const typeable = [...this.targets.values()].some((t) => !t.spawn.optional && currentWord(t) !== null);
+    if (!typeable) {
+      this.hazardWindup = null;
+      return;
+    }
     if (this.hazardWindup) {
       this.hazardWindup.remaining -= simDt;
       if (this.hazardWindup.remaining <= 0) {

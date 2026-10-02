@@ -4,13 +4,14 @@
  */
 import { Vector3 } from 'three';
 import { audio } from '../audio/AudioManager';
+import { voice } from '../audio/voice';
 import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue';
 import { strings } from '../content/strings';
 import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from '../level/level1Route';
-import type { BarkTrigger, EncounterDef, LevelBeat, Reward, TargetSpawn } from '../level/levelTypes';
+import type { BarkTrigger, EncounterDef, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
 import { patchRunUi, useRunStore, type LabelInfo } from '../state/runStore';
 import type { KeyIntent } from '../typing/keys';
@@ -31,8 +32,8 @@ import type { AreaId, CosmeticId, Difficulty, SpellId, StarPageId } from './type
 import { ALL_STAR_PAGES } from './types';
 
 export const MAX_FOCUS = 100;
-export const FOCUS_RESET_SEC = 2.6;
-export const RESUME_INTRO_SEC = 2.8;
+export const FOCUS_RESET_SEC = 1.8;
+export const RESUME_INTRO_SEC = 1.5;
 export const SAVE_DEBOUNCE_SEC = 0.4;
 /** Chain Spark fires on every Nth consecutive perfect word. */
 export const CHAIN_STREAK = 5;
@@ -41,7 +42,6 @@ const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
   readonly rail: RailSettings;
-  readonly autoContinue: boolean;
   readonly reducedShake: boolean;
 }
 
@@ -77,7 +77,17 @@ interface DialogueState {
   readonly lines: readonly DialogueLine[];
   index: number;
   elapsed: number;
+  /** False while a remark from the previous moment finishes. */
+  started: boolean;
+  /**
+   * Line index at which the camera is released to carry on while the rest of the lines play as
+   * subtitles (owner feedback: no standing still). -1 keeps the beat until the last line ends.
+   */
+  readonly releaseAt: number;
 }
+
+/** A released conversation lets the camera go once its line has been up this long. */
+const RELEASE_AFTER_SEC = 1.2;
 
 interface ChoiceState {
   readonly beatId: string;
@@ -88,12 +98,54 @@ interface ChoiceState {
 
 const DIFFICULTY_ORDER: readonly Difficulty[] = ['gentle', 'standard', 'challenge'];
 
+/** How long a line stays up when it is not being spoken (brisk, but readable for a child). */
 export function readSeconds(text: string): number {
-  return 1.8 + text.length * 0.055;
+  return 1.1 + text.length * 0.045;
 }
 
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
+
+/** Seconds after a battle before the story music returns. */
+const MUSIC_REVERT_SEC = 3;
+
+const BATTLE_MUSIC: Partial<Record<AreaId, MusicId>> = {
+  'sunlit-courtyard': 'courtyard-action',
+  'whispering-library': 'grimoire-battle',
+  'enchanted-greenhouse': 'greenhouse-action',
+  'lower-stairwell': 'tower-battle',
+  'practice-gallery': 'courtyard-action',
+  'moon-tower': 'tower-battle',
+  observatory: 'warden-defence',
+};
+
+/** Story music when resuming mid-area before any beat has named a mood. */
+const AREA_MUSIC: Record<AreaId, MusicId> = {
+  'arrival-gate': 'arrival-wonder',
+  'sunlit-courtyard': 'arrival-wonder',
+  'east-hall': 'east-hall-calm',
+  'whispering-library': 'library-mystery',
+  'hall-of-portraits': 'portrait-rest',
+  'enchanted-greenhouse': 'greenhouse-wonder',
+  'lower-stairwell': 'tower-ascent',
+  'practice-gallery': 'east-hall-calm',
+  'moon-tower': 'tower-ascent',
+  observatory: 'tower-ascent',
+  'celebration-courtyard': 'celebration',
+};
+
+const CALM_FOR_ACTION: Partial<Record<MusicId, MusicId>> = {
+  'courtyard-action': 'arrival-wonder',
+  'grimoire-battle': 'library-mystery',
+  'greenhouse-action': 'greenhouse-wonder',
+  'warden-defence': 'tower-ascent',
+  'tower-battle': 'tower-ascent',
+};
+
+/** Time-critical encounters: something in them can lower HP. */
+function isDangerous(def: EncounterDef): boolean {
+  return def.kind === 'combat' && (def.hazard !== undefined || def.waves.some((w) => w.targets.some((t) => t.attack !== undefined)));
+}
 
 export class GameRun {
   readonly director: LevelDirector;
@@ -116,7 +168,6 @@ export class GameRun {
   private dialogue: DialogueState | null = null;
   private choice: ChoiceState | null = null;
   private barkQueue: DialogueLine[] = [];
-  private barkTimer = 0;
   private currentBark: DialogueLine | null = null;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
@@ -258,6 +309,7 @@ export class GameRun {
     if (this.shakeTime > 0) this.shakeTime = Math.max(0, this.shakeTime - dt);
     this.updateSaveTimer(dt);
     this.updateBarks(dt);
+    this.updateMusic(dt);
 
     if (this.resumeIntro > 0) {
       this.resumeIntro -= dt;
@@ -278,9 +330,11 @@ export class GameRun {
       return;
     }
 
-    if (this.dialogue) this.updateDialogue(dt, settings);
+    if (this.dialogue) this.updateDialogue(dt);
 
-    this.director.update(dt, settings.rail);
+    // Never carry the camera away from a bonus word the player has started (owner bug: "gle" for "glint").
+    const holdForBonus = this.typing.lockedId !== null && this.bonus?.targets.has(this.typing.lockedId) === true;
+    this.director.update(holdForBonus ? 0 : dt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
     const locked = this.typing.lockedId;
@@ -323,9 +377,18 @@ export class GameRun {
       return;
     }
     if (this.dialogue) {
-      if (intent.kind === 'enter' || intent.kind === 'space') this.advanceDialogue();
+      const skip = intent.kind === 'enter' || intent.kind === 'space' || intent.kind === 'letter';
+      if (skip && !this.dialogue.started) {
+        // Skip the remark still finishing and go straight to the conversation.
+        voice.cancel();
+        this.currentBark = null;
+        this.startDialogue();
+      } else if (skip) {
+        this.advanceDialogue(true);
+      }
       return;
     }
+    if (intent.kind === 'letter') this.dismissBarks();
     if (intent.kind === 'enter' && this.encounter?.def.optionalPrompt && this.encounter.state !== 'complete') {
       this.skipOptionalEncounter();
       return;
@@ -464,12 +527,43 @@ export class GameRun {
     }
   }
 
+  // ---------- Music ----------
+
+  /** Story music for the current beat; action moods authored on story beats play as their calm counterpart. */
+  private storyMusic: MusicId | null = null;
+  private battleMusic: MusicId | null = null;
+  private musicRevertIn = -1;
+
+  private setStoryMusic(id: MusicId): void {
+    this.storyMusic = CALM_FOR_ACTION[id] ?? id;
+    if (!this.battleMusic) audio.setMusic(this.storyMusic);
+  }
+
+  /** Owner feedback: the music changes whenever creatures can hurt the player. */
+  private setBattleMusic(id: MusicId): void {
+    this.musicRevertIn = -1;
+    if (this.battleMusic === id) return;
+    this.battleMusic = id;
+    audio.setMusic(id);
+  }
+
+  private updateMusic(dt: number): void {
+    if (this.musicRevertIn < 0) return;
+    this.musicRevertIn -= dt;
+    // A short grace period keeps battle music going across quick boss-phase dialogue.
+    if (this.musicRevertIn < 0) {
+      this.battleMusic = null;
+      audio.setMusic(this.storyMusic ?? AREA_MUSIC[this.areaId]);
+    }
+  }
+
   // ---------- Beats ----------
 
   private onBeatStart(beat: LevelBeat): void {
     if (beat.areaId !== this.areaId) this.enterArea(beat.areaId);
-    patchRunUi({ beatId: beat.id });
-    if (beat.music) audio.setMusic(beat.music);
+    const beatIndex = LEVEL1_ROUTE.beats.indexOf(beat);
+    patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, LEVEL1_ROUTE.beats.length - 1) });
+    if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
     for (const id of beat.barks ?? []) this.queueBark(getLine(id));
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
@@ -482,11 +576,11 @@ export class GameRun {
 
     switch (beat.kind) {
       case 'dialogue': {
-        const lines = beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l);
-        this.dialogue = { beatId: beat.id, lines, index: 0, elapsed: 0 };
-        this.currentBark = null;
+        // Lines still waiting from the previous moment come first, so no story line is lost.
+        const lines = [...this.barkQueue, ...beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l)];
         this.barkQueue = [];
-        this.showDialogueLine();
+        this.dialogue = { beatId: beat.id, lines, index: 0, elapsed: 0, started: false, releaseAt: this.releaseIndex(lines.length) };
+        if (!this.currentBark) this.startDialogue();
         break;
       }
       case 'encounter':
@@ -563,6 +657,7 @@ export class GameRun {
       this.activeMultiplier = 1;
     }
     if (def.bossPhase) audio.playSfx('boss-phase');
+    if (isDangerous(def)) this.setBattleMusic(BATTLE_MUSIC[this.areaId] ?? 'courtyard-action');
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.typing.reset();
   }
@@ -651,6 +746,7 @@ export class GameRun {
     }
     this.activeMultiplier = 1;
     this.commitMetrics();
+    if (this.battleMusic) this.musicRevertIn = MUSIC_REVERT_SEC;
     const beatId = this.encounterBeatId;
     this.encounter = null;
     this.encounterBeatId = null;
@@ -780,32 +876,84 @@ export class GameRun {
   }
 
   // ---------- Dialogue and barks ----------
+  // Every line plays by itself (spoken when voice is on) and advances when finished; typing a letter
+  // skips it. Story dialogue holds its beat only until its lines have played — never waits for Enter.
+
+  private lineElapsed = 0;
+  private lineSpeaking = false;
+
+  private present(line: DialogueLine, blocking: boolean): void {
+    patchRunUi({ subtitle: { key: nextKey(), speaker: line.speaker, text: line.text, blocking } });
+    this.lineElapsed = 0;
+    this.lineSpeaking = voice.speak(line.text, line.speaker, () => {
+      this.lineSpeaking = false;
+    });
+  }
+
+  private lineFinished(line: DialogueLine): boolean {
+    if (this.lineSpeaking) return this.lineElapsed >= 2.5 + line.text.length * 0.1;
+    return this.lineElapsed >= readSeconds(line.text);
+  }
+
+  /** Where a conversation lets the camera go: early before travel, at the last line before a fight. */
+  private releaseIndex(lineCount: number): number {
+    const i = this.director.currentIndex;
+    const following = LEVEL1_ROUTE.beats.slice(i + 1, i + 4);
+    if (lineCount === 0 || following.some((b) => b.kind === 'results' || b.kind === 'choice')) return -1;
+    const next = following[0];
+    if (!next) return -1;
+    if (isCameraBeat(next)) return 0;
+    if (next.kind === 'encounter') return lineCount - 1;
+    return -1;
+  }
+
+  private startDialogue(): void {
+    const d = this.dialogue;
+    if (!d) return;
+    d.started = true;
+    this.showDialogueLine();
+  }
+
+  /** Let the director carry on; the current and remaining lines continue as subtitles. */
+  private releaseDialogue(d: DialogueState): void {
+    this.dialogue = null;
+    this.currentBark = d.lines[d.index] ?? null;
+    this.barkQueue = d.lines.slice(d.index + 1);
+    const sub = useRunStore.getState().subtitle;
+    if (sub) patchRunUi({ subtitle: { ...sub, blocking: false } });
+    this.director.completeGatedBeat(d.beatId);
+  }
 
   private showDialogueLine(): void {
     const d = this.dialogue;
     const line = d?.lines[d.index];
     if (!d || !line) return;
-    patchRunUi({ subtitle: { key: nextKey(), speaker: line.speaker, text: line.text, blocking: true } });
+    this.present(line, true);
   }
 
-  private updateDialogue(dt: number, settings: RunSettings): void {
+  private updateDialogue(dt: number): void {
     const d = this.dialogue;
-    if (!d) return;
+    if (!d || !d.started) return;
     d.elapsed += dt;
+    this.lineElapsed += dt;
     const line = d.lines[d.index];
     if (!line) {
       this.endDialogue();
       return;
     }
-    if (settings.autoContinue && d.elapsed >= readSeconds(line.text)) this.advanceDialogue();
+    if (d.releaseAt >= 0 && d.index >= d.releaseAt && this.lineElapsed >= Math.min(RELEASE_AFTER_SEC, readSeconds(line.text))) {
+      this.releaseDialogue(d);
+      return;
+    }
+    if (this.lineFinished(line)) this.advanceDialogue(false);
   }
 
-  private advanceDialogue(): void {
+  private advanceDialogue(skipped: boolean): void {
     const d = this.dialogue;
-    if (!d) return;
-    // A tiny guard so a held Enter from the previous screen never skips a line unread.
-    if (d.elapsed < 0.35) return;
-    audio.playSfx('ui-select');
+    if (!d || !d.started) return;
+    // A short guard so a key held over from the previous moment never skips a line unseen.
+    if (skipped && d.elapsed < 0.25) return;
+    if (skipped) voice.cancel();
     d.index++;
     d.elapsed = 0;
     if (d.index >= d.lines.length) this.endDialogue();
@@ -821,22 +969,36 @@ export class GameRun {
 
   private queueBark(line: DialogueLine | undefined): void {
     if (!line) return;
+    // Keep remarks timely: never let a backlog build up behind the action.
+    if (this.barkQueue.length >= 3) this.barkQueue.shift();
     this.barkQueue.push(line);
   }
 
+  /** The player started typing: stop the remark on screen and drop stale ones. */
+  private dismissBarks(): void {
+    if (!this.currentBark && this.barkQueue.length === 0) return;
+    if (this.currentBark) voice.cancel();
+    this.currentBark = null;
+    this.barkQueue = [];
+    patchRunUi({ subtitle: null });
+  }
+
   private updateBarks(dt: number): void {
-    if (this.dialogue) return;
+    if (this.dialogue?.started) return;
     if (this.currentBark) {
-      this.barkTimer -= dt;
-      if (this.barkTimer > 0) return;
+      this.lineElapsed += dt;
+      if (!this.lineFinished(this.currentBark)) return;
       this.currentBark = null;
+      if (this.dialogue) {
+        this.startDialogue();
+        return;
+      }
       if (this.barkQueue.length === 0) patchRunUi({ subtitle: null });
     }
     const next = this.barkQueue.shift();
     if (!next) return;
     this.currentBark = next;
-    this.barkTimer = readSeconds(next.text);
-    patchRunUi({ subtitle: { key: nextKey(), speaker: next.speaker, text: next.text, blocking: false } });
+    this.present(next, false);
   }
 
   private fireBarks(trigger: BarkTrigger): void {
@@ -976,6 +1138,9 @@ export class GameRun {
         kind: t.spawn.kind,
         stage: t.stage,
         stages: t.spawn.words.length,
+        phrase: t.spawn.phrase ? t.spawn.words.map((w, i) => (typeof w === 'string' ? w : (t.words[i] ?? '…'))) : null,
+        danger: t.attackPhase === 'windup',
+        tabHint: view.lockedId !== null && !locked,
       });
     }
     patchRunUi({ labels });

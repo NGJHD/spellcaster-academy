@@ -12,7 +12,8 @@ export interface DialogueLine {
 }
 
 export const SPEAKER_NAMES: Record<Speaker, string> = {
-  pip: 'Pip',
+  // Owner feedback: make it clear Pip is the guide orb, not the player.
+  pip: 'Pip · your guide orb',
   mira: 'Mira',
   orin: 'Keeper Orin',
   'portrait-1': 'Portrait',
@@ -25,7 +26,7 @@ const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text 
 export const LINES = {
   // Opening and Arrival Gate
   'open-1': line('pip', 'There it is! Asterfall Academy. First day, first wand, first adventure.'),
-  'open-2': line('pip', "Apprentice detected! Robes tidy… wand ready… yes, you'll do nicely."),
+  'open-2': line('pip', "I'm Pip, your guide orb! Apprentice detected. Robes tidy… wand ready… yes, you'll do nicely."),
   'open-3': line('pip', 'This gate listens to letters. Type the word you see, and your wand will do the rest.'),
   'gate-first-correct': line('pip', 'Good! Each correct letter gathers magic.'),
   'gate-first-word': line('pip', 'And the final letter casts it. Very neat.'),
@@ -77,7 +78,7 @@ export const LINES = {
   'por-1': line('portrait-1', 'A new apprentice during a ward fracture? How traditional.'),
   'por-2': line('portrait-2', 'Nonsense. In my year, the ceiling became a whale.'),
   'por-3': line('pip', 'Please ignore historical exaggeration.'),
-  'por-fountain': line('pip', "A focus fountain. Take a breath — you're fully refreshed."),
+  'por-fountain': line('pip', 'A healing fountain. Take a breath — your HP is full again.'),
   'por-4': line('mira', 'The Greenhouse Anchor is wrapped in ward vines. The Warden passed that way, but it cleared falling glass away from the seedlings.'),
   'por-5': line('pip', 'That is… unexpectedly considerate destruction.'),
   'por-const': line('pip', 'Constellation plaques! Name all three for a bonus in the greenhouse.'),

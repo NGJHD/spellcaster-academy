@@ -32,7 +32,7 @@ function play(o: BotOptions) {
     resume: o.resume ?? null,
     storage,
     deferSavesUntilFirstCheckpoint: false,
-    settings: () => ({ rail: { reducedMotion: false, travelSpeed: 1.3 }, autoContinue: true, reducedShake: true }),
+    settings: () => ({ rail: { reducedMotion: false, travelSpeed: 1.3 }, reducedShake: true }),
     now: () => clock,
   });
   const dt = 1 / 30;
@@ -91,8 +91,9 @@ describe('full Level 1 playthrough', () => {
     const save = readAutosave(storage, (id) => LEVEL1_ROUTE.beats.some((b) => b.id === id));
     expect(save?.status).toBe('complete');
     expect(readProfile(storage).levelCompleted).toBe(true);
-    // A first playthrough should take roughly 20–30 minutes at child typing speeds (LD-1).
-    expect(clock / 60000).toBeGreaterThan(8);
+    // The owner asked for a much brisker pace than LD-1's 20–30 minutes; a quick adult typist now
+    // finishes in about 7 minutes. Guard against the level collapsing into something trivially short.
+    expect(clock / 60000).toBeGreaterThan(5);
   });
 
   it('a slow Gentle typist with mistakes still finishes', () => {

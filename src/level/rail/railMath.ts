@@ -18,6 +18,12 @@ export const FADE_CUT = { outSec: 0.35, holdSec: 0.1, inSec: 0.45 } as const;
 /** Reduced motion shortens reveal pans by this factor. */
 export const REDUCED_MOTION_PAN_SCALE = 0.5;
 
+/**
+ * Global pacing (owner feedback: faster, no dead time). Authored durations are multiplied by these and
+ * then divided by the travel-speed setting, so looking around and holds speed up with travel.
+ */
+export const PACE = { travel: 0.8, pan: 0.45, hold: 0.5, fade: 0.55 } as const;
+
 export function createPose(): CameraPose {
   return { position: new Vector3(), lookAt: new Vector3(), fade: 0 };
 }
@@ -70,7 +76,16 @@ function usesFadeCut(beat: RailTravelBeat, settings: RailSettings): boolean {
 }
 
 function revealPanSec(beat: CameraRevealBeat, settings: RailSettings): number {
-  return settings.reducedMotion ? beat.panSec * REDUCED_MOTION_PAN_SCALE : beat.panSec;
+  const pan = (beat.panSec * PACE.pan) / settings.travelSpeed;
+  return settings.reducedMotion ? pan * REDUCED_MOTION_PAN_SCALE : pan;
+}
+
+function revealHoldSec(beat: CameraRevealBeat, settings: RailSettings): number {
+  return Math.max(0.15, (beat.holdSec * PACE.hold) / settings.travelSpeed);
+}
+
+function fadeSec(sec: number): number {
+  return sec * PACE.fade;
 }
 
 export function beatDurationSec(route: CameraSpace, beat: CameraBeat, settings: RailSettings): number {
@@ -78,14 +93,14 @@ export function beatDurationSec(route: CameraSpace, beat: CameraBeat, settings: 
     case 'rail-travel':
       return usesFadeCut(beat, settings)
         ? FADE_CUT.outSec + FADE_CUT.holdSec + FADE_CUT.inSec
-        : beat.durationSec / settings.travelSpeed;
+        : (beat.durationSec * PACE.travel) / settings.travelSpeed;
     case 'camera-reveal': {
       const segments = revealLookSequence(route, beat).length - 1;
       // Every pan is followed by a hold; a pure hold (no targets) is just the hold.
-      return segments * revealPanSec(beat, settings) + Math.max(1, segments) * beat.holdSec;
+      return segments * revealPanSec(beat, settings) + Math.max(1, segments) * revealHoldSec(beat, settings);
     }
     case 'loading-transition':
-      return beat.fadeOutSec + beat.holdSec + beat.fadeInSec;
+      return fadeSec(beat.fadeOutSec + beat.holdSec + beat.fadeInSec);
   }
 }
 
@@ -203,7 +218,7 @@ function evaluateReveal(
   out.fade = 0;
 
   const panSec = revealPanSec(beat, settings);
-  const stepSec = panSec + beat.holdSec;
+  const stepSec = panSec + revealHoldSec(beat, settings);
   const segments = sequence.length - 1;
   const segment = stepSec > 0 ? Math.floor(elapsedSec / stepSec) : segments;
 
@@ -224,13 +239,15 @@ function evaluateLoading(
   start: CameraPose,
   out: CameraPose,
 ): void {
-  const cutAt = beat.fadeOutSec + beat.holdSec;
+  const fadeOutSec = fadeSec(beat.fadeOutSec);
+  const fadeInSec = fadeSec(beat.fadeInSec);
+  const cutAt = fadeOutSec + fadeSec(beat.holdSec);
   if (elapsedSec < cutAt) {
     copyPose(start, out);
-    const fadeOut = beat.fadeOutSec > 0 ? elapsedSec / beat.fadeOutSec : 1;
+    const fadeOut = fadeOutSec > 0 ? elapsedSec / fadeOutSec : 1;
     out.fade = Math.min(1, Math.max(start.fade, fadeOut));
     return;
   }
   beatEndPose(route, beat, out);
-  out.fade = beat.fadeInSec > 0 ? 1 - Math.min(1, (elapsedSec - cutAt) / beat.fadeInSec) : 0;
+  out.fade = fadeInSec > 0 ? 1 - Math.min(1, (elapsedSec - cutAt) / fadeInSec) : 0;
 }

@@ -19,30 +19,39 @@ export function HUD() {
   const damageKey = useRunStore((s) => s.damageKey);
   const liveWpm = useRunStore((s) => s.liveWpm);
   const beatId = useRunStore((s) => s.beatId);
+  const progress = useRunStore((s) => s.progress);
   const showWpm = useSettingsStore((s) => s.showWpm);
   const objectiveText = objective ? strings.objectives[objective] : null;
 
   return (
     <div className="hud">
       <div className="hud__top-left">
-        <div className="focus-meter" role="meter" aria-label={strings.hud.focus} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(focus)}>
+        <div className="focus-meter" role="meter" title={strings.hud.focusHelp} aria-label={strings.hud.focus} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(focus)}>
           <span className="focus-meter__label">{strings.hud.focus}</span>
           <span className="focus-meter__track">
             <span className="focus-meter__fill" style={{ transform: `scaleX(${focus / 100})` }} />
           </span>
+          <span className="focus-meter__value">{Math.round(focus)}</span>
         </div>
         {objectiveText && <div className="hud__objective">{objectiveText}</div>}
       </div>
 
+      <div className="hud__progress" role="progressbar" aria-label={strings.hud.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+        <span className="hud__progress-fill" style={{ transform: `scaleX(${progress})` }} />
+        <span className="hud__progress-marker" style={{ left: `${progress * 100}%` }} />
+      </div>
+
       <div className="hud__top-right">
         {streak > 0 && (
-          <div className="hud__chip" aria-label={strings.hud.streak}>
-            <span className="hud__chip-icon">✦</span> {streak}
+          <div className="hud__chip" title={strings.hud.streakHelp}>
+            <span className="hud__chip-icon">✦</span>
+            <span className="hud__chip-label">{strings.hud.streak}</span> {streak}
           </div>
         )}
         {starPages > 0 && (
-          <div className="hud__chip" aria-label={strings.hud.starPages}>
-            <span className="hud__chip-icon">★</span> {starPages} / 8
+          <div className="hud__chip" title={strings.hud.starPagesHelp}>
+            <span className="hud__chip-icon">★</span>
+            <span className="hud__chip-label">{strings.hud.starPages}</span> {starPages} / 8
           </div>
         )}
         {showWpm && liveWpm > 0 && (
@@ -96,7 +105,6 @@ function Subtitles() {
     <div key={subtitle.key} className={`subtitle${subtitle.blocking ? ' subtitle--blocking' : ''}`} role="status" aria-live="polite">
       <div className={`subtitle__speaker subtitle__speaker--${subtitle.speaker}`}>{SPEAKER_NAMES[subtitle.speaker]}</div>
       <div className="subtitle__text">{subtitle.text}</div>
-      {subtitle.blocking && <div className="subtitle__continue">{strings.hud.pressEnter}</div>}
     </div>
   );
 }

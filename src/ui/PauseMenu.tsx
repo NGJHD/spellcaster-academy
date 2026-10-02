@@ -32,11 +32,13 @@ export function PauseMenu() {
           <>
             <h2 className="modal-panel__heading">{t.heading}</h2>
             <div className="modal-panel__buttons">
-              <button type="button" className="menu-button" onClick={resume} autoFocus>{t.resume}</button>
               <button type="button" className="menu-button" onClick={() => setPanel('controls')}>{t.controls}</button>
               <button type="button" className="menu-button" onClick={() => setPanel('settings')}>{t.settings}</button>
               <button type="button" className="menu-button" onClick={() => setPanel('difficulty')}>{t.difficulty}</button>
-              <button type="button" className="menu-button menu-button--quiet" onClick={quitToMenu}>{t.returnToTitle}</button>
+            </div>
+            <div className="modal-panel__footer">
+              <button type="button" className="menu-button menu-button--danger" onClick={quitToMenu}>{t.returnToTitle}</button>
+              <button type="button" className="menu-button menu-button--primary" onClick={resume} autoFocus>{t.resume}</button>
             </div>
           </>
         )}

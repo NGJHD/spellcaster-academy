@@ -151,8 +151,8 @@ export class TypingEngine {
   }
 
   /** Tab: lock the next target by screen order. Never needed when initials are unique. */
+  /** Tab: move the lock to the next target. Owner feedback: this also works mid-word (the partial word is dropped). */
   cycle(reverse = false): TypingEvent[] {
-    if (this.lock && this.lock.typed.length > 0) return [];
     if (this.candidates.length === 0) return [];
     const ordered = this.candidates
       .slice()

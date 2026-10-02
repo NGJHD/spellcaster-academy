@@ -100,6 +100,28 @@ button {
   min-height: 60px;
 }
 
+.menu-button--danger {
+  border-color: #e0705a;
+  background: #a8352a;
+  color: #fff;
+}
+
+.menu-button--danger:hover:not(:disabled) {
+  background: #c2402f;
+}
+
+.modal-panel__footer {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-panel__footer .menu-button--primary {
+  font-size: 1.15rem;
+  min-height: 48px;
+}
+
 .menu-button--quiet {
   background: transparent;
   color: var(--ink-muted);
@@ -332,12 +354,76 @@ button {
   will-change: transform;
 }
 
+.word-label__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -100%);
+  animation: word-fly-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* Owner feedback: new words should catch the eye. They swoop in large and settle with a flash. */
+@keyframes word-fly-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(-70px) scale(2.2);
+    filter: brightness(2.2);
+  }
+  60% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+    filter: brightness(1);
+  }
+}
+
+.word-label__tag {
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--gold-strong);
+  color: #1a1408;
+  font-size: calc(0.72rem * var(--font-scale));
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.word-label__tag--danger {
+  background: #ff8a4c;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.word-label__hint {
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: rgba(10, 14, 28, 0.72);
+  color: var(--ink-muted, #c9c4b8);
+  font-size: calc(0.72rem * var(--font-scale));
+  white-space: nowrap;
+}
+
+.word-label__later {
+  color: rgba(244, 241, 234, 0.55);
+}
+
+.word-label--phrase .word-label__inner {
+  font-size: calc(1.75rem * var(--font-scale));
+}
+
+.word-label--danger .word-label__inner {
+  border-color: #ff8a4c;
+  box-shadow: 0 0 0 3px rgba(255, 138, 76, 0.35), 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
 .word-label__inner {
   display: flex;
   align-items: center;
   gap: 0.35em;
   padding: 0.2em 0.55em 0.25em;
-  transform: translate(-50%, -100%);
   border: 2px solid var(--label-edge);
   border-radius: 10px;
   background: var(--label-bg);
@@ -351,7 +437,7 @@ button {
 }
 
 .word-label--locked .word-label__inner {
-  transform: translate(-50%, -100%) scale(1.12);
+  transform: scale(1.12);
   border-color: var(--gold-strong);
   box-shadow: 0 0 0 3px rgba(255, 217, 138, 0.25), 0 6px 18px rgba(0, 0, 0, 0.45);
 }
@@ -539,6 +625,52 @@ button {
 
 .hud__chip-icon {
   color: var(--gold-strong);
+}
+
+.hud__chip-label {
+  margin: 0 0.3em;
+  font-size: 0.8rem;
+  color: var(--ink-muted, #c9c4b8);
+}
+
+.hud__progress {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: min(36vw, 420px);
+  height: 8px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(10, 14, 28, 0.6);
+  box-shadow: 0 0 0 1px rgba(255, 217, 138, 0.35);
+}
+
+.hud__progress-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7fb8ff, var(--gold-strong));
+  transform-origin: left center;
+  transition: transform 600ms ease;
+}
+
+.hud__progress-marker {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: #fff8e0;
+  box-shadow: 0 0 10px var(--gold-strong);
+  transition: left 600ms ease;
+}
+
+.focus-meter__value {
+  min-width: 2.2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .area-card {
@@ -753,12 +885,6 @@ button {
   line-height: 1.4;
 }
 
-.subtitle__continue {
-  margin-top: 0.3rem;
-  font-size: 0.8rem;
-  color: var(--ink-muted);
-  animation: pulse 1.6s ease-in-out infinite;
-}
 
 @keyframes pulse {
   50% {
@@ -1171,8 +1297,8 @@ kbd {
 /* Reduced motion: keep information, drop movement. */
 :root.reduced-motion .title-screen__ward,
 :root.reduced-motion .calm-overlay__ring,
-:root.reduced-motion .subtitle__continue {
-  animation: none;
+:root.reduced-motion .word-label__box {
+  animation-duration: 120ms;
 }
 
 :root.reduced-motion .word-label__text[data-mistake] {

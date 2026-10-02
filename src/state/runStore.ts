@@ -22,6 +22,12 @@ export interface LabelInfo {
   readonly kind: TargetKind;
   readonly stage: number;
   readonly stages: number;
+  /** Whole sentence for phrase targets (words already typed, then the rest); null otherwise. */
+  readonly phrase: readonly string[] | null;
+  /** The target is winding up an attack. */
+  readonly danger: boolean;
+  /** Another target is locked, so this one can be reached with Tab. */
+  readonly tabHint: boolean;
 }
 
 export interface SubtitleInfo {
@@ -71,6 +77,8 @@ export interface RunUiState {
   retiredKey: number;
   liveWpm: number;
   beatId: string | null;
+  /** 0–1 through the level route, for the progress bar. */
+  progress: number;
 }
 
 export const initialRunUi = (): RunUiState => ({
@@ -97,6 +105,7 @@ export const initialRunUi = (): RunUiState => ({
   retiredKey: 0,
   liveWpm: 0,
   beatId: null,
+  progress: 0,
 });
 
 export const useRunStore = create<RunUiState>()(() => initialRunUi());

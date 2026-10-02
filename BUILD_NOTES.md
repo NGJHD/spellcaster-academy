@@ -31,12 +31,41 @@ Running log of decisions, environment facts, architecture and milestone status. 
 - 2026-09-29: build milestone by milestone; sound effects self-made; no voice acting (subtitles only); **British spelling** everywhere including typed words; git initialised.
 - 2026-10-01: "continue through all the milestones without stopping"; **CC0 assets approved** (Poly Haven textures, HDRIs and models are used; sources recorded in `assets-src/cc0/sources.json`).
 - Owner feedback on Milestone 1 placeholders: "Looks quite cartoonish. Can it be more realistic" → realism pass in Milestone 8 (see Visual direction).
+- 2026-10-02 playtest feedback (20 points), all implemented:
+  - **Platforms:** low-end laptops and Firefox are no longer targets (Edge/Chrome on a capable GPU).
+  - **Voice:** text to speech is now wanted. Lines are spoken with the browser's Web Speech API (`src/audio/voice.ts`, en-GB voices, per-speaker pitch/rate), with a Settings toggle and a Voices volume.
+  - **Dialogue:** no "press Enter". Lines advance by themselves when spoken or read; typing a letter skips the line. A conversation lets the camera carry on: early when followed by travel, at its last line when followed by a fight. The rest of the lines continue as subtitles.
+  - **Pace** (the owner nearly fell asleep):
+    - Old "fast" travel is the new "normal", and "fast" is 2.4×.
+    - Pans run at 0.45× and holds at 0.5× of their authored length, both divided by travel speed, so looking around is about 3× quicker than before.
+    - Travel runs at 0.8×, fades at 0.55×, and encounter intro/resolve/gaps are roughly halved; the HP reset is 1.8 s.
+    - `PACE` in `railMath.ts` holds the global factors.
+    - The bot playthrough is now about 7 minutes (the test floor was lowered from 8 to 5).
+  - **Bug "gle" for "glint":** a bonus window closed under the player mid-word. The camera now waits while the player is locked on a bonus target, and optional targets never leave while locked.
+  - **Bug "damage after a kill":** arena hazards and creature attacks kept running while the next word was still arriving. Now:
+    - Every completed word restarts the attack and hazard clocks.
+    - A defeat cancels a hazard wind-up.
+    - Hazards pause when nothing is typeable.
+    - Creatures cannot attack during their next-word delay.
+    - Labels show "Attacking!" during a wind-up.
+  - **Word labels:** new words fly in large and settle. The locked word has a TARGET tag; other words show "Tab ⇥ to switch". Tab now also works mid-word, dropping the partial word.
+  - **Grimoire sentence:** the final sentence shows as one sentence (`phrase: true` spawns).
+  - **HUD:**
+    - "Focus" is now "HP", with a number and a tooltip.
+    - The streak and star-page chips have visible labels and tooltips.
+    - A level progress bar sits at the top centre.
+    - Pip's speaker name reads "Pip · your guide orb", and Pip introduces themself in the opening.
+  - **Pause menu:** Resume sits at the bottom, with Return to Title beside it in red.
+  - **Music:**
+    - The procedural score is louder and richer: lead melody per mood, synthetic hall reverb, driving bass and snare in battle moods.
+    - Battle music starts whenever an encounter can lower HP.
+    - It returns to the area's story mood 3 s after the fight.
 
 ## Spec conflict resolutions
 
 The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:
 
-- Runtime target 20–30 min; START/RESUME title; LD-19 completion buttons; extended LD checkpoint list.
+- Runtime target 20–30 min (superseded by the owner's 2026-10-02 request for a much faster pace); START/RESUME title; LD-19 completion buttons; extended LD checkpoint list.
 - FP arm clips `FP_Walk/Run/Jump/Land` dropped (on rails). Fallen banner pole is decorative.
 - Grimoire "dodging" = telegraphed Focus hits (gusts) — the player never moves.
 - Arrival Gate uses LD-8's three words; Tab/Escape are taught by short barks.
@@ -131,6 +160,6 @@ Optimisations: static architecture batched per material (`MergeStatic`), tree LO
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
 - Character faces are stylised volume sculpts — readable at dialogue distance, not close-up hero quality. Creature LOD1/LOD2 files are not yet generated (single LOD within budget).
-- Manual checks in §17 that need a human at a real keyboard have not been done by a person: deliberately slow Gentle play, intentional-mistake Standard play by feel, focus loss / tab switching by hand, browser resizing at several resolutions, refresh at every checkpoint, low-end laptop performance profiling. Automated equivalents exist for most flows.
-- Firefox has not been tested (Edge/Chromium only).
+- Manual checks in §17 that need a human at a real keyboard have not been done by a person: deliberately slow Gentle play, intentional-mistake Standard play by feel, focus loss / tab switching by hand, browser resizing at several resolutions, refresh at every checkpoint. Automated equivalents exist for most flows.
+- Firefox is out of scope by owner decision (Edge/Chromium only). Text-to-speech voice quality depends on the voices installed in the browser/OS.
 - Music is procedural placeholder material; SFX are synthesised.

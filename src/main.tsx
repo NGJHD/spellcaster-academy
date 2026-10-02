@@ -3,9 +3,15 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource/opendyslexic/400.css';
 import { App } from './app/App';
 import { installHowlerAudio } from './audio/HowlerAudio';
+import { installBrowserVoice } from './audio/voice';
+import { getSettings } from './state/settingsStore';
 import './styles/global.css';
 
 installHowlerAudio();
+installBrowserVoice(() => {
+  const s = getSettings();
+  return { enabled: s.spokenDialogue, volume: s.volumes.voice * s.volumes.master };
+});
 
 // Test hook for Playwright (`?test` only): read-only access to the live run.
 if (new URLSearchParams(window.location.search).has('test')) {

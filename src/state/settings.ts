@@ -1,7 +1,7 @@
 /** Player settings: pure data and validation, independent of the store. */
 
 export const SETTINGS_STORAGE_KEY = 'spellcaster-academy.settings';
-export const SETTINGS_VERSION = 2;
+export const SETTINGS_VERSION = 3;
 
 export type TravelSpeed = 'slow' | 'normal' | 'fast';
 export type FontSize = 'normal' | 'large' | 'extra-large';
@@ -12,6 +12,7 @@ export interface Volumes {
   readonly music: number;
   readonly sfx: number;
   readonly ui: number;
+  readonly voice: number;
 }
 
 export interface Settings {
@@ -22,16 +23,18 @@ export interface Settings {
   readonly fontSize: FontSize;
   readonly highContrast: boolean;
   readonly dyslexiaFont: boolean;
-  readonly autoContinue: boolean;
+  /** Read subtitles aloud with the browser's speech synthesis. */
+  readonly spokenDialogue: boolean;
   readonly showWpm: boolean;
   readonly quality: Quality;
   readonly volumes: Volumes;
 }
 
 export const TRAVEL_SPEED_MULTIPLIER: Record<TravelSpeed, number> = {
-  slow: 0.75,
-  normal: 1,
-  fast: 1.3,
+  // Owner feedback (2026-10-02): the old "fast" is the new baseline; "fast" is quicker still.
+  slow: 1,
+  normal: 1.6,
+  fast: 2.4,
 };
 
 export const FONT_SCALE: Record<FontSize, number> = {
@@ -49,11 +52,11 @@ export function defaultSettings(prefersReducedMotion = false): Settings {
     fontSize: 'normal',
     highContrast: false,
     dyslexiaFont: false,
-    autoContinue: false,
+    spokenDialogue: true,
     showWpm: false,
     // §15: start on Medium; the player can override.
     quality: 'medium',
-    volumes: { master: 0.8, music: 0.6, sfx: 0.8, ui: 0.7 },
+    volumes: { master: 0.8, music: 0.6, sfx: 0.8, ui: 0.7, voice: 0.9 },
   };
 }
 
@@ -76,7 +79,7 @@ export function sanitizeSettings(raw: unknown, defaults: Settings = defaultSetti
     fontSize: oneOf(r.fontSize, ['normal', 'large', 'extra-large'], defaults.fontSize),
     highContrast: bool(r.highContrast, defaults.highContrast),
     dyslexiaFont: bool(r.dyslexiaFont, defaults.dyslexiaFont),
-    autoContinue: bool(r.autoContinue, defaults.autoContinue),
+    spokenDialogue: bool(r.spokenDialogue, defaults.spokenDialogue),
     showWpm: bool(r.showWpm, defaults.showWpm),
     quality: oneOf(r.quality, ['low', 'medium', 'high'], defaults.quality),
     volumes: {
@@ -84,6 +87,7 @@ export function sanitizeSettings(raw: unknown, defaults: Settings = defaultSetti
       music: unit(v.music, defaults.volumes.music),
       sfx: unit(v.sfx, defaults.volumes.sfx),
       ui: unit(v.ui, defaults.volumes.ui),
+      voice: unit(v.voice, defaults.volumes.voice),
     },
   };
 }

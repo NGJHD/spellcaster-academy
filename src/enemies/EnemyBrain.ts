@@ -8,10 +8,10 @@ import { Vector3 } from 'three';
 import type { DifficultyProfile } from '../game/difficulty';
 import type { TargetSpawn } from '../level/levelTypes';
 
-export const APPEAR_SEC = 0.7;
+export const APPEAR_SEC = 0.45;
 /** Shield break: the shield shatters when the projectile lands, then the binding word appears. */
 export const SHIELD_BREAK_SEC = 0.25;
-export const NEXT_WORD_DELAY_SEC = 0.7;
+export const NEXT_WORD_DELAY_SEC = 0.45;
 export const DISPEL_SEC = 1.0;
 export const PROJECTILE_SEC = 0.25;
 /** Targeted enemies move at this fraction of their speed so the word stays readable. */
@@ -207,6 +207,12 @@ function attack(t: TargetRuntime, simDt: number, profile: DifficultyProfile, eve
   if (!a) return;
   const canAttack = a.kind === 'ranged' || t.atPathEnd;
   if (!canAttack) return;
+  // No attacks while the next word is still arriving: the player must always have a word to answer with.
+  if (t.wordDelay > 0) {
+    if (t.attackPhase === 'windup') t.attackPhase = 'idle';
+    t.attackTimer = 0;
+    return;
+  }
 
   t.attackTimer += simDt;
   switch (t.attackPhase) {

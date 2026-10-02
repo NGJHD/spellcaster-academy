@@ -19,6 +19,7 @@ export type MusicId =
   | 'greenhouse-action'
   | 'tower-ascent'
   | 'warden-defence'
+  | 'tower-battle'
   | 'ward-repair'
   | 'celebration'
   | 'results';
@@ -161,6 +162,8 @@ export interface TargetSpawn {
   readonly rewardIf?: 'first-defeat' | 'perfect';
   /** Height of the word label above `position`. */
   readonly labelHeight?: number;
+  /** The words form one sentence: the label shows the whole sentence and highlights the current word. */
+  readonly phrase?: boolean;
   /** Visual scale/variant hint for the renderer. */
   readonly variant?: string;
   /** Stays in the scene in its calm/inactive pose after defeat (dummy, guardian, moss mound, dormant pod). */

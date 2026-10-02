@@ -92,7 +92,7 @@ export function SettingsPanel({ onBack }: { onBack: () => void }) {
           <Toggle label={s.dyslexiaFont} value={settings.dyslexiaFont} onChange={(v) => update({ dyslexiaFont: v })} />
         </Section>
         <Section title={s.sections.game}>
-          <Toggle label={s.autoContinue} value={settings.autoContinue} onChange={(v) => update({ autoContinue: v })} />
+          <Toggle label={s.spokenDialogue} value={settings.spokenDialogue} onChange={(v) => update({ spokenDialogue: v })} />
           <Toggle label={s.showWpm} value={settings.showWpm} onChange={(v) => update({ showWpm: v })} />
           <div className="setting-row">
             <div className="setting-row__label">{s.fullScreen}</div>
@@ -104,6 +104,7 @@ export function SettingsPanel({ onBack }: { onBack: () => void }) {
           <Slider label={s.music} value={settings.volumes.music} onChange={(v) => setVolume('music', v)} />
           <Slider label={s.sfx} value={settings.volumes.sfx} onChange={(v) => setVolume('sfx', v)} />
           <Slider label={s.ui} value={settings.volumes.ui} onChange={(v) => setVolume('ui', v)} />
+          <Slider label={s.voice} value={settings.volumes.voice} onChange={(v) => setVolume('voice', v)} />
         </Section>
       </div>
       <button type="button" className="menu-button" onClick={onBack} autoFocus>{strings.pause.back}</button>

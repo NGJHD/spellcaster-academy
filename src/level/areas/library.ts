@@ -193,6 +193,7 @@ export const library: AreaScript = {
           targets: [
             target('grimoire-sentence', 'marker', L(0, 3.2, -19.3), ['bright', 'minds', 'make', 'strong', 'magic'], {
               labelHeight: 0.6,
+              phrase: true,
             }),
           ],
         },
