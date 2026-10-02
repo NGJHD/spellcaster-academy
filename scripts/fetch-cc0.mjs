@@ -35,6 +35,18 @@ export const MANIFEST = {
     'marble_01',
     'brown_leather',
     'mossy_rock',
+    // Realism pass 2 (2026-10-02): small props, upholstery, panelling and armour.
+    'leather_red_02',
+    'velour_velvet',
+    'quatrefoil_jacquard_fabric',
+    'dark_paneled_wood',
+    'metal_plate',
+    'herringbone_parquet',
+    'rough_linen',
+    'lacquered_cherry_wood',
+    'castle_brick_07',
+    'worn_planks',
+    'leather_white',
   ],
   models: [
     'island_tree_01',
@@ -78,6 +90,35 @@ export const MANIFEST = {
     'gothic_statue',
     'large_castle_door',
     'wooden_barrels_01',
+    // Realism pass 2: dressing props.
+    'Chandelier_01',
+    'seadogs_compass',
+    'vintage_microscope',
+    'wooden_ladder',
+    'watering_can_metal_01',
+    'seeding_tray_01',
+    'trowel_01',
+    'wicker_basket_01',
+    'planter_box_01',
+    'ornate_mirror_01',
+    'marble_bust_01',
+    'wooden_candlestick',
+    'brass_vase_01',
+    'ceramic_vase_02',
+    'magnifying_glass_01',
+    'tea_set_01',
+    'ArmChair_01',
+    'gothic_coffee_table',
+    'anthurium_botany_01',
+    'calathea_orbifolia_01',
+    'pachira_aquatica_01',
+    'wooden_crate_01',
+    'hanging_picture_frame_01',
+    'Ottoman_01',
+    'vintage_cabinet_01',
+    'standing_picture_frame_01',
+    'wooden_display_shelves_01',
+    'horse_statue_01',
   ],
 };
 
@@ -135,7 +176,8 @@ async function fetchHdri(id) {
 
 async function fetchTexture(id) {
   const files = await getJson(API + id);
-  const maps = { diff: files.Diffuse, nor: files.nor_gl, arm: files.arm };
+  // Some sets ship colour variants (coll1/coll2) instead of a single Diffuse map.
+  const maps = { diff: files.Diffuse ?? files.coll1, nor: files.nor_gl, arm: files.arm };
   for (const [key, entry] of Object.entries(maps)) {
     const file = entry['1k'].jpg;
     await download(file.url, join(ROOT, 'public', 'assets', 'textures', id, `${key}.jpg`));

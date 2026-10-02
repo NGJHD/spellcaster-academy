@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import type { Mesh } from 'three';
 import { PLAQUE_POSITIONS, PORTRAITS_ORIGIN } from '../../level/areas/portraits';
 import { getRun } from '../../state/gameStore';
-import { Arch, Bench, Box, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
+import { Arch, Box, KitModel, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { Mira } from '../props';
@@ -12,7 +12,9 @@ import { Prop } from '../Prop';
 
 const W = 3;
 const H = 5.5;
-const PORTRAIT_TINTS = ['#5a3a2a', '#2f3b55', '#4a3a24', '#3a2a40', '#2e4a3a', '#5a4a30'];
+/** Left wall: still lifes and bust studies; right wall mixes in the academy landscapes. */
+const LEFT = ['painting_0', 'painting_1', 'painting_4', 'painting_2', 'painting_6', 'painting_3', 'painting_5'] as const;
+const RIGHT = ['landscape_0', 'painting_7', 'painting_9', 'landscape_1', 'painting_8'] as const;
 
 export function PortraitsScene() {
   return (
@@ -22,6 +24,15 @@ export function PortraitsScene() {
       <Rug position={[0, 0, -19.5]} size={[2.2, 40]} />
       <Slab x={[-W - 0.3, -W]} y={[0, H]} z={[-41, 2]} material={MAT.plaster} />
       <Slab x={[W, W + 0.3]} y={[0, H]} z={[-41, 2]} material={MAT.plaster} />
+      {/* Oak wainscot with dado rail, skirting and a picture rail */}
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Slab x={side < 0 ? [-W, -W + 0.04] : [W - 0.04, W]} y={[0, 1.2]} z={[-41, 2]} material={MAT.panelWood} />
+          <Slab x={side < 0 ? [-W, -W + 0.07] : [W - 0.07, W]} y={[1.2, 1.27]} z={[-41, 2]} material={MAT.darkOak} />
+          <Slab x={side < 0 ? [-W, -W + 0.06] : [W - 0.06, W]} y={[0, 0.16]} z={[-41, 2]} material={MAT.darkOak} />
+          <Slab x={side < 0 ? [-W, -W + 0.05] : [W - 0.05, W]} y={[3.85, 3.92]} z={[-41, 2]} material={MAT.darkOak} />
+        </group>
+      ))}
       <Slab x={[-W - 0.3, W + 0.3]} y={[H, H + 0.3]} z={[-41, 2]} material={MAT.darkOak} />
       <Slab x={[-W, W]} y={[0, H]} z={[-41.3, -41]} material={MAT.academyStone} />
       <WindowPane position={[0, 2.8, -40.95]} size={[2.4, 4]} />
@@ -30,8 +41,15 @@ export function PortraitsScene() {
       ))}
       {Array.from({ length: 7 }, (_, i) => -3 - i * 5.2).map((z, i) => (
         <group key={z}>
-          <Portrait position={[-W + 0.05, 2.6, z]} rotationY={Math.PI / 2} tint={PORTRAIT_TINTS[i % 6]} seed={i} />
-          {i !== 2 && i !== 5 && <Portrait position={[W - 0.05, 2.6, z - 2]} rotationY={-Math.PI / 2} tint={PORTRAIT_TINTS[(i + 3) % 6]} seed={i + 4} size={[1.0, 1.3]} />}
+          <Portrait position={[-W + 0.05, 2.5, z]} rotationY={Math.PI / 2} painting={LEFT[i]} />
+          {i !== 2 && i !== 5 && (
+            <Portrait
+              position={[W - 0.05, 2.5, z - 2]}
+              rotationY={-Math.PI / 2}
+              painting={RIGHT[[0, 1, -1, 2, 3, -1, 4][i] ?? 0]}
+              size={RIGHT[[0, 1, -1, 2, 3, -1, 4][i] ?? 0]?.startsWith('landscape') ? [1.6, 1.1] : [1.0, 1.3]}
+            />
+          )}
           <WallLamp position={[-W + 0.02, 3.8, z - 2.6]} rotationY={Math.PI / 2} />
           <pointLight position={[0, 4.2, z - 1]} color="#ffcf98" intensity={7} distance={8} decay={2} />
         </group>
@@ -49,8 +67,8 @@ export function PortraitsScene() {
           ))}
         </group>
       ))}
-      <Bench position={[-2.2, 0, -16]} rotationY={Math.PI / 2} upholstered />
-      <Bench position={[2.2, 0, -24]} rotationY={-Math.PI / 2} upholstered />
+      <KitModel id="gallery_bench" position={[-2.2, 0, -16]} rotationY={Math.PI / 2} />
+      <KitModel id="gallery_bench" position={[2.2, 0, -24]} rotationY={-Math.PI / 2} />
       <Prop id="gothic_statue" position={[0, 0, -39.6]} height={2.3} />
       <Prop id="potted_plant_02" position={[-2.4, 0, -35]} height={1.3} />
       <Prop id="potted_plant_02" position={[2.4, 0, -6]} height={1.3} rotationY={2} />
@@ -66,15 +84,16 @@ function FocusFountain() {
   });
   return (
     <group position={[2.2, 0, -14]}>
-      <mesh position={[0, 0.45, 0]} material={MAT.academyStone} castShadow receiveShadow>
-        <cylinderGeometry args={[0.6, 0.7, 0.9, 24]} />
+      <KitModel id="fountain_basin" />
+      <mesh position={[0, 0.88, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
+        <circleGeometry args={[0.7, 40]} />
       </mesh>
-      <mesh position={[0, 0.91, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
-        <circleGeometry args={[0.52, 24]} />
+      <mesh position={[0, 1.38, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
+        <circleGeometry args={[0.24, 24]} />
       </mesh>
-      <mesh ref={glow} position={[0, 1.6, 0]}>
-        <cylinderGeometry args={[0.08, 0.3, 1.3, 16, 1, true]} />
-        <meshBasicMaterial color="#bfe6ff" transparent opacity={0.25} depthWrite={false} toneMapped={false} />
+      <mesh ref={glow} position={[0, 2.05, 0]}>
+        <cylinderGeometry args={[0.04, 0.2, 1.2, 16, 1, true]} />
+        <meshBasicMaterial color="#bfe6ff" transparent opacity={0.1} depthWrite={false} toneMapped={false} />
       </mesh>
       <pointLight position={[0, 1.4, 0]} color="#bfe6ff" intensity={5} distance={5} />
     </group>
@@ -89,7 +108,7 @@ function CommunicationMirror() {
   });
   return (
     <group position={[-W + 0.06, 1.9, -22]} rotation={[0, Math.PI / 2, 0]}>
-      <Box position={[0, 0, -0.02]} size={[1.3, 2.0, 0.08]} material={MAT.agedBrass} />
+      <KitModel id="frame_1x1_3" scale={[1.1, 1.38, 1]} position={[0, 0, 0.0]} />
       <mesh position={[0, 0, 0.025]}>
         <planeGeometry args={[1.1, 1.8]} />
         <meshStandardMaterial color="#9fb6c8" roughness={0.05} metalness={0.9} />

@@ -30,10 +30,10 @@ export const ASSETS = {
     fp_arm: { animations: [], nodes: ['Tip', 'Wand', 'Hand', 'Sleeve'], collision: { shape: 'none', radius: 0, height: 0 }, wordAnchor: [0, 0.6, 0], budget: 'fp', height: [0.1, 0.6] },
     pip: { animations: [], nodes: ['Core', 'Ring_0', 'Ring_1', 'Ring_2', 'Fin_L', 'Fin_R'], collision: { shape: 'sphere', radius: 0.12, height: 0.24 }, wordAnchor: [0, 0.35, 0], budget: 'prop', height: [0.2, 0.4] },
     training_dummy: { animations: [], nodes: ['Torso', 'Arm_L', 'Arm_R'], collision: { shape: 'capsule', radius: 0.3, height: 1.65 }, wordAnchor: [0, 2.0, 0], budget: 'prop', height: [1.5, 1.9] },
-    runaway_book: { animations: [], nodes: ['Cover_L', 'Cover_R', 'Pages'], collision: { shape: 'box', radius: 0.25, height: 0.1 }, wordAnchor: [0, 0.45, 0], budget: 'prop', height: [0.05, 0.2] },
+    runaway_book: { animations: [], nodes: ['Cover_L', 'Cover_R', 'Spine'], collision: { shape: 'box', radius: 0.25, height: 0.1 }, wordAnchor: [0, 0.45, 0], budget: 'prop', height: [0.05, 0.2] },
     thorn_pod: { animations: [], nodes: ['Head', 'Petal_0', 'Petal_6'], collision: { shape: 'capsule', radius: 0.3, height: 1.4 }, wordAnchor: [0, 1.7, 0], budget: 'prop', height: [1.2, 1.7] },
     ward_anchor: { animations: [], nodes: ['Ring_0', 'Ring_1', 'Ring_2', 'Node_0', 'Node_1', 'Node_2', 'Shard'], collision: { shape: 'cylinder', radius: 0.9, height: 1.8 }, wordAnchor: [0, 2.0, 0], budget: 'prop', height: [1.5, 1.95] },
-    grimoire: { animations: [], nodes: ['Cover_L', 'Cover_R', 'Pages'], collision: { shape: 'box', radius: 0.7, height: 0.3 }, wordAnchor: [0, 0.6, 0], budget: 'prop', height: [0.15, 0.4] },
+    grimoire: { animations: [], nodes: ['Cover_L', 'Cover_R', 'Spine', 'Clasp_0', 'Clasp_1'], collision: { shape: 'box', radius: 0.7, height: 0.3 }, wordAnchor: [0, 0.6, 0], budget: 'prop', height: [0.15, 0.5] },
   },
 };
 

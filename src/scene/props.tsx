@@ -5,7 +5,7 @@
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { Color, Mesh, Vector3, type Group, type MeshStandardMaterial } from 'three';
+import { Color, Mesh, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
 import { emptyPose, type TargetPose } from '../enemies/TargetVisuals';
 import { Dummy, ThornPod } from '../enemies/PropTargets';
 import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
@@ -14,6 +14,7 @@ import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { CharacterModel } from './CharacterModel';
 import { Guardian } from '../enemies/GuardianGLB';
+import { useKitGlow } from './kitGlb';
 import { MAT } from './materials';
 import { useParts } from './partsGlb';
 
@@ -115,19 +116,42 @@ function WardAnchorFallback({ position, encounterId, theme }: { position: Vec3; 
 // ---------- Glowing crystals / markers that light up as their encounter progresses ----------
 
 export function ProgressCrystal({ position, encounterId, index, scale = 1 }: { position: Vec3; encounterId: string; index: number; scale?: number }) {
-  const mat = useMemo(() => MAT.crystalDim.clone(), []);
-  const ref = useRef<Group>(null);
+  return (
+    <group position={position} scale={scale}>
+      <Suspense fallback={<CrystalFallback encounterId={encounterId} index={index} />}>
+        <CrystalCluster encounterId={encounterId} index={index} />
+      </Suspense>
+    </group>
+  );
+}
+
+/** Lights up (and spins faster) once its share of the encounter is done. */
+function useCrystalGlow(material: MeshStandardMaterial | undefined, spinner: () => Object3D | null | undefined, encounterId: string, index: number): void {
   const time = useRef(0);
   useFrame((_, dt) => {
     time.current += dt;
+    if (!material) return;
     const p = getRun()?.encounterProgress(encounterId);
     const lit = !!p && p.done > index;
-    mat.emissive.set(lit ? '#7fc4ff' : '#2a4a70');
-    mat.emissiveIntensity = damp(mat.emissiveIntensity, lit ? 2.4 : 0.6 + Math.sin(time.current * 2 + index) * 0.2, 4, dt);
-    if (ref.current) ref.current.rotation.y = time.current * (lit ? 1.2 : 0.3);
+    material.emissive.set(lit ? '#7fc4ff' : '#2a4a70');
+    material.emissiveIntensity = damp(material.emissiveIntensity, lit ? 2.6 : 0.6 + Math.sin(time.current * 2 + index) * 0.2, 4, dt);
+    const s = spinner();
+    if (s) s.rotation.y = time.current * (lit ? 1.0 : 0.25);
   });
+}
+
+function CrystalCluster({ encounterId, index }: { encounterId: string; index: number }) {
+  const { root, glow } = useKitGlow('crystal_cluster', ['Crystal']);
+  useCrystalGlow(glow[0], () => root.getObjectByName('Crystals'), encounterId, index);
+  return <primitive object={root} position={[0, 0.12, 0]} />;
+}
+
+function CrystalFallback({ encounterId, index }: { encounterId: string; index: number }) {
+  const mat = useMemo(() => MAT.crystalDim.clone(), []);
+  const ref = useRef<Group>(null);
+  useCrystalGlow(mat, () => ref.current, encounterId, index);
   return (
-    <group ref={ref} position={position} scale={scale}>
+    <group ref={ref}>
       <mesh material={mat} scale={[1, 1.6, 1]}>
         <octahedronGeometry args={[0.24]} />
       </mesh>

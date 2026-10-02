@@ -42,6 +42,8 @@ export function readResumableSave(): Level1Autosave | null {
 const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const DEV_TOOLS = import.meta.env.DEV || params.has('test');
 export const DEV_START_BEAT = DEV_TOOLS ? (params.get('beat') ?? undefined) : undefined;
+/** `?nowand` (with ?test) hides the first-person arm — used to capture painting reference views. */
+export const HIDE_WAND = DEV_TOOLS && params.has('nowand');
 export const TIME_SCALE = DEV_TOOLS ? Math.min(20, Math.max(0.1, Number(params.get('speed') ?? '1') || 1)) : 1;
 
 function runSettings(): RunSettings {

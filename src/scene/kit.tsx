@@ -2,12 +2,15 @@
  * PLACEHOLDER architecture kit (§14A.15): code-built modules standing in for the Blender kit.
  * Dimensions follow the documented academy conventions (1 unit = 1 m, doors 2.4–3.2 m, eye 1.6 m).
  */
+import { useGLTF, useTexture } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import { Color, Object3D, Quaternion, Vector3, type InstancedMesh, type Material } from 'three';
+import { useMemo, useRef } from 'react';
+import { Group, Mesh, MeshStandardMaterial, Object3D, Quaternion, SRGBColorSpace, Vector3, type Material } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
+import { kitUrl, libraryMaterial, useKit } from './kitGlb';
+import { Prop } from './Prop';
 import { MAT } from './materials';
-import { worldBox, worldCylinder } from './surfaces';
+import { worldBox, worldCylinder, worldPlane } from './surfaces';
 
 type V3 = readonly [number, number, number];
 
@@ -76,7 +79,20 @@ export function Arch({ position, width, thickness = 0.35, rotationY = 0, materia
   );
 }
 
-export function WindowPane({ position, size, rotationY = 0, material = MAT.windowLit }: { position: V3; size: readonly [number, number]; rotationY?: number; material?: Material }) {
+/** Leaded window GLBs built for the sizes the level uses (kit_props.py `window`). */
+const WINDOW_SIZES = new Set(['2.2x5', '1.4x2.4', '1.8x4', '2.4x4', '0.7x3', '0.8x3.4']);
+const NIGHT_GLASS: Readonly<Record<string, Material>> = { windowGlass: MAT.windowGlassNight };
+const DAY_GLASS: Readonly<Record<string, Material>> = { windowGlass: MAT.windowGlassDay };
+
+export function WindowPane({ position, size, rotationY = 0, material = MAT.windowLit, night = false }: { position: V3; size: readonly [number, number]; rotationY?: number; material?: Material; night?: boolean }) {
+  const key = `${size[0]}x${size[1]}`;
+  if (WINDOW_SIZES.has(key)) {
+    return (
+      <group position={position} rotation={[0, rotationY, 0]}>
+        <KitModel id={`window_${key.replace(/\./g, '_')}`} position={[0, -size[1] / 2, 0]} overrides={night ? NIGHT_GLASS : undefined} />
+      </group>
+    );
+  }
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh material={material}>
@@ -87,6 +103,20 @@ export function WindowPane({ position, size, rotationY = 0, material = MAT.windo
       </mesh>
     </group>
   );
+}
+
+/** A kit GLB (shared geometry, library materials) placed in the world. */
+export function KitModel({ id, position = [0, 0, 0], rotationY = 0, scale = 1, castShadow = true, overrides }: { id: string; position?: V3; rotationY?: number; scale?: number | V3; castShadow?: boolean; overrides?: Readonly<Record<string, Material>> }) {
+  const object = useKit(id, castShadow);
+  useMemo(() => {
+    if (!overrides) return;
+    object.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      // Kit materials are already swapped for library ones; match on the library material's key.
+      for (const [name, material] of Object.entries(overrides)) if (o.material === (MAT as Record<string, Material>)[name]) o.material = material;
+    });
+  }, [object, overrides]);
+  return <primitive object={object} position={position} rotation={[0, rotationY, 0]} scale={scale} />;
 }
 
 export function WallLamp({ position, rotationY = 0, light = false, color = '#ffc98a', intensity = 6 }: { position: V3; rotationY?: number; light?: boolean; color?: string; intensity?: number }) {
@@ -121,63 +151,77 @@ export function StandingLamp({ position, light = false }: { position: V3; light?
 }
 
 /** Instanced books on a shelf unit; one draw call for the books (§14A.19). */
+const BOOK_ROWS_TALL = Array.from({ length: 8 }, (_, i) => `bookrow_tall_${i}`);
+const BOOK_ROWS_SHORT = Array.from({ length: 4 }, (_, i) => `bookrow_short_${i}`);
+const BOOK_ROW_LENGTH = 0.5;
+/** Shelves whose base is this high (world metres) use the simplified distant rows. */
+const BOOK_LOD_HEIGHT = 4;
+
+/**
+ * Oak bookcase (§14A.19): plinth, crown moulding, pilasters and lipped shelves, filled with
+ * Blender-built 0.5 m book rows (kit_props.py) chosen per slot. Books never cast shadows.
+ */
 export function Bookshelf({ position, width = 3, height = 3.6, shelves = 5, rotationY = 0, seed = 1 }: { position: V3; width?: number; height?: number; shelves?: number; rotationY?: number; seed?: number }) {
-  const mesh = useRef<InstancedMesh>(null);
+  const spacing = height / shelves;
+  const short = spacing < 0.68;
+  const distant = position[1] >= BOOK_LOD_HEIGHT;
+  const ids = short ? BOOK_ROWS_SHORT : distant ? BOOK_ROWS_TALL.map((id) => `${id}_lod`) : BOOK_ROWS_TALL;
+  const gltfs = useGLTF(ids.map(kitUrl));
   const books = useMemo(() => {
     let s = seed * 9301 + 49297;
-    const rand = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
-    const out: { pos: Vector3; scale: Vector3; tilt: number; color: Color }[] = [];
-    const palette = ['#6e1f28', '#24533d', '#24406e', '#7a5a2a', '#4a2f4f', '#8a6a3a', '#2f4a4a'];
+    const rand = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    const group = new Group();
+    const slots = Math.floor((width - 0.08) / BOOK_ROW_LENGTH);
+    const start = -slots * BOOK_ROW_LENGTH * 0.5;
     for (let row = 0; row < shelves; row++) {
-      let x = -width / 2 + 0.06;
-      const y = 0.2 + row * (height / shelves);
-      while (x < width / 2 - 0.08) {
-        const w = 0.04 + rand() * 0.05;
-        const h = (height / shelves) * (0.55 + rand() * 0.3);
-        if (rand() < 0.06) {
-          x += 0.15;
-          continue;
-        }
-        out.push({
-          pos: new Vector3(x + w / 2, y + h / 2, 0),
-          scale: new Vector3(w, h, 0.22 + rand() * 0.06),
-          tilt: rand() < 0.08 ? 0.25 : 0,
-          color: new Color(palette[Math.floor(rand() * palette.length)] ?? '#6e1f28'),
-        });
-        x += w + 0.004;
+      const y = row * spacing + 0.2;
+      for (let k = 0; k < slots; k++) {
+        if (rand() < 0.05) continue;
+        const scene = gltfs[Math.floor(rand() * gltfs.length)]?.scene;
+        if (!scene) continue;
+        const copy = scene.clone(true);
+        copy.position.set(start + k * BOOK_ROW_LENGTH, y, 0);
+        group.add(copy);
       }
     }
-    return out;
-  }, [width, height, shelves, seed]);
-
-  useLayoutEffect(() => {
-    const m = mesh.current;
-    if (!m) return;
-    const o = new Object3D();
-    books.forEach((b, i) => {
-      o.position.copy(b.pos);
-      o.rotation.set(0, 0, b.tilt);
-      o.scale.copy(b.scale);
-      o.updateMatrix();
-      m.setMatrixAt(i, o.matrix);
-      m.setColorAt(i, b.color);
+    group.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      o.castShadow = false;
+      o.receiveShadow = true;
+      const shared = libraryMaterial((o.material as Material).name);
+      if (shared) o.material = shared;
     });
-    m.instanceMatrix.needsUpdate = true;
-    if (m.instanceColor) m.instanceColor.needsUpdate = true;
-  }, [books]);
+    return group;
+  }, [gltfs, width, shelves, spacing, seed]);
 
+  const w2 = width / 2;
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <Slab x={[-width / 2 - 0.05, width / 2 + 0.05]} y={[0, height]} z={[-0.2, -0.16]} material={MAT.darkOak} />
-      <Slab x={[-width / 2 - 0.07, -width / 2]} y={[0, height]} z={[-0.2, 0.18]} material={MAT.darkOak} />
-      <Slab x={[width / 2, width / 2 + 0.07]} y={[0, height]} z={[-0.2, 0.18]} material={MAT.darkOak} />
-      {Array.from({ length: shelves + 1 }, (_, row) => (
-        <Slab key={row} x={[-width / 2, width / 2]} y={[row * (height / shelves) + 0.15, row * (height / shelves) + 0.2]} z={[-0.2, 0.18]} material={MAT.darkOak} />
+      {/* Back panel, plinth, crown and pilasters */}
+      <Slab x={[-w2 - 0.05, w2 + 0.05]} y={[0, height]} z={[-0.22, -0.18]} material={MAT.panelWood} />
+      <Slab x={[-w2 - 0.1, w2 + 0.1]} y={[0, 0.16]} z={[-0.22, 0.22]} material={MAT.darkOak} />
+      <Slab x={[-w2 - 0.08, w2 + 0.08]} y={[0.16, 0.2]} z={[-0.22, 0.2]} material={MAT.darkOak} />
+      <Slab x={[-w2 - 0.1, w2 + 0.1]} y={[height, height + 0.06]} z={[-0.22, 0.22]} material={MAT.darkOak} />
+      <Slab x={[-w2 - 0.14, w2 + 0.14]} y={[height + 0.06, height + 0.14]} z={[-0.22, 0.26]} material={MAT.darkOak} />
+      <Slab x={[-w2 - 0.11, w2 + 0.11]} y={[height + 0.14, height + 0.18]} z={[-0.22, 0.23]} material={MAT.darkOak} />
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Slab x={side < 0 ? [-w2 - 0.08, -w2] : [w2, w2 + 0.08]} y={[0, height]} z={[-0.22, 0.2]} material={MAT.darkOak} />
+          <Slab x={side < 0 ? [-w2 - 0.1, -w2 + 0.02] : [w2 - 0.02, w2 + 0.1]} y={[0.2, height]} z={[0.2, 0.235]} material={MAT.darkOak} />
+        </group>
       ))}
-      <instancedMesh ref={mesh} args={[undefined, undefined, books.length]} castShadow receiveShadow>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial roughness={0.7} />
-      </instancedMesh>
+      {/* Division posts every ~1.5 m keep long cases believable */}
+      {Array.from({ length: Math.max(0, Math.round(width / 1.5) - 1) }, (_, i) => {
+        const x = -w2 + (width / Math.round(width / 1.5)) * (i + 1);
+        return <Slab key={i} x={[x - 0.025, x + 0.025]} y={[0.2, height]} z={[-0.2, 0.2]} material={MAT.darkOak} />;
+      })}
+      {Array.from({ length: shelves }, (_, row) => (
+        <group key={row}>
+          <Slab x={[-w2, w2]} y={[row * spacing + 0.16, row * spacing + 0.2]} z={[-0.2, 0.19]} material={MAT.darkOak} />
+          <Slab x={[-w2, w2]} y={[row * spacing + 0.15, row * spacing + 0.2]} z={[0.19, 0.215]} material={MAT.darkOak} />
+        </group>
+      ))}
+      <primitive object={books} />
     </group>
   );
 }
@@ -195,32 +239,17 @@ export function Bench({ position, rotationY = 0, upholstered = false }: { positi
 }
 
 /** Rounded leafy shrub cluster (several overlapping spheres). */
-export function Shrub({ position, size = 1, seed = 1, material = MAT.hedge }: { position: V3; size?: number; seed?: number; material?: Material }) {
-  const blobs = useMemo(() => {
-    let s = seed * 7919;
-    const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-    return Array.from({ length: 6 }, () => ({
-      p: [(rand() - 0.5) * 0.7 * size, (0.35 + rand() * 0.45) * size, (rand() - 0.5) * 0.7 * size] as const,
-      r: (0.3 + rand() * 0.22) * size,
-    }));
-  }, [size, seed]);
-  return (
-    <group position={position}>
-      {blobs.map((b, i) => (
-        <mesh key={i} position={b.p} material={material} castShadow receiveShadow>
-          <icosahedronGeometry args={[b.r, 2]} />
-        </mesh>
-      ))}
-    </group>
-  );
+/** A photo-scanned CC0 shrub (four species), chosen by seed. */
+export function Shrub({ position, size = 1, seed = 1 }: { position: V3; size?: number; seed?: number }) {
+  const id = `shrub_0${(Math.abs(Math.round(seed)) % 4) + 1}`;
+  return <Prop id={id} position={position} height={size} rotationY={seed * 1.7} lodDistance={30} />;
 }
 
 export function Planter({ position, size = 1.4, seed = 1 }: { position: V3; size?: number; seed?: number }) {
   return (
     <group position={position}>
-      <Box position={[0, 0.4, 0]} size={[size, 0.8, size]} material={MAT.academyStoneDark} />
-      <Box position={[0, 0.79, 0]} size={[size - 0.12, 0.04, size - 0.12]} material={MAT.soil} shadows={false} />
-      <Shrub position={[0, 0.7, 0]} size={size * 0.7} seed={seed} />
+      <KitModel id="planter_stone" scale={[size / 1.6, 1.1, size / 1.0]} />
+      <Shrub position={[0, 0.77, 0]} size={size * 0.75} seed={seed} />
     </group>
   );
 }
@@ -230,21 +259,11 @@ export function Banner({ position, rotationY = 0, width = 1.1, height = 3 }: { p
   useFrame((state) => {
     if (ref.current) ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.9 + position[0]) * 0.03;
   });
+  // Cloth banner (kit_props banner_cloth: folds, forked tail, gilt border, emblem) swaying from its rod.
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 0, 0.02]} rotation={[0, 0, Math.PI / 2]} material={MAT.agedBrass}>
-        <cylinderGeometry args={[0.025, 0.025, width + 0.2, 8]} />
-      </mesh>
       <group ref={ref}>
-        <mesh position={[0, -height / 2, 0]} material={MAT.navyCloth} castShadow>
-          <boxGeometry args={[width, height, 0.03]} />
-        </mesh>
-        <mesh position={[0, -height * 0.4, 0.02]} material={MAT.wardGold}>
-          <torusGeometry args={[width * 0.22, 0.02, 8, 28]} />
-        </mesh>
-        <mesh position={[0, -height * 0.4, 0.025]} material={MAT.wardGold}>
-          <circleGeometry args={[width * 0.08, 5]} />
-        </mesh>
+        <KitModel id="banner_cloth" scale={[width / 1.1, height / 3.6, 1]} />
       </group>
     </group>
   );
@@ -252,36 +271,45 @@ export function Banner({ position, rotationY = 0, width = 1.1, height = 3 }: { p
 
 export function Rug({ position, size, rotationY = 0, material = MAT.carpet }: { position: V3; size: readonly [number, number]; rotationY?: number; material?: Material }) {
   return (
-    <mesh position={[position[0], position[1] + 0.012, position[2]]} rotation={[-Math.PI / 2, 0, rotationY]} material={material} receiveShadow>
-      <planeGeometry args={size} />
-    </mesh>
+    <mesh position={[position[0], position[1] + 0.012, position[2]]} rotation={[-Math.PI / 2, 0, rotationY]} material={material} geometry={worldPlane(size[0], size[1])} receiveShadow />
   );
 }
 
 /** Simple portrait frame with a painted canvas tint (original, abstract figures). */
-export function Portrait({ position, rotationY = 0, size = [1.1, 1.4], tint = '#6a4a3a', seed = 1 }: { position: V3; rotationY?: number; size?: readonly [number, number]; tint?: string; seed?: number }) {
-  const canvasMat = useMemo(() => MAT.canvas.clone(), []);
-  canvasMat.color.set(tint);
-  const face = useMemo(() => {
-    const hues = ['#e2b796', '#c99a78', '#a57458', '#7d5a46'];
-    return hues[seed % hues.length] ?? '#c99a78';
-  }, [seed]);
+/** Painted canvases (scripts/paint_portraits.py) and the frame GLB for each canvas size. */
+export const PAINTINGS = [
+  'painting_0', 'painting_1', 'painting_2', 'painting_3', 'painting_4', 'painting_5',
+  'painting_6', 'painting_7', 'painting_8', 'painting_9', 'landscape_0', 'landscape_1',
+] as const;
+const FRAME_SIZES = new Set(['1.1x1.4', '1x1.3', '1.6x1.1']);
+
+/** A framed oil painting on a wall (§14A.20). `painting` names a canvas texture. */
+export function Portrait({ position, rotationY = 0, size = [1.1, 1.4], painting = 'painting_0' }: { position: V3; rotationY?: number; size?: readonly [number, number]; painting?: string }) {
+  const key = `${size[0]}x${size[1]}`;
+  if (!FRAME_SIZES.has(key)) return null;
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <Box position={[0, 0, 0]} size={[size[0] + 0.24, size[1] + 0.24, 0.08]} material={MAT.agedBrass} />
-      <mesh position={[0, 0, 0.045]} material={canvasMat}>
-        <planeGeometry args={size} />
-      </mesh>
-      <mesh position={[0, size[1] * 0.12, 0.05]} scale={[0.75, 1, 0.2]}>
-        <sphereGeometry args={[size[0] * 0.2, 16, 12]} />
-        <meshStandardMaterial color={face} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, -size[1] * 0.28, 0.05]} scale={[1, 0.6, 0.15]}>
-        <sphereGeometry args={[size[0] * 0.34, 16, 12]} />
-        <meshStandardMaterial color={seed % 2 ? '#2a3a6a' : '#5a2a34'} roughness={0.9} />
-      </mesh>
+      <FramedCanvas frame={`frame_${key.replace(/\./g, '_')}`} painting={painting} />
     </group>
   );
+}
+
+function FramedCanvas({ frame, painting }: { frame: string; painting: string }) {
+  const object = useKit(frame);
+  const map = useTexture(`${import.meta.env.BASE_URL}assets/textures/paintings/${painting}.jpg`);
+  useMemo(() => {
+    map.colorSpace = SRGBColorSpace;
+    // glTF UVs put the image origin top-left.
+    map.flipY = false;
+    map.needsUpdate = true;
+    map.anisotropy = 8;
+    // Varnished oil: a soft sheen, no metal.
+    const canvas = new MeshStandardMaterial({ map, roughness: 0.42 });
+    object.traverse((o) => {
+      if (o instanceof Mesh && (o.material as Material).name === 'portraitCanvas') o.material = canvas;
+    });
+  }, [object, map]);
+  return <primitive object={object} />;
 }
 
 /** Spiral or straight stair steps between two heights along a path. */
@@ -359,12 +387,8 @@ export function Facade({
           const w = Math.min(1.6, step * 0.42);
           return (
             <group key={`w${x.toFixed(2)}-${sill}`} position={[x, sill, face]}>
-              <mesh position={[0, h / 2, 0.01]} material={glass}>
-                <planeGeometry args={[w, h]} />
-              </mesh>
-              <mesh position={[0, h, 0.012]} material={glass}>
-                <circleGeometry args={[w / 2, 20, 0, Math.PI]} />
-              </mesh>
+              {/* Leaded glazing (kit leaded_light: 1 x 2 m arch) scaled to the opening; dark day glass outside. */}
+              <KitModel id="leaded_light" position={[0, 0, 0.02]} scale={[w, (h + w / 2) / 2, 1]} castShadow={false} overrides={glass === MAT.windowGlow ? DAY_GLASS : undefined} />
               <Box position={[-w / 2 - 0.09, h / 2, 0.06]} size={[0.18, h, 0.14]} material={MAT.academyStoneDark} />
               <Box position={[w / 2 + 0.09, h / 2, 0.06]} size={[0.18, h, 0.14]} material={MAT.academyStoneDark} />
               <Box position={[0, -0.06, 0.1]} size={[w + 0.5, 0.12, 0.22]} material={MAT.academyStoneDark} />

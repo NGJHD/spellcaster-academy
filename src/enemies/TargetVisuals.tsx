@@ -6,6 +6,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
 import { CatmullRomCurve3, Quaternion, Vector3, type Group, type MeshStandardMaterial } from 'three';
+import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
 
 /** Per-frame animation inputs derived from simulation state (0…1 unless noted). */
@@ -56,6 +57,17 @@ function useGlowPulse(pose: PoseRef, material: MeshStandardMaterial, base: numbe
 }
 
 // ---------- Training dummy (MD-2) ----------
+
+preloadKit(['star_page', 'star_page_teal', 'clasp', 'page_loose', 'warden_plate']);
+
+/** useGlowPulse for every per-instance glow material of a kit model. */
+function useGlowPulses(pose: PoseRef, materials: readonly MeshStandardMaterial[], base: number): void {
+  useFrame(() => {
+    const p = pose.current;
+    const k = (base + p.windup * 2.5 + p.hit * 2) * (p.defeated ? Math.max(0.05, 1 - p.dispel) : 1);
+    for (const m of materials) m.emissiveIntensity = k;
+  });
+}
 
 export function DummyModel({ pose, practice }: { pose: PoseRef; practice: boolean }) {
   const torso = useRef<Group>(null);
@@ -526,8 +538,8 @@ export function GuardianModel({ pose }: { pose: PoseRef }) {
 
 export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boolean }) {
   const body = useRef<Group>(null);
-  const glow = useOwnMaterial(cosmetic ? MAT.tealGlow : MAT.wardGold);
-  useGlowPulse(pose, glow, 1.2);
+  const { root, glow } = useKitGlow(cosmetic ? 'star_page_teal' : 'star_page', [cosmetic ? 'TealGlow' : 'Energy']);
+  useGlowPulses(pose, glow, 2.2);
   useFrame(() => {
     const p = pose.current;
     if (!body.current) return;
@@ -536,15 +548,10 @@ export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boo
   });
   return (
     <group ref={body}>
-      <mesh rotation={[-0.2, 0, 0.1]} material={MAT.parchment} castShadow>
-        <planeGeometry args={[0.24, 0.32, 4, 4]} />
-      </mesh>
-      <mesh position={[0, 0, 0.004]} material={glow}>
-        <ringGeometry args={[0.035, 0.05, 5]} />
-      </mesh>
+      <primitive object={root} rotation={[0.15, 0, 0.1]} />
       <mesh>
         <sphereGeometry args={[0.22, 16, 12]} />
-        <meshBasicMaterial color={cosmetic ? '#8fffd8' : '#ffe9a0'} transparent opacity={0.12} depthWrite={false} />
+        <meshBasicMaterial color={cosmetic ? '#8fffd8' : '#ffe9a0'} transparent opacity={0.1} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -552,27 +559,24 @@ export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boo
 
 export function ClaspModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
-  const glow = useOwnMaterial(MAT.crystal);
-  useGlowPulse(pose, glow, 1.4);
+  const { root, glow } = useKitGlow('clasp', ['Crystal']);
+  useGlowPulses(pose, glow, 1.8);
   useFrame(() => {
     const p = pose.current;
     if (!body.current) return;
+    // Straining against the book: a fast shiver that grows when struck.
     body.current.rotation.z = Math.sin(p.time * 14) * 0.04 * (1 + p.hit * 4);
   });
   return (
     <group ref={body}>
-      <mesh material={MAT.agedBrass} castShadow>
-        <boxGeometry args={[0.18, 0.3, 0.06]} />
-      </mesh>
-      <mesh position={[0, 0, 0.04]} material={glow}>
-        <octahedronGeometry args={[0.06]} />
-      </mesh>
+      <primitive object={root} />
     </group>
   );
 }
 
 export function FlyingPageModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
+  const page = useKit('page_loose');
   useFrame(() => {
     const p = pose.current;
     if (!body.current) return;
@@ -581,17 +585,15 @@ export function FlyingPageModel({ pose }: { pose: PoseRef }) {
   });
   return (
     <group ref={body}>
-      <mesh material={MAT.parchment} castShadow>
-        <planeGeometry args={[0.3, 0.4, 6, 4]} />
-      </mesh>
+      <primitive object={page} />
     </group>
   );
 }
 
 export function PlateModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
-  const glow = useOwnMaterial(MAT.wardGold);
-  useGlowPulse(pose, glow, 1.0);
+  const { root, glow } = useKitGlow('warden_plate', ['Energy']);
+  useGlowPulses(pose, glow, 1.6);
   useFrame(() => {
     const p = pose.current;
     if (!body.current) return;
@@ -599,12 +601,7 @@ export function PlateModel({ pose }: { pose: PoseRef }) {
   });
   return (
     <group ref={body}>
-      <mesh scale={[1, 0.8, 0.35]} material={MAT.wardStone} castShadow>
-        <sphereGeometry args={[0.38, 20, 14]} />
-      </mesh>
-      <mesh position={[0, 0, 0.13]} material={glow}>
-        <torusGeometry args={[0.12, 0.012, 6, 5]} />
-      </mesh>
+      <primitive object={root} />
     </group>
   );
 }

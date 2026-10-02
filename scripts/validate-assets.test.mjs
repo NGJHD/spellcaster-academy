@@ -3,7 +3,7 @@
  * transforms, required animations are present and non-empty, scale is plausible, the word anchor is
  * above the visible asset, triangle/material budgets hold, and no cameras or lights are exported.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ASSETS, BUDGETS } from './build-manifests.mjs';
@@ -35,6 +35,21 @@ describe.each(Object.entries(ASSETS))('%s assets', (folder, assets) => {
   });
 });
 
+describe('kit pieces', () => {
+  const dir = join(ROOT, 'public', 'assets', 'kit');
+  const files = readdirSync(dir).filter((f) => f.endsWith('.glb'));
+  it('the kit exists', () => expect(files.length).toBeGreaterThan(20));
+  it.each(files)('%s loads within budget', (file) => {
+    const a = analyseGlb(join(dir, file));
+    expect(a.missingNormals).toBe(0);
+    expect(a.nonFinite).toBe(false);
+    expect(a.cameras + a.lights).toBe(0);
+    expect(a.triangles).toBeGreaterThan(0);
+    expect(a.triangles).toBeLessThanOrEqual(BUDGETS.prop);
+    expect(a.materials).toBeLessThanOrEqual(8);
+  });
+});
+
 describe('CC0 props', () => {
   const manifest = JSON.parse(readFileSync(join(ROOT, 'public', 'assets', 'manifests', 'props.json'), 'utf8'));
   it.each(Object.keys(manifest))('%s is within budget and loads', (id) => {
@@ -53,6 +68,8 @@ describe('CC0 props', () => {
     );
     const ids = new Set();
     for (const src of sources) for (const m of src.matchAll(/id="([a-zA-Z0-9_]+)"/g)) ids.add(m[1]);
-    for (const id of ids) expect(existsSync(join(ROOT, 'public', 'assets', 'props', `${id}.glb`)), id).toBe(true);
+    // Ids name either a CC0 prop or a kit piece (assets-src/scripts/props/kit_props.py).
+    const found = (id) => ['props', 'kit'].some((folder) => existsSync(join(ROOT, 'public', 'assets', folder, `${id}.glb`)));
+    for (const id of ids) expect(found(id), id).toBe(true);
   });
 });

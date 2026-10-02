@@ -234,21 +234,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 31258,
+    "triangles": 6204,
     "materials": 4,
     "bounds": {
       "min": [
-        -0.5910000130534172,
-        -0.009322596713900566,
-        -0.28660979866981506
+        -0.5824623107910156,
+        0,
+        -0.25920000672340393
       ],
       "max": [
-        0.5910000130534172,
-        2.1619999900221902,
-        0.28660959005355835
+        0.5824623107910156,
+        2.1399998664855957,
+        0.2648000121116638
       ]
     },
-    "bytes": 757360,
+    "bytes": 279224,
     "source": "assets-src/scripts/creatures/armour_guardian.py"
   },
   "ward_warden": {

@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { BackSide, type Group } from 'three';
 import { TOWER_FLOOR_HEIGHT, TOWER_ORIGIN } from '../../level/areas/moonTower';
 import { getRun } from '../../state/gameStore';
-import { Box, WallLamp } from '../kit';
+import { KitModel, Portrait, WallLamp, WindowPane } from '../kit';
 import { Prop } from '../Prop';
 import { MAT } from '../materials';
 import { worldCircle, worldCylinder } from '../surfaces';
@@ -52,9 +52,7 @@ function Floor({ floor }: { floor: number }) {
       </mesh>
       {[0.6, 1.6, 2.6, 3.6, 4.6].map((a, i) => (
         <group key={i} rotation={[0, a, 0]}>
-          <mesh position={[R - 0.02, 4.5, 0]} rotation={[0, -Math.PI / 2, 0]} material={floor === 0 ? MAT.windowGlow : MAT.crystal}>
-            <planeGeometry args={[0.8, 3.4]} />
-          </mesh>
+          <WindowPane position={[R - 0.02, 4.5, 0]} rotationY={-Math.PI / 2} size={[0.8, 3.4]} night={floor > 0} />
           <WallLamp position={[R - 0.05, 3, 1.2]} rotationY={-Math.PI / 2} />
         </group>
       ))}
@@ -71,18 +69,15 @@ function Floor({ floor }: { floor: number }) {
         </mesh>
       </group>
       {/* Star maps */}
-      {[-2.2, 2.2].map((a) => (
+      {[-2.2, 2.2].map((a, i) => (
         <group key={a} rotation={[0, a, 0]}>
-          <mesh position={[0, 3, -R + 0.05]}>
-            <planeGeometry args={[2, 1.4]} />
-            <meshStandardMaterial color="#1d2a4a" roughness={0.8} />
-          </mesh>
+          <Portrait position={[0, 3, -R + 0.25]} size={[1.6, 1.1]} painting={`star_chart_${(i + floor) % 2}`} />
         </group>
       ))}
       {floor === 0 &&
         [-4.5, 4.5].map((x) => (
           <group key={x} position={[x, 0, 1.5]}>
-            <Box position={[0, 0.35, 0]} size={[1.6, 0.7, 1.0]} material={MAT.academyStoneDark} />
+            <KitModel id="planter_stone" />
             <Prop id="fern_02" position={[0, 0.7, 0]} height={0.8} rotationY={x} />
           </group>
         ))}
@@ -107,10 +102,11 @@ function Door() {
   return (
     <group position={[0, y, -8.6]}>
       <group ref={left} position={[-1.2, 0, 0]}>
-        <Box position={[0.6, 1.6, 0]} size={[1.2, 3.2, 0.15]} material={MAT.darkOak} />
+        <KitModel id="door_leaf" position={[0, 0, 0.06]} />
       </group>
       <group ref={right} position={[1.2, 0, 0]}>
-        <Box position={[-0.6, 1.6, 0]} size={[1.2, 3.2, 0.15]} material={MAT.darkOak} />
+        {/* Mirrored leaf: hinge on the right */}
+        <KitModel id="door_leaf" position={[0, 0, 0.06]} scale={[-1, 1, 1]} />
       </group>
       <mesh position={[0, 3.6, 0.1]} material={MAT.agedBrass}>
         <torusGeometry args={[0.5, 0.05, 8, 32]} />

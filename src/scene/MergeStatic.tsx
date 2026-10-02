@@ -6,7 +6,17 @@ interface Batch {
   readonly key: string;
   readonly geometry: BufferGeometry;
   readonly material: Material;
+  readonly castShadow: boolean;
 }
+
+interface Bucket {
+  readonly material: Material;
+  readonly castShadow: boolean;
+  readonly list: BufferGeometry[];
+}
+
+/** Attributes a batch may keep; vertex colours survive only when every member has them. */
+const KEEP = ['position', 'normal', 'uv', 'color'];
 
 /**
  * Static batching (§15 draw-call budget): bakes every plain indexed mesh among its children into one
@@ -22,40 +32,44 @@ export function MergeStatic({ children, shadows = true }: { children: ReactNode;
     if (!root) return;
     root.updateMatrixWorld(true);
     const inverse = root.matrixWorld.clone().invert();
-    const buckets = new Map<Material, BufferGeometry[]>();
+    // One batch per material and shadow setting (books, for example, never cast shadows).
+    const buckets = new Map<string, Bucket>();
     const merged: Mesh[] = [];
     root.traverse((o) => {
       if (!(o instanceof Mesh) || o instanceof InstancedMesh || o instanceof SkinnedMesh || Array.isArray(o.material) || o.userData.dynamic) return;
       const g = (o.geometry as BufferGeometry).clone();
       g.applyMatrix4(inverse.clone().multiply(o.matrixWorld));
-      // mergeGeometries needs identical attribute sets.
-      for (const name of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(name)) g.deleteAttribute(name);
+      for (const name of Object.keys(g.attributes)) if (!KEEP.includes(name)) g.deleteAttribute(name);
       if (!g.index) return;
-      const list = buckets.get(o.material) ?? [];
-      list.push(g);
-      buckets.set(o.material, list);
+      const key = `${o.material.uuid}|${o.castShadow}`;
+      const bucket: Bucket = buckets.get(key) ?? { material: o.material, castShadow: o.castShadow, list: [] };
+      bucket.list.push(g);
+      buckets.set(key, bucket);
       merged.push(o);
     });
     // Originals stay mounted (lights, instanced meshes and anything unmergeable keep working); merged ones are hidden.
     for (const o of merged) o.visible = false;
     const out: Batch[] = [];
     let i = 0;
-    for (const [material, list] of buckets) {
+    for (const { material, castShadow, list } of buckets.values()) {
+      // mergeGeometries needs identical attribute sets: keep only those every member has.
+      const common = KEEP.filter((name) => list.every((g) => g.getAttribute(name) !== undefined));
+      for (const g of list) for (const name of Object.keys(g.attributes)) if (!common.includes(name)) g.deleteAttribute(name);
       const merged = mergeGeometries(list, false);
       for (const g of list) g.dispose();
-      if (merged) out.push({ key: `${i++}`, geometry: merged, material });
+      if (merged) out.push({ key: `${i++}`, geometry: merged, material, castShadow: castShadow && shadows });
     }
     setBatches(out);
     return () => {
       for (const b of out) b.geometry.dispose();
     };
-  }, []);
+  }, [shadows]);
 
   return (
     <>
       <group ref={source}>{children}</group>
       {batches?.map((b) => (
-        <mesh key={b.key} geometry={b.geometry} material={b.material} castShadow={shadows} receiveShadow />
+        <mesh key={b.key} geometry={b.geometry} material={b.material} castShadow={b.castShadow} receiveShadow />
       ))}
     </>
   );

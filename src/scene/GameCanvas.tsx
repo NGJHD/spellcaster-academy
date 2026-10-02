@@ -1,3 +1,4 @@
+import { HIDE_WAND } from '../state/gameStore';
 import { Canvas } from '@react-three/fiber';
 import { Suspense, type RefObject } from 'react';
 import { ACESFilmicToneMapping, PCFShadowMap, SRGBColorSpace } from 'three';
@@ -34,7 +35,7 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       </Suspense>
       <EnemyManager />
       <SpellEffects />
-      <Wand />
+      {!HIDE_WAND && <Wand />}
       <PipCompanion />
       {SHOW_RAILS && <RailGizmos />}
     </Canvas>

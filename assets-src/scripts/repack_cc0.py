@@ -49,6 +49,12 @@ BUDGETS = {
     "gothic_statue": (20000, 1024),
     "large_castle_door": (12000, 1024),
     "vintage_grandfather_clock_01": (15000, 1024),
+    "wooden_candlestick": (3000, 512),
+    "seadogs_compass": (4000, 512),
+    "magnifying_glass_01": (3000, 512),
+    "trowel_01": (2000, 512),
+    "tea_set_01": (6000, 512),
+    "Chandelier_01": (12000, 1024),
 }
 DEFAULT_BUDGET = (10000, 1024)
 
@@ -61,6 +67,12 @@ KEEP_IMAGE_FORMAT = {
     "lantern_chandelier_01",
     "potted_plant_01",
     "potted_plant_02",
+    "marble_bust_01",
+    "ceramic_vase_02",
+    "magnifying_glass_01",
+    "hanging_picture_frame_01",
+    "vintage_cabinet_01",
+    "standing_picture_frame_01",
 }
 
 # Many-object assets (trees) are joined first so decimation works on the whole model.
@@ -103,6 +115,9 @@ def decimate_to(budget):
         for obj in [o for o in bpy.context.scene.objects if o.type == "MESH"]:
             if triangles(obj) < 300 and total < budget * 4:
                 continue
+            if obj.data.shape_keys:
+                # Static props never animate their shape keys; bake the basis so modifiers can apply.
+                obj.shape_key_clear()
             mod = obj.modifiers.new("Decimate", "DECIMATE")
             mod.decimate_type = "COLLAPSE"
             mod.ratio = ratio

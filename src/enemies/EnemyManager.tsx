@@ -31,7 +31,8 @@ const FACES_CAMERA = new Set(['sprite', 'mossling', 'wisp', 'guardian', 'thorn-p
 function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
   const url = creatureUrl(spawn.kind, spawn.variant);
   const fallback = <PlaceholderModel spawn={spawn} pose={pose} />;
-  if (!url) return fallback;
+  // Kit-built props (pages, clasps, plates) stream their GLBs; never blank other targets meanwhile.
+  if (!url) return <Suspense fallback={null}>{fallback}</Suspense>;
   return (
     <Suspense fallback={fallback}>
       <CreatureModel url={url} pose={pose} />

@@ -6,14 +6,13 @@ import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } fr
 import { beatIndexOf } from '../../level/level1Route';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
-import { Box, Shrub, Slab } from '../kit';
+import { KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { DormantTarget, StaticWarden, WardAnchor, spawnPosition, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
 
 const local = (p: Vec3): Vec3 => [p[0] - GREENHOUSE_ORIGIN[0], p[1] - GREENHOUSE_ORIGIN[1], p[2] - GREENHOUSE_ORIGIN[2]];
-const ROOF = 8;
 const WARDEN_BEAT = beatIndexOf('greenhouse-warden-scene');
 
 export function GreenhouseScene() {
@@ -23,6 +22,7 @@ export function GreenhouseScene() {
       <Frame />
       <Beds />
       </MergeStatic>
+      <Grounds />
       <Channel />
       <VineBridge />
       {(['pod-1', 'pod-2'] as const).map((id) => (
@@ -35,35 +35,43 @@ export function GreenhouseScene() {
 }
 
 function Frame() {
-  const ribs = useMemo(() => Array.from({ length: 14 }, (_, i) => 2 - i * 4), []);
   return (
     <group>
       <Slab x={[-11, 11]} y={[-0.1, 0]} z={[-53, 3]} material={MAT.paving} shadows={false} />
-      {ribs.map((z) => (
-        <group key={z}>
-          {[-1, 1].map((s) => (
-            <Box key={s} position={[10.5 * s, ROOF / 2, z]} size={[0.12, ROOF, 0.12]} material={MAT.darkSteel} />
-          ))}
-          <mesh position={[0, ROOF, z]} rotation={[0, 0, 0]} material={MAT.darkSteel}>
-            <torusGeometry args={[10.5, 0.06, 6, 32, Math.PI]} />
-          </mesh>
-        </group>
+      {/* Victorian glasshouse: fourteen 4 m bays (kit_props greenhouse_bay) and glazed gable ends. */}
+      {Array.from({ length: 14 }, (_, k) => (
+        <KitModel key={k} id="greenhouse_bay" position={[0, 0, 3 - 4 * k]} />
       ))}
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[10.5 * s, ROOF / 2, -25]} rotation={[0, Math.PI / 2, 0]} material={MAT.glass}>
-          <planeGeometry args={[56, ROOF]} />
-        </mesh>
-      ))}
-      <mesh position={[0, ROOF, -25]} rotation={[0, 0, 0]} scale={[1, 0.45, 1]} material={MAT.glass}>
-        <cylinderGeometry args={[10.5, 10.5, 56, 32, 1, true, -Math.PI / 2, Math.PI]} />
-      </mesh>
-      <Slab x={[-10.5, 10.5]} y={[0, 0.6]} z={[2.9, 3]} material={MAT.academyStoneDark} />
-      <Slab x={[-10.5, 10.5]} y={[0, ROOF]} z={[-53, -52.9]} material={MAT.academyStone} />
+      <KitModel id="greenhouse_end" position={[0, 0, -53]} />
+      <KitModel id="greenhouse_end" position={[0, 0, 3]} rotationY={Math.PI} />
     </group>
   );
 }
 
-const PLANT_MATS = [MAT.hedge, MAT.leaf, MAT.moss, MAT.stem];
+/** What the glass looks out on: lawn, hedges and trees, so the house sits in a garden. */
+function Grounds() {
+  const trees = useMemo(
+    () =>
+      [-1, 1].flatMap((s) =>
+        Array.from({ length: 6 }, (_, i) => ({ x: s * (17 + (i % 2) * 5), z: 6 - i * 11, id: i % 2 ? 'island_tree_01' : 'island_tree_02', h: 9 + (i % 3) * 2 })),
+      ).concat(
+        // A stand of trees beyond the far gable gives the view through the glass some depth.
+        Array.from({ length: 6 }, (_, i) => ({ x: -18 + i * 7.2, z: -64 - (i % 2) * 6, id: i % 2 ? 'island_tree_01' : 'island_tree_02', h: 10 + (i % 3) * 2 })),
+      ),
+    [],
+  );
+  return (
+    <group>
+      <Slab x={[-60, 60]} y={[-0.16, -0.11]} z={[-100, 40]} material={MAT.grass} shadows={false} />
+      {[-1, 1].map((s) =>
+        Array.from({ length: 9 }, (_, i) => <Prop key={`${s}${i}`} id={`shrub_0${(i % 4) + 1}`} position={[s * 12.6, 0, 1 - i * 6.5]} height={1.6 + (i % 3) * 0.3} rotationY={i} />),
+      )}
+      {trees.map((t, i) => (
+        <Prop key={i} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={i * 1.7} />
+      ))}
+    </group>
+  );
+}
 
 function Beds() {
   const beds: [number, number, number, number][] = [
@@ -78,8 +86,13 @@ function Beds() {
     <group>
       {beds.map(([x, z, w, d], i) => (
         <group key={i}>
-          <Slab x={[x - w / 2, x + w / 2]} y={[0, 0.7]} z={[z - d / 2, z + d / 2]} material={MAT.academyStoneDark} />
-          <Slab x={[x - w / 2 + 0.1, x + w / 2 - 0.1]} y={[0.7, 0.75]} z={[z - d / 2 + 0.1, z + d / 2 - 0.1]} material={MAT.soil} shadows={false} />
+          <Slab x={[x - w / 2, x + w / 2]} y={[0, 0.66]} z={[z - d / 2, z + d / 2]} material={MAT.academyStoneDark} />
+          {/* Coping stones overhanging the bed walls */}
+          <Slab x={[x - w / 2 - 0.05, x + w / 2 + 0.05]} y={[0.66, 0.74]} z={[z - d / 2 - 0.05, z - d / 2 + 0.16]} material={MAT.academyStone} />
+          <Slab x={[x - w / 2 - 0.05, x + w / 2 + 0.05]} y={[0.66, 0.74]} z={[z + d / 2 - 0.16, z + d / 2 + 0.05]} material={MAT.academyStone} />
+          <Slab x={[x - w / 2 - 0.05, x - w / 2 + 0.16]} y={[0.66, 0.74]} z={[z - d / 2 + 0.16, z + d / 2 - 0.16]} material={MAT.academyStone} />
+          <Slab x={[x + w / 2 - 0.16, x + w / 2 + 0.05]} y={[0.66, 0.74]} z={[z - d / 2 + 0.16, z + d / 2 - 0.16]} material={MAT.academyStone} />
+          <Slab x={[x - w / 2 + 0.16, x + w / 2 - 0.16]} y={[0.66, 0.71]} z={[z - d / 2 + 0.16, z + d / 2 - 0.16]} material={MAT.soil} shadows={false} />
           {Array.from({ length: Math.max(2, Math.floor(d / 2.2)) }, (_, k) => (
             <BedPlant key={k} position={[x + ((k * 37) % 7) / 10 - 0.3, 0.72, z - d / 2 + 1 + k * 2.1]} index={i * 5 + k} />
           ))}
@@ -92,13 +105,18 @@ function Beds() {
       {[[-6, 2.2], [6, 2.2], [-3.5, -50], [3.5, -50]].map(([x = 0, z = 0], i) => (
         <Prop key={`clay${i}`} id="planter_pot_clay" position={[x, 0, z]} height={0.7} />
       ))}
-      <Box position={[-4.5, 0.45, -46]} size={[2.2, 0.08, 0.8]} material={MAT.lightOak} />
+      {/* Potting bench with the gardener's tools */}
+      <Prop id="WoodenTable_01" position={[-4.5, 0, -46]} height={0.85} rotationY={Math.PI / 2} />
+      <Prop id="seeding_tray_01" position={[-4.5, 0.85, -45.6]} height={0.12} />
+      <Prop id="watering_can_metal_01" position={[-4.4, 0.85, -46.7]} height={0.34} rotationY={0.8} />
+      <Prop id="trowel_01" position={[-4.7, 0.86, -46.2]} height={0.05} rotationY={1.2} />
+      <Prop id="wicker_basket_01" position={[-3.4, 0, -46.4]} height={0.38} />
     </group>
   );
 }
 
 /** CC0 plant models for the beds, mixed with the code-built families below for variety (§14A.21). */
-const BED_PROPS = ['fern_02', 'nettle_plant', 'periwinkle_plant', 'wild_rooibos_bush', 'flower_gazania', 'flower_ursinia', 'shrub_03', 'potted_plant_02'] as const;
+const BED_PROPS = ['fern_02', 'calathea_orbifolia_01', 'nettle_plant', 'anthurium_botany_01', 'periwinkle_plant', 'wild_rooibos_bush', 'flower_gazania', 'pachira_aquatica_01', 'flower_ursinia', 'shrub_03', 'potted_plant_02'] as const;
 const BED_HEIGHTS: Record<(typeof BED_PROPS)[number], number> = {
   fern_02: 0.9,
   nettle_plant: 0.8,
@@ -108,88 +126,14 @@ const BED_HEIGHTS: Record<(typeof BED_PROPS)[number], number> = {
   flower_ursinia: 0.45,
   shrub_03: 1.0,
   potted_plant_02: 1.0,
+  calathea_orbifolia_01: 0.7,
+  anthurium_botany_01: 0.8,
+  pachira_aquatica_01: 1.6,
 };
 
 function BedPlant({ position, index }: { position: Vec3; index: number }) {
-  if (index % 5 === 4) return <Plant position={position} family={index % 8} />;
   const id = BED_PROPS[index % BED_PROPS.length] ?? 'fern_02';
   return <Prop id={id} position={position} height={BED_HEIGHTS[id]} rotationY={index * 1.3} />;
-}
-
-/** Eight visually distinct plant families (§14A.21) built from simple shapes. */
-function Plant({ position, family }: { position: Vec3; family: number }) {
-  const mat = PLANT_MATS[family % PLANT_MATS.length] ?? MAT.leaf;
-  switch (family) {
-    case 0:
-      return <Shrub position={position} size={1.1} seed={family + position[2]} />;
-    case 1:
-      return (
-        <group position={position}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <mesh key={i} position={[0, 0.5, 0]} rotation={[0.6, (i / 7) * Math.PI * 2, 0]} scale={[0.25, 1, 0.05]} material={MAT.leaf}>
-              <sphereGeometry args={[0.5, 10, 8]} />
-            </mesh>
-          ))}
-        </group>
-      );
-    case 2:
-      return (
-        <group position={position}>
-          <mesh position={[0, 0.8, 0]} material={MAT.stem}>
-            <cylinderGeometry args={[0.04, 0.06, 1.6, 8]} />
-          </mesh>
-          <mesh position={[0, 1.7, 0]} material={MAT.petal}>
-            <sphereGeometry args={[0.22, 14, 10]} />
-          </mesh>
-        </group>
-      );
-    case 3:
-      return (
-        <group position={position}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <mesh key={i} position={[Math.cos(i) * 0.25, 0.3 + i * 0.12, Math.sin(i) * 0.25]} material={MAT.moss}>
-              <sphereGeometry args={[0.22 - i * 0.02, 12, 10]} />
-            </mesh>
-          ))}
-        </group>
-      );
-    case 4:
-      return (
-        <group position={position}>
-          {Array.from({ length: 9 }, (_, i) => (
-            <mesh key={i} position={[0, 0.35, 0]} rotation={[0.9, (i / 9) * Math.PI * 2, 0]} scale={[0.08, 0.7, 0.02]} material={MAT.stem}>
-              <sphereGeometry args={[0.5, 8, 6]} />
-            </mesh>
-          ))}
-        </group>
-      );
-    case 5:
-      return (
-        <group position={position}>
-          {[0, 1, 2].map((i) => (
-            <mesh key={i} position={[(i - 1) * 0.25, 0.5 + i * 0.1, 0]} material={i === 1 ? MAT.wardGold : MAT.petal}>
-              <sphereGeometry args={[0.12, 12, 10]} />
-            </mesh>
-          ))}
-          <Shrub position={[0, 0, 0]} size={0.5} seed={9} material={MAT.leaf} />
-        </group>
-      );
-    case 6:
-      return (
-        <group position={position}>
-          <mesh position={[0, 0.9, 0]} material={MAT.bark}>
-            <cylinderGeometry args={[0.06, 0.1, 1.8, 8]} />
-          </mesh>
-          {Array.from({ length: 6 }, (_, i) => (
-            <mesh key={i} position={[Math.cos(i) * 0.4, 1.8, Math.sin(i) * 0.4]} rotation={[0, i, 0.9]} scale={[0.6, 0.06, 0.2]} material={MAT.leaf}>
-              <sphereGeometry args={[0.5, 10, 6]} />
-            </mesh>
-          ))}
-        </group>
-      );
-    default:
-      return <Shrub position={position} size={0.8} seed={family * 3 + position[0]} material={mat} />;
-  }
 }
 
 function Channel() {

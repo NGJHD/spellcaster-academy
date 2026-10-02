@@ -39,7 +39,8 @@ function BookGLB({ pose, variant }: { pose: PoseRef; variant?: string }) {
   const coverR = parts.get('Cover_R');
   const runes = parts.materials('Energy');
   useEffect(() => {
-    for (const m of parts.materials('Leather')) m.color.set(COVER_TINT[variant ?? 'default'] ?? '#7a2a30');
+    // Neutral leather grain coloured per variant (brightened: the grain map is mid-grey).
+    for (const m of parts.materials('Leather')) m.color.set(COVER_TINT[variant ?? 'default'] ?? '#7a2a30').multiplyScalar(1.7);
   }, [parts, variant]);
   useFrame(() => {
     const p = pose.current;

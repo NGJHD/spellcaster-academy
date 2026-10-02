@@ -20,6 +20,9 @@ import bmesh  # noqa: E402
 import bpy  # noqa: E402
 import creature as C  # noqa: E402
 
+sys.path.insert(0, os.path.dirname(__file__))
+import books  # noqa: E402
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 OUT = os.path.join(ROOT, "public", "assets", "props_original")
 args = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
@@ -216,19 +219,8 @@ def training_dummy(m):
 
 
 def runaway_book(m):
-    pages = []
-    for i in range(5):
-        pages.append(box(f"PageBlock_{i}", (0.29, 0.38, 0.009), (0, 0, 0.004 + i * 0.0095), m["parchment"], bevel=0.002))
-    group("Pages", (0, 0, 0), pages)
-    spine = C.part("Spine", [K((0, -0.19, 0.024), (0, 0.19, 0.024), 0.032)], pivot=(0, 0, 0.024), material=m["leather"], voxel=0.004, target_tris=1200)
-    _ = spine
-    for side, s in (("L", 1), ("R", -1)):
-        cover = box(f"CoverMesh_{side}", (0.31, 0.41, 0.012), (0.155 * s, 0, 0.05), m["leather"], bevel=0.003)
-        corners = [box(f"Corner_{side}_{k}", (0.035, 0.035, 0.016), (0.285 * s, 0.18 * (1 if k else -1), 0.05), m["brass"], bevel=0.003) for k in (0, 1)]
-        rune = C.torus(f"Rune_{side}", (0.155 * s, 0, 0.058), 0.06, 0.005, m["gold_glow"], segments=(40, 6))
-        group(f"Cover_{side}", (0, 0, 0.05), [cover, *corners, rune])
-    clasp = box("Clasp", (0.05, 0.03, 0.06), (0.3, 0, 0.03), m["brass"], bevel=0.004)
-    _ = clasp
+    """Realism pass 2: built in books.py (two-half rig with attached pages)."""
+    books.runaway_book(m, group)
 
 
 # ---------------------------------------------------------------------------- thorn pod
@@ -311,17 +303,8 @@ def ward_anchor(m):
 
 
 def grimoire(m):
-    blocks = [box(f"PageBlock_{i}", (0.98, 1.28, 0.03), (0, 0, 0.018 + i * 0.031), m["parchment"], bevel=0.006) for i in range(5)]
-    group("Pages", (0, 0, 0), blocks)
-    C.part("Spine", [K((0, -0.66, 0.09), (0, 0.66, 0.09), 0.1)], pivot=(0, 0, 0.09), material=m["leather"], voxel=0.008, target_tris=2500)
-    for side, s in (("L", 1), ("R", -1)):
-        cover = box(f"CoverMesh_{side}", (1.04, 1.36, 0.045), (0.52 * s, 0, 0.18), m["leather"], bevel=0.012)
-        corners = [C.part(f"Ornament_{side}_{k}", [E((0.98 * s, 0.62 * (1 if k else -1), 0.2), (0.07, 0.07, 0.03))], pivot=(0.98 * s, 0.62 * (1 if k else -1), 0.2), material=m["brass"], voxel=0.004, target_tris=600) for k in (0, 1)]
-        diagram = [C.torus(f"Diagram_{side}_{r}", (0.52 * s, 0, 0.205), r, 0.008, m["gold_glow"], segments=(64, 6)) for r in (0.18, 0.3)]
-        group(f"Cover_{side}", (0, 0, 0.18), [cover, *corners, *diagram])
-    for i, z in enumerate((-0.35, 0.35)):
-        mark = box(f"Bookmark_{i}", (0.04, 0.4, 0.004), (0.2 * (1 if i else -1), -0.8, 0.12), m["cloth"], bevel=0.0)
-        _ = mark
+    """Realism pass 2: built in books.py (a real book lying on its back; front cover hinged)."""
+    books.grimoire(m, group)
 
 
 BUILDERS = dict(fp_arm=fp_arm, pip=pip, training_dummy=training_dummy, runaway_book=runaway_book, thorn_pod=thorn_pod, ward_anchor=ward_anchor, grimoire=grimoire)

@@ -2,7 +2,7 @@
  * Shared runtime materials for code-built stand-ins (CLAUDE.md §14A.29 library names).
  * GLB assets bring their own PBR materials; these keep placeholders visually consistent.
  */
-import { DoubleSide, MeshPhysicalMaterial, MeshStandardMaterial, type MeshStandardMaterialParameters } from 'three';
+import { DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, type MeshStandardMaterialParameters } from 'three';
 
 const std = (color: string, roughness: number, metalness = 0, extra: MeshStandardMaterialParameters = {}) =>
   new MeshStandardMaterial({ color, roughness, metalness, ...extra });
@@ -47,7 +47,7 @@ export const MAT = {
   wardStone: std('#e2dccd', 0.6),
   marble: std('#ece7dd', 0.35),
   water: new MeshPhysicalMaterial({ color: '#7fb6cf', roughness: 0.05, metalness: 0, transmission: 0.3, transparent: true, opacity: 0.85 }),
-  glass: new MeshPhysicalMaterial({ color: '#d9efe8', roughness: 0.08, transmission: 0.6, transparent: true, opacity: 0.35, depthWrite: false }),
+  glass: new MeshPhysicalMaterial({ color: '#e4f2ee', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.14, depthWrite: false, side: DoubleSide }),
   crystal: std('#cfe8ff', 0.15, 0, { emissive: '#5aa8ff', emissiveIntensity: 1.6 }),
   crystalDim: std('#8aa0b8', 0.3, 0, { emissive: '#1d3555', emissiveIntensity: 0.4 }),
   wardGold: std('#ffe3a0', 0.3, 0, { emissive: '#ffb640', emissiveIntensity: 1.6 }),
@@ -64,4 +64,21 @@ export const MAT = {
   tealGlow: std('#7ff0e0', 0.4, 0, { emissive: '#2fd6c0', emissiveIntensity: 1.6 }),
   skin: std('#c99a78', 0.7),
   hair: std('#3a2a20', 0.8),
+  // Realism pass 2: kit-prop materials (names match assets-src/scripts/shared/kitgeo.py `lib`).
+  /** Book bindings: neutral leather grain, coloured per book by vertex colour. */
+  bookLeather: std('#ffffff', 0.6, 0, { vertexColors: true }),
+  pageEdge: std('#e4d2a8', 0.92),
+  ink: std('#2a2018', 0.6),
+  velvet: std('#2c3f6e', 0.9),
+  jacquard: std('#2a3a62', 0.85),
+  panelWood: std('#5a3c28', 0.55),
+  linen: std('#d8ccb0', 0.95),
+  /** Victorian glasshouse ironwork (painted dark green). */
+  greenIron: std('#2b3a33', 0.45, 0.6),
+  /** Daylight seen through old glass; each pane's tint comes from vertex colour. */
+  windowGlass: new MeshBasicMaterial({ color: '#fff3dc', vertexColors: true }),
+  /** Leaded glass seen from outside by day: dark, reflective, each pane a little different. */
+  windowGlassDay: std('#4f5862', 0.12, 0.6, { vertexColors: true }),
+  /** The same glass at night: moonlight through the panes. */
+  windowGlassNight: new MeshBasicMaterial({ color: '#7f9ee0', vertexColors: true }),
 };

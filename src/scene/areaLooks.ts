@@ -57,13 +57,14 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
   },
   'enchanted-greenhouse': {
     sky: 'afternoon',
-    background: '#b9d7c3',
-    fog: ['#cfe3d2', 20, 90],
-    sun: { position: [20, 50, 20], color: '#fff2d0', intensity: 2.2 },
-    hemi: ['#e5f7e2', '#3e5a33', 0.85],
+    // Clear glass now shows the garden: real daylight and distance haze, a little green underfoot.
+    background: '#a9c4de',
+    fog: ['#d9e2df', 50, 260],
+    sun: { position: [20, 50, 20], color: '#fff2d0', intensity: 2.4 },
+    hemi: ['#e5f2ff', '#3e5a33', 0.8],
     exposure: 1.0,
     envIntensity: 0.9,
-    hdri: 'abandoned_greenhouse',
+    hdri: DAY,
   },
   'lower-stairwell': {
     sky: 'interior',

@@ -2,6 +2,7 @@ import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, type RefObject } from 'react';
 import { Mesh, type MeshStandardMaterial } from 'three';
+import { libraryMaterial } from '../scene/kitGlb';
 import { GuardianModel, type TargetPose } from './TargetVisuals';
 
 const URL = `${import.meta.env.BASE_URL}assets/creatures/armour_guardian.glb`;
@@ -17,6 +18,11 @@ function GuardianGLB({ pose }: { pose: RefObject<TargetPose> }) {
       o.castShadow = true;
       o.receiveShadow = true;
       const m = o.material as MeshStandardMaterial;
+      const shared = libraryMaterial(m.name);
+      if (shared) {
+        o.material = shared;
+        return;
+      }
       if (m.name === 'Visor') {
         const c = m.clone();
         glow.push(c);

@@ -11,11 +11,11 @@ import { CHEST_POSITION, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastH
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
-import { Arch, Banner, Bookshelf, Box, Column, Facade, GableRoof, Planter, Rug, Slab, WallLamp, WindowPane } from '../kit';
+import { Arch, Banner, Bookshelf, Column, Facade, GableRoof, KitModel, Planter, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
-import { worldCylinder, worldPlane } from '../surfaces';
+import { worldBox, worldCylinder, worldPlane } from '../surfaces';
 import {
   DormantTarget,
   FloatingLantern,
@@ -28,6 +28,7 @@ import {
   useBeatIndex,
 } from '../props';
 
+const TOWER_GLASS = { windowGlass: MAT.windowGlassDay };
 const GATE_Z = 20;
 const GATE_HALF = 2.5;
 const GATE_HEIGHT = 5;
@@ -81,9 +82,21 @@ function Campus() {
       <Slab x={[-70, -40]} y={[0, 13.5]} z={[-40, -11]} material={MAT.academyStoneDark} />
       <Facade position={[-55, 0, -10.5]} length={30} height={14} bay={6} windows={[[3.5, 7]]} wall={MAT.academyStoneDark} />
       <GableRoof position={[-55, 14, -25.25]} length={30} span={29.5} rise={6} />
-      <mesh position={[60, 5, -25]} material={MAT.glass}>
-        <boxGeometry args={[26, 10, 18]} />
-      </mesh>
+      {/* The glasshouse (same kit as the Enchanted Greenhouse, scaled) seen across the grounds. */}
+      <group position={[48, 0, -25]} rotation={[0, -Math.PI / 2, 0]} scale={0.85}>
+        {Array.from({ length: 6 }, (_, k) => (
+          <KitModel key={k} id="greenhouse_bay" position={[0, 0, -4 * k]} castShadow={false} />
+        ))}
+        <KitModel id="greenhouse_end" position={[0, 0, -24]} castShadow={false} />
+        <KitModel id="greenhouse_end" rotationY={Math.PI} castShadow={false} />
+      </group>
+      {/* Chimney stacks along the main roof ridge */}
+      {[-28, -12, 12, 28].map((x) => (
+        <group key={x} position={[x, 22, -25]}>
+          <Slab x={[-0.9, 0.9]} y={[0, 3.2]} z={[-0.7, 0.7]} material={MAT.academyStoneDark} />
+          <Slab x={[-1.05, 1.05]} y={[3.2, 3.5]} z={[-0.85, 0.85]} material={MAT.academyStone} />
+        </group>
+      ))}
       {/* Moon Tower and observatory dome */}
       <mesh position={[0, 22, -60]} material={MAT.academyStone} geometry={worldCylinder(7, 7.8, 44, 40)} castShadow />
       {[10, 20, 30].map((y) => (
@@ -94,9 +107,31 @@ function Campus() {
       <mesh position={[0, 44, -60]} material={MAT.agedBrass} castShadow>
         <sphereGeometry args={[7.4, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
+      {/* Cornice and parapet under the dome, gilded dome ribs and a lantern on top */}
+      <mesh position={[0, 43.4, -60]} material={MAT.academyStoneDark} geometry={worldCylinder(7.9, 7.3, 1.2, 40)} />
+      {Array.from({ length: 16 }, (_, i) => (i / 16) * Math.PI * 2).map((a) => (
+        <mesh key={a} position={[Math.cos(a) * 7.75, 44.5, -60 + Math.sin(a) * 7.75]} material={MAT.academyStoneDark} geometry={worldBox(1.1, 1.0, 0.6)} rotation={[0, -a, 0]} />
+      ))}
+      {Array.from({ length: 8 }, (_, i) => (
+        <mesh key={i} position={[0, 44, -60]} rotation={[0, (i / 8) * Math.PI * 2, 0]} material={MAT.academyStoneDark}>
+          <torusGeometry args={[7.45, 0.12, 6, 24, Math.PI / 2]} />
+        </mesh>
+      ))}
+      <mesh position={[0, 52.2, -60]} material={MAT.academyStone} geometry={worldCylinder(1.1, 1.3, 2.4, 16)} />
+      <mesh position={[0, 54, -60]} material={MAT.agedBrass}>
+        <coneGeometry args={[1.5, 2.4, 16]} />
+      </mesh>
       <mesh position={[0, 30.5, -53]} material={MAT.academyStoneDark}>
         <boxGeometry args={[5, 0.4, 2.5]} />
       </mesh>
+      {/* Leaded windows climbing the Moon Tower */}
+      {[12, 22, 32].flatMap((y, row) =>
+        Array.from({ length: 8 }, (_, i) => ((i + row * 0.5) / 8) * Math.PI * 2).map((a) => (
+          <group key={`${y}-${a.toFixed(2)}`} position={[Math.sin(a) * 7.42, y, -60 + Math.cos(a) * 7.42]} rotation={[0, a, 0]}>
+            <KitModel id="leaded_light" scale={[1.1, 2.0, 1]} castShadow={false} overrides={TOWER_GLASS} />
+          </group>
+        )),
+      )}
       {/* Distant dormitory roofs */}
       {[-90, -60, 60, 90].map((x, i) => (
         <group key={x} position={[x, 0, -90 - i * 8]}>
@@ -108,9 +143,14 @@ function Campus() {
       ))}
       </MergeStatic>
       {!indoors && trees.map((t) => (
-        <Prop key={`${t.x.toFixed(1)}-${t.z.toFixed(1)}`} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={t.r} lodDistance={16} shadows={t.id !== 'fir_tree_01'} />
+        <Prop key={`${t.x.toFixed(1)}-${t.z.toFixed(1)}`} id={t.id} position={[t.x, 0, t.z]} height={t.h} rotationY={t.r} lodDistance={45} shadows={t.id !== 'fir_tree_01'} />
       ))}
       {[-2.9, 2.9].flatMap((x) => [30, 42, 56, 72].map((z) => <Prop key={`${x}-${z}`} id="street_lamp_01" position={[x, 0, z]} height={3.6} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />))}
+      {/* Clipped shrubs lining the drive */}
+      {!indoors &&
+        [-4.6, 4.6].flatMap((x) =>
+          Array.from({ length: 12 }, (_, i) => 26 + i * 7.5).map((z, i) => <Prop key={`hedge${x}${z}`} id={`shrub_0${(i % 4) + 1}`} position={[x, 0, z]} height={1.3} rotationY={i * 2.1} lodDistance={22} />),
+        )}
       {[[-9, 30], [12, 44]].map(([x = 0, z = 0], i) => (
         <Prop key={`rock${i}`} id="rock_moss_set_01" position={[x, 0, z]} scale={0.35} rotationY={i * 1.7} />
       ))}
@@ -168,12 +208,10 @@ function GateDoors() {
     if (left.current) left.current.rotation.y += (goal - left.current.rotation.y) * k;
     if (right.current) right.current.rotation.y += (-goal - right.current.rotation.y) * k;
   });
+  // Planked oak leaves with iron strap hinges (kit door_leaf, scaled up) and the brass celestial lock.
   const door = (sign: number) => (
     <>
-      <Box position={[(sign * -GATE_HALF) / 2, GATE_HEIGHT / 2, 0]} size={[GATE_HALF, GATE_HEIGHT, 0.22]} material={MAT.darkOak} />
-      {[0.25, 0.5, 0.75].map((y) => (
-        <Box key={y} position={[(sign * -GATE_HALF) / 2, GATE_HEIGHT * y, 0.13]} size={[GATE_HALF * 0.92, 0.12, 0.05]} material={MAT.agedBrass} />
-      ))}
+      <KitModel id="door_leaf" position={[0, 0, 0.12]} scale={[(-sign * GATE_HALF) / 1.2, GATE_HEIGHT / 3.2, 3]} />
       <mesh position={[sign * -0.25, GATE_HEIGHT * 0.55, 0.16]} rotation={[0, 0, 0]} material={MAT.agedBrass}>
         <torusGeometry args={[0.35, 0.04, 8, 32]} />
       </mesh>
@@ -243,23 +281,19 @@ function Courtyard({ celebration }: { celebration: boolean }) {
 function Fountain({ celebration }: { celebration: boolean }) {
   const water = useRef<import('three').Mesh>(null);
   useFrame((state) => {
-    if (water.current) water.current.position.y = 0.64 + Math.sin(state.clock.elapsedTime * 1.4) * 0.008;
+    if (water.current) water.current.position.y = 0.55 + Math.sin(state.clock.elapsedTime * 1.4) * 0.008;
   });
   return (
     <group name="fountain">
-      <mesh position={[0, 0.3, 0]} material={MAT.academyStone} geometry={worldCylinder(3, 3.25, 0.6, 48)} castShadow receiveShadow />
-      <mesh position={[0, 0.61, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.academyStoneDark}>
-        <torusGeometry args={[3, 0.12, 10, 48]} />
+      <KitModel id="fountain_courtyard" />
+      <mesh ref={water} position={[0, 0.55, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
+        <circleGeometry args={[3.0, 8]} />
       </mesh>
-      <mesh ref={water} position={[0, 0.64, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
-        <circleGeometry args={[2.85, 48]} />
+      <mesh position={[0, 2.04, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
+        <circleGeometry args={[1.22, 32]} />
       </mesh>
-      <mesh position={[0, 1.3, 0]} material={MAT.academyStone} geometry={worldCylinder(0.3, 0.48, 1.8, 20)} castShadow />
-      <mesh position={[0, 2.25, 0]} material={MAT.academyStone} castShadow>
-        <cylinderGeometry args={[1.15, 0.38, 0.38, 32]} />
-      </mesh>
-      <mesh position={[0, 2.46, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
-        <circleGeometry args={[1.02, 32]} />
+      <mesh position={[0, 2.86, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
+        <circleGeometry args={[0.58, 24]} />
       </mesh>
       {celebration && <pointLight position={[0, 1.5, 0]} color="#9fd6ff" intensity={6} distance={10} />}
     </group>
@@ -313,13 +347,25 @@ function EastHall() {
         </group>
       ))}
       <MergeStatic shadows={false}>
-        {[18, 24, 37].map((x) => (
-          <Slab key={x} x={[x - 0.8, x + 0.8]} y={[1.4, 2.6]} z={[W - 0.05, W]} material={MAT.darkOak} shadows={false} />
+        {[-1, 1].map((side) => (
+          <group key={side}>
+            <Slab x={[15, 44]} y={[0, 1.15]} z={side < 0 ? [-W, -W + 0.04] : [W - 0.04, W]} material={MAT.panelWood} shadows={false} />
+            <Slab x={[15, 44]} y={[1.15, 1.22]} z={side < 0 ? [-W, -W + 0.07] : [W - 0.07, W]} material={MAT.darkOak} shadows={false} />
+          </group>
         ))}
         {[22, 39].map((x) => (
           <WindowPane key={x} position={[x, 2.6, -W + 0.01]} size={[1.4, 2.4]} />
         ))}
       </MergeStatic>
+      {(
+        [
+          [18, 'landscape_1', [1.6, 1.1]],
+          [24, 'star_chart_1', [1.6, 1.1]],
+          [37, 'painting_3', [1.0, 1.3]],
+        ] as const
+      ).map(([x, painting, size]) => (
+        <Portrait key={x} position={[x, 2.2, W - 0.05]} rotationY={Math.PI} painting={painting} size={size} />
+      ))}
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
       {inHall && <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-2.2} />}
       <Chest />

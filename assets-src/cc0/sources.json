@@ -33,6 +33,18 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "anthurium_botany_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/anthurium_botany_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "ArmChair_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/ArmChair_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "book_encyclopedia_set_01",
       "type": "model",
       "url": "https://polyhaven.com/a/book_encyclopedia_set_01",
@@ -42,6 +54,30 @@
       "id": "brass_candleholders",
       "type": "model",
       "url": "https://polyhaven.com/a/brass_candleholders",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "brass_vase_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/brass_vase_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "calathea_orbifolia_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/calathea_orbifolia_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "ceramic_vase_02",
+      "type": "model",
+      "url": "https://polyhaven.com/a/ceramic_vase_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "Chandelier_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/Chandelier_01",
       "license": "CC0-1.0"
     },
     {
@@ -81,6 +117,12 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "gothic_coffee_table",
+      "type": "model",
+      "url": "https://polyhaven.com/a/gothic_coffee_table",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "gothic_statue",
       "type": "model",
       "url": "https://polyhaven.com/a/gothic_statue",
@@ -93,9 +135,21 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "hanging_picture_frame_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/hanging_picture_frame_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "hanging_picture_frame_02",
       "type": "model",
       "url": "https://polyhaven.com/a/hanging_picture_frame_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "horse_statue_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/horse_statue_01",
       "license": "CC0-1.0"
     },
     {
@@ -135,15 +189,45 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "magnifying_glass_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/magnifying_glass_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "mantel_clock_01",
       "type": "model",
       "url": "https://polyhaven.com/a/mantel_clock_01",
       "license": "CC0-1.0"
     },
     {
+      "id": "marble_bust_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/marble_bust_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "nettle_plant",
       "type": "model",
       "url": "https://polyhaven.com/a/nettle_plant",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "ornate_mirror_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/ornate_mirror_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "Ottoman_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/Ottoman_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "pachira_aquatica_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/pachira_aquatica_01",
       "license": "CC0-1.0"
     },
     {
@@ -156,6 +240,12 @@
       "id": "periwinkle_plant",
       "type": "model",
       "url": "https://polyhaven.com/a/periwinkle_plant",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "planter_box_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/planter_box_01",
       "license": "CC0-1.0"
     },
     {
@@ -189,6 +279,18 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "seadogs_compass",
+      "type": "model",
+      "url": "https://polyhaven.com/a/seadogs_compass",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "seeding_tray_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/seeding_tray_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "shrub_01",
       "type": "model",
       "url": "https://polyhaven.com/a/shrub_01",
@@ -213,9 +315,21 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "standing_picture_frame_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/standing_picture_frame_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "street_lamp_01",
       "type": "model",
       "url": "https://polyhaven.com/a/street_lamp_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "tea_set_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/tea_set_01",
       "license": "CC0-1.0"
     },
     {
@@ -225,15 +339,45 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "trowel_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/trowel_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "vintage_cabinet_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/vintage_cabinet_01",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "vintage_grandfather_clock_01",
       "type": "model",
       "url": "https://polyhaven.com/a/vintage_grandfather_clock_01",
       "license": "CC0-1.0"
     },
     {
+      "id": "vintage_microscope",
+      "type": "model",
+      "url": "https://polyhaven.com/a/vintage_microscope",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "vintage_oil_lamp",
       "type": "model",
       "url": "https://polyhaven.com/a/vintage_oil_lamp",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "watering_can_metal_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/watering_can_metal_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "wicker_basket_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/wicker_basket_01",
       "license": "CC0-1.0"
     },
     {
@@ -252,6 +396,30 @@
       "id": "wooden_bookshelf_worn",
       "type": "model",
       "url": "https://polyhaven.com/a/wooden_bookshelf_worn",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "wooden_candlestick",
+      "type": "model",
+      "url": "https://polyhaven.com/a/wooden_candlestick",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "wooden_crate_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/wooden_crate_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "wooden_display_shelves_01",
+      "type": "model",
+      "url": "https://polyhaven.com/a/wooden_display_shelves_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "wooden_ladder",
+      "type": "model",
+      "url": "https://polyhaven.com/a/wooden_ladder",
       "license": "CC0-1.0"
     },
     {
@@ -279,6 +447,18 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "castle_brick_07",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/castle_brick_07",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "dark_paneled_wood",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/dark_paneled_wood",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "dark_wooden_planks",
       "type": "texture",
       "url": "https://polyhaven.com/a/dark_wooden_planks",
@@ -297,6 +477,18 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "herringbone_parquet",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/herringbone_parquet",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lacquered_cherry_wood",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/lacquered_cherry_wood",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "large_sandstone_blocks_01",
       "type": "texture",
       "url": "https://polyhaven.com/a/large_sandstone_blocks_01",
@@ -309,9 +501,27 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "leather_red_02",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/leather_red_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "leather_white",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/leather_white",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "marble_01",
       "type": "texture",
       "url": "https://polyhaven.com/a/marble_01",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "metal_plate",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/metal_plate",
       "license": "CC0-1.0"
     },
     {
@@ -339,9 +549,21 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "quatrefoil_jacquard_fabric",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/quatrefoil_jacquard_fabric",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "roof_slates_02",
       "type": "texture",
       "url": "https://polyhaven.com/a/roof_slates_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "rough_linen",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/rough_linen",
       "license": "CC0-1.0"
     },
     {
@@ -351,9 +573,21 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "velour_velvet",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/velour_velvet",
+      "license": "CC0-1.0"
+    },
+    {
       "id": "wood_floor_worn",
       "type": "texture",
       "url": "https://polyhaven.com/a/wood_floor_worn",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "worn_planks",
+      "type": "texture",
+      "url": "https://polyhaven.com/a/worn_planks",
       "license": "CC0-1.0"
     }
   ]

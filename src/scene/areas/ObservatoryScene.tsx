@@ -6,9 +6,9 @@ import { OBSERVATORY_ORIGIN, VALUE_POSITIONS } from '../../level/areas/observato
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
-import { Box } from '../kit';
+import { Box, KitModel } from '../kit';
 import { MAT } from '../materials';
-import { worldCircle } from '../surfaces';
+import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { WardenModel, useBeatIndex, type WardenState } from '../props';
 
 const R = 14;
@@ -50,19 +50,13 @@ function Arena() {
           </mesh>
         );
       })}
-      <mesh position={[0, 1.2, 0]}>
-        <cylinderGeometry args={[R + 0.2, R + 0.2, 2.4, 64, 1, true]} />
-        <meshStandardMaterial color="#cdb18a" roughness={0.85} side={BackSide} />
-      </mesh>
-      {/* Opened dome: ribs only, so the night sky shows through. */}
-      {Array.from({ length: 16 }, (_, i) => (
-        <mesh key={i} position={[0, 2.4, 0]} rotation={[0, (i / 16) * Math.PI * 2, 0]} material={MAT.darkSteel}>
-          <torusGeometry args={[R, 0.12, 6, 32, Math.PI / 2]} />
-        </mesh>
-      ))}
-      <mesh position={[0, 0.25, 0]} material={MAT.academyStoneDark}>
-        <cylinderGeometry args={[2.2, 2.6, 0.5, 32]} />
-      </mesh>
+      {/* Drum wall of dressed stone with an oak dado, then the planked dome with its shutter open. */}
+      <mesh position={[0, 1.6, 0]} material={MAT.academyStone} geometry={insideCylinder(R + 0.2, 3.2, 72)} receiveShadow />
+      <mesh position={[0, 0.6, 0]} material={MAT.panelWood} geometry={insideCylinder(R + 0.15, 1.2, 72)} receiveShadow />
+      <mesh position={[0, 1.22, 0]} material={MAT.darkOak} geometry={insideCylinder(R + 0.1, 0.06, 72)} />
+      <KitModel id="observatory_dome" position={[0, 3.2, 0]} castShadow={false} />
+      <mesh position={[0, 0.25, 0]} material={MAT.academyStoneDark} geometry={worldCylinder(2.2, 2.6, 0.5, 40)} castShadow receiveShadow />
+      <mesh position={[0, 0.52, 0]} material={MAT.agedBrass} geometry={worldCylinder(2.25, 2.25, 0.04, 40)} />
     </group>
   );
 }
@@ -74,14 +68,8 @@ function Instruments() {
   });
   return (
     <group>
-      <group position={[-9, 0, -6]} rotation={[0, 0.6, 0]}>
-        <mesh position={[0, 1.2, 0]} material={MAT.darkSteel}>
-          <cylinderGeometry args={[0.15, 0.25, 2.4, 12]} />
-        </mesh>
-        <mesh position={[0, 3.2, -1]} rotation={[-0.9, 0, 0]} material={MAT.agedBrass} castShadow>
-          <cylinderGeometry args={[0.35, 0.5, 5, 24]} />
-        </mesh>
-      </group>
+      {/* The great refractor, aimed up through the open shutter. */}
+      <KitModel id="telescope" position={[-9, 0, -6]} rotationY={Math.PI + 0.6} scale={1.3} />
       <group ref={orrery} position={[9, 2.2, -6]}>
         <mesh material={MAT.wardGold}>
           <sphereGeometry args={[0.35, 20, 16]} />

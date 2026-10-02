@@ -5,7 +5,7 @@ import type { Group, Object3D } from 'three';
 import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
-import { Bookshelf, Box, Column, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
+import { Bookshelf, Box, Column, KitModel, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { WardAnchor, useBeatIndex } from '../props';
@@ -13,6 +13,7 @@ import { Prop } from '../Prop';
 import { useParts } from '../partsGlb';
 
 const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
+const G1_BEAT = beatIndexOf('grimoire-g1');
 
 export function LibraryScene() {
   return (
@@ -50,7 +51,9 @@ function Shell() {
       {[-1, 1].map((s) => (
         <group key={s}>
           <Slab x={s < 0 ? [-12, -8.6] : [8.6, 12]} y={[4.4, 4.6]} z={[-32, 2]} material={MAT.darkOak} />
-          <Slab x={s < 0 ? [-8.7, -8.6] : [8.6, 8.7]} y={[4.6, 5.6]} z={[-32, 2]} material={MAT.agedBrass} shadows={false} />
+          {Array.from({ length: 17 }, (_, k) => (
+            <KitModel key={k} id="balustrade_2m" position={[8.65 * s, 4.6, 2 - 2 * k]} rotationY={Math.PI / 2} />
+          ))}
           {[-28, -20, -12, -4].map((z) => (
             <Column key={z} position={[8.8 * s, 0, z]} height={4.4} radius={0.22} material={MAT.darkOak} />
           ))}
@@ -111,12 +114,7 @@ function ReadingArea() {
         </group>
       ))}
       <group position={[0, 0, -20]}>
-        <mesh position={[0, 0.5, 0]} material={MAT.academyStoneDark} castShadow receiveShadow>
-          <cylinderGeometry args={[0.7, 0.9, 1.0, 8]} />
-        </mesh>
-        <mesh position={[0, 1.02, 0]} material={MAT.agedBrass}>
-          <cylinderGeometry args={[0.8, 0.8, 0.06, 32]} />
-        </mesh>
+        <KitModel id="pedestal_grimoire" />
       </group>
       <Prop id="lantern_chandelier_01" position={[0, 6.4, -7]} height={2.2} shadows={false} />
       <Prop id="lantern_chandelier_01" position={[0, 6.4, -24]} height={2.2} shadows={false} />
@@ -165,66 +163,98 @@ function CirclingBooks() {
   });
   return (
     <group ref={ref} position={[0, 0, -13]}>
-      {books.map((b, i) => (
-        <group key={i} position={[Math.cos(b.a) * b.r, b.y, Math.sin(b.a) * b.r]} rotation={[0.3, -b.a, 0.4]}>
-          <Box position={[0, 0, 0]} size={[0.32, 0.06, 0.42]} material={i % 2 ? MAT.greenLeather : MAT.burgundyLeather} />
-        </group>
-      ))}
+      <Suspense fallback={null}>
+        {books.map((b, i) => (
+          // Flying tangentially around the room, banked into the turn.
+          <group key={i} position={[Math.cos(b.a) * b.r, b.y, Math.sin(b.a) * b.r]} rotation={[0, -b.a, 0.35]}>
+            <FlyingBook phase={i * 1.7} tint={CIRCLE_TINTS[i % CIRCLE_TINTS.length] ?? '#6e1f28'} />
+          </group>
+        ))}
+      </Suspense>
     </group>
   );
 }
 
-interface GrimoireRig {
-  coverL: Object3D | null;
-  coverR: Object3D | null;
-  /** Code stand-in covers rotate about Y; GLB covers about Z. */
-  axis: 'y' | 'z';
-  /** Hinge direction (the GLB is flipped so the open pages face up). */
-  sign: 1 | -1;
+const CIRCLE_TINTS = ['#6e2228', '#23412f', '#2a3f6e', '#5a3620', '#3c2436'];
+
+/** A runaway-book model drifting with slow wing-beats (decorative, not a target). */
+function FlyingBook({ phase, tint }: { phase: number; tint: string }) {
+  const parts = useParts('runaway_book', false);
+  const coverL = parts.get('Cover_L');
+  const coverR = parts.get('Cover_R');
+  useEffect(() => {
+    for (const m of parts.materials('Leather')) m.color.set(tint).multiplyScalar(1.7);
+  }, [parts, tint]);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime + phase;
+    const flap = 0.35 + Math.sin(t * 3.2) * 0.3;
+    if (coverL) coverL.rotation.z = flap;
+    if (coverR) coverR.rotation.z = -flap;
+    parts.root.position.y = Math.sin(t * 3.2 - 0.6) * 0.04;
+  });
+  return <primitive object={parts.root} />;
 }
 
-/** The Great Grimoire (§14A.8): dormant and chained until it wakes; settles back afterwards. */
+interface GrimoireRig {
+  /** Front half (hinged at the spine top, modelled open). */
+  front: Object3D | null;
+  spine: Object3D | null;
+  clasps: Object3D[];
+  /** Shifts the book so the closed volume sits centred on the pedestal. */
+  centre: Object3D | null;
+}
+
+/**
+ * The Great Grimoire (§14A.8): closed and chained on its pedestal until it wakes; rises, turns its
+ * cover to the player and strains against its clasps; once the clasps break the heavy front board
+ * swings open; afterwards it closes and settles back.
+ */
 function Grimoire() {
   const root = useRef<Group>(null);
   const chains = useRef<Group>(null);
-  const rig = useRef<GrimoireRig>({ coverL: null, coverR: null, axis: 'z', sign: -1 });
+  const rig = useRef<GrimoireRig>({ front: null, spine: null, clasps: [], centre: null });
   const beat = useBeatIndex();
   const time = useRef(0);
   const hover = useRef(0);
-  const open = useRef(0);
+  const closed = useRef(1);
   useFrame((_, dt) => {
     time.current += dt;
+    const t = time.current;
     const run = getRun();
     const settled = run?.flags.has('grimoire-settled') ?? false;
     const awake = beat >= WAKE_BEAT && !settled;
-    const opened = run?.encounterProgress('grimoire-g1').complete ?? false;
+    const opened = (run?.encounterProgress('grimoire-g1').complete ?? false) || beat > G1_BEAT;
     const k = 1 - Math.exp(-1.5 * Math.min(dt, 0.1));
     hover.current += ((awake ? 1 : 0) - hover.current) * k;
     const h = hover.current;
     if (root.current) {
-      root.current.position.y = 1.08 + h * (1.3 + Math.sin(time.current * 1.1) * 0.12);
-      root.current.rotation.x = h * 1.25;
-      root.current.rotation.z = Math.sin(time.current * 0.7) * 0.05 * h;
+      root.current.position.y = 1.06 + h * (1.25 + Math.sin(t * 1.1) * 0.1);
+      // Tilt the cover (or the open pages) towards the player while airborne.
+      root.current.rotation.x = h * 1.15;
+      root.current.rotation.z = Math.sin(t * 0.7) * 0.05 * h;
     }
-    // Heavy covers: slow to open, with a little strain while clasped (§14A.8 hinge weight).
-    const goal = settled ? 0.25 : opened ? Math.sin(time.current * 2.2) * 0.06 : awake ? 1.35 + Math.sin(time.current * 14) * 0.03 : 1.45;
-    open.current += (goal - open.current) * (1 - Math.exp(-2 * Math.min(dt, 0.1)));
-    const { coverL, coverR, axis, sign } = rig.current;
-    if (coverL) coverL.rotation[axis] = sign * open.current;
-    if (coverR) coverR.rotation[axis] = -sign * open.current;
+    // Heavy board: slow to swing; strains against the clasps while bound; pages flutter when open.
+    const goal = settled || !awake ? 1 : opened ? 0.08 + Math.sin(t * 2.2) * 0.04 : 0.985 - Math.abs(Math.sin(t * 9)) * 0.02;
+    closed.current += (goal - closed.current) * (1 - Math.exp(-2.2 * Math.min(dt, 0.1)));
+    const c = closed.current;
+    const { front, spine, clasps, centre } = rig.current;
+    if (front) front.rotation.z = Math.PI * c;
+    if (spine) spine.scale.set(0.2 + 0.8 * c, 0.55 + 0.45 * c, 1);
+    if (centre) centre.position.x = 0.5 * c;
+    for (const clasp of clasps) clasp.visible = !opened || settled;
     if (chains.current) chains.current.visible = beat < WAKE_BEAT;
   });
   return (
     <group position={[0, 0, -20]}>
-      <group ref={root} position={[0, 1.08, 0]}>
-        <Suspense fallback={<GrimoireFallback rig={rig} />}>
+      <group ref={root} position={[0, 1.06, 0]}>
+        <Suspense fallback={null}>
           <GrimoireGLB rig={rig} />
         </Suspense>
       </group>
       <group ref={chains}>
-        {[-0.6, 0.6].map((x) => (
-          <mesh key={x} position={[x, 1.15, 0]} rotation={[0, 0, Math.PI / 2]} material={MAT.steel}>
-            <torusGeometry args={[0.25, 0.025, 6, 20]} />
+        {[-0.35, 0.35].map((z) => (
+          <mesh key={z} position={[0, 1.24, z]} rotation={[0, Math.PI / 2, 0]} material={MAT.steel}>
+            <torusGeometry args={[0.62, 0.022, 8, 40]} />
           </mesh>
         ))}
       </group>
@@ -234,34 +264,16 @@ function Grimoire() {
 
 function GrimoireGLB({ rig }: { rig: RefObject<GrimoireRig> }) {
   const parts = useParts('grimoire');
+  const centre = useRef<Group>(null);
   useEffect(() => {
-    rig.current.coverL = parts.get('Cover_L') ?? null;
-    rig.current.coverR = parts.get('Cover_R') ?? null;
-    rig.current.axis = 'z';
-    rig.current.sign = -1;
+    rig.current.front = parts.get('Cover_R') ?? null;
+    rig.current.spine = parts.get('Spine') ?? null;
+    rig.current.clasps = ['Clasp_0', 'Clasp_1'].map((n) => parts.get(n)).filter((o): o is Object3D => !!o);
+    rig.current.centre = centre.current;
   }, [parts, rig]);
-  // Modelled covers-up; flipped about the spine so the open pages face the player.
-  return <primitive object={parts.root} rotation={[0, 0, Math.PI]} />;
-}
-
-function GrimoireFallback({ rig }: { rig: RefObject<GrimoireRig> }) {
-  const coverL = useRef<Group>(null);
-  const coverR = useRef<Group>(null);
-  useEffect(() => {
-    rig.current.coverL = coverL.current;
-    rig.current.coverR = coverR.current;
-    rig.current.axis = 'y';
-    rig.current.sign = 1;
-  }, [rig]);
   return (
-    <group rotation={[-Math.PI / 2, 0, 0]}>
-      <Box position={[0, 0, 0.09]} size={[1.0, 1.3, 0.16]} material={MAT.parchment} />
-      <group ref={coverL} position={[0, 0, 0.18]}>
-        <Box position={[-0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
-      </group>
-      <group ref={coverR} position={[0, 0, 0.18]}>
-        <Box position={[0.52, 0, 0]} size={[1.04, 1.36, 0.05]} material={MAT.burgundyLeather} />
-      </group>
+    <group ref={centre}>
+      <primitive object={parts.root} />
     </group>
   );
 }

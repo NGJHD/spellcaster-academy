@@ -27,6 +27,8 @@ interface SurfaceSpec {
   readonly normalScale?: number;
   /** Multiplies the albedo map (keeps the academy's warm palette consistent). */
   readonly tint?: string;
+  /** Brightness multiplier on top of the tint (for neutral maps coloured by vertex colour). */
+  readonly gain?: number;
 }
 
 /** Which CC0 set dresses which shared material (§14A.29 material library). */
@@ -47,6 +49,13 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   blueLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#6f8ac8' },
   bark: { texture: 'fine_grained_wood', tileMetres: 1 },
   moss: { texture: 'mossy_rock', tileMetres: 1.2, tint: '#cfe0a0' },
+  bookLeather: { texture: 'leather_white', tileMetres: 0.35, normalScale: 0.8, gain: 1.7 },
+  velvet: { texture: 'velour_velvet', tileMetres: 0.5, tint: '#80909c' },
+  carpet: { texture: 'quatrefoil_jacquard_fabric', tileMetres: 1.4, tint: '#9a8078' },
+  jacquard: { texture: 'quatrefoil_jacquard_fabric', tileMetres: 0.6 },
+  panelWood: { texture: 'dark_paneled_wood', tileMetres: 2, tint: '#d8c0a8' },
+  linen: { texture: 'rough_linen', tileMetres: 0.6, tint: '#f2e8d8' },
+  navyCloth: { texture: 'rough_linen', tileMetres: 0.6, tint: '#4a5f90' },
 };
 
 const loader = new TextureLoader();
@@ -86,6 +95,7 @@ export function applySurfaceTextures(): void {
     material.roughness = 1;
     if (material.metalness > 0) material.metalnessMap = arm;
     material.color.set(spec.tint ?? '#ffffff');
+    if (spec.gain) material.color.multiplyScalar(spec.gain);
     material.needsUpdate = true;
   }
 }
@@ -147,6 +157,27 @@ export function worldCylinder(rTop: number, rBottom: number, h: number, segments
   return cached(`cyl:${rTop}:${rBottom}:${h}:${segments}:${open}`, () => {
     const g = new CylinderGeometry(rTop, rBottom, h, segments, 1, open);
     scaleUv(g, Math.PI * (rTop + rBottom), h);
+    return g;
+  });
+}
+
+/** Open cylinder seen from inside (round towers, stairwells): reversed winding, inward normals, metre UVs. */
+export function insideCylinder(radius: number, h: number, segments = 48): BufferGeometry {
+  return cached(`incyl:${radius}:${h}:${segments}`, () => {
+    const g = new CylinderGeometry(radius, radius, h, segments, 1, true);
+    scaleUv(g, Math.PI * 2 * radius, h);
+    const index = g.getIndex();
+    if (index) {
+      for (let i = 0; i < index.count; i += 3) {
+        const a = index.getX(i);
+        index.setX(i, index.getX(i + 2));
+        index.setX(i + 2, a);
+      }
+      index.needsUpdate = true;
+    }
+    const n = g.getAttribute('normal') as BufferAttribute;
+    for (let i = 0; i < n.count; i++) n.setXYZ(i, -n.getX(i), -n.getY(i), -n.getZ(i));
+    n.needsUpdate = true;
     return g;
   });
 }
