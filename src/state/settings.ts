@@ -16,13 +16,8 @@ export interface Volumes {
 }
 
 export interface Settings {
-  readonly reducedMotion: boolean;
-  readonly reducedShake: boolean;
-  readonly reducedEffects: boolean;
   readonly travelSpeed: TravelSpeed;
   readonly fontSize: FontSize;
-  readonly highContrast: boolean;
-  readonly dyslexiaFont: boolean;
   /** Read subtitles aloud with the browser's speech synthesis. */
   readonly spokenDialogue: boolean;
   readonly showWpm: boolean;
@@ -43,15 +38,10 @@ export const FONT_SCALE: Record<FontSize, number> = {
   'extra-large': 1.45,
 };
 
-export function defaultSettings(prefersReducedMotion = false): Settings {
+export function defaultSettings(): Settings {
   return {
-    reducedMotion: prefersReducedMotion,
-    reducedShake: prefersReducedMotion,
-    reducedEffects: false,
     travelSpeed: 'normal',
     fontSize: 'normal',
-    highContrast: false,
-    dyslexiaFont: false,
     spokenDialogue: true,
     showWpm: false,
     // §15: start on Medium; the player can override.
@@ -72,13 +62,8 @@ export function sanitizeSettings(raw: unknown, defaults: Settings = defaultSetti
   const r = raw as Record<string, unknown>;
   const v = (typeof r.volumes === 'object' && r.volumes !== null ? r.volumes : {}) as Record<string, unknown>;
   return {
-    reducedMotion: bool(r.reducedMotion, defaults.reducedMotion),
-    reducedShake: bool(r.reducedShake, defaults.reducedShake),
-    reducedEffects: bool(r.reducedEffects, defaults.reducedEffects),
     travelSpeed: oneOf(r.travelSpeed, ['slow', 'normal', 'fast'], defaults.travelSpeed),
     fontSize: oneOf(r.fontSize, ['normal', 'large', 'extra-large'], defaults.fontSize),
-    highContrast: bool(r.highContrast, defaults.highContrast),
-    dyslexiaFont: bool(r.dyslexiaFont, defaults.dyslexiaFont),
     spokenDialogue: bool(r.spokenDialogue, defaults.spokenDialogue),
     showWpm: bool(r.showWpm, defaults.showWpm),
     quality: oneOf(r.quality, ['low', 'medium', 'high'], defaults.quality),

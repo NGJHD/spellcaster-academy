@@ -6,15 +6,12 @@ interface SettingsActions {
   update(patch: Partial<Settings>): void;
 }
 
-const prefersReducedMotion =
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
-
 const pick = (s: Settings): Settings => sanitizeSettings(s);
 
 export const useSettingsStore = create<Settings & SettingsActions>()(
   persist<Settings & SettingsActions, [], [], Settings>(
     (set) => ({
-      ...defaultSettings(prefersReducedMotion),
+      ...defaultSettings(),
       update: (patch) => set(patch),
     }),
     {
@@ -23,7 +20,7 @@ export const useSettingsStore = create<Settings & SettingsActions>()(
       storage: createJSONStorage(() => localStorage),
       partialize: pick,
       // Older or corrupt data is sanitised field by field rather than discarded wholesale.
-      migrate: (persisted) => sanitizeSettings(persisted, defaultSettings(prefersReducedMotion)),
+      migrate: (persisted) => sanitizeSettings(persisted, defaultSettings()),
       merge: (persisted, current) => ({ ...current, ...sanitizeSettings(persisted, current) }),
     },
   ),

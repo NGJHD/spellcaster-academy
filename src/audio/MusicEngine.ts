@@ -82,6 +82,10 @@ export class MusicEngine {
   private pending: MusicId | null = null;
   private timer: number | null = null;
   private noise: AudioBuffer | null = null;
+  private readonly meter: AnalyserNode;
+  private readonly meterData = new Float32Array(1024);
+  /** Mood currently playing (diagnostics). */
+  current: MusicId | null = null;
 
   constructor(
     private readonly ctx: AudioContext,
@@ -89,7 +93,14 @@ export class MusicEngine {
   ) {
     this.out = ctx.createGain();
     this.out.gain.value = 0.5;
-    this.out.connect(destination);
+    // Gentle compression keeps the louder score from clipping when layers stack up.
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -14;
+    comp.ratio.value = 4;
+    this.out.connect(comp).connect(destination);
+    this.meter = ctx.createAnalyser();
+    this.meter.fftSize = 1024;
+    this.out.connect(this.meter);
     this.reverb = ctx.createConvolver();
     this.reverb.buffer = this.makeImpulse(2.6);
     const reverbReturn = ctx.createGain();
@@ -98,7 +109,7 @@ export class MusicEngine {
   }
 
   setVolume(volume: number): void {
-    this.out.gain.setTargetAtTime(volume * 0.9, this.ctx.currentTime, 0.1);
+    this.out.gain.setTargetAtTime(volume * 1.6, this.ctx.currentTime, 0.1);
   }
 
   play(id: MusicId | null): void {
@@ -107,6 +118,7 @@ export class MusicEngine {
       return;
     }
     this.pending = null;
+    this.current = id;
     const now = this.ctx.currentTime;
     const old = this.voice;
     const mood = id ? MOODS[id] : null;
@@ -140,6 +152,14 @@ export class MusicEngine {
     // Battles start on the beat at once; story moods ease in.
     this.voice = { mood, bus, padFilter, wet, seed, nextBeatTime: now + 0.05, beat: 0 };
     this.timer ??= window.setInterval(() => this.schedule(), 100);
+  }
+
+  /** RMS level of the music output, for diagnostics and tests. */
+  level(): number {
+    this.meter.getFloatTimeDomainData(this.meterData);
+    let sum = 0;
+    for (const v of this.meterData) sum += v * v;
+    return Math.sqrt(sum / this.meterData.length);
   }
 
   /** Called when the context resumes after the first user gesture. */

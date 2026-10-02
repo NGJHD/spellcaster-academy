@@ -21,6 +21,8 @@ export interface DifficultyProfile {
   readonly rejectMistakes: boolean;
   /** Spawns marked `challengeOnly` appear only when this is set. */
   readonly extraTargets: boolean;
+  /** Owner decision: Gentle has unlimited HP; hits are shown but never cost anything. */
+  readonly unlimitedHp: boolean;
 }
 
 export const DIFFICULTY: Record<Difficulty, DifficultyProfile> = {
@@ -36,6 +38,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultyProfile> = {
     waveGapSec: 0.8,
     rejectMistakes: true,
     extraTargets: false,
+    unlimitedHp: true,
   },
   standard: {
     lengthShift: 0,
@@ -49,6 +52,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultyProfile> = {
     waveGapSec: 0.5,
     rejectMistakes: false,
     extraTargets: false,
+    unlimitedHp: false,
   },
   challenge: {
     lengthShift: 2,
@@ -62,6 +66,7 @@ export const DIFFICULTY: Record<Difficulty, DifficultyProfile> = {
     waveGapSec: 0.4,
     rejectMistakes: false,
     extraTargets: true,
+    unlimitedHp: false,
   },
 };
 

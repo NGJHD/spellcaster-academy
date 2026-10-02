@@ -42,7 +42,6 @@ const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
   readonly rail: RailSettings;
-  readonly reducedShake: boolean;
 }
 
 export interface RunOptions {
@@ -105,6 +104,9 @@ export function readSeconds(text: string): number {
 
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
+
+/** A bonus word stays typeable at least this long before the camera may move on. */
+const BONUS_MIN_VISIBLE_SEC = 3;
 
 /** Seconds after a battle before the story music returns. */
 const MUSIC_REVERT_SEC = 3;
@@ -211,6 +213,7 @@ export class GameRun {
 
     patchRunUi({
       focus: this.focus,
+      unlimitedHp: DIFFICULTY[this.difficulty].unlimitedHp,
       starPages: this.progress.collectedStarPageIds.length,
       streak: this.progress.metrics.currentStreak,
       results: null,
@@ -332,9 +335,12 @@ export class GameRun {
 
     if (this.dialogue) this.updateDialogue(dt);
 
-    // Never carry the camera away from a bonus word the player has started (owner bug: "gle" for "glint").
-    const holdForBonus = this.typing.lockedId !== null && this.bonus?.targets.has(this.typing.lockedId) === true;
-    this.director.update(holdForBonus ? 0 : dt, settings.rail);
+    // Never carry the camera away from a bonus word too soon or once the player has started it
+    // (owner bugs: "gle" for "glint", then "glint is skipped entirely" after the pace-up). The camera
+    // finishes its move, then waits at the end pose.
+    let railDt = dt;
+    if (this.bonusNeedsTime()) railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
+    this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
     const locked = this.typing.lockedId;
@@ -626,6 +632,18 @@ export class GameRun {
     patchRunUi({ areaId, areaCardKey: nextKey(), retiredKey: nextKey() });
   }
 
+  /** True while a bonus word must stay reachable: locked mid-word, or not yet shown long enough. */
+  private bonusNeedsTime(): boolean {
+    const bonus = this.bonus;
+    if (!bonus) return false;
+    if (this.typing.lockedId !== null && bonus.targets.has(this.typing.lockedId)) return true;
+    for (const t of bonus.targets.values()) {
+      if (t.defeated || t.phase === 'leaving' || t.phase === 'gone') continue;
+      if (t.phase !== 'active' || t.activeTime < BONUS_MIN_VISIBLE_SEC) return true;
+    }
+    return false;
+  }
+
   private startBonus(beat: LevelBeat): void {
     const spawn = beat.bonus;
     if (!spawn) return;
@@ -844,11 +862,16 @@ export class GameRun {
 
   private applyDamage(damage: number): void {
     if (!this.encounter || this.encounter.def.kind !== 'combat') return;
+    if (DIFFICULTY[this.difficulty].unlimitedHp) {
+      // Gentle: the hit still reads (a soft glow), but nothing is lost.
+      patchRunUi({ damageKey: nextKey() });
+      return;
+    }
     const before = this.focus;
     this.setFocus(this.focus - damage);
     this.progress.metrics.focusLost += before - this.focus;
     audio.playSfx('focus-hit');
-    if (!this.settings().reducedShake) this.shakeTime = SHAKE_SEC;
+    this.shakeTime = SHAKE_SEC;
     patchRunUi({ damageKey: nextKey() });
     this.fireBarks({ on: 'focus-below', value: this.focus });
     if (this.focus <= 0) this.beginFocusReset();
@@ -1119,6 +1142,8 @@ export class GameRun {
 
   setDifficulty(difficulty: Difficulty): void {
     this.progress.difficulty = difficulty;
+    if (DIFFICULTY[difficulty].unlimitedHp) this.setFocus(MAX_FOCUS);
+    patchRunUi({ unlimitedHp: DIFFICULTY[difficulty].unlimitedHp });
     this.typing.setOptions({ rejectMistakes: DIFFICULTY[difficulty].rejectMistakes });
     this.saveNow();
   }

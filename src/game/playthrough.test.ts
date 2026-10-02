@@ -32,7 +32,7 @@ function play(o: BotOptions) {
     resume: o.resume ?? null,
     storage,
     deferSavesUntilFirstCheckpoint: false,
-    settings: () => ({ rail: { reducedMotion: false, travelSpeed: 1.3 }, reducedShake: true }),
+    settings: () => ({ rail: { reducedMotion: false, travelSpeed: 1.3 } }),
     now: () => clock,
   });
   const dt = 1 / 30;
@@ -102,6 +102,8 @@ describe('full Level 1 playthrough', () => {
     const r = useRunStore.getState().results;
     expect(r?.accuracy ?? 100).toBeLessThan(100);
     expect(r?.firstAttemptAccuracy ?? 100).toBeLessThan(100);
+    // Owner decision: Gentle has unlimited HP.
+    expect(r?.focusLost).toBe(0);
   });
 
   it('Challenge with mistakes still finishes', () => {

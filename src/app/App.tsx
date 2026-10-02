@@ -6,21 +6,15 @@ import { useSettingsStore } from '../state/settingsStore';
 import { GameScreen } from './screens/GameScreen';
 import { TitleScreen } from './screens/TitleScreen';
 
-/** Applies accessibility settings as root classes / CSS variables and keeps audio volumes in sync. */
+/** Applies the text size as a CSS variable and keeps audio volumes in sync. */
 function useGlobalSettings(): void {
   const fontSize = useSettingsStore((s) => s.fontSize);
-  const highContrast = useSettingsStore((s) => s.highContrast);
-  const dyslexiaFont = useSettingsStore((s) => s.dyslexiaFont);
-  const reducedMotion = useSettingsStore((s) => s.reducedMotion);
   const volumes = useSettingsStore((s) => s.volumes);
 
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--font-scale', String(FONT_SCALE[fontSize]));
-    root.classList.toggle('high-contrast', highContrast);
-    root.classList.toggle('dyslexia-font', dyslexiaFont);
-    root.classList.toggle('reduced-motion', reducedMotion);
-  }, [fontSize, highContrast, dyslexiaFont, reducedMotion]);
+  }, [fontSize]);
 
   useEffect(() => {
     audio.setVolumes(volumes);

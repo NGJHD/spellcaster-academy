@@ -61,6 +61,17 @@ Running log of decisions, environment facts, architecture and milestone status. 
     - Battle music starts whenever an encounter can lower HP.
     - It returns to the area's story mood 3 s after the fight.
 
+- 2026-10-02 second playtest:
+  - **Gentle HP:** HP is unlimited on Gentle and the HP bar is hidden. A hit still shows a soft glow.
+  - **Progress bar:** labelled "Level Progress", with a chapter mark where each area begins and the current chapter name below.
+  - **Bonus words:** each bonus word now stays typeable for at least 3 s ("glint" was skipped after the pace-up). The camera finishes its move and waits at the end pose; it also waits while the player is mid-word.
+  - **Fly-in:** new words appear 5× size in the centre of the screen, hold briefly, then glide to their target (1.1 s, ease-in-out) and land with a golden shockwave. The label projector sets `--fly-dx/--fly-dy` on first placement.
+  - **Settings removed** by owner decision, overriding §8 and §15: reduced motion, reduced shake, reduced particle effects, high-contrast panels and the dyslexia font. The OpenDyslexic package was removed too. Rail data keeps its `reducedMotion` fields, but the setting is always off.
+  - **Music:**
+    - The score was silent in game. It shared Howler's AudioContext, which Howler suspends or replaces, leaving the engine waiting on a dead context.
+    - The music now runs on its own AudioContext, continuously underneath all sound effects. It is about 1.8× louder, with a compressor to prevent clipping.
+    - `window.__spellcaster.music()` (with `?test`) reports the context state, the mood and the output level.
+
 ## Spec conflict resolutions
 
 The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:

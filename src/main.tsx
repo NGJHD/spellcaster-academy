@@ -1,8 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@fontsource/opendyslexic/400.css';
 import { App } from './app/App';
-import { installHowlerAudio } from './audio/HowlerAudio';
+import { installHowlerAudio, musicDiagnostics } from './audio/HowlerAudio';
 import { installBrowserVoice } from './audio/voice';
 import { getSettings } from './state/settingsStore';
 import './styles/global.css';
@@ -18,6 +17,7 @@ if (new URLSearchParams(window.location.search).has('test')) {
   void Promise.all([import('./state/gameStore'), import('./player/RunDriver')]).then(([{ getRun }, { renderStats, debugScene }]) => {
     (window as unknown as { __spellcaster: unknown }).__spellcaster = {
       beat: () => getRun()?.director.currentBeat?.id ?? null,
+      music: () => musicDiagnostics.read(),
       area: () => getRun()?.currentAreaId ?? null,
       focus: () => getRun()?.focus ?? null,
       render: () => ({ ...renderStats }),

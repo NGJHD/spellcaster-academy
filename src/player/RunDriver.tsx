@@ -113,6 +113,12 @@ function projectLabels(
     const clampedY = Math.min(height - SUBTITLE_BAND, Math.max(SAFE_MARGIN * 1.6, y));
     const offscreen = behind || clampedX !== x || clampedY !== y;
     el.style.transform = `translate(${clampedX.toFixed(1)}px, ${clampedY.toFixed(1)}px)`;
+    if (!el.dataset.fly) {
+      // First placement of a new word: it flies in from the centre of the screen (owner feedback).
+      el.style.setProperty('--fly-dx', `${(width / 2 - clampedX).toFixed(1)}px`);
+      el.style.setProperty('--fly-dy', `${(height * 0.45 - clampedY).toFixed(1)}px`);
+      el.dataset.fly = 'true';
+    }
     if (offscreen) {
       const angle = Math.atan2(y - clampedY, x - clampedX);
       el.dataset.offscreen = 'true';

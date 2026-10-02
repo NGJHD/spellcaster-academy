@@ -7,13 +7,42 @@ import { MusicEngine } from './MusicEngine';
 /** Minimum gap between repeats of the same sound so rapid typing never becomes a wall of noise. */
 const MIN_REPEAT_MS = 28;
 
-/** Howler-backed sound effects plus the procedural music engine, sharing Howler's master gain. */
+/**
+ * Howler plays the sound effects; the procedural music engine runs on its own AudioContext so the
+ * score plays continuously underneath every effect. (Sharing Howler's context silenced the music:
+ * Howler can suspend or replace its context, leaving the engine waiting on a dead one.)
+ */
+/** Diagnostics for the ?test hook: is the music actually sounding? */
+export const musicDiagnostics = {
+  read: (): { context: string; mood: string | null; level: number } => ({ context: 'none', mood: null, level: 0 }),
+};
+
 export function installHowlerAudio(): void {
+  Howler.autoSuspend = false;
   const sounds = new Map<SfxId, Howl>();
   const lastPlayed = new Map<SfxId, number>();
   let volumes: AudioVolumes = { master: 0.8, music: 0.6, sfx: 0.8, ui: 0.7 };
-  let music: MusicEngine | null = null;
   let wantedMusic: MusicId | null = null;
+
+  const musicCtx = new AudioContext();
+  const musicMaster = musicCtx.createGain();
+  musicMaster.connect(musicCtx.destination);
+  const music = new MusicEngine(musicCtx, musicMaster);
+
+  const applyMusicVolume = () => {
+    musicMaster.gain.setTargetAtTime(volumes.master, musicCtx.currentTime, 0.05);
+    music.setVolume(volumes.music);
+  };
+  applyMusicVolume();
+
+  const startMusic = () => {
+    if (musicCtx.state === 'running') {
+      if (music.current === wantedMusic) return;
+      music.play(wantedMusic);
+      return;
+    }
+    void musicCtx.resume().then(() => music.play(wantedMusic));
+  };
 
   const load = () => {
     if (sounds.size > 0) return;
@@ -22,14 +51,7 @@ export function installHowlerAudio(): void {
     }
   };
 
-  const musicEngine = (): MusicEngine | null => {
-    if (music) return music;
-    const ctx = Howler.ctx;
-    if (!ctx) return null;
-    music = new MusicEngine(ctx, Howler.masterGain);
-    music.setVolume(volumes.music);
-    return music;
-  };
+  musicDiagnostics.read = () => ({ context: musicCtx.state, mood: music.current, level: music.level() });
 
   installAudio({
     playSfx(id, options) {
@@ -45,37 +67,36 @@ export function installHowlerAudio(): void {
       if (options?.rate) howl.rate(options.rate, playId);
     },
     setMusic(id) {
+      if (id === wantedMusic && music.current === id) return;
       wantedMusic = id;
-      musicEngine()?.play(id);
+      startMusic();
     },
     setVolumes(v) {
       volumes = v;
       Howler.volume(v.master);
-      music?.setVolume(v.music);
+      applyMusicVolume();
     },
     unlock() {
       load();
-      const ctx = Howler.ctx;
-      if (ctx && ctx.state === 'suspended') {
-        void ctx.resume().then(() => {
-          const engine = musicEngine();
-          engine?.play(wantedMusic);
-        });
-      } else {
-        const engine = musicEngine();
-        if (engine && wantedMusic) engine.resume();
-      }
+      void Howler.ctx?.resume();
+      startMusic();
     },
   });
 
-  // Browsers only allow audio after a user gesture.
-  const firstGesture = () => {
-    window.removeEventListener('pointerdown', firstGesture);
-    window.removeEventListener('keydown', firstGesture);
+  // Browsers only allow audio after a user gesture; keep trying on gestures until both contexts run.
+  const gesture = () => {
     load();
-    const ctx = Howler.ctx;
-    void ctx?.resume().then(() => musicEngine()?.play(wantedMusic));
+    void Howler.ctx?.resume();
+    startMusic();
+    if (musicCtx.state === 'running') {
+      window.removeEventListener('pointerdown', gesture);
+      window.removeEventListener('keydown', gesture);
+    }
   };
-  window.addEventListener('pointerdown', firstGesture);
-  window.addEventListener('keydown', firstGesture);
+  window.addEventListener('pointerdown', gesture);
+  window.addEventListener('keydown', gesture);
+  // A hidden tab may suspend the context; resume the music when the player comes back.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') startMusic();
+  });
 }

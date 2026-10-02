@@ -47,8 +47,8 @@ export const TIME_SCALE = DEV_TOOLS ? Math.min(20, Math.max(0.1, Number(params.g
 function runSettings(): RunSettings {
   const s = getSettings();
   return {
-    rail: { reducedMotion: s.reducedMotion, travelSpeed: TRAVEL_SPEED_MULTIPLIER[s.travelSpeed] },
-    reducedShake: s.reducedShake,
+    // Owner decision (2026-10-02): no reduced-motion option; the authored camera always plays.
+    rail: { reducedMotion: false, travelSpeed: TRAVEL_SPEED_MULTIPLIER[s.travelSpeed] },
   };
 }
 

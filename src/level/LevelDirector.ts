@@ -58,6 +58,13 @@ export class LevelDirector {
     return this.route.beats.findIndex((b) => b.id === beatId);
   }
 
+  /** Seconds left in the current camera beat (0 for gated beats). */
+  remainingSec(settings: RailSettings): number {
+    const beat = this.currentBeat;
+    if (!beat || !isCameraBeat(beat)) return 0;
+    return Math.max(0, beatDurationSec(this.route, beat, settings) - this.elapsedSec);
+  }
+
   /** Begin playback at a beat (new run, resume, or checkpoint restart). */
   start(settings: RailSettings, fromBeatId?: string): void {
     const found = fromBeatId ? this.indexOf(fromBeatId) : 0;

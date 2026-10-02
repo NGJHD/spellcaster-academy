@@ -80,16 +80,11 @@ export function SettingsPanel({ onBack }: { onBack: () => void }) {
       <h2 className="modal-panel__heading">{s.heading}</h2>
       <div className="settings-scroll">
         <Section title={s.sections.motion}>
-          <Toggle label={s.reducedMotion} help={s.reducedMotionHelp} value={settings.reducedMotion} onChange={(v) => update({ reducedMotion: v })} />
-          <Toggle label={s.reducedShake} value={settings.reducedShake} onChange={(v) => update({ reducedShake: v })} />
-          <Toggle label={s.reducedEffects} value={settings.reducedEffects} onChange={(v) => update({ reducedEffects: v })} />
           <Segmented<TravelSpeed> label={s.travelSpeed} value={settings.travelSpeed} options={['slow', 'normal', 'fast']} names={s.travelSpeeds} onChange={(v) => update({ travelSpeed: v })} />
           <Segmented<Quality> label={s.quality} value={settings.quality} options={['low', 'medium', 'high']} names={s.qualities} onChange={(v) => update({ quality: v })} />
         </Section>
         <Section title={s.sections.text}>
           <Segmented<FontSize> label={s.fontSize} value={settings.fontSize} options={['normal', 'large', 'extra-large']} names={s.fontSizes} onChange={(v) => update({ fontSize: v })} />
-          <Toggle label={s.highContrast} value={settings.highContrast} onChange={(v) => update({ highContrast: v })} />
-          <Toggle label={s.dyslexiaFont} value={settings.dyslexiaFont} onChange={(v) => update({ dyslexiaFont: v })} />
         </Section>
         <Section title={s.sections.game}>
           <Toggle label={s.spokenDialogue} value={settings.spokenDialogue} onChange={(v) => update({ spokenDialogue: v })} />

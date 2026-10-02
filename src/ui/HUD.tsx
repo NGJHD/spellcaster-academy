@@ -1,14 +1,29 @@
 import { SPEAKER_NAMES } from '../content/dialogue';
 import { strings } from '../content/strings';
+import type { AreaId } from '../game/types';
+import { LEVEL1_ROUTE } from '../level/level1Route';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { useSettingsStore } from '../state/settingsStore';
+
+/** Chapter marks on the progress bar: where each area begins along the route. */
+const CHAPTERS: readonly { areaId: AreaId; at: number }[] = (() => {
+  const beats = LEVEL1_ROUTE.beats;
+  const out: { areaId: AreaId; at: number }[] = [];
+  beats.forEach((b, i) => {
+    if (i > 0 && b.areaId !== beats[i - 1]?.areaId && !out.some((c) => c.areaId === b.areaId)) {
+      out.push({ areaId: b.areaId, at: i / Math.max(1, beats.length - 1) });
+    }
+  });
+  return out;
+})();
 
 /** HUD (GD-19): Focus, objective, streak, star pages, subtitles, prompts and short notices only. */
 export function HUD() {
   const areaId = useRunStore((s) => s.areaId);
   const areaCardKey = useRunStore((s) => s.areaCardKey);
   const focus = useRunStore((s) => s.focus);
+  const unlimitedHp = useRunStore((s) => s.unlimitedHp);
   const objective = useRunStore((s) => s.objective);
   const streak = useRunStore((s) => s.streak);
   const starPages = useRunStore((s) => s.starPages);
@@ -26,6 +41,7 @@ export function HUD() {
   return (
     <div className="hud">
       <div className="hud__top-left">
+        {!unlimitedHp && (
         <div className="focus-meter" role="meter" title={strings.hud.focusHelp} aria-label={strings.hud.focus} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(focus)}>
           <span className="focus-meter__label">{strings.hud.focus}</span>
           <span className="focus-meter__track">
@@ -33,12 +49,25 @@ export function HUD() {
           </span>
           <span className="focus-meter__value">{Math.round(focus)}</span>
         </div>
+        )}
         {objectiveText && <div className="hud__objective">{objectiveText}</div>}
       </div>
 
-      <div className="hud__progress" role="progressbar" aria-label={strings.hud.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
-        <span className="hud__progress-fill" style={{ transform: `scaleX(${progress})` }} />
-        <span className="hud__progress-marker" style={{ left: `${progress * 100}%` }} />
+      <div className="hud__progress-wrap">
+        <div className="hud__progress-label">{strings.hud.progress}</div>
+        <div className="hud__progress" role="progressbar" aria-label={strings.hud.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+          <span className="hud__progress-fill" style={{ transform: `scaleX(${progress})` }} />
+          {CHAPTERS.map((c) => (
+            <span
+              key={c.areaId}
+              className={`hud__chapter${progress >= c.at ? ' hud__chapter--reached' : ''}`}
+              style={{ left: `${c.at * 100}%` }}
+              title={strings.areas[c.areaId]}
+            />
+          ))}
+          <span className="hud__progress-marker" style={{ left: `${progress * 100}%` }} />
+        </div>
+        {areaId && <div className="hud__progress-chapter">{strings.areas[areaId]}</div>}
       </div>
 
       <div className="hud__top-right">

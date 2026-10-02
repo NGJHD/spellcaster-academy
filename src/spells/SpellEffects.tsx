@@ -16,7 +16,6 @@ import {
 } from 'three';
 import { PROJECTILE_SEC } from '../enemies/EnemyBrain';
 import { getRun } from '../state/gameStore';
-import { useSettingsStore } from '../state/settingsStore';
 import { castSignal, wandTip } from '../player/Wand';
 
 const POOL = 10;
@@ -56,7 +55,6 @@ interface Burst {
  * arcs. No allocation per cast; effects never linger over a word for more than ~250 ms (§10).
  */
 export function SpellEffects() {
-  const reducedEffects = useSettingsStore((s) => s.reducedEffects);
   const projectiles = useMemo<Projectile[]>(
     () =>
       Array.from({ length: POOL }, () => ({
@@ -130,7 +128,7 @@ export function SpellEffects() {
       to.y += (target?.spawn.labelHeight ?? 1) * 0.45;
       if (e.kind === 'chain') {
         startChain(chains, wandTip, to);
-        startBurst(bursts, to, reducedEffects);
+        startBurst(bursts, to, false);
         continue;
       }
       castSignal.time = 0;
@@ -179,7 +177,7 @@ export function SpellEffects() {
       });
       if (u >= 1) {
         p.active = false;
-        startBurst(bursts, p.to, reducedEffects, p.color.halo);
+        startBurst(bursts, p.to, false, p.color.halo);
       }
     });
 

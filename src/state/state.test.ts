@@ -15,17 +15,14 @@ describe('settings sanitising', () => {
   });
 
   it('keeps valid fields and replaces invalid ones', () => {
-    const s = sanitizeSettings({ reducedMotion: true, travelSpeed: 'warp', volumes: { music: 2, sfx: 0.3 } });
-    expect(s.reducedMotion).toBe(true);
+    const s = sanitizeSettings({ showWpm: true, travelSpeed: 'warp', volumes: { music: 2, sfx: 0.3 } });
+    expect(s.showWpm).toBe(true);
     expect(s.travelSpeed).toBe('normal');
     expect(s.volumes.music).toBe(1);
     expect(s.volumes.sfx).toBe(0.3);
     expect(s.quality).toBe('medium');
   });
 
-  it('respects the OS reduced-motion preference as the default', () => {
-    expect(defaultSettings(true).reducedMotion).toBe(true);
-  });
 });
 
 describe('game store pause flow', () => {

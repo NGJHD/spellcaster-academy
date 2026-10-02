@@ -55,6 +55,8 @@ export interface RunUiState {
   /** Bumps when an area card should show. */
   areaCardKey: number;
   focus: number;
+  /** Gentle difficulty: HP is unlimited and the HP bar is hidden. */
+  unlimitedHp: boolean;
   objective: string | null;
   streak: number;
   starPages: number;
@@ -85,6 +87,7 @@ export const initialRunUi = (): RunUiState => ({
   areaId: null,
   areaCardKey: 0,
   focus: 100,
+  unlimitedHp: false,
   objective: null,
   streak: 0,
   starPages: 0,
