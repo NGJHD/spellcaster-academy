@@ -384,11 +384,17 @@ export class GameRun {
         this.currentBark = null;
         this.startDialogue();
       } else if (skip) {
-        this.advanceDialogue(true);
+        // Enter/Space always skip at once; a letter is guarded briefly in case it was held over.
+        this.advanceDialogue(true, intent.kind === 'letter');
       }
       return;
     }
     if (intent.kind === 'letter') this.dismissBarks();
+    // Enter or Space while a line is still being said skips to the next line (owner feedback).
+    if ((intent.kind === 'enter' || intent.kind === 'space') && this.currentBark) {
+      this.skipBark();
+      return;
+    }
     if (intent.kind === 'enter' && this.encounter?.def.optionalPrompt && this.encounter.state !== 'complete') {
       this.skipOptionalEncounter();
       return;
@@ -948,11 +954,11 @@ export class GameRun {
     if (this.lineFinished(line)) this.advanceDialogue(false);
   }
 
-  private advanceDialogue(skipped: boolean): void {
+  private advanceDialogue(skipped: boolean, guarded = false): void {
     const d = this.dialogue;
     if (!d || !d.started) return;
-    // A short guard so a key held over from the previous moment never skips a line unseen.
-    if (skipped && d.elapsed < 0.25) return;
+    // A short guard so a letter held over from the previous moment never skips a line unseen.
+    if (guarded && d.elapsed < 0.25) return;
     if (skipped) voice.cancel();
     d.index++;
     d.elapsed = 0;
@@ -972,6 +978,23 @@ export class GameRun {
     // Keep remarks timely: never let a backlog build up behind the action.
     if (this.barkQueue.length >= 3) this.barkQueue.shift();
     this.barkQueue.push(line);
+  }
+
+  /** Stop the line being said and move straight on to the next queued one. */
+  private skipBark(): void {
+    voice.cancel();
+    this.currentBark = null;
+    if (this.dialogue) {
+      this.startDialogue();
+      return;
+    }
+    const next = this.barkQueue.shift();
+    if (!next) {
+      patchRunUi({ subtitle: null });
+      return;
+    }
+    this.currentBark = next;
+    this.present(next, false);
   }
 
   /** The player started typing: stop the remark on screen and drop stale ones. */

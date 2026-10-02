@@ -360,24 +360,47 @@ button {
   align-items: center;
   gap: 4px;
   transform: translate(-50%, -100%);
-  animation: word-fly-in 420ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: word-fly-in 850ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-/* Owner feedback: new words should catch the eye. They swoop in large and settle with a flash. */
+.word-label__box .word-label__inner {
+  animation: word-land-flash 1250ms ease-out;
+}
+
+/*
+ * Owner feedback: new words must be dramatic. They swoop down from high above, huge, spinning and
+ * blurred, ease in and out of the flight, then land with a golden shockwave.
+ */
 @keyframes word-fly-in {
   0% {
     opacity: 0;
-    transform: translate(-50%, -100%) translateY(-70px) scale(2.2);
-    filter: brightness(2.2);
+    transform: translate(-50%, -100%) translate(-60px, -260px) scale(4) rotate(-14deg);
+    filter: blur(8px) brightness(2.6);
   }
-  60% {
+  25% {
     opacity: 1;
-    filter: brightness(1.6);
+  }
+  80% {
+    transform: translate(-50%, -100%) translate(0, 8px) scale(0.92) rotate(1deg);
+    filter: blur(0) brightness(1.8);
   }
   100% {
     opacity: 1;
     transform: translate(-50%, -100%);
-    filter: brightness(1);
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes word-land-flash {
+  0%,
+  62% {
+    box-shadow: 0 0 0 0 rgba(255, 217, 138, 0), 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+  72% {
+    box-shadow: 0 0 0 6px rgba(255, 217, 138, 0.9), 0 0 40px 12px rgba(255, 200, 90, 0.75);
+  }
+  100% {
+    box-shadow: 0 0 0 26px rgba(255, 217, 138, 0), 0 4px 14px rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -1296,9 +1319,16 @@ kbd {
 
 /* Reduced motion: keep information, drop movement. */
 :root.reduced-motion .title-screen__ward,
-:root.reduced-motion .calm-overlay__ring,
+:root.reduced-motion .calm-overlay__ring {
+  animation: none;
+}
+
 :root.reduced-motion .word-label__box {
-  animation-duration: 120ms;
+  animation-duration: 150ms;
+}
+
+:root.reduced-motion .word-label__box .word-label__inner {
+  animation: none;
 }
 
 :root.reduced-motion .word-label__text[data-mistake] {

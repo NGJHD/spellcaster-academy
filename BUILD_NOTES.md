@@ -54,7 +54,7 @@ Running log of decisions, environment facts, architecture and milestone status. 
     - "Focus" is now "HP", with a number and a tooltip.
     - The streak and star-page chips have visible labels and tooltips.
     - A level progress bar sits at the top centre.
-    - Pip's speaker name reads "Pip · your guide orb", and Pip introduces themself in the opening.
+    - the speaker name for Pip reads "Guide Orb", and Pip introduces themself in the opening.
   - **Pause menu:** Resume sits at the bottom, with Return to Title beside it in red.
   - **Music:**
     - The procedural score is louder and richer: lead melody per mood, synthetic hall reverb, driving bass and snare in battle moods.

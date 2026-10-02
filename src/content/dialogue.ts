@@ -13,7 +13,7 @@ export interface DialogueLine {
 
 export const SPEAKER_NAMES: Record<Speaker, string> = {
   // Owner feedback: make it clear Pip is the guide orb, not the player.
-  pip: 'Pip · your guide orb',
+  pip: 'Guide Orb',
   mira: 'Mira',
   orin: 'Keeper Orin',
   'portrait-1': 'Portrait',
