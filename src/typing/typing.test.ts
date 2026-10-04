@@ -286,3 +286,31 @@ describe('difficulty filtering', () => {
     expect(adjustLengthRange([5, 7], 'standard', true)).toEqual([3, 4]);
   });
 });
+
+describe('counter-word interrupts (Level 2 Ward Shield)', () => {
+  it('takes the lock mid-word and hands it back with progress intact', () => {
+    const engine = new TypingEngine({ rejectMistakes: false, centralityOf: () => 0 });
+    engine.setCandidates([{ id: 'blot', word: 'river' }, { id: 'ball', word: 'ink', interrupt: true }]);
+    engine.typeLetter('r');
+    engine.typeLetter('i');
+    const events = engine.typeLetter('i');
+    // After "ri" the next letter is 'v', so an 'i' belongs to the counter-word, which takes over.
+    expect(events.some((e) => e.type === 'lock' && e.targetId === 'ball')).toBe(true);
+    engine.typeLetter('n');
+    const done = engine.typeLetter('k');
+    expect(done.some((e) => e.type === 'complete' && e.targetId === 'ball')).toBe(true);
+    expect(engine.view.lockedId).toBe('blot');
+    expect(engine.view.correctLength).toBe(2);
+    engine.typeLetter('v');
+    expect(engine.view.correctLength).toBe(3);
+  });
+
+  it('prefers the locked word when the letter is correct for it', () => {
+    const engine = new TypingEngine({ rejectMistakes: false, centralityOf: () => 0 });
+    engine.setCandidates([{ id: 'a', word: 'stone' }, { id: 'b', word: 'tag', interrupt: true }]);
+    engine.typeLetter('s');
+    engine.typeLetter('t');
+    expect(engine.view.lockedId).toBe('a');
+    expect(engine.view.correctLength).toBe(2);
+  });
+});

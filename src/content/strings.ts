@@ -1,4 +1,4 @@
-import type { AreaId, CosmeticId, Difficulty, SpellId } from '../game/types';
+import type { AreaId, CosmeticId, Difficulty, SpellId, LevelId } from '../game/types';
 import type { HazardAttack } from '../level/levelTypes';
 import type { TravelSpeed } from '../state/settings';
 
@@ -22,9 +22,19 @@ export const strings = {
     cancel: 'CANCEL',
     chooseDifficulty: 'Choose your pace',
     begin: 'BEGIN',
+    chapters: 'Chapters',
+    chaptersHeading: 'Choose a chapter',
+    locked: 'Finish the chapter before to unlock',
+    confirmLevel: (name: string) => `Start ${name} from the beginning?`,
+    completedLevels: (n: number) => (n >= 3 ? 'Campaign Complete' : `${n} of 3 chapters complete`),
     welcomeBack: 'Welcome back.',
     welcomeBackBody: 'Your journey will continue from the last safe moment.',
   },
+  levels: {
+    'level-1': { number: 'Level 1', name: 'First Day, First Spell' },
+    'level-2': { number: 'Level 2', name: 'The Siege of Asterfall' },
+    'level-3': { number: 'Level 3', name: 'Into the Unwritten' },
+  } satisfies Record<LevelId, { number: string; name: string }>,
   difficulty: {
     gentle: 'Gentle',
     standard: 'Standard',
@@ -122,6 +132,17 @@ export const strings = {
     practice: 'Tune your wand in the Practice Gallery',
     'break-defence': "Reach the Warden's core",
     'repair-ward': 'Repair the ward',
+    'l2-festival': 'Launch the festival lanterns',
+    'l2-beacons': 'Light the four beacons',
+    'l2-dormitory': 'Rescue the first-years',
+    'l2-bell': 'Ring the Bell Beacon',
+    'l2-hall': 'Hold the Great Hall',
+    'l2-herald': 'Defeat the Grey Herald',
+    'l2-furnace': 'Relight the Furnace Beacon',
+    'l2-lake': 'Cross the lake to the lighthouse',
+    'l2-library': 'Save the Star Atlas',
+    'l2-ramparts': 'Light the Rampart Beacon',
+    'l2-wyrm': 'Stop the Vellum Wyrm',
   } as Record<string, string>,
   hud: {
     focus: 'HP',
@@ -134,6 +155,7 @@ export const strings = {
     progress: 'Level Progress',
     streak: 'Perfect streak',
     starPages: 'Star pages',
+    collectibles: { 'level-1': 'Star pages', 'level-2': 'Lanterns', 'level-3': 'Memory pages' } as Record<string, string>,
     saved: 'Journey saved',
     shield: 'Shield',
     optional: 'Bonus',
@@ -149,6 +171,7 @@ export const strings = {
     'spark-bolt': { name: 'SPARK BOLT', detail: 'Every finished word blasts a bolt of light.' },
     'frost-thread': { name: 'FROST THREAD', detail: 'Perfect words freeze the other foes for a moment.' },
     'chain-spark': { name: 'CHAIN SPARK', detail: 'Five perfect words in a row: lightning leaps to more foes!' },
+    starfall: { name: 'STARFALL', detail: 'Eight perfect words in a row: falling stars calm every small foe and block every attack!' },
   } satisfies Record<SpellId, { name: string; detail: string }>,
   speedRound: {
     title: 'SPEED ROUND!',
@@ -172,6 +195,8 @@ export const strings = {
     chest: 'Speed round! Open the chest — or press Enter to keep running.',
     constellations: 'Speed round! Name the constellations — or press Enter to continue.',
     'gallery-bonus': 'Bonus round! Beat your best — or press Enter to skip.',
+    'l2-valves': 'Speed round! Open the valves — or press Enter to skip.',
+    'l2-shelves': 'Speed round! Save the shelves — or press Enter to skip.',
   } as Record<string, string>,
   hazards: {
     'arc-left': 'Light arc from the left',
@@ -181,6 +206,7 @@ export const strings = {
   } satisfies Record<HazardAttack, string>,
   toasts: {
     starPage: 'STAR PAGE FOUND',
+    collectible: { 'level-1': 'STAR PAGE FOUND', 'level-2': 'LANTERN FOUND', 'level-3': 'MEMORY PAGE FOUND' } as Record<string, string>,
     spellUnlocked: 'NEW SPELL',
     cosmetic: 'NEW WAND TRAIL',
   },
@@ -188,10 +214,12 @@ export const strings = {
     'spark-bolt': 'Spark Bolt',
     'frost-thread': 'Frost Thread — perfect words slow other foes',
     'chain-spark': 'Chain Spark — five perfect words in a row',
+    starfall: 'Starfall — eight perfect words in a row',
   } satisfies Record<SpellId, string>,
   cosmetics: {
     'trail-starlight': 'Starlight',
     'trail-verdant': 'Verdant',
+    'trail-inkwell': 'Inkwell Blue',
   } satisfies Record<CosmeticId, string>,
   choice: {
     heading: 'Before the observatory',
@@ -205,6 +233,10 @@ export const strings = {
   results: {
     heading: 'LEVEL 1 COMPLETE',
     subheading: 'First Day, First Spell',
+    headingFor: (n: number) => `LEVEL ${n} COMPLETE`,
+    playAgainFor: (n: number) => `PLAY LEVEL ${n} AGAIN`,
+    nextLevel: (n: number) => `CONTINUE TO LEVEL ${n}`,
+    campaignDone: 'You saved Asterfall. THE END — thank you for playing!',
     rank: 'Title earned',
     playAgain: 'PLAY LEVEL 1 AGAIN',
     returnToTitle: 'RETURN TO TITLE',

@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import { audio } from '../../audio/AudioManager';
 import { strings } from '../../content/strings';
 import { readProfile } from '../../game/saveData';
-import type { Difficulty } from '../../game/types';
+import { LEVEL_ORDER, levelOfArea, type Difficulty, type LevelId } from '../../game/types';
 import { gameStorage, readResumableSave, useGameStore } from '../../state/gameStore';
 import { ControlsPanel, SettingsPanel } from '../../ui/SettingsPanel';
 
-type Panel = 'none' | 'confirm' | 'difficulty' | 'settings' | 'credits' | 'controls';
+type Panel = 'none' | 'confirm' | 'difficulty' | 'settings' | 'credits' | 'controls' | 'chapters';
 
 const DIFFICULTIES: readonly Difficulty[] = ['gentle', 'standard', 'challenge'];
 
@@ -30,9 +30,14 @@ export function TitleScreen() {
   const save = useMemo(() => readResumableSave(), []);
   const profile = useMemo(() => readProfile(gameStorage()), []);
   const t = strings.title;
+  // START plays the next chapter not yet completed (Level 1 when none or all are done, §5).
+  const nextUnbeaten = LEVEL_ORDER.find((l) => !profile.completedLevels.includes(l)) ?? 'level-1';
+  const [level, setLevel] = useState<LevelId>(nextUnbeaten);
+  const unlocked = (l: LevelId) => l === 'level-1' || profile.completedLevels.includes(LEVEL_ORDER[LEVEL_ORDER.indexOf(l) - 1] ?? 'level-1');
 
-  const onStart = () => {
+  const onStart = (chosen: LevelId = nextUnbeaten) => {
     audio.unlock();
+    setLevel(chosen);
     setPanel(save ? 'confirm' : 'difficulty');
   };
 
@@ -49,7 +54,7 @@ export function TitleScreen() {
             <span className="title-screen__subtitle">{t.subtitle}</span>
           </h1>
           <nav className="title-screen__options">
-            <button type="button" className="menu-button menu-button--primary" onClick={onStart} autoFocus>
+            <button type="button" className="menu-button menu-button--primary" onClick={() => onStart()} autoFocus>
               {t.start}
             </button>
             <button
@@ -67,7 +72,7 @@ export function TitleScreen() {
             <div id="resume-caption" className="title-screen__caption">
               {save ? (
                 <>
-                  <div>{strings.areas[save.areaId]}</div>
+                  <div>{strings.levels[levelOfArea(save.areaId)].number} · {strings.areas[save.areaId]}</div>
                   <div>{strings.difficulty[save.difficulty]} difficulty</div>
                   <div>{t.lastSaved(timeAgo(save.savedAtIso))}</div>
                 </>
@@ -79,6 +84,7 @@ export function TitleScreen() {
           {profile.levelCompleted && (
             <div className="title-screen__crest">
               <span className="title-screen__crest-icon">✦</span> {t.levelComplete}
+              {profile.completedLevels.length > 1 && <div className="title-screen__best">{t.completedLevels(profile.completedLevels.length)}</div>}
               {profile.bestResults && (
                 <div className="title-screen__best">
                   {t.best(Math.round(profile.bestResults.bestAverageWpm), Math.round(profile.bestResults.bestAccuracy))}
@@ -91,7 +97,7 @@ export function TitleScreen() {
 
       {panel === 'confirm' && (
         <div className="modal-panel title-modal">
-          <h2 className="modal-panel__heading">{t.confirmHeading}</h2>
+          <h2 className="modal-panel__heading">{level === 'level-1' ? t.confirmHeading : t.confirmLevel(strings.levels[level].number)}</h2>
           <p className="modal-panel__note">{t.confirmBody}</p>
           <div className="modal-panel__buttons">
             <button type="button" className="menu-button" onClick={() => setPanel('difficulty')} autoFocus>{t.confirmStart}</button>
@@ -112,9 +118,24 @@ export function TitleScreen() {
             ))}
           </div>
           <div className="modal-panel__buttons">
-            <button type="button" className="menu-button menu-button--primary" onClick={() => startNewRun(difficulty)} autoFocus>{t.begin}</button>
+            <button type="button" className="menu-button menu-button--primary" onClick={() => startNewRun(difficulty, level)} autoFocus>{t.begin}</button>
             <button type="button" className="menu-button menu-button--quiet" onClick={() => setPanel('none')}>{t.cancel}</button>
           </div>
+        </div>
+      )}
+
+      {panel === 'chapters' && (
+        <div className="modal-panel title-modal">
+          <h2 className="modal-panel__heading">{t.chaptersHeading}</h2>
+          <div className="difficulty-options">
+            {LEVEL_ORDER.map((l) => (
+              <button key={l} type="button" className="difficulty-option" disabled={!unlocked(l)} onClick={() => onStart(l)}>
+                <span className="difficulty-option__name">{strings.levels[l].number}: {strings.levels[l].name}</span>
+                <span className="difficulty-option__help">{unlocked(l) ? (profile.completedLevels.includes(l) ? '✦' : '') : t.locked}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="menu-button menu-button--quiet" onClick={() => setPanel('none')} autoFocus>{t.cancel}</button>
         </div>
       )}
 
@@ -140,6 +161,7 @@ export function TitleScreen() {
 
       {panel === 'none' && (
         <div className="title-screen__icons">
+          <button type="button" className="icon-button" onClick={() => setPanel('chapters')} aria-label={t.chapters} title={t.chapters}>❖</button>
           <button type="button" className="icon-button" onClick={() => setPanel('settings')} aria-label={t.settings} title={t.settings}>⚙</button>
           <button type="button" className="icon-button" onClick={() => setPanel('controls')} aria-label={strings.controls.heading} title={strings.controls.heading}>⌨</button>
           <button type="button" className="icon-button" onClick={() => setPanel('credits')} aria-label={t.credits} title={t.credits}>✎</button>

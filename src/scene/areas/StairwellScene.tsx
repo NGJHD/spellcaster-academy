@@ -20,7 +20,8 @@ const polar = (deg: number, y: number, r = R): [number, number, number] => {
   return [r * Math.cos(a), y, r * Math.sin(a)];
 };
 
-export function StairwellScene() {
+/** `dormitory`: the Level 2 Dormitory Tower reuses the spiral without the Level 1 guards and tea tray. */
+export function StairwellScene({ dormitory = false }: { dormitory?: boolean } = {}) {
   const steps = useMemo(() => {
     // Descend 4 m per 80° from 60° above landing 1 to below the bottom.
     const out: { deg: number; y: number }[] = [];
@@ -69,12 +70,12 @@ export function StairwellScene() {
           </group>
         );
       })}
-      {STAIR_GUARDS.slice(0, 2).map((g, i) => (
+      {!dormitory && STAIR_GUARDS.slice(0, 2).map((g, i) => (
         <CommandedGuard key={g.id} deg={g.deg} floor={g.floor} flag={`stair-guard-${i + 1}-calm`} slideBeat={SLIDE_BEATS[i] ?? ''} />
       ))}
-      <ReassemblingGuard />
-      <TeaTray />
-      {STAIR_GUARDS.map((g) => {
+      {!dormitory && <ReassemblingGuard />}
+      {!dormitory && <TeaTray />}
+      {!dormitory && STAIR_GUARDS.map((g) => {
         const [x, , z] = polar(g.deg, 0, 6);
         return (
           <mesh key={`circle-${g.id}`} position={[x, g.floor + 0.02, z]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.wardGold}>

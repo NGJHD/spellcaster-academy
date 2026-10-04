@@ -12,11 +12,46 @@ import { PortraitsScene } from './areas/PortraitsScene';
 import { StairwellScene } from './areas/StairwellScene';
 import { TowerScene } from './areas/TowerScene';
 import { Atmosphere } from './Atmosphere';
+import { AftermathScene, BridgeScene, DormitoryFires, HallScene, LakeScene, LawnScene, LibraryFires, RampartScene, RoofScene, WorkshopScene } from './areas2/Level2Scenes';
 
-type SceneKey = 'exterior' | 'library' | 'portraits' | 'greenhouse' | 'stairwell' | 'gallery' | 'tower' | 'observatory';
+type SceneKey =
+  | 'exterior'
+  | 'library'
+  | 'portraits'
+  | 'greenhouse'
+  | 'stairwell'
+  | 'gallery'
+  | 'tower'
+  | 'observatory'
+  // Level 2
+  | 'l2-lawn'
+  | 'l2-dormitory'
+  | 'l2-bridge'
+  | 'l2-hall'
+  | 'l2-workshops'
+  | 'l2-lake'
+  | 'l2-library'
+  | 'l2-ramparts'
+  | 'l2-roof'
+  | 'l2-aftermath';
+
+const LEVEL2_SCENES: Partial<Record<AreaId, SceneKey>> = {
+  'l2-festival-lawn': 'l2-lawn',
+  'l2-dormitory': 'l2-dormitory',
+  'l2-bell-bridge': 'l2-bridge',
+  'l2-great-hall': 'l2-hall',
+  'l2-workshops': 'l2-workshops',
+  'l2-lantern-lake': 'l2-lake',
+  'l2-burning-library': 'l2-library',
+  'l2-ramparts': 'l2-ramparts',
+  'l2-tower-roof': 'l2-roof',
+  'l2-aftermath': 'l2-aftermath',
+};
 
 function sceneFor(area: AreaId): SceneKey {
   if (EXTERIOR_AREAS.has(area)) return 'exterior';
+  const level2 = LEVEL2_SCENES[area];
+  if (level2) return level2;
   switch (area) {
     case 'whispering-library':
       return 'library';
@@ -68,6 +103,26 @@ export function World() {
     gallery: <GalleryScene />,
     tower: <TowerScene />,
     observatory: <ObservatoryScene />,
+    'l2-lawn': <LawnScene />,
+    'l2-dormitory': (
+      <>
+        <StairwellScene dormitory />
+        <DormitoryFires />
+      </>
+    ),
+    'l2-bridge': <BridgeScene />,
+    'l2-hall': <HallScene />,
+    'l2-workshops': <WorkshopScene />,
+    'l2-lake': <LakeScene />,
+    'l2-library': (
+      <>
+        <LibraryScene />
+        <LibraryFires />
+      </>
+    ),
+    'l2-ramparts': <RampartScene />,
+    'l2-roof': <RoofScene />,
+    'l2-aftermath': <AftermathScene />,
   };
 
   return (

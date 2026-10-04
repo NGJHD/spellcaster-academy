@@ -5,7 +5,7 @@ import { Color, Fog, Vector3, type DirectionalLight, type Group } from 'three';
 import type { AreaId } from '../game/types';
 import { useSettingsStore } from '../state/settingsStore';
 import { AREA_LOOKS } from './areaLooks';
-import { Drift, RedSky } from './RedSky';
+import { Drift, RedSky, Rift } from './RedSky';
 
 const sunDir = new Vector3();
 const forward = new Vector3();
@@ -69,6 +69,7 @@ export function Atmosphere({ areaId }: { areaId: AreaId }) {
       {look.sky === 'afternoon' && <Sky distance={700} sunPosition={look.sun?.position ?? [0, 1, 0]} turbidity={4.5} rayleigh={1.1} mieCoefficient={0.004} mieDirectionalG={0.8} />}
       {look.sky === 'dawn' && <Sky distance={700} sunPosition={look.sun?.position ?? [1, 0.1, 0]} turbidity={7} rayleigh={2.4} mieCoefficient={0.006} mieDirectionalG={0.85} />}
       {(look.sky === 'inferno' || look.sky === 'blank') && <RedSky kind={look.sky} />}
+      {look.sky === 'inferno' && <Rift />}
       </group>
       {look.sky === 'inferno' && <Stars radius={300} depth={60} count={quality === 'low' ? 600 : 1500} factor={4} saturation={0} fade speed={0.2} />}
       {/* Embers drift through the burning academy; grey ash falls in the Blank (indoors too in Level 2). */}

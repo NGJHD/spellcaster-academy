@@ -629,6 +629,67 @@ export function ImpModel({ pose, variant }: { pose: PoseRef; variant?: string })
   );
 }
 
+/**
+ * PLACEHOLDER Hush stand-in (Levels 2-3) shown only while a realistic model streams in or is missing:
+ * a smouldering charcoal body with ember eyes and glowing cracks, sized per kind.
+ */
+const HUSH_SIZE: Record<string, number> = {
+  blotling: 0.7, 'eraser-moth': 1.0, 'scribble-imp': 0.8, smudgehound: 1.0, 'hollow-knight': 2.1,
+  'correction-moth': 1.0, redactor: 2.3, foreman: 2.6,
+};
+
+export function HushModel({ pose, kind }: { pose: PoseRef; kind: string }) {
+  const body = useRef<Group>(null);
+  const h = HUSH_SIZE[kind] ?? 1;
+  const skin = useMemo(() => new MeshStandardMaterial({ color: '#141010', roughness: 0.6, emissive: '#ff2a08', emissiveIntensity: 0.15 }), []);
+  const eye = useMemo(() => new MeshStandardMaterial({ color: '#ff8a20', emissive: '#ff5a10', emissiveIntensity: 3 }), []);
+  useFrame(() => {
+    const p = pose.current;
+    const b = body.current;
+    if (!b) return;
+    b.position.y = Math.abs(Math.sin(p.time * (p.moving ? 8 : 2))) * 0.05 * h;
+    b.rotation.x = -p.windup * 0.4 + p.hit * 0.3;
+    b.scale.setScalar(Math.max(0.001, 1 - p.dispel));
+    skin.emissiveIntensity = 0.15 + p.windup * 0.8 + p.hit * 0.6;
+  });
+  return (
+    <group ref={body}>
+      <mesh position={[0, h * 0.45, 0]} scale={[0.32 * h, 0.45 * h, 0.28 * h]} material={skin} castShadow>
+        <sphereGeometry args={[1, 24, 18]} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[0.1 * h * s, h * 0.72, 0.24 * h]} material={eye}>
+          <sphereGeometry args={[0.045 * h, 10, 8]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** An incoming fireball carrying a counter-word: a burning core with a trail of flame. */
+export function FireballModel({ pose }: { pose: PoseRef }) {
+  const core = useRef<Group>(null);
+  const hot = useMemo(() => new MeshStandardMaterial({ color: '#ffb040', emissive: '#ff5a10', emissiveIntensity: 4, toneMapped: false }), []);
+  useFrame(() => {
+    const p = pose.current;
+    const g = core.current;
+    if (!g) return;
+    g.rotation.z = p.time * 6;
+    g.scale.setScalar((0.9 + Math.sin(p.time * 20) * 0.1) * Math.max(0.001, 1 - p.dispel * 1.5));
+  });
+  return (
+    <group ref={core}>
+      <mesh material={hot}>
+        <icosahedronGeometry args={[0.28, 2]} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[0.5, 16, 12]} />
+        <meshBasicMaterial color="#ff4a10" transparent opacity={0.3} depthWrite={false} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
 /** Cut-gem silhouette (crown and pavilion), revolved with eight facets for a crisp sparkle. */
 const GEM_PROFILE = [new Vector2(0, -0.19), new Vector2(0.15, -0.02), new Vector2(0.16, 0.02), new Vector2(0.1, 0.08), new Vector2(0, 0.08)];
 const GEM_COLOURS = ['#ffd45a', '#5ec8ff', '#ff7ab8', '#6dffa8'];

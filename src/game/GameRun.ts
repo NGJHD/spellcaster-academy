@@ -42,6 +42,8 @@ export const SAVE_DEBOUNCE_SEC = 0.4;
 /** Chain Spark fires on every Nth consecutive perfect word. */
 export const CHAIN_STREAK = 5;
 export const CHAIN_TARGETS = 2;
+/** Starfall (LEVEL2_DESIGN L2-4): an eight-word perfect streak. */
+export const STARFALL_STREAK = 8;
 const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
@@ -993,6 +995,16 @@ export class GameRun {
       this.castChainSpark(targetId);
     }
 
+    if (
+      perfect &&
+      this.progress.unlockedSpells.includes('starfall') &&
+      m.currentStreak > 0 &&
+      m.currentStreak % STARFALL_STREAK === 0 &&
+      runner === this.encounter
+    ) {
+      this.castStarfall(targetId);
+    }
+
     if (result.defeated && runner === this.gem) {
       // Spark gem caught: a bright chime and bonus score, no other rewards.
       m.score += GEM_SCORE * this.activeMultiplier * this.combo.multiplier;
@@ -1038,6 +1050,26 @@ export class GameRun {
     if (!this.flags.has('seen-chain')) {
       this.flags.add('seen-chain');
       this.queueBark(getLine('spell-chain'));
+    }
+  }
+
+  /** Starfall: falling stars calm every weak foe on screen and deflect every incoming counter-word attack. */
+  private castStarfall(sourceId: string): void {
+    const runner = this.encounter;
+    if (!runner) return;
+    audio.playSfx('chain-spark', { rate: 0.8 });
+    const { fwd } = this.cameraBasis();
+    this.emitFx({ kind: 'meteors', scale: 0.8, color: '#ffe6a0' }, this.director.pose.position.clone().addScaledVector(fwd, 8));
+    for (const v of [...runner.targets.values()]) {
+      if (v.id === sourceId || v.defeated || v.phase !== 'active' || !(v.spawn.weak || v.spawn.counter)) continue;
+      if (runner.dispel(v.id)) {
+        this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), targetId: v.id, shieldBreak: false });
+        this.progress.metrics.score += 40;
+      }
+    }
+    if (!this.flags.has('seen-starfall')) {
+      this.flags.add('seen-starfall');
+      this.queueBark(getLine('spell-starfall'));
     }
   }
 
@@ -1376,7 +1408,7 @@ export class GameRun {
     audio.playSfx('star-page');
     patchRunUi({
       starPages: count,
-      toast: { key: nextKey(), title: strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
+      toast: { key: nextKey(), title: strings.toasts.collectible[this.level.id] ?? strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
     });
     this.saveNow();
   }

@@ -110,7 +110,7 @@ export class EncounterRunner {
     const list: TypingCandidate[] = [];
     for (const t of this.targets.values()) {
       const word = currentWord(t);
-      if (word) list.push({ id: t.id, word });
+      if (word) list.push(t.spawn.counter ? { id: t.id, word, interrupt: true } : { id: t.id, word });
     }
     return list;
   }

@@ -943,6 +943,14 @@ button {
   color: #ffe7a8;
 }
 
+.subtitle__speaker--idris {
+  color: #b8f0c8;
+}
+
+.subtitle__speaker--oarsby {
+  color: #ffd8a8;
+}
+
 .subtitle__speaker--unwriter {
   color: #ff5a3c;
   text-shadow: 0 0 8px rgba(255, 60, 30, 0.8);

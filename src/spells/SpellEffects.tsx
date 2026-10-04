@@ -30,6 +30,7 @@ const TRAILS: Record<string, { core: string; halo: string }> = {
   default: { core: '#fff1c2', halo: '#7fc8ff' },
   'trail-starlight': { core: '#ffffff', halo: '#ffe08a' },
   'trail-verdant': { core: '#eaffd8', halo: '#6fe39a' },
+  'trail-inkwell': { core: '#dce6ff', halo: '#3a5cff' },
   frost: { core: '#f2fbff', halo: '#8fd8ff' },
 };
 

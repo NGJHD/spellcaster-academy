@@ -1,4 +1,6 @@
 import { strings } from '../content/strings';
+import { LEVEL_ORDER } from '../game/types';
+import { nextLevel } from '../level/levels';
 import type { ResultsData } from '../game/scoring';
 import { useGameStore } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
@@ -32,7 +34,7 @@ function rows(r: ResultsData): { group: keyof typeof strings.results.groups; lab
     { group: 'accuracy', label: t.streak, value: String(r.bestStreak) },
     { group: 'journey', label: t.words, value: String(r.completedWords) },
     { group: 'journey', label: t.levelTime, value: fmtClock(r.levelTimeMs) },
-    { group: 'journey', label: t.starPages, value: `${r.starPages} / ${r.starPagesTotal}` },
+    { group: 'journey', label: strings.hud.collectibles[r.levelId] ?? t.starPages, value: `${r.starPages} / ${r.starPagesTotal}` },
     { group: 'journey', label: t.optional, value: String(r.optionalTargets) },
     { group: 'journey', label: t.focusLost, value: String(r.focusLost) },
     { group: 'journey', label: t.restarts, value: String(r.checkpointRestarts) },
@@ -48,13 +50,16 @@ export function ResultsScreen() {
   if (!results) return null;
   const t = strings.results;
   const all = rows(results);
+  const levelNumber = LEVEL_ORDER.indexOf(results.levelId) + 1;
+  const next = nextLevel(results.levelId);
 
   return (
     <div className="results" role="dialog" aria-labelledby="results-heading">
       <div className="results__panel">
         <header className="results__header">
-          <h1 id="results-heading" className="results__heading">{t.heading}</h1>
-          <p className="results__subheading">{t.subheading}</p>
+          <h1 id="results-heading" className="results__heading">{t.headingFor(levelNumber)}</h1>
+          <p className="results__subheading">{strings.levels[results.levelId].name}</p>
+          {!next && results.levelId === 'level-3' && <p className="results__subheading">{t.campaignDone}</p>}
           <div className="results__rank">
             <span className="results__rank-label">{t.rank}</span>
             <span className="results__rank-title">{results.rank}</span>
@@ -103,8 +108,13 @@ export function ResultsScreen() {
           )}
         </div>
         <div className="results__actions">
-          <button type="button" className="menu-button menu-button--primary" onClick={() => startNewRun(results.difficulty)} autoFocus>
-            {t.playAgain}
+          {next && (
+            <button type="button" className="menu-button menu-button--primary" onClick={() => startNewRun(results.difficulty, next)} autoFocus>
+              {t.nextLevel(levelNumber + 1)}
+            </button>
+          )}
+          <button type="button" className={`menu-button ${next ? '' : 'menu-button--primary'}`} onClick={() => startNewRun(results.difficulty, results.levelId)} autoFocus={!next}>
+            {t.playAgainFor(levelNumber)}
           </button>
           <button type="button" className="menu-button menu-button--quiet" onClick={quitToMenu}>
             {t.returnToTitle}

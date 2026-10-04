@@ -87,7 +87,7 @@ export function HUD() {
         {starPages > 0 && (
           <div className="hud__chip" title={strings.hud.starPagesHelp}>
             <span className="hud__chip-icon">★</span>
-            <span className="hud__chip-label">{strings.hud.starPages}</span> {starPages} / {getRun()?.level.collectibles.length ?? 8}
+            <span className="hud__chip-label">{strings.hud.collectibles[getRun()?.level.id ?? 'level-1'] ?? strings.hud.starPages}</span> {starPages} / {getRun()?.level.collectibles.length ?? 8}
           </div>
         )}
         {showWpm && liveWpm > 0 && (
@@ -147,7 +147,7 @@ function Subtitles() {
   if (!subtitle) return null;
   return (
     <div key={subtitle.key} className={`subtitle${subtitle.blocking ? ' subtitle--blocking' : ''}`} role="status" aria-live="polite">
-      <div className={`subtitle__speaker subtitle__speaker--${subtitle.speaker}`}>{SPEAKER_NAMES[subtitle.speaker]}</div>
+      <div className={`subtitle__speaker subtitle__speaker--${subtitle.speaker}`}>{subtitle.speaker === 'unwriter' && getRun()?.level.id !== 'level-1' ? 'The Unwriter' : SPEAKER_NAMES[subtitle.speaker]}</div>
       <div className="subtitle__text">{subtitle.text}</div>
     </div>
   );

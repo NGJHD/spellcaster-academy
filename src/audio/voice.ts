@@ -23,6 +23,8 @@ const DELIVERY: Record<Speaker, { pitch: number; rate: number; prefer: RegExp }>
   'portrait-2': { pitch: 1.15, rate: 1.0, prefer: /female|hazel|susan|sonia/i },
   warden: { pitch: 0.4, rate: 0.82, prefer: /male|george|ryan|david/i },
   unwriter: { pitch: 0.55, rate: 0.85, prefer: /male|george|ryan|david|daniel/i },
+  idris: { pitch: 1.0, rate: 1.05, prefer: /male|ryan|thomas|alfie/i },
+  oarsby: { pitch: 0.8, rate: 0.95, prefer: /male|george|david/i },
 };
 
 /** Installs browser speech synthesis (Web Speech API). `settings()` supplies on/off and volume. */

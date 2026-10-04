@@ -14,7 +14,17 @@ type ClipName = 'Idle' | 'Move' | 'Attack' | 'Hit' | 'Dispel';
 const base = `${import.meta.env.BASE_URL}assets/creatures/`;
 
 /** Rigged creature GLBs built by assets-src/scripts/creatures/*.py. */
+/**
+ * Level 2/3 mobs whose realistic models have been built (assets-src/scripts/ai). Kinds not listed use
+ * their code-built stand-in instead of requesting a file that does not exist yet.
+ */
+export const BUILT_AI_MOBS: ReadonlySet<string> = new Set<string>([]);
+/** Boss and set-piece model files built so far (scene creatures, not typing targets). */
+export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>([]);
+const AI_MOB_KINDS = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman']);
+
 export function creatureUrl(kind: string, variant?: string): string | null {
+  if (AI_MOB_KINDS.has(kind) && !BUILT_AI_MOBS.has(kind)) return null;
   switch (kind) {
     case 'sprite':
       // One realistic model (assets-src/scripts/ai); grey and teal variants are tints (CreatureModel `tint`).
@@ -28,6 +38,22 @@ export function creatureUrl(kind: string, variant?: string): string | null {
       return `${base}thorn_pod.glb`;
     case 'wisp':
       return `${base}ink_wisp.glb`;
+    case 'blotling':
+      return `${base}blotling.glb`;
+    case 'eraser-moth':
+      return `${base}eraser_moth.glb`;
+    case 'scribble-imp':
+      return `${base}scribble_imp.glb`;
+    case 'smudgehound':
+      return `${base}smudgehound.glb`;
+    case 'hollow-knight':
+      return `${base}hollow_knight.glb`;
+    case 'correction-moth':
+      return `${base}correction_moth.glb`;
+    case 'redactor':
+      return `${base}redactor.glb`;
+    case 'foreman':
+      return `${base}foreman.glb`;
     default:
       return null;
   }

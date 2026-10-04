@@ -5,6 +5,8 @@ import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import type { TargetSpawn } from '../level/levelTypes';
 import { CreatureModel, creatureUrl } from './CreatureModel';
+import { ModelBoundary } from './ModelBoundary';
+import { Fire } from '../scene/Fire';
 import { Guardian } from './GuardianGLB';
 import { Book, Dummy, ThornPod } from './PropTargets';
 import { APPEAR_SEC, DISPEL_SEC, isShielded, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
@@ -20,6 +22,8 @@ import {
   StarPageModel,
   GemModel,
   ImpModel,
+  FireballModel,
+  HushModel,
   WispModel,
   WispShield,
   type TargetPose,
@@ -27,7 +31,7 @@ import {
 
 const HIT_SEC = 0.5;
 /** Kinds that turn to face the camera (creatures); props keep their authored orientation. */
-const FACES_CAMERA = new Set(['imp', 'sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
+const FACES_CAMERA = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman', 'imp', 'sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
 
 /** Rigged GLB when one exists for the kind, with the code-built stand-in while it streams in. */
 function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
@@ -36,10 +40,13 @@ function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose
   // Kit-built props (pages, clasps, plates) stream their GLBs; never blank other targets meanwhile.
   if (!url) return <Suspense fallback={null}>{fallback}</Suspense>;
   return (
-    <Suspense fallback={fallback}>
-      <CreatureModel url={url} pose={pose} tint={spawn.variant} />
-      {spawn.kind === 'wisp' && <WispShield pose={pose} />}
-    </Suspense>
+    <ModelBoundary fallback={fallback}>
+      <Suspense fallback={fallback}>
+        <CreatureModel url={url} pose={pose} tint={spawn.variant} />
+        {spawn.kind === 'wisp' && <WispShield pose={pose} />}
+      </Suspense>
+      {spawn.kind === 'smudgehound' && <Fire position={[0, 0.6, 0]} size={0.6} count={2} spread={0.6} smoke={false} />}
+    </ModelBoundary>
   );
 }
 
@@ -65,6 +72,17 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
       return <StarPageModel pose={pose} cosmetic={spawn.variant === 'cosmetic'} />;
     case 'imp':
       return <ImpModel pose={pose} variant={spawn.variant} />;
+    case 'fireball':
+      return <FireballModel pose={pose} />;
+    case 'blotling':
+    case 'eraser-moth':
+    case 'scribble-imp':
+    case 'smudgehound':
+    case 'hollow-knight':
+    case 'correction-moth':
+    case 'redactor':
+    case 'foreman':
+      return <HushModel pose={pose} kind={spawn.kind} />;
     case 'gem':
       return <GemModel pose={pose} seed={spawn.id} />;
     case 'clasp':

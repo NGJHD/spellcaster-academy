@@ -6,6 +6,11 @@
 export interface TypingCandidate {
   readonly id: string;
   readonly word: string;
+  /**
+   * Counter-words (Level 2 Ward Shield, LEVEL2_DESIGN L2-4): typing the first letter takes the lock
+   * even while another word is locked; finishing it hands the lock back with that word's progress intact.
+   */
+  readonly interrupt?: boolean;
 }
 
 export type TypingEvent =
@@ -58,6 +63,8 @@ export interface TypingView {
 export class TypingEngine {
   private candidates: TypingCandidate[] = [];
   private lock: LockState | null = null;
+  /** The word set aside by a counter-word interrupt. */
+  private suspended: LockState | null = null;
   private pending: { prefix: string; ids: string[] } | null = null;
 
   constructor(private options: TypingEngineOptions) {}
@@ -106,6 +113,11 @@ export class TypingEngine {
         lock.mistakes = 0;
       }
     }
+    const suspended = this.suspended;
+    if (suspended) {
+      const current = candidates.find((c) => c.id === suspended.id);
+      if (!current || current.word !== suspended.word) this.suspended = null;
+    }
     if (this.pending) {
       const prefix = this.pending.prefix;
       const ids = this.matching(prefix).map((c) => c.id);
@@ -119,6 +131,7 @@ export class TypingEngine {
     const events: TypingEvent[] = [];
     if (this.lock) events.push({ type: 'unlock', targetId: this.lock.id });
     this.lock = null;
+    this.suspended = null;
     this.pending = null;
     return events;
   }
@@ -209,6 +222,21 @@ export class TypingEngine {
       return [{ type: 'incorrect', targetId: lock.id, char: c }];
     }
     const expected = lock.word[lock.typed.length];
+    if (c !== expected && !this.suspended) {
+      // A counter-word whose initial is unique takes over; the current word waits.
+      const counters = this.candidates.filter((x) => x.interrupt && x.id !== lock.id && x.word.startsWith(c));
+      const counter = counters.length === 1 ? counters[0] : undefined;
+      if (counter) {
+        this.suspended = lock;
+        this.lock = { id: counter.id, word: counter.word, typed: c, wrong: 0, mistakes: 0 };
+        const events: TypingEvent[] = [
+          { type: 'lock', targetId: counter.id },
+          { type: 'correct', targetId: counter.id, char: c },
+        ];
+        if (this.lock.typed === counter.word) events.push(...this.finish(this.lock));
+        return events;
+      }
+    }
     if (c === expected) {
       lock.typed += c;
       const events: TypingEvent[] = [{ type: 'correct', targetId: lock.id, char: c }];
@@ -225,6 +253,13 @@ export class TypingEngine {
 
   private finish(lock: LockState): TypingEvent[] {
     this.lock = null;
-    return [{ type: 'complete', targetId: lock.id, word: lock.word, mistakes: lock.mistakes }];
+    const events: TypingEvent[] = [{ type: 'complete', targetId: lock.id, word: lock.word, mistakes: lock.mistakes }];
+    const resumed = this.suspended;
+    this.suspended = null;
+    if (resumed && resumed.id !== lock.id && this.candidates.some((c) => c.id === resumed.id)) {
+      this.lock = resumed;
+      events.push({ type: 'lock', targetId: resumed.id });
+    }
+    return events;
   }
 }

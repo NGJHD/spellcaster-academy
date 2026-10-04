@@ -4,7 +4,7 @@
  */
 import type { AreaId } from '../game/types';
 
-export type Speaker = 'pip' | 'mira' | 'orin' | 'portrait-1' | 'portrait-2' | 'warden' | 'unwriter';
+export type Speaker = 'pip' | 'mira' | 'orin' | 'portrait-1' | 'portrait-2' | 'warden' | 'unwriter' | 'idris' | 'oarsby';
 
 export interface DialogueLine {
   readonly speaker: Speaker;
@@ -21,6 +21,8 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
   warden: 'Ward Warden (translated by Pip)',
   // Unnamed in Level 1: Orin names him in the ending.
   unwriter: '???',
+  idris: 'Prefect Idris',
+  oarsby: 'Oarsby',
 };
 
 const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text });
@@ -152,10 +154,76 @@ export const LINES = {
   'lib-mosaic-2': line('pip', "I… don't know. That part of my memory is blank. That's never happened before."),
   'seam-1': line('unwriter', 'Clever little apprentice. But one crack is all I need.'),
   'seam-2': line('pip', 'That voice… I know that voice. But how?'),
+  // Level 2: The Siege of Asterfall
+  'l2-open-1': line('pip', 'The Lantern Festival! Type the lanterns into the sky!'),
+  'l2-seam': line('pip', 'The crack in the sky… it is glowing red. That is NOT a festival effect.'),
+  'l2-voice-1': line('unwriter', 'Hello again, little school. Did you miss me?'),
+  'l2-counter-tip': line('pip', 'Fireball! Type its little word to block it — any time, even mid-word!'),
+  'l2-orin-1': line('orin', 'Everyone to the Great Hall! Apprentice — light the four beacons!'),
+  'l2-block': line('pip', 'Ink monsters! Block the little words, blast the big ones!'),
+  'l2-inkfire': line('pip', 'Inkfire! It burns things right out of the world. Type the word to write it back!'),
+  'l2-stall-done': line('pip', 'Saved! Your spells put inkfire OUT. Remember that.'),
+  'l2-evacuate': line('mira', 'I am getting the students out! Keep the Hush off us!'),
+  'l2-trapped': line('pip', 'The dormitory is burning — and the first-years are still inside!'),
+  'l2-dorm-1': line('pip', 'Scribble imps! They are setting the doors on fire!'),
+  'l2-dorm-thanks-1': line('pip', 'One first-year out! Run, little one — downstairs!'),
+  'l2-dorm-thanks-2': line('pip', 'Two safe! One more floor!'),
+  'l2-dorm-hound': line('pip', 'Smoke paw prints… something FAST is coming!'),
+  'l2-dorm-thanks-3': line('pip', 'All three out! We did it!'),
+  'l2-mira-dorm': line('mira', 'I\'ve got them. Go — the Bell Bridge beacon is closest!'),
+  'l2-bridge-1': line('pip', 'The bridge is falling apart behind us — DON\'T look back!'),
+  'l2-bridge-2': line('pip', 'Fix the planks and keep running!'),
+  'l2-belfry': line('pip', 'Moths in the belfry! Clear them off the bell!'),
+  'l2-bell-intro': line('pip', 'Three words to ring the bell. Make it LOUD!'),
+  'l2-bell-lit': line('pip', 'One beacon lit! That\'s the sound of us winning. Probably.'),
+  'l2-hall-rumble': line('pip', 'Something BIG is at the other doors…'),
+  'l2-idris-1': line('idris', 'Keep them off the doors. I will hold the barrier!'),
+  'l2-lanes': line('pip', 'Three doors! Watch the one that glows the most!'),
+  'l2-knights': line('pip', 'Empty armour with fire inside. Two words each!'),
+  'l2-voice-herald': line('unwriter', 'Such a noisy, untidy school. Let me tidy it.'),
+  'l2-herald-rude': line('pip', 'Who was THAT? How rude! Tear up its decree!'),
+  'l2-herald-trumpet': line('pip', 'Trumpet blasts! Block them!'),
+  'l2-herald-last': line('pip', 'Now push it back — not on my watch!'),
+  'l2-idris-2': line('idris', 'The hall holds! The students are safe here. Go!'),
+  'l2-ws-1': line('pip', 'The furnace beacon is choked with ash. We need to relight it!'),
+  'l2-ws-hounds': line('pip', 'Smudgehounds! Fast ones first!'),
+  'l2-ws-valves': line('pip', 'Speed round! Open the valves — or press Enter to skip.'),
+  'l2-furnace-intro': line('pip', 'Four hot words. Feed the fire!'),
+  'l2-starfall-try': line('pip', 'A whole crowd of blotlings! Eight perfect words — make it rain STARS!'),
+  'l2-oarsby-1': line('oarsby', 'All aboard! Mind the oars, mind the ink.'),
+  'l2-lake-moths': line('pip', 'Moths over the water! And blots in the waves!'),
+  'l2-lake-boathouse': line('pip', 'The boathouse is on fire! Knights on the jetty!'),
+  'l2-lighthouse-lift': line('pip', 'Going UP! Moths at every window!'),
+  'l2-lighthouse-intro': line('pip', 'The lamp! Four words to light it!'),
+  'l2-lighthouse-lit': line('pip', 'Three beacons! The boats can see their way home!'),
+  'l2-our-books': line('pip', 'Those are OUR books! That dragon is building itself out of our library!'),
+  'l2-lib-sprites': line('pip', 'Paper sprites and ink wisps! Block the ink!'),
+  'l2-grimoire-help': line('pip', 'The Grimoire is guarding the Star Atlas — and they are scratching it!'),
+  'l2-shelves': line('pip', 'Speed round! Save the shelves — or press Enter to skip.'),
+  'l2-atlas': line('pip', 'The Grimoire gave us the Star Atlas! Good book. GOOD book.'),
+  'l2-rp-1': line('pip', 'The Warden is holding the wall! They are climbing up the cliffs!'),
+  'l2-rp-lanes': line('pip', 'Three ladders! The Warden can\'t cover them all!'),
+  'l2-rp-warden': line('pip', 'The inkfire is burning the Warden! Fix it, quick!'),
+  'l2-rp-captain': line('pip', 'A Knight Captain! Block its sweep — type halt!'),
+  'l2-rp-beacon': line('pip', 'The last beacon! Four words!'),
+  'l2-orin-ward': line('orin', 'The Lantern Ward holds! Every student is safe!'),
+  'l2-orin-dragon': line('orin', 'But the dragon is inside it — stop it before it takes the tower!'),
+  'l2-palm': line('pip', 'The Warden is lifting us up the tower! Block the fireballs!'),
+  'l2-wyrm-fire': line('pip', 'It\'s on FIRE. Hit it with everything!'),
+  'l2-voice-wyrm': line('unwriter', 'Every book corrected. Every error gone. Wouldn’t that be lovely?'),
+  'l2-wyrm-glands': line('pip', 'It is flying! Hit the glowing spots as it passes!'),
+  'l2-wyrm-motto': line('pip', 'Its heart is open! The library motto — every page has a place!'),
+  'l2-end-1': line('orin', 'This black crystal is a piece of the Unwriting Quill.'),
+  'l2-end-2': line('orin', 'It belonged to Magister Corvane Hale. Long ago he became the Unwriter.'),
+  'l2-end-3': line('pip', '"Correction required." …Sorry. I don’t know why I said that.'),
+  'l2-end-4': line('orin', 'The ward will hold for a while. But the Rift can only be closed from the other side.'),
+  'l2-end-5': line('mira', 'Then someone has to go through.'),
+  'l2-end-6': line('pip', 'We will go. Obviously. After a short rest. And a snack.'),
   // Shared
   'focus-reset': line('pip', "Let's take a breath and try that part again."),
   'assist-offer': line('pip', "I'll make the words a little shorter for this part. You've got this."),
   'spell-frost': line('pip', 'Frost Thread! A perfect word slows the others down.'),
+  'spell-starfall': line('pip', 'STARFALL! Eight perfect words — the sky fights for us!'),
   'spell-chain': line('pip', 'Chain Spark! Five perfect words in a row!'),
 
   // Ending

@@ -177,6 +177,18 @@ export type TargetKind =
   | 'rune'
   /** Paint imp that leaps out of a portrait (Hall of Portraits ambush). */
   | 'imp'
+  // Level 2: the Hush.
+  | 'blotling'
+  | 'eraser-moth'
+  | 'scribble-imp'
+  | 'smudgehound'
+  | 'hollow-knight'
+  /** An incoming fireball (or ink blast) carrying a counter-word. */
+  | 'fireball'
+  // Level 3: the Blank and the Citadel.
+  | 'correction-moth'
+  | 'redactor'
+  | 'foreman'
   /** Spark gem: a bonus word that flies alongside the camera (CLAUDE.md §1B). */
   | 'gem';
 
@@ -252,6 +264,11 @@ export interface TargetSpawn {
   readonly defeatFx?: FxCue;
   /** Pip is held by this target until it is beaten (the opening cold open). */
   readonly carriesPip?: boolean;
+  /**
+   * Counter-word (LEVEL2_DESIGN L2-4): an incoming attack with a short word that takes the lock even
+   * mid-word; typing it raises a Ward Shield and deflects the attack.
+   */
+  readonly counter?: boolean;
   /** Line spoken when this target is beaten. */
   readonly defeatBark?: LineId;
   /** Story flag set when this target is beaten (scene props react, e.g. a guardian stepping aside). */
