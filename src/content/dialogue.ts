@@ -138,7 +138,7 @@ export const LINES = {
   'obs-plate3': line('pip', 'The core is close. Keep your rhythm.'),
   'obs-w2': line('pip', 'Runes! Each one starts with a different letter. Pick any you like.'),
   'obs-anchors': line('pip', 'It can feel the anchors. It knows we restored them.'),
-  'obs-w3': line('pip', "It's holding the ward together. Type the academy values to repair it."),
+  'obs-w3': line('pip', 'The ward is cracking! Push it back — type the academy values!'),
   'obs-restored': line('warden', 'WARD RESTORED · APPRENTICE RECOGNISED'),
   'obs-end': line('pip', 'It was never our enemy. It was waiting for someone who could finish the spell.'),
 
@@ -152,7 +152,7 @@ export const LINES = {
   'end-1': line('orin', "An apprentice's first lesson is usually how to hold a wand."),
   'end-2': line('orin', 'Yours was how to understand one.'),
   'end-3': line('mira', "And how to survive Pip's planning."),
-  'end-4': line('pip', 'My planning achieved a complete success rate.'),
+  'end-4': line('pip', 'My planning achieved a complete success rate! Eventually.'),
   'end-5': line('mira', 'Eventually.'),
   'end-6': line('orin', 'Welcome to Asterfall Academy, apprentice.'),
 } satisfies Record<string, DialogueLine>;

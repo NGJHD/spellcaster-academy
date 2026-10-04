@@ -59,7 +59,7 @@ export function BeamStruggle() {
     start.copy(cam.position).addScaledVector(forward, 0.9).addScaledVector(right, 0.28);
     start.y -= 0.28;
     const tussle = Math.sin(time.current * 7) * 0.025 + Math.sin(time.current * 2.3) * 0.02;
-    const u = Math.min(0.96, 0.22 + push.current * 0.72 + tussle);
+    const u = Math.min(0.96, 0.38 + push.current * 0.56 + tussle);
     clash.lerpVectors(start, target, u);
 
     const flicker = 1 + Math.sin(time.current * 31) * 0.12;
@@ -72,7 +72,7 @@ export function BeamStruggle() {
     }
     if (ball.current) {
       ball.current.position.copy(clash);
-      ball.current.scale.setScalar((0.35 + Math.sin(time.current * 23) * 0.06) * shown.current);
+      ball.current.scale.setScalar((0.22 + Math.sin(time.current * 23) * 0.04) * shown.current);
     }
   });
 
