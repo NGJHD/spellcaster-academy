@@ -1,7 +1,7 @@
 /** PLACEHOLDER Enchanted Greenhouse (§14A.21). Local coordinates; see src/level/areas/greenhouse.ts. */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import type { Group } from 'three';
+import { CatmullRomCurve3, TubeGeometry, Vector3, type Group, type Mesh } from 'three';
 import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } from '../../level/areas/greenhouse';
 import { beatIndexOf } from '../../level/level1Route';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -9,11 +9,19 @@ import { getRun } from '../../state/gameStore';
 import { KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
-import { DormantTarget, StaticWarden, WardAnchor, spawnPosition, useBeatIndex } from '../props';
+import { WardAnchor, WardenCameo, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
 
 const local = (p: Vec3): Vec3 => [p[0] - GREENHOUSE_ORIGIN[0], p[1] - GREENHOUSE_ORIGIN[1], p[2] - GREENHOUSE_ORIGIN[2]];
 const WARDEN_BEAT = beatIndexOf('greenhouse-warden-scene');
+const VINE_WORDS = ['greenhouse-vine', 'greenhouse-vine-2', 'greenhouse-vine-3'] as const;
+/** Beats where the snapvine lunges (the camera hops forward just in time), and where it snaps. */
+const SNAPVINE_LUNGES: Readonly<Record<string, readonly [number, number, number]>> = {
+  'greenhouse-vine-hop-1': [0.7, 1.6, -16],
+  'greenhouse-vine-hop-2': [0.8, 1.7, -20.4],
+  'greenhouse-cross-bridge': [0.8, 1.7, -22.4],
+};
+const SNAPVINE_VISIBLE = new Set(['greenhouse-to-vine', 'greenhouse-vine', 'greenhouse-vine-2', 'greenhouse-vine-3', ...Object.keys(SNAPVINE_LUNGES)]);
 
 export function GreenhouseScene() {
   return (
@@ -25,9 +33,7 @@ export function GreenhouseScene() {
       <Grounds />
       <Channel />
       <VineBridge />
-      {(['pod-1', 'pod-2'] as const).map((id) => (
-        <DormantTarget key={id} encounterId="greenhouse-h1" targetId={id} kind="thorn-pod" position={local(spawnPosition('greenhouse-h1', id))} />
-      ))}
+      <Snapvine />
       <WardAnchor position={local(GREENHOUSE_ANCHOR_POSITION)} encounterId="greenhouse-anchor" theme="greenhouse" />
       <WardenRescue />
     </group>
@@ -37,7 +43,9 @@ export function GreenhouseScene() {
 function Frame() {
   return (
     <group>
-      <Slab x={[-11, 11]} y={[-0.1, 0]} z={[-53, 3]} material={MAT.paving} shadows={false} />
+      {/* Paving stops at the water channel (z −26 … −20) so the vine bridge spans open water. */}
+      <Slab x={[-11, 11]} y={[-0.1, 0]} z={[-20, 3]} material={MAT.paving} shadows={false} />
+      <Slab x={[-11, 11]} y={[-0.1, 0]} z={[-53, -26]} material={MAT.paving} shadows={false} />
       {/* Victorian glasshouse: fourteen 4 m bays (kit_props greenhouse_bay) and glazed gable ends. */}
       {Array.from({ length: 14 }, (_, k) => (
         <KitModel key={k} id="greenhouse_bay" position={[0, 0, 3 - 4 * k]} />
@@ -62,7 +70,11 @@ function Grounds() {
   );
   return (
     <group>
-      <Slab x={[-60, 60]} y={[-0.16, -0.11]} z={[-100, 40]} material={MAT.grass} shadows={false} />
+      {/* Grass everywhere except over the water channel. */}
+      <Slab x={[-60, 60]} y={[-0.16, -0.11]} z={[-20, 40]} material={MAT.grass} shadows={false} />
+      <Slab x={[-60, 60]} y={[-0.16, -0.11]} z={[-100, -26]} material={MAT.grass} shadows={false} />
+      <Slab x={[-60, -10.5]} y={[-0.16, -0.11]} z={[-26, -20]} material={MAT.grass} shadows={false} />
+      <Slab x={[10.5, 60]} y={[-0.16, -0.11]} z={[-26, -20]} material={MAT.grass} shadows={false} />
       {[-1, 1].map((s) =>
         Array.from({ length: 9 }, (_, i) => <Prop key={`${s}${i}`} id={`shrub_0${(i % 4) + 1}`} position={[s * 12.6, 0, 1 - i * 6.5]} height={1.6 + (i % 3) * 0.3} rotationY={i} />),
       )}
@@ -154,8 +166,9 @@ function Channel() {
 function VineBridge() {
   const segments = useRef<(Group | null)[]>([]);
   useFrame((_, dt) => {
-    const p = getRun()?.encounterProgress('greenhouse-vine');
-    const grown = p ? (p.complete ? 3 : p.done) : 0;
+    // One bridge word per encounter (the Snapvine Chase hops the camera forward between them).
+    const run = getRun();
+    const grown = VINE_WORDS.reduce((n, id) => n + (run?.encounterProgress(id).complete ? 1 : 0), 0);
     segments.current.forEach((g, i) => {
       if (!g) return;
       const goal = grown > i ? 1 : 0.02;
@@ -167,9 +180,17 @@ function VineBridge() {
     <group position={[0, -0.05, -20]}>
       {[0, 1, 2].map((i) => (
         <group key={i} position={[0, 0, -i * 2]} ref={(g) => void (segments.current[i] = g)} scale={[1, 1, 0.02]}>
-          <mesh position={[0, 0, -1]} rotation={[Math.PI / 2, 0, 0]} material={MAT.stem} castShadow receiveShadow>
-            <cylinderGeometry args={[0.9, 0.9, 2.05, 12, 1, false, Math.PI * 0.75, Math.PI * 0.5]} />
-          </mesh>
+          {/* A woven deck of thick vine stems, slightly bowed. */}
+          {[-0.56, -0.28, 0, 0.28, 0.56].map((x, k) => (
+            <mesh key={x} position={[x, -0.02 - Math.abs(x) * 0.08, -1]} rotation={[Math.PI / 2, 0, (k - 2) * 0.03]} material={MAT.stem} castShadow receiveShadow>
+              <cylinderGeometry args={[0.12, 0.13, 2.08, 10]} />
+            </mesh>
+          ))}
+          {[-0.5, 0.5].map((z) => (
+            <mesh key={z} position={[0, -0.04, -1 + z]} rotation={[0, 0, Math.PI / 2]} material={MAT.stem}>
+              <cylinderGeometry args={[0.06, 0.06, 1.5, 8]} />
+            </mesh>
+          ))}
           {[-0.85, 0.85].map((x) => (
             <mesh key={x} position={[x, 0.5, -1]} rotation={[Math.PI / 2, 0, 0]} material={MAT.leaf}>
               <cylinderGeometry args={[0.05, 0.05, 2.05, 6]} />
@@ -184,23 +205,30 @@ function VineBridge() {
   );
 }
 
-/** LD-13 midpoint reversal: the Warden catches a falling glass panel and sets it safely aside. */
+/**
+ * LD-13 midpoint reversal as revised by LD-0: the roof panel shatters, the Warden smashes down through
+ * the glass, catches the falling sheet in one hand, sets it down safely and leaps away.
+ */
 function WardenRescue() {
   const beat = useBeatIndex();
   const panel = useRef<Group>(null);
-  const time = useRef(0);
   const panelHome = local(ROOF_PANEL_POSITION);
-  useFrame((_, dt) => {
+  useFrame(() => {
     if (!panel.current) return;
-    if (beat === WARDEN_BEAT) time.current += dt;
-    const t = Math.min(1, time.current / 3);
-    const placed = beat > WARDEN_BEAT || t >= 1;
-    if (placed) {
+    const t = beat === WARDEN_BEAT ? (getRun()?.beatProgress() ?? 0) : beat > WARDEN_BEAT ? 1 : 0;
+    // Falls (0.08–0.3), is caught in the Warden's hand (0.3–0.45), then set down by 0.6.
+    const fall = Math.min(1, Math.max(0, (t - 0.08) / 0.22));
+    const set = Math.min(1, Math.max(0, (t - 0.45) / 0.15));
+    const caught: [number, number, number] = [6.2, 2.6, -37];
+    if (t >= 0.6 || beat > WARDEN_BEAT) {
       panel.current.position.set(6.5, 0.6, -38);
       panel.current.rotation.set(0, 0, 1.3);
+    } else if (t >= 0.3) {
+      panel.current.position.set(caught[0] + (6.5 - caught[0]) * set, caught[1] + (0.6 - caught[1]) * set, caught[2] + (-38 - caught[2]) * set);
+      panel.current.rotation.set(0, 0, 0.6 + 0.7 * set);
     } else {
-      panel.current.position.set(panelHome[0], panelHome[1] - t * 6.6, panelHome[2] - t * 2);
-      panel.current.rotation.set(0, 0, t * 1.3);
+      panel.current.position.set(panelHome[0] + (caught[0] - panelHome[0]) * fall, panelHome[1] + (caught[1] - panelHome[1]) * fall * fall, panelHome[2] + (caught[2] - panelHome[2]) * fall);
+      panel.current.rotation.set(fall * 0.4, 0, fall * 0.6);
     }
   });
   return (
@@ -213,7 +241,121 @@ function WardenRescue() {
           <boxGeometry args={[1.46, 0.06, 0.06]} />
         </mesh>
       </group>
-      <StaticWarden position={[11.5, 0.5, -37]} scale={0.8} rotationY={-1.4} visible={beat === WARDEN_BEAT} />
+      <WardenCameo
+        beatId="greenhouse-warden-scene"
+        scale={0.8}
+        rotationY={-1.9}
+        keys={[
+          { t: 0, position: [5.5, 13, -36] },
+          { t: 0.08, position: [5.5, 9, -36] },
+          { t: 0.3, position: [7.2, 0.3, -37] },
+          { t: 0.38, position: [7.2, 0.3, -37], arm: 1 },
+          { t: 0.6, position: [7.2, 0.3, -37.5], arm: 0.4 },
+          { t: 0.78, position: [7.2, 0.3, -37.5] },
+          { t: 1, position: [5.5, 16, -36] },
+        ]}
+      />
+    </group>
+  );
+}
+
+const SNAPVINE_ROOT: [number, number, number] = [5, -1, -23.5];
+const aim = new Vector3();
+const SNAPVINE_COIL: [number, number, number] = [3.4, 3.1, -24.5];
+
+/**
+ * PLACEHOLDER giant snapvine (LD-0 Snapvine Chase): a thick stem rising out of the channel with a
+ * snapping flower-jaw head. It sways in a coil, then lunges at the spot the camera has just left and
+ * snaps shut on empty air (scripted, never a hit). Replaceable with a rigged GLB.
+ */
+function Snapvine() {
+  const root = useRef<Group>(null);
+  const head = useRef<Group>(null);
+  const upper = useRef<Group>(null);
+  const lower = useRef<Group>(null);
+  const stem = useRef<Mesh>(null);
+  const time = useRef(0);
+  const headPos = useMemo(() => new Vector3(...SNAPVINE_COIL), []);
+  const goal = useMemo(() => new Vector3(), []);
+  const curve = useMemo(
+    () => new CatmullRomCurve3([new Vector3(...SNAPVINE_ROOT), new Vector3(5.2, 1.2, -24), new Vector3(4.2, 2.6, -24.5), headPos.clone()]),
+    [headPos],
+  );
+  useFrame((_, delta) => {
+    const g = root.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const id = run.director.currentBeat?.id ?? '';
+    g.visible = SNAPVINE_VISIBLE.has(id);
+    if (!g.visible) return;
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
+    const t = time.current;
+    const lunge = SNAPVINE_LUNGES[id];
+    const p = lunge ? run.beatProgress() : 0;
+    // Wind up (0–0.25), strike (0.25–0.55), snap and recoil (0.55–1).
+    let bite: number;
+    if (lunge && p > 0.25 && p < 0.9) {
+      const u = Math.min(1, (p - 0.25) / 0.3);
+      goal.set(SNAPVINE_COIL[0] + (lunge[0] - SNAPVINE_COIL[0]) * u, SNAPVINE_COIL[1] + (lunge[1] - SNAPVINE_COIL[1]) * u, SNAPVINE_COIL[2] + (lunge[2] - SNAPVINE_COIL[2]) * u);
+      bite = p < 0.55 ? 1 : Math.max(0, 1 - (p - 0.55) * 8);
+    } else {
+      const coil = lunge && p <= 0.25 ? 1 + p * 2 : 1;
+      goal.set(SNAPVINE_COIL[0] + Math.sin(t * 1.3) * 0.4 * coil, SNAPVINE_COIL[1] + Math.sin(t * 2.1) * 0.25, SNAPVINE_COIL[2] - (lunge ? p * 1.2 : 0));
+      bite = 0.6 + Math.sin(t * 3.2) * 0.3;
+    }
+    headPos.lerp(goal, 1 - Math.exp(-(lunge && p > 0.25 ? 14 : 4) * dt));
+    if (head.current) {
+      head.current.position.copy(headPos);
+      head.current.lookAt(lunge ? aim.set(lunge[0] - 2, lunge[1], lunge[2] + 2) : run.director.pose.position);
+    }
+    if (upper.current) upper.current.rotation.x = -0.15 - bite * 0.55;
+    if (lower.current) lower.current.rotation.x = 0.15 + bite * 0.45;
+    // Rebuild the stem along a curve from the roots to the head.
+    const pts = curve.points;
+    pts[3]?.copy(headPos);
+    pts[2]?.set((SNAPVINE_ROOT[0] + headPos.x) * 0.5 + 0.8, (SNAPVINE_ROOT[1] + headPos.y) * 0.6 + 0.8, (SNAPVINE_ROOT[2] + headPos.z) * 0.5);
+    if (stem.current) {
+      stem.current.geometry.dispose();
+      stem.current.geometry = new TubeGeometry(curve, 24, 0.32, 10, false);
+    }
+  });
+  return (
+    <group ref={root} visible={false}>
+      <mesh ref={stem} material={MAT.stem} castShadow>
+        <tubeGeometry args={[curve, 24, 0.32, 10, false]} />
+      </mesh>
+      <group ref={head} scale={1.4}>
+        {/* Two jaws of thick burgundy petals with a glowing throat. */}
+        <group ref={upper}>
+          <mesh position={[0, 0.12, 0.45]} scale={[1, 0.45, 1.2]} material={MAT.petal}>
+            <sphereGeometry args={[0.55, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          {[-0.3, 0, 0.3].map((x) => (
+            <mesh key={x} position={[x, 0.08, 0.95]} rotation={[Math.PI, 0, 0]} material={MAT.thorn}>
+              <coneGeometry args={[0.06, 0.22, 8]} />
+            </mesh>
+          ))}
+        </group>
+        <group ref={lower}>
+          <mesh position={[0, -0.12, 0.45]} rotation={[Math.PI, 0, 0]} scale={[1, 0.4, 1.2]} material={MAT.petal}>
+            <sphereGeometry args={[0.55, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          {[-0.22, 0.22].map((x) => (
+            <mesh key={x} position={[x, -0.06, 0.95]} material={MAT.thorn}>
+              <coneGeometry args={[0.06, 0.2, 8]} />
+            </mesh>
+          ))}
+        </group>
+        <mesh position={[0, 0, 0.2]} material={MAT.amberGlow}>
+          <sphereGeometry args={[0.25, 16, 12]} />
+        </mesh>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <mesh key={i} position={[Math.cos(i * 1.26) * 0.5, Math.sin(i * 1.26) * 0.5, -0.2]} rotation={[0, 0, i * 1.26]} scale={[1, 0.35, 0.12]} material={MAT.leaf}>
+            <sphereGeometry args={[0.45, 12, 8]} />
+          </mesh>
+        ))}
+      </group>
     </group>
   );
 }

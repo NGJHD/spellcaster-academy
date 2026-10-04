@@ -35,6 +35,8 @@ export const MAT = {
   furGrey: std('#77736c', 0.9),
   petal: std('#7a1f3a', 0.6, 0, { side: DoubleSide }),
   stem: std('#3f6b2e', 0.75),
+  thorn: std('#d9c9a0', 0.5),
+  amberGlow: std('#ffb84d', 0.3, 0, { emissive: '#ff9a1f', emissiveIntensity: 2.2 }),
   inkBody: new MeshPhysicalMaterial({
     color: '#26245a',
     roughness: 0.2,

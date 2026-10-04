@@ -92,7 +92,9 @@ export const LINES = {
   'por-const-done': line('pip', 'Star-reader! Your next spells will shine extra bright.'),
 
   // Enchanted Greenhouse
-  'gh-1': line('pip', 'These bridge vines grow toward confident words. Convenient plants.'),
+  'gh-1': line('pip', 'A SNAPVINE! Grow the bridge — quick, before it bites!'),
+  'gh-snap': line('pip', 'Missed us! Ha! Keep going!'),
+  'gh-stampede': line('pip', 'Mossling stampede! Here they come!'),
   'gh-pods': line('pip', 'The glowing pod is about to fire. Type its word first!'),
   'gh-moss': line('pip', 'They are not monsters. The broken ward has frightened them.'),
   'gh-warden': line('pip', 'Mira was right. The Warden is trying to protect the academy.'),
