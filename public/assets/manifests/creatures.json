@@ -82,8 +82,94 @@
         0.26860901713371277
       ]
     },
-    "bytes": 4738396,
+    "bytes": 4659500,
     "source": "assets-src/scripts/creatures/mossling.py"
+  },
+  "paint_imp": {
+    "id": "paint_imp",
+    "file": "/assets/creatures/paint_imp.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.25,
+      "height": 0.75
+    },
+    "wordAnchor": [
+      0,
+      1.25,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/paint_imp.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 26000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.2760505676269531,
+        -0.0005926854209974408,
+        -0.17283934354782104
+      ],
+      "max": [
+        0.27672460675239563,
+        0.8011049628257751,
+        0.1715206354856491
+      ]
+    },
+    "bytes": 4127904,
+    "source": "assets-src/scripts/creatures/paint_imp.py"
+  },
+  "thorn_pod": {
+    "id": "thorn_pod",
+    "file": "/assets/creatures/thorn_pod.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.45,
+      "height": 1.3
+    },
+    "wordAnchor": [
+      0,
+      1.7,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/thorn_pod.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 30000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.5433700680732727,
+        -0.015037903562188148,
+        -0.4898499846458435
+      ],
+      "max": [
+        0.5484538674354553,
+        1.3962388038635254,
+        0.4924745261669159
+      ]
+    },
+    "bytes": 5739912,
+    "source": "assets-src/scripts/creatures/thorn_pod.py"
   },
   "ink_wisp": {
     "id": "ink_wisp",

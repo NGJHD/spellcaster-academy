@@ -19,8 +19,10 @@ target = int(args[1]) if len(args) > 1 else 300000
 density = float(args[2]) if len(args) > 2 else 560.0
 # Hard-surface subjects (armour with open shells) lose whole parts in a VDB voxel remesh, which needs a
 # well-defined inside; the octree remesh wraps any surface.
-HARD_SURFACE = {"armour_guardian", "training_dummy", "runaway_book"}
-mode = "octree" if name in HARD_SURFACE else "voxel"
+# The octree remesh keeps thin parts (petals, plates, drips) that a VDB voxel shell drops or detaches;
+# the voxel path stays available for subjects that prefer it.
+VOXEL = {"sprite_a", "mossling", "ink_wisp"}
+mode = "voxel" if name in VOXEL else "octree"
 src = os.path.join(ROOT, "assets-src", "ai-meshes", f"{name}_white.glb")
 dst = os.path.join(ROOT, "assets-src", "ai-meshes", f"{name}_dec.glb")
 

@@ -14,6 +14,7 @@ import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { CharacterModel } from './CharacterModel';
 import { Guardian } from '../enemies/GuardianGLB';
+import { CreatureModel, creatureUrl } from '../enemies/CreatureModel';
 import { useKitGlow } from './kitGlb';
 import { MAT } from './materials';
 import { useParts } from './partsGlb';
@@ -178,7 +179,16 @@ export function DormantTarget({ encounterId, targetId, kind, position, rotationY
     g.visible = !done && !live;
   });
   const model: ReactNode =
-    kind === 'dummy' ? <Dummy pose={pose} practice={false} /> : kind === 'guardian' ? <Guardian pose={pose} /> : <ThornPod pose={pose} />;
+    kind === 'dummy' ? (
+      <Dummy pose={pose} practice={false} />
+    ) : kind === 'guardian' ? (
+      <Guardian pose={pose} />
+    ) : (
+      // Realistic AI-pipeline pod; its Dispel clip (wilted) is the dormant pose.
+      <Suspense fallback={<ThornPod pose={pose} />}>
+        <CreatureModel url={creatureUrl('thorn-pod') ?? ''} pose={pose} />
+      </Suspense>
+    );
   return (
     <group ref={group} position={position} rotation={[0, rotationY, 0]}>
       {model}

@@ -14,6 +14,8 @@ export const ASSETS = {
   creatures: {
     mischief_sprite: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.22, height: 0.7 }, wordAnchor: [0, 0.95, 0], budget: 'enemy', height: [0.6, 0.85] },
     mossling: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.38, height: 0.92 }, wordAnchor: [0, 1.45, 0], budget: 'enemy', height: [0.85, 1.25] },
+    paint_imp: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.25, height: 0.75 }, wordAnchor: [0, 1.25, 0], budget: 'enemy', height: [0.65, 0.95] },
+    thorn_pod: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.45, height: 1.3 }, wordAnchor: [0, 1.7, 0], budget: 'enemy', height: [1.2, 1.6] },
     ink_wisp: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.25, height: 1.0 }, wordAnchor: [0, 1.35, 0], budget: 'enemy', height: [0.85, 1.25] },
     armour_guardian: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.45, height: 2.0 }, wordAnchor: [0, 2.35, 0], budget: 'hero', height: [1.8, 2.3] },
     ward_warden: { animations: [], collision: { shape: 'capsule', radius: 1.0, height: 3.6 }, wordAnchor: [0, 4.2, 0], budget: 'boss', height: [3.0, 4.0] },

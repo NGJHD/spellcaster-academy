@@ -22,6 +22,10 @@ export function creatureUrl(kind: string, variant?: string): string | null {
       return `${base}mischief_sprite.glb`;
     case 'mossling':
       return `${base}mossling.glb`;
+    case 'imp':
+      return `${base}paint_imp.glb`;
+    case 'thorn-pod':
+      return `${base}thorn_pod.glb`;
     case 'wisp':
       return `${base}ink_wisp.glb`;
     default:
