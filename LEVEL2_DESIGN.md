@@ -6,7 +6,7 @@ Game-wide rules live in `CLAUDE.md`: the on-rails format, audience and IP rules,
 
 Section ids use the prefix `L2-` for level design, `M2-` for mobs, `A2-` for the asset bible and `G2-` for general design.
 
-Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 15-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
+Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 10-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
 
 ---
 

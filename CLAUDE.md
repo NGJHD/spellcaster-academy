@@ -97,16 +97,16 @@ A separate non-story asset viewer or optional celebration diorama may allow orbi
 
 Owner feedback (2026-10-04): playtesters found Level 1 boring. The audience is 8–10-year-olds with short attention spans. These rules apply to every level and override any calmer pacing elsewhere in the specification.
 
-### The 15-second rule
+### The 10-second rule
 
-The player should never go more than about **15 seconds** without at least one of:
+The player should never go more than about **10 seconds** without at least one of:
 
 - something to type
 - something exploding, crashing, bursting or transforming on screen
 - a new enemy entrance
 - a reveal (a creature, a boss or a dramatic view)
 
-The exceptions are boss introductions and the ending, and even those use big visuals. Story dialogue between fights is **at most two short lines** and plays over camera travel.
+The exceptions are boss introductions and the ending, and even those use big visuals. At 10 seconds, ordinary camera travel is not enough on its own: every travel segment longer than 10 s needs spark gems, a bonus target or a scripted action moment along it. A two-line dialogue beat must also play over something to type or watch. Story dialogue between fights is **at most two short lines** and plays over camera travel.
 
 ### Every word should feel powerful
 
