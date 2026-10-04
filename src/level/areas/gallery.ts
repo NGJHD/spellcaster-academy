@@ -1,10 +1,13 @@
 /**
- * LD-15: Practice Gallery. Local layout (origin GALLERY_ORIGIN): long hall along −Z,
+ * LD-15 as revised by LEVEL1_DESIGN LD-0: the Practice Gallery is a target-range arcade. Targets pop
+ * up spinning, Pip commentates like a sports announcer, every zone ends with a medal fanfare, and an
+ * optional bonus speed round keeps a local best score to beat on replay.
+ * Practice Gallery. Local layout (origin GALLERY_ORIGIN): long hall along −Z,
  * x ∈ [−6, 6], z ∈ [−62, 2]; encounter zones at z = −14, −32, −50.
  */
 import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, origin, reveal, talk, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, len, origin, target, travel, type AreaScript } from './builders';
 
 const A = 'practice-gallery';
 export const GALLERY_ORIGIN: Vec3 = [680, 0, 0];
@@ -13,8 +16,11 @@ const P = origin(GALLERY_ORIGIN);
 export const GALLERY_ZONES = [-14, -32, -50] as const;
 export const MIRA_GALLERY_POSITION = P(-4.2, 0, -6.5);
 
+/** Arcade targets pop up spinning in a burst of sparks. */
+const POP = { kind: 'sparks', scale: 0.9, color: '#ffd27a' } as const;
+
 const practiceDummy = (id: string, x: number, z: number, words = [len(4, 6)]): TargetSpawn =>
-  target(id, 'dummy', P(x, 0, z), words, { labelHeight: 2.0, variant: 'practice' });
+  target(id, 'dummy', P(x, 0, z), words, { labelHeight: 2.0, variant: 'practice', entrance: POP, defeatFx: { kind: 'burst', scale: 0.7 } });
 
 export const gallery: AreaScript = {
   nodes: {
@@ -27,19 +33,18 @@ export const gallery: AreaScript = {
   },
   lookPoints: {},
   beats: [
-    fade('gallery-enter', A, 'GAL_ENTRY', { music: 'east-hall-calm', objective: 'practice' }),
-    travel('gallery-to-mira', A, ['GAL_ENTRY', 'GAL_MIRA'], 4),
-    talk('gallery-mira', A, ['gal-1', 'gal-2', 'gal-3', 'gal-4']),
+    fade('gallery-enter', A, 'GAL_ENTRY', { music: 'courtyard-action', objective: 'practice' }),
+    travel('gallery-to-mira', A, ['GAL_ENTRY', 'GAL_MIRA'], 4, { barks: ['gal-1', 'gal-2'] }),
     travel('gallery-to-zone1', A, ['GAL_MIRA', 'GAL_ZONE1'], 3, { reducedMotion: 'glide' }),
-    fight('gallery-p1', A, { barks: ['gal-p1'], music: 'courtyard-action' }),
+    fight('gallery-p1', A, { barks: ['gal-p1'] }),
     travel('gallery-to-zone2', A, ['GAL_ZONE1', 'GAL_ZONE2'], 6),
     fight('gallery-p2', A, { barks: ['gal-p2'] }),
     travel('gallery-to-zone3', A, ['GAL_ZONE2', 'GAL_ZONE3'], 6),
     fight('gallery-p3', A, { barks: ['gal-p3'] }),
-    reveal('gallery-done-hold', A, 'GAL_ZONE3', [], 0, 0.8, { returnToNode: false, music: 'east-hall-calm' }),
-    talk('gallery-done', A, ['gal-5', 'gal-6', 'gal-7'], { restoreFocus: true }),
-    checkpoint('gallery-checkpoint', A, 'practice-gallery-complete', { objective: 'reach-observatory' }),
-    travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5),
+    // Optional bonus round: six pop-up targets against the clock, with a best score to beat.
+    fight('gallery-bonus', A, { barks: ['gal-bonus'] }),
+    checkpoint('gallery-checkpoint', A, 'practice-gallery-complete', { objective: 'reach-observatory', restoreFocus: true }),
+    travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5, { barks: ['gal-5', 'gal-6', 'gal-7'] }),
   ],
   encounters: [
     {
@@ -87,6 +92,32 @@ export const gallery: AreaScript = {
           ],
         },
       ],
+    },
+    {
+      id: 'gallery-bonus',
+      areaId: A,
+      kind: 'interaction',
+      optionalPrompt: 'gallery-bonus',
+      speedRound: { sec: 12 },
+      waves: [
+        {
+          id: 'bonus-1',
+          targets: [
+            { ...practiceDummy('bonus-target-1', -4, -49, [len(3, 5)]) },
+            { ...practiceDummy('bonus-target-2', 3.5, -51, [len(3, 5)]), delaySec: 0.3 },
+            { ...practiceDummy('bonus-target-3', -1.5, -52, [len(3, 5)]), delaySec: 0.9 },
+          ],
+        },
+        {
+          id: 'bonus-2',
+          targets: [
+            { ...practiceDummy('bonus-target-4', 1.5, -48.5, [len(3, 5)]) },
+            { ...practiceDummy('bonus-target-5', -3, -51.5, [len(3, 5)]), delaySec: 0.3 },
+            { ...practiceDummy('bonus-target-6', 4, -50, [len(3, 5)]), delaySec: 0.9 },
+          ],
+        },
+      ],
+      barks: [{ when: { on: 'complete' }, line: 'gal-bonus-done' }],
     },
     {
       id: 'gallery-p3',

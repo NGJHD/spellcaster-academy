@@ -1639,17 +1639,18 @@ kbd {
   to { opacity: 0; transform: translateX(-6%); }
 }
 
+/* Top-left under the objective, so medals and boss bars (top centre) never collide with it. */
 .speed-round {
   position: absolute;
-  top: 96px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 104px;
+  left: 16px;
   min-width: 15rem;
   padding: 0.5rem 1.2rem 0.6rem;
   border: 2px solid #ff9f43;
   border-radius: 14px;
   background: rgba(30, 14, 8, 0.86);
   text-align: center;
+  transform-origin: top left;
   animation: speed-in 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
@@ -1726,8 +1727,8 @@ kbd {
 }
 
 @keyframes speed-in {
-  from { transform: translateX(-50%) scale(0.4); opacity: 0; }
-  to { transform: translateX(-50%) scale(1); opacity: 1; }
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .screen-flash {
@@ -1818,4 +1819,16 @@ kbd {
 /* Bonus words (spark gems, star pages) fly in smaller than threats so they never hide the action. */
 .word-label--optional {
   --fly-scale: 2;
+}
+
+.speed-round__best {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.speed-round__best--new {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ff7ab8;
+  animation: combo-bump 0.35s ease-out;
 }

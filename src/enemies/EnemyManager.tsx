@@ -129,6 +129,8 @@ function TargetView({ id }: { id: string }) {
       g.rotation.y += diff * 0.15;
     }
     const p = pose.current;
+    // Arcade targets (Practice Gallery, LD-0) spin as they pop up.
+    if (t.spawn.variant === 'practice' && p.appear < 1) g.rotation.y += (1 - p.appear) * 0.9;
     let scale = easeOutBack(p.appear);
     if (t.phase === 'dispelling' && !t.spawn.persist) scale *= Math.max(0, 1 - p.dispel * 1.1);
     g.scale.setScalar(Math.max(0.001, scale));

@@ -170,6 +170,8 @@ export function SpeedRoundBanner() {
         </>
       )}
       {r.state === 'won' && <div className="speed-round__bonus">+{r.bonus}</div>}
+      {r.state === 'won' && r.newBest && <div className="speed-round__best speed-round__best--new">{t.newBest}</div>}
+      {r.state === 'running' && r.best > 0 && <div className="speed-round__best">{t.best(r.best)}</div>}
       {r.state === 'time-up' && <div className="speed-round__goal">{t.keepGoing}</div>}
     </div>
   );

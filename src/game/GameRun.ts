@@ -134,6 +134,31 @@ export function readSeconds(text: string): number {
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
 
+const BEST_SPEED_KEY = 'spellcaster.bestSpeedRounds';
+
+function readBestSpeed(storage: KeyValueStorage, id: string): number {
+  try {
+    const raw = storage.getItem(BEST_SPEED_KEY);
+    const all: unknown = raw ? JSON.parse(raw) : {};
+    const value = typeof all === 'object' && all !== null ? (all as Record<string, unknown>)[id] : undefined;
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeBestSpeed(storage: KeyValueStorage, id: string, bonus: number): void {
+  try {
+    const raw = storage.getItem(BEST_SPEED_KEY);
+    const all: unknown = raw ? JSON.parse(raw) : {};
+    const next = typeof all === 'object' && all !== null ? { ...(all as Record<string, unknown>) } : {};
+    next[id] = bonus;
+    storage.setItem(BEST_SPEED_KEY, JSON.stringify(next));
+  } catch {
+    // Best scores are a convenience; never let storage problems interrupt play.
+  }
+}
+
 /** Spell unlocks play a short slow-motion beat. */
 const SLOW_MO_SEC = 1.2;
 const SLOW_MO_SCALE = 0.3;
@@ -460,6 +485,9 @@ export class GameRun {
   private readonly camUp = new Vector3();
   private speed: SpeedRound | null = null;
   private speedClearIn = 0;
+  private speedId = '';
+  private speedBest = 0;
+  private speedNewBest = false;
 
   /** 0–1 through the current camera beat (scripted scene cameos). 1 for gated beats. */
   beatProgress(): number {
@@ -615,6 +643,9 @@ export class GameRun {
     const words = def.waves.reduce((n, w) => n + w.targets.filter((t) => !t.optional && !t.challengeOnly).reduce((m, t) => m + t.words.length, 0), 0);
     this.speed = new SpeedRound(def.speedRound.sec, this.difficulty, words);
     this.speedClearIn = 0;
+    this.speedId = def.id;
+    this.speedNewBest = false;
+    this.speedBest = readBestSpeed(this.options.storage, def.id);
     this.publishSpeedRound(nextKey());
   }
 
@@ -631,6 +662,8 @@ export class GameRun {
         words: r.words,
         state: r.state,
         bonus: r.bonus,
+        best: this.speedBest,
+        newBest: this.speedNewBest,
       },
     });
   }
@@ -660,7 +693,13 @@ export class GameRun {
     const m = this.progress.metrics;
     m.score += r.bonus;
     audio.playSfx('checkpoint');
-    this.popup(`SPEED BONUS +${r.bonus}`, 'cheer', at, height);
+    // A local best to beat on replay (Practice Gallery arcade, LD-0).
+    if (r.bonus > this.speedBest) {
+      this.speedNewBest = this.speedBest > 0;
+      this.speedBest = r.bonus;
+      writeBestSpeed(this.options.storage, this.speedId, r.bonus);
+    }
+    this.popup(this.speedNewBest ? 'NEW BEST!' : `SPEED BONUS +${r.bonus}`, 'cheer', at, height);
     this.speedClearIn = SPEED_RESULT_SEC;
     this.publishSpeedRound();
     patchRunUi({ score: m.score });

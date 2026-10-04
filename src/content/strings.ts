@@ -136,6 +136,8 @@ export const strings = {
     won: 'SPEED ROUND CLEAR!',
     timeUp: 'TIME!',
     keepGoing: 'Nice try! Finish the words for the reward.',
+    best: (score: number) => `Best: +${score}`,
+    newBest: 'NEW BEST!',
   },
   medals: {
     1: 'Nice work!',
@@ -149,6 +151,7 @@ export const strings = {
   prompts: {
     chest: 'Speed round! Open the chest — or press Enter to keep running.',
     constellations: 'Speed round! Name the constellations — or press Enter to continue.',
+    'gallery-bonus': 'Bonus round! Beat your best — or press Enter to skip.',
   } as Record<string, string>,
   hazards: {
     'arc-left': 'Light arc from the left',

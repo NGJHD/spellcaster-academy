@@ -72,6 +72,9 @@ export interface SpeedRoundInfo {
   readonly words: number;
   readonly state: 'running' | 'won' | 'time-up';
   readonly bonus: number;
+  /** Best bonus on this device for this round (0 if never won). */
+  readonly best: number;
+  readonly newBest: boolean;
 }
 
 export interface ChoiceInfo {
