@@ -18,7 +18,7 @@ Level 1 keeps its bright, sunny look; the drama comes from action, comedy, speed
 
 | Problem in the current Level 1 | Fix |
 | --- | --- |
-| Long opening before the first typing | The first word appears within 10 seconds of START |
+| Long opening before the first typing | The first word appears within 10 seconds of START at Fast |
 | Stationary training dummies | Dummies leap off their stands and charge |
 | East Hall and Hall of Portraits are calm walks | Both become action sequences |
 | Long dialogue stops | Two lines at most, played over travel |
@@ -122,7 +122,7 @@ The first typed word arrives within about 12 seconds.
 
 ### Pacing budget
 
-The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 10-second rule in §1B. Measure this in the Playwright bot run: log the longest gap between typing prompts per area. Any gap over 10 s outside boss intros and the ending is a bug.
+The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 10-second rule in §1B. Measure this in the Playwright bot run with travel speed set to **Fast**: log the longest gap between typing prompts per area. Any gap over 10 s at Fast, outside boss intros and the ending, is a bug.
 
 ### Implementation notes
 

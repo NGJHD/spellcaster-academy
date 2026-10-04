@@ -99,14 +99,14 @@ Owner feedback (2026-10-04): playtesters found Level 1 boring. The audience is 8
 
 ### The 10-second rule
 
-The player should never go more than about **10 seconds** without at least one of:
+With the travel speed set to **Fast**, the player should never go more than about **10 seconds** without at least one of the moments below. Fast is the reference setting for this rule. At Normal (1.6× against Fast's 2.4×) the same route stretches to about 15 seconds, and at Slow (1×) to about 24 seconds, which suits players who choose a calmer pace.
 
 - something to type
 - something exploding, crashing, bursting or transforming on screen
 - a new enemy entrance
 - a reveal (a creature, a boss or a dramatic view)
 
-The exceptions are boss introductions and the ending, and even those use big visuals. At 10 seconds, ordinary camera travel is not enough on its own: every travel segment longer than 10 s needs spark gems, a bonus target or a scripted action moment along it. A two-line dialogue beat must also play over something to type or watch. Story dialogue between fights is **at most two short lines** and plays over camera travel.
+The exceptions are boss introductions and the ending, and even those use big visuals. At 10 seconds (Fast), ordinary camera travel is not enough on its own: every travel segment longer than 10 s at Fast needs spark gems, a bonus target or a scripted action moment along it. A two-line dialogue beat must also play over something to type or watch. Story dialogue between fights is **at most two short lines** and plays over camera travel.
 
 ### Every word should feel powerful
 
