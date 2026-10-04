@@ -250,7 +250,7 @@ export function HallScene() {
         file="grey_herald.glb"
         position={herald}
         rotationY={-0.4}
-        scale={1.6}
+        scale={1.5}
         fromBeat="l2-herald-enters"
         goneFlag="l2-herald-gone"
         fallback={<HeraldFallback />}

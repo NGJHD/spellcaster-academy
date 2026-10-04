@@ -227,7 +227,8 @@
     ],
     "collision": {
       "shape": "sphere",
-      "radius": 0.5
+      "radius": 0.5,
+      "height": 1
     },
     "wordAnchor": [
       0,
@@ -255,6 +256,49 @@
     },
     "bytes": 3995788,
     "source": "assets-src/scripts/creatures/eraser_moth.py"
+  },
+  "grey_herald": {
+    "id": "grey_herald",
+    "file": "/assets/creatures/grey_herald.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.7,
+      "height": 3
+    },
+    "wordAnchor": [
+      0,
+      3.4,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/grey_herald.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 39999,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -1.01837158203125,
+        -0.008700652047991753,
+        -0.7399993538856506
+      ],
+      "max": [
+        1.0142650604248047,
+        3.0048828125,
+        0.7512815594673157
+      ]
+    },
+    "bytes": 7529692,
+    "source": "assets-src/scripts/creatures/grey_herald.py"
   },
   "ink_wisp": {
     "id": "ink_wisp",
