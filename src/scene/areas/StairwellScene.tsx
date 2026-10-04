@@ -2,7 +2,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { CatmullRomCurve3, TubeGeometry, Vector3, type Group } from 'three';
-import { STAIRWELL_ORIGIN, STAIR_GUARDS, stairFloor } from '../../level/areas/stairwell';
+import { GUARD_BLOCK_RADIUS, SLIDE_BEATS, STAIRWELL_ORIGIN, STAIR_GUARDS, stairFloor } from '../../level/areas/stairwell';
+import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
 import { Guardian } from '../../enemies/GuardianGLB';
@@ -10,7 +11,6 @@ import { WallLamp, WindowPane } from '../kit';
 import { MergeStatic } from '../MergeStatic';
 import { insideCylinder, worldBox, worldCircle, worldCylinder } from '../surfaces';
 import { MAT } from '../materials';
-import { DormantTarget } from '../props';
 
 const R = 6;
 const TOP = 19;
@@ -70,15 +70,10 @@ export function StairwellScene() {
         );
       })}
       {STAIR_GUARDS.slice(0, 2).map((g, i) => (
-        <CommandedGuard key={g.id} deg={g.deg} floor={g.floor} flag={`stair-guard-${i + 1}-calm`} />
+        <CommandedGuard key={g.id} deg={g.deg} floor={g.floor} flag={`stair-guard-${i + 1}-calm`} slideBeat={SLIDE_BEATS[i] ?? ''} />
       ))}
-      <DormantTarget
-        encounterId="stair-3-guard"
-        targetId="stair-guard-3-awake"
-        kind="guardian"
-        position={polar(STAIR_GUARDS[2].deg, STAIR_GUARDS[2].floor)}
-        rotationY={-((STAIR_GUARDS[2].deg * Math.PI) / 180) + Math.PI}
-      />
+      <ReassemblingGuard />
+      <TeaTray />
       {STAIR_GUARDS.map((g) => {
         const [x, , z] = polar(g.deg, 0, 6);
         return (
@@ -100,21 +95,31 @@ function Handrail({ steps }: { steps: readonly { deg: number; y: number }[] }) {
   return <mesh geometry={geometry} material={MAT.agedBrass} castShadow />;
 }
 
-/** Guardians 1 and 2: step aside and bow once their command word is typed. */
-function CommandedGuard({ deg, floor, flag }: { deg: number; floor: number; flag: string }) {
+/**
+ * Guardians 1 and 2 step out into the tray's path. Commanded in time, they step aside and bow; if the
+ * word is not finished, they leap aside at the last moment anyway (LD-0: never a fail).
+ */
+function CommandedGuard({ deg, floor, flag, slideBeat }: { deg: number; floor: number; flag: string; slideBeat: string }) {
   const group = useRef<Group>(null);
   const pose = useRef<TargetPose>(emptyPose());
   const aside = useRef(0);
+  const slideIndex = beatIndexOf(slideBeat);
   useFrame((state, dt) => {
     pose.current.time += dt;
-    const calm = getRun()?.flags.has(flag) ?? false;
-    aside.current += ((calm ? 1 : 0) - aside.current) * (1 - Math.exp(-1.2 * Math.min(dt, 0.1)));
-    pose.current.defeated = calm;
-    pose.current.dispel = aside.current;
+    const run = getRun();
+    const beat = run?.director.currentIndex ?? -1;
+    const commanded = run?.flags.has(flag) ?? false;
+    const lastMoment = beat > slideIndex || (beat === slideIndex && (run?.beatProgress() ?? 0) > 0.86);
+    const clear = commanded || lastMoment;
+    aside.current += ((clear ? 1 : 0) - aside.current) * (1 - Math.exp(-(commanded ? 2 : 6) * Math.min(dt, 0.1)));
+    pose.current.defeated = commanded;
+    pose.current.dispel = commanded ? aside.current : 0;
     const g = group.current;
     if (!g) return;
-    const [x, , z] = polar(deg, floor, R + aside.current * 2.2);
-    g.position.set(x, floor, z);
+    // Leap inward towards the column, clear of the banister, with a little hop.
+    const a = aside.current;
+    const [x, , z] = polar(deg, floor, GUARD_BLOCK_RADIUS - a * 3.1);
+    g.position.set(x, floor + Math.sin(a * Math.PI) * (commanded ? 0.1 : 0.6), z);
     const cx = state.camera.position.x - STAIRWELL_ORIGIN[0] - x;
     const cz = state.camera.position.z - STAIRWELL_ORIGIN[2] - z;
     g.rotation.y = Math.atan2(cx, cz);
@@ -125,3 +130,74 @@ function CommandedGuard({ deg, floor, flag }: { deg: number; floor: number; flag
     </group>
   );
 }
+
+const REASSEMBLE_BEAT = 'stairwell-reassemble';
+
+/**
+ * Guardian 3 stands on the last landing; when the tray arrives it bursts apart into armour pieces and
+ * re-assembles (LD-0) before the short fight. Hidden while the live fight target exists.
+ */
+function ReassemblingGuard() {
+  const group = useRef<Group>(null);
+  const pose = useRef<TargetPose>(emptyPose());
+  const g3 = STAIR_GUARDS[2];
+  useFrame((_, dt) => {
+    pose.current.time += dt;
+    const g = group.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const done = run.progress.completedEncounterIds.includes('stair-3-guard');
+    const live = run.findTarget('stair-guard-3-awake') !== undefined || run.isRetired('stair-guard-3-awake');
+    const beatId = run.director.currentBeat?.id;
+    const p = beatId === REASSEMBLE_BEAT ? run.beatProgress() : -1;
+    // Apart from the burst until the pieces fly back together.
+    const apart = p > 0.02 && p < 0.6;
+    g.visible = !done && !live && !apart;
+    const grow = p >= 0.6 ? Math.min(1, (p - 0.6) / 0.15) : 1;
+    g.scale.setScalar(0.6 + 0.4 * grow);
+  });
+  const [x, y, z] = polar(g3.deg, g3.floor);
+  return (
+    <group ref={group} position={[x, y, z]} rotation={[0, -((g3.deg * Math.PI) / 180) + Math.PI, 0]}>
+      <Guardian pose={pose} />
+    </group>
+  );
+}
+
+/**
+ * PLACEHOLDER tea tray (LD-0 Banister Slide): a polished silver tray under the camera while sliding,
+ * banking into the curve. Replaceable with the first-person hands-on-rim GLB.
+ */
+function TeaTray() {
+  const tray = useRef<Group>(null);
+  const offset = useMemo(() => new Vector3(), []);
+  useFrame((state) => {
+    const g = tray.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const id = run.director.currentBeat?.id ?? '';
+    g.visible = (SLIDE_BEATS as readonly string[]).includes(id) || id === REASSEMBLE_BEAT;
+    if (!g.visible) return;
+    const cam = state.camera;
+    offset.set(0.1, -0.46, -0.95).applyQuaternion(cam.quaternion);
+    g.position.copy(cam.position).add(offset).sub(TRAY_ORIGIN);
+    g.quaternion.copy(cam.quaternion);
+    // Tip the tray flat under the rider and bank it slightly into the turn.
+    g.rotateX(-0.95);
+    g.rotateY(Math.sin(state.clock.elapsedTime * 3) * 0.03);
+    g.rotateZ(0.12);
+  });
+  return (
+    <group ref={tray} visible={false}>
+      <mesh scale={[1, 1, 0.72]} material={MAT.silver}>
+        <cylinderGeometry args={[0.42, 0.4, 0.025, 40]} />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1, 0.72, 1]} position={[0, 0.02, 0]} material={MAT.silver}>
+        <torusGeometry args={[0.42, 0.018, 8, 48]} />
+      </mesh>
+    </group>
+  );
+}
+
+/** The scene group sits at the stairwell origin, so world positions are offset by it. */
+const TRAY_ORIGIN = new Vector3(...STAIRWELL_ORIGIN);

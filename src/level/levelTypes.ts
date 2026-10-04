@@ -242,6 +242,8 @@ export interface TargetSpawn {
   readonly carriesPip?: boolean;
   /** Line spoken when this target is beaten. */
   readonly defeatBark?: LineId;
+  /** Story flag set when this target is beaten (scene props react, e.g. a guardian stepping aside). */
+  readonly defeatFlag?: string;
 }
 
 export type WaveRule =

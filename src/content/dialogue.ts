@@ -103,7 +103,8 @@ export const LINES = {
   'gh-chain': line('pip', 'Chain Spark unlocked! Five perfect words in a row send sparks to nearby foes.'),
 
   // Lower Stairwell
-  'st-1': line('pip', 'Ceremonial guards. They respond to academy commands — or they did yesterday.'),
+  'st-1': line('pip', 'No time for stairs — hop on the tea tray! WHEEEE!'),
+  'st-2': line('pip', 'Guards ahead! Command them out of the way!'),
   'st-3': line('pip', 'Uh-oh. This one needs a little more convincing.'),
   'st-done': line('pip', 'Very formal. Even during an emergency.'),
 

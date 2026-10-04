@@ -1,14 +1,24 @@
 /**
- * LD-14: Lower Stairwell. A broad spiral (radius 6 m) around a central column; three landings
- * 4 m apart. The camera descends in partial arcs (never full rotations) and stops at each guardian.
+ * LEVEL1_DESIGN LD-0 Lower Stairwell (replaces LD-14): the Banister Slide. The apprentice and Pip
+ * ride a tea tray down the spiral banister. Each guardian steps out onto the stairs ahead; its command
+ * word is a chase word on the slide (the tray slows while it is typed). If the word is not finished
+ * in time the guardian simply leaps aside at the last moment: it never fails. The third guardian falls
+ * apart and re-assembles in front of the player for a short three-word fight.
+ * A broad spiral (radius 6 m) around a central column, brass banister at radius 8.9 m. The camera
+ * always moves in partial arcs (never full rotations, §1A).
  */
+import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, marker, origin, talk, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, len, origin, reveal, target, travel, type AreaScript } from './builders';
 
 const A = 'lower-stairwell';
 export const STAIRWELL_ORIGIN: Vec3 = [560, 0, 0];
 const S = origin(STAIRWELL_ORIGIN);
 const RADIUS = 6;
+/** The tray rides the banister just inside the outer wall. */
+const RIDE_RADIUS = 8.5;
+/** Guardians step out into the tray's path at this radius, and leap inward to let it pass. */
+export const GUARD_BLOCK_RADIUS = 7.9;
 
 /** Point on the spiral at `deg` degrees and height `y` (area-local). */
 export function spiral(deg: number, y: number, r = RADIUS): Vec3 {
@@ -27,62 +37,76 @@ export const STAIR_GUARDS = [
   { id: 'stair-guard-3', deg: -220, floor: stairFloor(-220) },
 ] as const;
 
+/** Beats during which the tray slides, and the guardian each one ends at. */
+export const SLIDE_BEATS = ['stairwell-slide-1', 'stairwell-slide-2', 'stairwell-slide-3'] as const;
+
+/** Camera on the tray at an angle: sitting on the banister, looking down the curve ahead. */
+const ride = (deg: number, aheadDeg = 38) => ({
+  position: spiral(deg, stairFloor(deg) + 1.85, RIDE_RADIUS),
+  lookAt: spiral(deg - aheadDeg, stairFloor(deg - aheadDeg) + 1.3, GUARD_BLOCK_RADIUS),
+});
+
 const guardChest = (i: 0 | 1 | 2): Vec3 => {
   const g = STAIR_GUARDS[i];
-  return spiral(g.deg, g.floor + 1.45);
+  return spiral(g.deg, g.floor + 1.45, GUARD_BLOCK_RADIUS);
 };
-const guardLook = (i: 0 | 1 | 2): Vec3 => {
-  const g = STAIR_GUARDS[i];
-  return spiral(g.deg, g.floor + 1.3);
-};
+
+/** A command word on the slide: typed in time, the guardian steps aside; otherwise it leaps aside anyway. */
+const command = (i: 0 | 1 | 2, word: string, flag: string): TargetSpawn =>
+  target(`stair-${i + 1}-word`, 'marker', guardChest(i), [word], {
+    labelHeight: 0.6,
+    leaveAfterSec: 30,
+    defeatFlag: flag,
+    defeatFx: { kind: 'sparks', scale: 0.8, color: '#9fd8ff' },
+  });
 
 export const stairwell: AreaScript = {
   nodes: {
-    ST_TOP: { position: spiral(30, stairFloor(30) + 1.6), lookAt: spiral(-20, 13.2) },
-    ST_L1: { position: spiral(-20, 13.6), lookAt: guardLook(0) },
-    ST_L1_PASS: { position: spiral(-60, stairFloor(-60) + 1.6), lookAt: spiral(-100, 9.4) },
-    ST_L2: { position: spiral(-100, 9.6), lookAt: guardLook(1) },
-    ST_L2_PASS: { position: spiral(-140, stairFloor(-140) + 1.6), lookAt: spiral(-180, 5.4) },
-    ST_L3: { position: spiral(-180, 5.6), lookAt: guardLook(2) },
-    ST_L3_PASS: { position: spiral(-220, stairFloor(-220) + 1.6), lookAt: spiral(-250, 1.4) },
+    ST_TOP: ride(40),
+    ST_SLIDE_A: ride(0),
+    ST_SLIDE_1_END: ride(-44, 16),
+    ST_SLIDE_B: ride(-90),
+    ST_SLIDE_2_END: ride(-124, 16),
+    ST_SLIDE_C: ride(-168),
+    ST_SLIDE_3_END: { position: spiral(-200, stairFloor(-200) + 1.85, RIDE_RADIUS), lookAt: spiral(-220, stairFloor(-220) + 1.3) },
+    ST_SLIDE_D: ride(-232, 25),
     ST_BOTTOM: { position: spiral(-255, 1.6), lookAt: S(-1.5, 1.8, 12) },
   },
-  lookPoints: {},
+  lookPoints: {
+    ST_GUARD_3: spiral(-220, stairFloor(-220) + 1.2),
+  },
   beats: [
-    fade('stairwell-enter', A, 'ST_TOP', { music: 'tower-ascent' }),
-    travel('stairwell-to-l1', A, ['ST_TOP', 'ST_L1'], 4.5, { barks: ['st-1'] }),
-    fight('stair-1', A),
-    travel('stairwell-to-l2', A, ['ST_L1', 'ST_L1_PASS', 'ST_L2'], 6),
-    fight('stair-2', A),
-    travel('stairwell-to-l3', A, ['ST_L2', 'ST_L2_PASS', 'ST_L3'], 6),
-    fight('stair-3', A),
-    fight('stair-3-guard', A, { barks: ['st-3'] }),
-    talk('stairwell-done', A, ['st-done']),
-    checkpoint('stairwell-checkpoint', A, 'lower-stairwell-complete'),
-    travel('stairwell-to-bottom', A, ['ST_L3', 'ST_L3_PASS', 'ST_BOTTOM'], 6),
+    fade('stairwell-enter', A, 'ST_TOP', { music: 'tower-battle', barks: ['st-1'] }),
+    // Fast-rail set piece: the tea-tray slide, one guardian per arc.
+    travel('stairwell-slide-1', A, ['ST_TOP', 'ST_SLIDE_A', 'ST_SLIDE_1_END'], 8, {
+      easing: 'easeInOutSine',
+      chase: [{ at: 0.05, target: command(0, 'stand', 'stair-guard-1-calm') }],
+    }),
+    travel('stairwell-slide-2', A, ['ST_SLIDE_1_END', 'ST_SLIDE_B', 'ST_SLIDE_2_END'], 8, {
+      easing: 'easeInOutSine',
+      barks: ['st-2'],
+      chase: [{ at: 0.1, target: command(1, 'honour', 'stair-guard-2-calm') }],
+    }),
+    travel('stairwell-slide-3', A, ['ST_SLIDE_2_END', 'ST_SLIDE_C', 'ST_SLIDE_3_END'], 8, {
+      easing: 'easeInOutSine',
+      chase: [{ at: 0.1, target: command(2, 'yield', 'stair-guard-3-wakes') }],
+    }),
+    // The third guardian falls apart and re-assembles right in front of the tray.
+    reveal('stairwell-reassemble', A, 'ST_SLIDE_3_END', ['ST_GUARD_3'], 0.4, 3, {
+      attention: 'spectacle',
+      barks: ['st-3'],
+      fx: [
+        { kind: 'debris', at: 'ST_GUARD_3', scale: 1.5, color: '#8a8f98' },
+        { kind: 'dust', at: 'ST_GUARD_3', scale: 1.2 },
+        { kind: 'shake' },
+        { kind: 'sparks', at: 'ST_GUARD_3', atBeat: 0.6, scale: 1.4, color: '#9fd8ff' },
+      ],
+    }),
+    fight('stair-3-guard', A),
+    checkpoint('stairwell-checkpoint', A, 'lower-stairwell-complete', { barks: ['st-done'] }),
+    travel('stairwell-to-bottom', A, ['ST_SLIDE_3_END', 'ST_SLIDE_D', 'ST_BOTTOM'], 6),
   ],
   encounters: [
-    {
-      id: 'stair-1',
-      areaId: A,
-      kind: 'interaction',
-      waves: [{ id: 'command', targets: [marker('stair-1-word', guardChest(0), 'stand', { labelHeight: 0.6 })] }],
-      onComplete: { flags: ['stair-guard-1-calm'] },
-    },
-    {
-      id: 'stair-2',
-      areaId: A,
-      kind: 'interaction',
-      waves: [{ id: 'command', targets: [marker('stair-2-word', guardChest(1), 'honour', { labelHeight: 0.6 })] }],
-      onComplete: { flags: ['stair-guard-2-calm'] },
-    },
-    {
-      id: 'stair-3',
-      areaId: A,
-      kind: 'interaction',
-      waves: [{ id: 'command', targets: [marker('stair-3-word', guardChest(2), 'yield', { labelHeight: 0.6 })] }],
-      onComplete: { flags: ['stair-guard-3-wakes'] },
-    },
     {
       id: 'stair-3-guard',
       areaId: A,

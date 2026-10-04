@@ -713,6 +713,8 @@ export class GameRun {
     const beat = this.director.currentBeat;
     // Exempt beats and scripted spectacle are never covered by a gem.
     if (!beat || beat.kind === 'results' || beat.attention) return false;
+    // Chase set pieces have their own authored words.
+    if (isCameraBeat(beat) && beat.chase && beat.chase.length > 0) return false;
     if (this.encounter && this.encounter.state !== 'complete' && this.encounter.def.kind === 'combat') return false;
     return this.director.pose.fade < 0.2;
   }
@@ -912,6 +914,7 @@ export class GameRun {
       const spawn = target.spawn;
       if (spawn.defeatFx) this.emitFx(spawn.defeatFx, target.position);
       if (spawn.defeatBark) this.queueBark(getLine(spawn.defeatBark));
+      if (spawn.defeatFlag) this.flags.add(spawn.defeatFlag);
       if (spawn.optional) m.optionalTargetsCompleted++;
       const qualifies =
         spawn.rewardIf === undefined ||
