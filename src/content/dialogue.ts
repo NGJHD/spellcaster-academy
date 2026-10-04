@@ -122,10 +122,11 @@ export const LINES = {
   'gal-7': line('mira', 'Go.'),
 
   // Moon Tower
-  'tw-1': line('pip', 'Mosslings! Gently does it.'),
+  'tw-1': line('pip', 'Mosslings on the lift landing! Clear them, then we go UP!'),
+  'tw-lift': line('pip', 'Going UP! Hold on to something — anything!'),
   'tw-moss-done': line('pip', 'Look — their moss is settling safely in the planters.'),
   'tw-2': line('pip', 'Shielded wisps. Shield word first, then the binding word.'),
-  'tw-3': line('pip', 'A tower guardian. Three commands should calm it.'),
+  'tw-3': line('pip', 'WHOA — it came through the FLOOR! Three commands should calm it!'),
   'tw-guard-done': line('pip', "It's kneeling. And opening the door for us!"),
   'tw-pre': line('pip', 'Beyond this door, the Warden may not recognise us. Read first. Type clearly. We are here to repair, not destroy.'),
 
