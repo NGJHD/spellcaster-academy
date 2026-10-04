@@ -2,7 +2,7 @@
  * Excitement HUD (CLAUDE.md §1B): score and combo meter, cheer popups, encounter medals, boss name
  * cards and boss health bars. All text comes from content/strings.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type AnimationEvent } from 'react';
 import { strings } from '../content/strings';
 import { useRunStore, type PopupInfo } from '../state/runStore';
 
@@ -100,15 +100,33 @@ export function MedalCard() {
   );
 }
 
+/**
+ * A full-screen card that clears for good the moment a word appears, so it never covers one (§1B).
+ * Returns whether the card with this key is leaving and whether it has already gone.
+ */
+function useClearsForWords(key: number | undefined): { leaving: boolean; gone: boolean; onAnimationEnd: (e: AnimationEvent) => void } {
+  const wordsShowing = useRunStore((s) => s.labels.length > 0);
+  const [left, setLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (key === undefined || !wordsShowing || left === key) return;
+    const t = window.setTimeout(() => setLeft(key), 300);
+    return () => window.clearTimeout(t);
+  }, [key, wordsShowing, left]);
+  // A card that has finished its own animation is gone too (it must not flash back later).
+  const onAnimationEnd = (e: AnimationEvent) => {
+    if (e.target === e.currentTarget && key !== undefined) setLeft(key);
+  };
+  return { leaving: key !== undefined && wordsShowing, gone: key !== undefined && left === key, onAnimationEnd };
+}
+
 export function BossCard() {
   const card = useRunStore((s) => s.bossCard);
-  // The card clears the moment the first word flies in, so it never covers a word (§1B).
-  const wordsShowing = useRunStore((s) => s.labels.length > 0);
-  if (!card) return null;
+  const { leaving, gone, onAnimationEnd } = useClearsForWords(card?.key);
+  if (!card || gone) return null;
   const boss = strings.bosses[card.id];
   if (!boss) return null;
   return (
-    <div key={card.key} className={`boss-card${wordsShowing ? ' boss-card--leaving' : ''}`} role="status">
+    <div key={card.key} className={`boss-card${leaving ? ' boss-card--leaving' : ''}`} role="status" onAnimationEnd={onAnimationEnd}>
       <div className="boss-card__stripe" />
       <div className="boss-card__name">{boss.name}</div>
       <div className="boss-card__title">{boss.title}</div>
@@ -198,11 +216,11 @@ export function PaintSplats() {
 /** New spell announced like a power-up (§1B "Unlock moments"). */
 export function PowerUpCard() {
   const p = useRunStore((s) => s.powerUp);
-  const wordsShowing = useRunStore((s) => s.labels.length > 0);
-  if (!p) return null;
+  const { leaving, gone, onAnimationEnd } = useClearsForWords(p?.key);
+  if (!p || gone) return null;
   const card = strings.powerUps[p.spell];
   return (
-    <div key={p.key} className={`power-up${wordsShowing ? ' boss-card--leaving' : ''}`} role="status">
+    <div key={p.key} className={`power-up${leaving ? ' boss-card--leaving' : ''}`} role="status" onAnimationEnd={onAnimationEnd}>
       <div className="power-up__burst" />
       <div className="power-up__kicker">{strings.powerUpKicker}</div>
       <div className="power-up__name">{card.name}</div>

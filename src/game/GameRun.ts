@@ -352,6 +352,14 @@ export class GameRun {
     return { done: 0, total, complete: false };
   }
 
+  /** Current wave of an encounter for scene props: -1 before it starts, the wave count once done. */
+  encounterWave(encounterId: string): number {
+    const def = LEVEL1_ENCOUNTERS.get(encounterId);
+    if (this.progress.completedEncounterIds.includes(encounterId)) return def?.waves.length ?? 0;
+    if (this.encounter?.def.id === encounterId) return this.encounter.waveIndex;
+    return -1;
+  }
+
   isRetired(targetId: string): boolean {
     return this.retired.some((r) => r.id === targetId);
   }

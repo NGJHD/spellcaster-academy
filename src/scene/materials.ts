@@ -70,6 +70,8 @@ export const MAT = {
   bookLeather: std('#ffffff', 0.6, 0, { vertexColors: true }),
   pageEdge: std('#e4d2a8', 0.92),
   ink: std('#2a2018', 0.6),
+  inkGlass: std('#1d2a3f', 0.08, 0.1, { transparent: true, opacity: 0.85 }),
+  inkPool: std('#14183a', 0.05),
   velvet: std('#2c3f6e', 0.9),
   jacquard: std('#2a3a62', 0.85),
   panelWood: std('#5a3c28', 0.55),

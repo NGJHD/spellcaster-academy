@@ -1,8 +1,8 @@
 /** PLACEHOLDER Whispering Library (§14A.19). Local coordinates; see src/level/areas/library.ts. */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
-import type { Group, Object3D } from 'three';
-import { LIBRARY_ORIGIN } from '../../level/areas/library';
+import type { Group, Object3D, PointLight } from 'three';
+import { INKWELL_POSITION, LIBRARY_ORIGIN } from '../../level/areas/library';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { Bookshelf, Box, Column, KitModel, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
@@ -13,6 +13,13 @@ import { Prop } from '../Prop';
 import { useParts } from '../partsGlb';
 
 const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
+/** Fractions of the intro beat where each chain snaps (match the sparks in library.ts). */
+const CHAIN_SNAP = [0.12, 0.26];
+const CHAINS_SNAPPED = 0.3;
+const TOPPLE_X = 6.5;
+const TOPPLE_Z = -16;
+const TOPPLE_SEC = 1.3;
+const TOPPLE_DELAY_SEC = 0.15;
 const G1_BEAT = beatIndexOf('grimoire-g1');
 
 export function LibraryScene() {
@@ -27,8 +34,10 @@ export function LibraryScene() {
       <CirclingBooks />
       <Grimoire />
       <WardAnchor position={[8, 0, -26]} encounterId="library-anchor" theme="library" />
+      <TopplingShelf />
+      <Inkwell />
       {[[-6, -4], [6, -4], [-6, -26], [6, -20]].map(([x = 0, z = 0]) => (
-        <StandingLamp key={`${x}${z}`} position={[x, 0, z]} light />
+        <LibraryLamp key={`${x}${z}`} position={[x, 0, z]} />
       ))}
     </group>
   );
@@ -94,7 +103,10 @@ function Shelves() {
       ))}
       {/* Free-standing stacks create readable aisles, never a maze. */}
       {[-6.5, 6.5].map((x) =>
-        [-10, -16].map((z, i) => <Bookshelf key={`${x}${z}`} position={[x, 0, z]} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} width={3.4} height={3} shelves={4} seed={i + (x < 0 ? 41 : 51)} />),
+        [-10, -16]
+          // The shelf at (6.5, -16) topples during the book fight (TopplingShelf).
+          .filter((z) => !(x === TOPPLE_X && z === TOPPLE_Z))
+          .map((z, i) => <Bookshelf key={`${x}${z}`} position={[x, 0, z]} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} width={3.4} height={3} shelves={4} seed={i + (x < 0 ? 41 : 51)} />),
       )}
     </group>
   );
@@ -222,9 +234,12 @@ function Grimoire() {
     const t = time.current;
     const run = getRun();
     const settled = run?.flags.has('grimoire-settled') ?? false;
-    const awake = beat >= WAKE_BEAT && !settled;
+    // The chains snap a moment into the intro; only then does the Grimoire rise.
+    const wakeProgress = beat === WAKE_BEAT ? (run?.beatProgress() ?? 0) : beat > WAKE_BEAT ? 1 : 0;
+    const awake = wakeProgress > CHAINS_SNAPPED && !settled;
     const opened = (run?.encounterProgress('grimoire-g1').complete ?? false) || beat > G1_BEAT;
-    const k = 1 - Math.exp(-1.5 * Math.min(dt, 0.1));
+    // Rises heavily; the final sentence blasts it back down onto the pedestal fast.
+    const k = 1 - Math.exp(-(settled ? 7 : 1.5) * Math.min(dt, 0.1));
     hover.current += ((awake ? 1 : 0) - hover.current) * k;
     const h = hover.current;
     if (root.current) {
@@ -242,7 +257,11 @@ function Grimoire() {
     if (spine) spine.scale.set(0.2 + 0.8 * c, 0.55 + 0.45 * c, 1);
     if (centre) centre.position.x = 0.5 * c;
     for (const clasp of clasps) clasp.visible = !opened || settled;
-    if (chains.current) chains.current.visible = beat < WAKE_BEAT;
+    if (chains.current) {
+      chains.current.children.forEach((chain, i) => {
+        chain.visible = wakeProgress < (CHAIN_SNAP[i] ?? 1);
+      });
+    }
   });
   return (
     <group position={[0, 0, -20]}>
@@ -274,6 +293,82 @@ function GrimoireGLB({ rig }: { rig: RefObject<GrimoireRig> }) {
   return (
     <group ref={centre}>
       <primitive object={parts.root} />
+    </group>
+  );
+}
+
+/**
+ * LD-0: the free-standing shelf at (6.5, -16) topples in slow motion when the third book wave starts
+ * (the books then spill out as debris). It falls away from the camera's aisle and stays down.
+ */
+function TopplingShelf() {
+  const pivot = useRef<Group>(null);
+  const fallTime = useRef(-1);
+  useFrame((_, dt) => {
+    const g = pivot.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const fallen = run.encounterWave('library-l1') >= 2;
+    if (!fallen) {
+      fallTime.current = -1;
+      g.rotation.z = 0;
+      return;
+    }
+    if (fallTime.current < 0) fallTime.current = run.encounterWave('library-l1') > 2 ? TOPPLE_SEC + TOPPLE_DELAY_SEC : 0;
+    fallTime.current += Math.min(dt, 0.1);
+    const u = Math.min(1, Math.max(0, (fallTime.current - TOPPLE_DELAY_SEC) / TOPPLE_SEC));
+    // Slow tip, then gravity takes over (ease-in), with a small bounce on landing.
+    const tip = u < 1 ? u * u * u : 1;
+    const bounce = u >= 1 ? Math.max(0, Math.sin((fallTime.current - TOPPLE_DELAY_SEC - TOPPLE_SEC) * 18) * 0.04 * Math.exp(-(fallTime.current - TOPPLE_DELAY_SEC - TOPPLE_SEC) * 6)) : 0;
+    g.rotation.z = -(Math.PI / 2 - 0.12) * tip + bounce;
+  });
+  // Pivot on the outer bottom edge so it falls outward, away from the reading-room aisle.
+  return (
+    <group position={[TOPPLE_X + 0.25, 0, TOPPLE_Z]}>
+      <group ref={pivot}>
+        <Bookshelf position={[-0.25, 0, 0]} rotationY={-Math.PI / 2} width={3.4} height={3} shelves={4} seed={52} />
+      </group>
+    </group>
+  );
+}
+
+/** LD-0: the overturned inkwell the ink wisps erupt from (code-built glass bottle and spilled ink). */
+function Inkwell() {
+  const [x, , z] = INKWELL_POSITION;
+  return (
+    <group position={[x - LIBRARY_ORIGIN[0], 0, z - LIBRARY_ORIGIN[2]]} rotation={[0, 0.6, 0]}>
+      <mesh position={[0, 0.11, 0]} rotation={[0, 0, Math.PI / 2 - 0.15]} material={MAT.inkGlass} castShadow>
+        <cylinderGeometry args={[0.09, 0.11, 0.2, 24]} />
+      </mesh>
+      <mesh position={[-0.14, 0.11, 0]} rotation={[0, 0, Math.PI / 2 - 0.15]} material={MAT.agedBrass}>
+        <cylinderGeometry args={[0.035, 0.045, 0.07, 16]} />
+      </mesh>
+      <mesh position={[-0.55, 0.012, 0.05]} rotation={[-Math.PI / 2, 0, 0.3]} scale={[1.6, 1, 1]} material={MAT.inkPool}>
+        <circleGeometry args={[0.35, 32]} />
+      </mesh>
+    </group>
+  );
+}
+
+const WAKE_DARK = 0.12;
+
+/** Standing lamps: the Grimoire's roar blows them down to embers until it is calmed (LD-0). */
+function LibraryLamp({ position }: { position: [number, number, number] }) {
+  const light = useRef<PointLight>(null);
+  const beat = useBeatIndex();
+  useFrame((_, dt) => {
+    const l = light.current;
+    const run = getRun();
+    if (!l || !run) return;
+    const settled = run.flags.has('grimoire-settled');
+    const roared = beat > WAKE_BEAT || (beat === WAKE_BEAT && run.beatProgress() > 0.55);
+    const goal = roared && !settled ? 7 * WAKE_DARK : 7;
+    l.intensity += (goal - l.intensity) * (1 - Math.exp(-(goal < l.intensity ? 12 : 1.5) * Math.min(dt, 0.1)));
+  });
+  return (
+    <group>
+      <StandingLamp position={position} />
+      <pointLight ref={light} position={[position[0], 2.5, position[2]]} color="#ffc98a" intensity={7} distance={9} decay={2} />
     </group>
   );
 }
