@@ -198,7 +198,32 @@ Built to CLAUDE.md §1B and LEVEL1_DESIGN.md LD-0:
 - **Bosses.** Full-width name cards (THE GREAT GRIMOIRE, THE WARD WARDEN) that clear as the first word flies in, and a boss health bar across all phases. The Warden intro is trimmed to two lines; Pip's second line now plays during phase 1.
 - Fixes found by the gap bot: a word half-typed on a gem or bonus is no longer dropped when an encounter starts or ends, and Backspace/Tab work during dialogue.
 
-Next: speed rounds, then the area rewrites in LD-0 (cold open, courtyard charge, East Hall stampede, library, paint ambush, snapvine chase, banister slide, arcade gallery, runaway lift, observatory beam struggle, fireworks).
+## Level 1 excitement pass, part 2: set pieces and area rewrites (2026-10-04)
+
+Every area now follows LEVEL1_DESIGN.md LD-0:
+
+| Area | What changed |
+| --- | --- |
+| Opening / Arrival Gate | Swoop with sky gems from the first second; a sprite snatches Pip (type `drop`); crystal words blast the gate open; the fracture has lightning, falling dome pieces and the Warden silhouetted on the tower |
+| Courtyard | Dummies hop off their stands; sprites burst out of planters; rooftop chase for the star page; the Warden crash-lands; anchor pillar of light and the Spark Bolt power-up card |
+| East Hall | Book Stampede: Mira crashes out of an alcove, the camera runs backwards with books swooping in, chest speed round (3 words in 8 s), Pip's ward stops the stampede |
+| Library | Books dive-bomb from the galleries; a shelf topples; wisps erupt from an inkwell; the Grimoire snaps its chains, blows out the lamps, smashes furniture; beam-struggle finale |
+| Hall of Portraits | Paint Ambush: imps leap out of the frames throwing screen-edge paint splats; fountain breather with droplet gems; constellation speed round |
+| Greenhouse | Snapvine Chase across the bridge; pods burst from the soil; mossling stampede; the Warden smashes through the glass roof |
+| Lower Stairwell | Banister Slide on a tea tray; command words on the slide (guardians leap aside at the last moment if needed); guardian 3 bursts apart and reassembles |
+| Practice Gallery | Arcade: pop-up spinning targets, Pip as announcer, optional bonus speed round with a local best score |
+| Moon Tower | Runaway lift up a shaft; creatures leap at it between floors; the floor-3 guardian smashes up through the floor |
+| Observatory / ending | Dome splits open; the Warden rises with a roar of light; plates blast off; W3 beam struggle and a huge re-seal; fireworks ending with four lines |
+
+Shared systems added: chase targets on camera beats, camera-following targets, spectacle FX (bursts, debris, glass, dust, geysers, leaves, shockwaves, pillars, meteors, lightning, fireworks, flash, shake) timed by beat progress, speed rounds, beam struggles, the Warden cameo prop, power-up cards with a slow-motion beat, `spectacle` beats (no gems, max 4 s at Fast) and beat aliases so pre-rewrite saves resume at the replacement beat.
+
+New placeholder assets (code-built, clearly labelled, replaceable with Blender GLBs without gameplay changes): paint imp, snapvine, tea tray, runaway lift, book swarm, overturned inkwell, spark gem. Fireworks and debris are VFX.
+
+Fixes found on the way: the greenhouse floor and grass covered the water channel (the vine bridge was never visible); the tower chandelier chain split the lift-camera view; boss and power-up cards could reappear; models lagged their labels by a frame during fast travel; the missing favicon caused a 404 on every load.
+
+Verification: 197 unit tests (including the 7-second attention test at Fast, spectacle and boss-intro limits, speed rounds, combo, medals, beat aliases and an old-save resume), typecheck, lint, production build and all 8 Playwright flows pass. A full 4× bot playthrough has no console errors (only the browser autoplay and three.js deprecation warnings).
+
+Measured length (bot that reads for about a second before each word, no mistakes): 10.0 min at Normal and 30 WPM, 12.3 min at Normal and 18 WPM, 9.2 min at Fast. Real first plays with mistakes will be longer, but may still fall short of LD-0's 14–18 minute target; nobody has played it by hand yet.
 
 ## Milestone status
 

@@ -142,6 +142,7 @@ The rewrite aims at about **14–18 minutes** for a first play. Every area must 
   - the fireworks VFX
   - cosmetic debris pieces (crates, vases, shelf books, glass shards)
 - **Tests:** unit-test speed-round timing and medal thresholds, combo multiplier rules (a mistake halves it), and the 7-second gap metric helper.
+- **Status (2026-10-04):** built. Every sequence above is in the game; see `BUILD_NOTES.md` for the details and the placeholder assets still to be replaced with Blender models.
 
 ---
 
