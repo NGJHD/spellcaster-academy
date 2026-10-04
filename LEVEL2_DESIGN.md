@@ -113,6 +113,17 @@ Each mechanic is introduced once with no danger, then used under light pressure,
 - After an **eight-word perfect streak**, a shower of small stars calms every weak enemy on screen and deflects all incoming counter-word attacks.
 - The streak counter in the HUD shows progress towards both Chain Spark (5) and Starfall (8).
 
+### Built engine features to reuse (from Level 1)
+
+Level 1 already implements these game-wide systems; Level 2 scripts them through its area data rather than new code:
+
+- **Attention rule:** the 7-second-at-Fast gap test, spark gems, `spectacle` and `boss-intro` beat types.
+- **Feedback:** combo multiplier, hit-stop, camera kick, growing spells, PERFECT/cheer popups, encounter medals.
+- **Set pieces:** chase targets on camera beats, camera-following targets, speed rounds, beam struggles, scripted cameos.
+- **Spectacle FX:** bursts, debris, glass, dust, geysers, shockwaves, light pillars, meteors, lightning, fireworks, flocks of birds, screen flash and shake. Fire, embers and smoke will be added to this same layer for the inkfire.
+- **Bosses:** name cards, chunky health bars, power-up cards with a slow-motion beat.
+- **Mobs:** the AI asset pipeline (`assets-src/scripts/ai`: Flux 2 concept → TRELLIS.2 shape → Blender clean, rig and clips) for realistic, scary creatures: the Hush, the Grey Herald and the Vellum Wyrm.
+
 ## L2-5. Level Flow
 
 ```text
@@ -397,6 +408,7 @@ The Voice in the Rift (during Phase V1, over the typing):
   every page has a place
   ```
 
+- It is a **beam struggle** (the Level 1 engine feature): the wyrm's last stream of fire meets the player's gold-blue beam at a crackling clash point, and each word pushes the clash point back toward the heart until the last word blasts through.
 - Each word fires a lance of gold-blue light into the heart, tearing pages free.
 - On the last word the heart cracks. The wyrm's fire goes out with a thunderous blast, and the dragon bursts apart into a storm of pages and ash. The pages that survive flutter back to the library.
 - The shard falls onto the roof, cracked and smoking. The wyrm is beaten, not killed: it was only ever pages.

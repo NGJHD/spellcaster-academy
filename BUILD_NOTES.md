@@ -225,6 +225,31 @@ Verification: 197 unit tests (including the 7-second attention test at Fast, spe
 
 Measured length (bot that reads for about a second before each word, no mistakes): 10.0 min at Normal and 30 WPM, 12.3 min at Normal and 18 WPM, 9.2 min at Fast. Real first plays with mistakes will be longer, but may still fall short of LD-0's 14–18 minute target; nobody has played it by hand yet.
 
+## Realistic mobs: AI asset pipeline (2026-10-04)
+
+Owner: "realistic designs, not half baked polygons"; mobs may look scary (no gore). The hand-scripted
+voxel sculpts were replaced by an AI-assisted pipeline, using the owner's local ComfyUI installs.
+Everything is scripted and reproducible (`assets-src/scripts/ai`):
+
+1. **Concept:** `comfy.py concept` runs the owner's Flux 2 Klein text-to-image workflow (ComfyUI, port 8188).
+   Prompts and seeds are in `concepts_level1.py`; images and prompts are kept in `assets-src/concepts/`.
+2. **Shape:** `comfy.py mesh` runs TRELLIS.2 image-to-3D (ComfyUI-3D, port 8189, RTX 5060 Ti) and exports the raw surface.
+3. **Clean mesh:** `prep_raw.py` (Blender). The raw surface is non-manifold, and this install's CuMesh clean-up and
+   UV-atlas nodes corrupt meshes on both GPUs (`blackwell_fix.py` in the node pack documents the Blackwell part).
+   Blender rebuilds a watertight mesh with the octree remesh (keeps thin petals, drips and plates), drops cavity
+   walls by signed volume, relaxes and decimates to 300k triangles.
+4. **Colour:** `comfy.py texture` runs TRELLIS.2 texturing with per-vertex colour (ComfyUI-3D, port 8190, RTX 3080),
+   avoiding the broken UV-atlas step.
+5. **Game asset:** `build_ai_creature.py` (Blender) normalises scale and facing, decimates to the §15 budget,
+   unwraps with xatlas (installed for Blender's Python in the git-ignored `.deps`), bakes the vertex colours
+   (sRGB-corrected) into a 1K/2K texture, rigs a height-band skeleton (root, torso, chest, head; robust on any
+   AI mesh) and authors Idle/Move/Attack/Hit/Dispel. Posed preview renders check deformation.
+6. `pipeline.py <names>` runs steps 3–5. Raw meshes live in the git-ignored `assets-src/ai-meshes/`.
+
+Rebuilt so far: mischief sprite, mossling, ink wisp, armour guardian, paint imp, thorn pod. Limits: the
+height-band rig gives believable rearing, lunging, breathing, waddling and recoil, but no separate limb
+animation; textures carry some baked lighting from the AI.
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.

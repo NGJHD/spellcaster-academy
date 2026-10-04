@@ -121,6 +121,17 @@ The citadel's fires die. Ash turns back into colour across the whole Blank. Its 
 - Each is countered by a **two-word counter-phrase** (for example `hold fast`). Both words are typed in order on a single tag.
 - Telegraph time is at least 1.5 s on Gentle and 1.0 s on Standard.
 
+### Built engine features to reuse (from Level 1)
+
+Level 1 already implements these game-wide systems; Level 3 scripts them through its area data rather than new code:
+
+- **Attention rule:** the 7-second-at-Fast gap test, spark gems, `spectacle` and `boss-intro` beat types.
+- **Feedback:** combo multiplier, hit-stop, camera kick, growing spells, PERFECT/cheer popups, encounter medals.
+- **Set pieces:** chase targets on camera beats, camera-following targets, speed rounds, beam struggles, scripted cameos.
+- **Spectacle FX:** bursts, debris, glass, dust, geysers, shockwaves, light pillars, meteors, lightning, fireworks, flocks of birds, screen flash and shake. Fire, embers and smoke will be added to this same layer for the fire tides and the Forge.
+- **Bosses:** name cards, chunky health bars, power-up cards with a slow-motion beat.
+- **Mobs:** the AI asset pipeline (`assets-src/scripts/ai`: Flux 2 concept → TRELLIS.2 shape → Blender clean, rig and clips) for realistic, scary creatures: the Blank's creatures, the Perfect Warden and the Unwriter.
+
 ## L3-5. Level Flow
 
 ```text
