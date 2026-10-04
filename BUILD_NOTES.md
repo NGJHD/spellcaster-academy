@@ -274,8 +274,8 @@ ward from outside); Level 2 focuses on the evacuation; mobs may be scary; "polis
   (`CreatureModel.tsx`) the game shows a code-built stand-in, so nothing breaks while they build.
   Remesh choice matters: octree for armour and thin/smoky shapes (the hound shreds under voxel), voxel
   for smooth blobs (the blotling faceted under octree).
-- **Known limits:** Perfect Warden phase 2 does not yet enforce perfect-only words; the Prism trail
-  (all Memory Pages) and the campaign summary/Memory Book screens are not built; set-piece props in
+- **Known limits:** the Prism trail
+  (all Memory Pages) and the Memory Book screen are not built; set-piece props in
   Levels 2-3 are kit-built placeholders.
 
 ## Milestone status

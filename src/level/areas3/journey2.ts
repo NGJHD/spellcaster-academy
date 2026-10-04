@@ -313,7 +313,7 @@ export const gallery3: AreaScript = {
         {
           id: 'shell',
           sequential: true,
-          targets: [0, 1, 2].map((i) => marker(`pw-shell-${i + 1}`, Y(-1 + i, 3.4 + i * 0.4, -18.6), len(5, 7), { labelHeight: 0.3, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ff3a1a' } })),
+          targets: [0, 1, 2].map((i) => marker(`pw-shell-${i + 1}`, Y(-1 + i, 3.4 + i * 0.4, -18.6), len(5, 7), { labelHeight: 0.3, perfectOnly: true, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ff3a1a' } })),
         },
       ],
     },

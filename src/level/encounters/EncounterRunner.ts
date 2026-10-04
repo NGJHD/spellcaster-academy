@@ -188,6 +188,13 @@ export class EncounterRunner {
     t.sinceHit = -PROJECTILE_SEC;
     this.trackRules(word, mistakes);
 
+    if (t.spawn.perfectOnly && mistakes > 0 && this.ctx.difficulty !== 'gentle') {
+      t.halfCredit++;
+      // The same word comes back; the second imperfect try still counts.
+      if (t.halfCredit < 2) return { defeated: false, firstDefeat: false };
+      t.halfCredit = 0;
+    }
+
     if (t.stage + 1 < t.spawn.words.length) {
       t.stage++;
       t.wordDelay = PROJECTILE_SEC + NEXT_WORD_DELAY_SEC;

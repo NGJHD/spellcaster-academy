@@ -45,6 +45,8 @@ export interface TargetRuntime {
   frostTimer: number;
   /** Seconds since the last spell hit (for hit reactions); large when idle. */
   sinceHit: number;
+  /** Imperfect completions on a perfect-only target (two count as one). */
+  halfCredit: number;
   /** Time spent active (optional targets leave after a while). */
   activeTime: number;
   defeated: boolean;
@@ -75,6 +77,7 @@ export function createTarget(spawn: TargetSpawn): TargetRuntime {
     atPathEnd: !spawn.movement || spawn.movement.kind !== 'approach',
     frostTimer: 0,
     sinceHit: 99,
+    halfCredit: 0,
     activeTime: 0,
     defeated: false,
     clock: 0,

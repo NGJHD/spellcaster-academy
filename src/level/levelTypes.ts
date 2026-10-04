@@ -276,6 +276,11 @@ export interface TargetSpawn {
    * the whole word. Never the first letter.
    */
   readonly erased?: boolean;
+  /**
+   * Only a perfect word breaks this target (the Perfect Warden's shell, L3-11). An imperfect word
+   * counts half, so the fight never stalls; on Gentle every word counts.
+   */
+  readonly perfectOnly?: boolean;
   /** Line spoken when this target is beaten. */
   readonly defeatBark?: LineId;
   /** Story flag set when this target is beaten (scene props react, e.g. a guardian stepping aside). */

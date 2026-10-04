@@ -52,3 +52,27 @@ describe('EncounterRunner fairness (owner bug reports)', () => {
     expect(r.targets.get('page')?.phase).not.toBe('active');
   });
 });
+
+describe('perfect-only targets (Perfect Warden shell)', () => {
+  const shell: TargetSpawn = { id: 'shell', kind: 'marker', position: [0, 0, -5], words: ['flawless'], perfectOnly: true };
+
+  it('a perfect word breaks it at once', () => {
+    const r = runner([shell]);
+    step(r, 1);
+    expect(r.completeWord('shell', 0).defeated).toBe(true);
+  });
+
+  it('an imperfect word counts half, so two of them break it (never stalls)', () => {
+    const r = runner([shell]);
+    step(r, 1);
+    expect(r.completeWord('shell', 2).defeated).toBe(false);
+    expect(r.completeWord('shell', 1).defeated).toBe(true);
+  });
+
+  it('on Gentle every word counts in full', () => {
+    const def: EncounterDef = { id: 'g', areaId: 'sunlit-courtyard', kind: 'combat', waves: [{ id: 'w', targets: [shell] }] };
+    const r = new EncounterRunner(def, { difficulty: 'gentle', assist: false, attempt: 0 });
+    step(r, 1);
+    expect(r.completeWord('shell', 3).defeated).toBe(true);
+  });
+});
