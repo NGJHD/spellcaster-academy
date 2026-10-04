@@ -37,7 +37,8 @@ height = max(obj.dimensions)
 if mode == "octree":
     remesh = obj.modifiers.new("Octree", "REMESH")
     remesh.mode = "SMOOTH"
-    remesh.octree_depth = 9
+    # Thin scribbled limbs need a finer octree to stay attached.
+    remesh.octree_depth = 10 if name in {"scribble_imp"} else 9
     remesh.scale = 0.95
     remesh.use_remove_disconnected = False
 else:
