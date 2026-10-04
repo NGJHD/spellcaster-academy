@@ -242,6 +242,36 @@ def sphere(name, pos, radius, material, scale=(1, 1, 1), segments=24):
     return obj
 
 
+def spike(name, base, tip, radius, material, segments=10, curve=0.0):
+    """
+    A smooth tapered spike from `base` to `tip` (fang, claw, horn, thorn). `curve` bends the tip
+    sideways (fraction of the length, along the spike's local X) for hooked claws and fangs.
+    """
+    base_v, tip_v = Vector(base), Vector(tip)
+    axis = tip_v - base_v
+    length = axis.length
+    bpy.ops.mesh.primitive_cone_add(vertices=segments, radius1=radius, radius2=0.0, depth=length, location=(0, 0, 0))
+    obj = bpy.context.active_object
+    obj.name = name
+    mesh = obj.data
+    # Rest the cone on its base, add rings so the curve bends smoothly, then hook the tip.
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.subdivide_edges(bm, edges=[e for e in bm.edges if abs(e.verts[0].co.z - e.verts[1].co.z) > 1e-6], cuts=4)
+    for v in bm.verts:
+        v.co.z += length / 2
+        u = v.co.z / length
+        v.co.x += curve * length * u * u
+    bm.to_mesh(mesh)
+    bm.free()
+    obj.rotation_mode = "QUATERNION"
+    obj.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(axis.normalized())
+    obj.location = base_v
+    bpy.ops.object.shade_smooth()
+    obj.data.materials.append(material)
+    return obj
+
+
 def leaf(name, pos, length, width, material, rotation=(0, 0, 0), curl=0.25, thickness=0.004):
     """Curved, slightly thick leaf/membrane: subdivided plane bent along its length."""
     bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))

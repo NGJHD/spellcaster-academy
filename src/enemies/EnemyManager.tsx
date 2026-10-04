@@ -37,7 +37,7 @@ function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose
   if (!url) return <Suspense fallback={null}>{fallback}</Suspense>;
   return (
     <Suspense fallback={fallback}>
-      <CreatureModel url={url} pose={pose} />
+      <CreatureModel url={url} pose={pose} tint={spawn.variant} />
       {spawn.kind === 'wisp' && <WispShield pose={pose} />}
     </Suspense>
   );

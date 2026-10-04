@@ -1,0 +1,2 @@
+seed: 4
+prompt: Full body of a small mischievous imp creature made of thick glossy wet oil paint, about 80 cm tall, red paint body with drips running down, swirls of other colours, big round yellow eyes with slit pupils, a wide grin full of sharp white teeth, little curved horns, long thin clawed fingers, short stubby legs, standing facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text

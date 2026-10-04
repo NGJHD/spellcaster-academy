@@ -1,0 +1,2 @@
+seed: 2
+prompt: A monstrous flying spellbook seen from the front, thick antique leather-bound book with brass corner clasps, the covers half open like jaws, the page edges forming rows of sharp paper teeth, two glowing yellow eyes on the front cover, a long ribbon bookmark like a tongue, menacing, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text

@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, type RefObject } from 'react';
-import { AnimationMixer, LoopOnce, LoopRepeat, Mesh, type AnimationAction, type Object3D } from 'three';
+import { AnimationMixer, Color, LoopOnce, LoopRepeat, Mesh, MeshStandardMaterial, type AnimationAction, type Object3D } from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { TargetPose } from './TargetVisuals';
 
@@ -17,7 +17,9 @@ const base = `${import.meta.env.BASE_URL}assets/creatures/`;
 export function creatureUrl(kind: string, variant?: string): string | null {
   switch (kind) {
     case 'sprite':
-      return `${base}mischief_sprite${variant === 'grey' || variant === 'teal' ? `_${variant}` : ''}.glb`;
+      // One realistic model (assets-src/scripts/ai); grey and teal variants are tints (CreatureModel `tint`).
+      void variant;
+      return `${base}mischief_sprite.glb`;
     case 'mossling':
       return `${base}mossling.glb`;
     case 'wisp':
@@ -38,19 +40,35 @@ function chooseClip(p: TargetPose): ClipName {
  * A skinned creature GLB driven by gameplay state. Each target gets its own skeleton clone and mixer;
  * the Attack clip's anticipation is scrubbed by the gameplay wind-up so the telegraph matches timing.
  */
-export function CreatureModel({ url, pose }: { url: string; pose: RefObject<TargetPose> }) {
+/** Colour variants of one realistic model (grey sprite, teal bonus sprite) without extra downloads. */
+const TINTS: Readonly<Record<string, { color: string; emissive?: string; emissiveIntensity?: number }>> = {
+  grey: { color: '#9a9aa4' },
+  teal: { color: '#c9e8e2', emissive: '#1fa594', emissiveIntensity: 0.35 },
+};
+
+export function CreatureModel({ url, pose, tint }: { url: string; pose: RefObject<TargetPose>; tint?: string }) {
   const gltf = useGLTF(url);
   const scene = useMemo(() => {
     const s = cloneSkinned(gltf.scene) as Object3D;
+    const t = tint ? TINTS[tint] : undefined;
     s.traverse((o) => {
       if (o instanceof Mesh) {
         o.castShadow = true;
         o.receiveShadow = true;
         o.frustumCulled = false;
+        if (t && o.material instanceof MeshStandardMaterial) {
+          const m = o.material.clone();
+          m.color.multiply(new Color(t.color));
+          if (t.emissive) {
+            m.emissive.set(t.emissive);
+            m.emissiveIntensity = t.emissiveIntensity ?? 0.3;
+          }
+          o.material = m;
+        }
       }
     });
     return s;
-  }, [gltf.scene]);
+  }, [gltf.scene, tint]);
   const mixer = useMemo(() => new AnimationMixer(scene), [scene]);
   const actions = useMemo(() => {
     const map = new Map<string, AnimationAction>();

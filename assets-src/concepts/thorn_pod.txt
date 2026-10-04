@@ -1,0 +1,2 @@
+seed: 9
+prompt: A carnivorous magical plant monster rooted in a clump of soil, thick twisted green stem covered in sharp thorns, broad jagged leaves, a large burgundy flower head shaped like jaws lined with rows of needle teeth, a glowing amber seed chamber in its throat, about 1.4 metres tall, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text

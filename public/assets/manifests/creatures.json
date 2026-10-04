@@ -12,8 +12,8 @@
     ],
     "collision": {
       "shape": "capsule",
-      "radius": 0.18,
-      "height": 0.55
+      "radius": 0.22,
+      "height": 0.7
     },
     "wordAnchor": [
       0,
@@ -25,107 +25,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 12140,
-    "materials": 5,
+    "triangles": 30000,
+    "materials": 1,
     "bounds": {
       "min": [
-        -0.22423834102530965,
-        0.0013011990813538432,
-        -0.37335622992834105
+        -0.24781601130962372,
+        0.00035639663110487163,
+        -0.1953630894422531
       ],
       "max": [
-        0.22423834102530965,
-        0.6504963534573036,
-        0.22282665967941284
+        0.2471751719713211,
+        0.7503840923309326,
+        0.19509004056453705
       ]
     },
-    "bytes": 453628,
-    "source": "assets-src/scripts/creatures/mischief_sprite.py"
-  },
-  "mischief_sprite_grey": {
-    "id": "mischief_sprite_grey",
-    "file": "/assets/creatures/mischief_sprite_grey.glb",
-    "unitScaleMeters": 1,
-    "animations": [
-      "Idle",
-      "Move",
-      "Attack",
-      "Hit",
-      "Dispel"
-    ],
-    "collision": {
-      "shape": "capsule",
-      "radius": 0.18,
-      "height": 0.55
-    },
-    "wordAnchor": [
-      0,
-      0.95,
-      0
-    ],
-    "lodFiles": [
-      "/assets/creatures/mischief_sprite_grey.glb"
-    ],
-    "textureSet": "vertex-colour + shared PBR",
-    "license": "original-project-asset",
-    "triangles": 12140,
-    "materials": 5,
-    "bounds": {
-      "min": [
-        -0.22423834102530965,
-        0.0013011990813538432,
-        -0.37335622992834105
-      ],
-      "max": [
-        0.22423834102530965,
-        0.6504963534573036,
-        0.22282665967941284
-      ]
-    },
-    "bytes": 453628,
-    "source": "assets-src/scripts/creatures/mischief_sprite.py"
-  },
-  "mischief_sprite_teal": {
-    "id": "mischief_sprite_teal",
-    "file": "/assets/creatures/mischief_sprite_teal.glb",
-    "unitScaleMeters": 1,
-    "animations": [
-      "Idle",
-      "Move",
-      "Attack",
-      "Hit",
-      "Dispel"
-    ],
-    "collision": {
-      "shape": "capsule",
-      "radius": 0.18,
-      "height": 0.55
-    },
-    "wordAnchor": [
-      0,
-      0.95,
-      0
-    ],
-    "lodFiles": [
-      "/assets/creatures/mischief_sprite_teal.glb"
-    ],
-    "textureSet": "vertex-colour + shared PBR",
-    "license": "original-project-asset",
-    "triangles": 12140,
-    "materials": 5,
-    "bounds": {
-      "min": [
-        -0.22423834102530965,
-        0.0013011990813538432,
-        -0.37335622992834105
-      ],
-      "max": [
-        0.22423834102530965,
-        0.6504963534573036,
-        0.22282665967941284
-      ]
-    },
-    "bytes": 453628,
+    "bytes": 4452852,
     "source": "assets-src/scripts/creatures/mischief_sprite.py"
   },
   "mossling": {
@@ -154,21 +68,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 20224,
-    "materials": 4,
+    "triangles": 32000,
+    "materials": 1,
     "bounds": {
       "min": [
-        -0.457720011472702,
-        0.0001171731055364944,
-        -0.41825653768896764
+        -0.44582870602607727,
+        -0.003567950800061226,
+        -0.2667827904224396
       ],
       "max": [
-        0.45771509408950806,
-        0.9889983321611368,
-        0.3013915419578552
+        0.445831835269928,
+        1.0504062175750732,
+        0.26860901713371277
       ]
     },
-    "bytes": 688848,
+    "bytes": 4738396,
     "source": "assets-src/scripts/creatures/mossling.py"
   },
   "ink_wisp": {
@@ -197,28 +111,34 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 13056,
-    "materials": 2,
+    "triangles": 25999,
+    "materials": 1,
     "bounds": {
       "min": [
-        -0.3019900321960449,
-        0.011687691323459148,
-        -0.3974519371986389
+        -0.40574750304222107,
+        0.0007885432569310069,
+        -0.1410573124885559
       ],
       "max": [
-        0.3021436929702759,
-        1.0793379545211792,
-        0.15210214257240295
+        0.40290555357933044,
+        1.1522374153137207,
+        0.13698264956474304
       ]
     },
-    "bytes": 479008,
+    "bytes": 3509432,
     "source": "assets-src/scripts/creatures/ink_wisp.py"
   },
   "armour_guardian": {
     "id": "armour_guardian",
     "file": "/assets/creatures/armour_guardian.glb",
     "unitScaleMeters": 1,
-    "animations": [],
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
     "collision": {
       "shape": "capsule",
       "radius": 0.45,
@@ -234,21 +154,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 6204,
-    "materials": 4,
+    "triangles": 40000,
+    "materials": 1,
     "bounds": {
       "min": [
-        -0.5824623107910156,
-        0,
-        -0.25920000672340393
+        -0.4903956651687622,
+        -0.008567471988499165,
+        -0.24630101025104523
       ],
       "max": [
-        0.5824623107910156,
-        2.1399998664855957,
-        0.2648000121116638
+        0.49523937702178955,
+        2.0515835285186768,
+        0.24708449840545654
       ]
     },
-    "bytes": 279224,
+    "bytes": 10173220,
     "source": "assets-src/scripts/creatures/armour_guardian.py"
   },
   "ward_warden": {

@@ -1,0 +1,2 @@
+seed: 6
+prompt: The head of a giant carnivorous vine plant monster, a huge venus flytrap like flower head with thick burgundy and green petal jaws lined with long ivory thorn teeth, a glowing orange throat, on a thick twisting green vine stem with leaves, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text

@@ -1,0 +1,2 @@
+seed: 8
+prompt: Full body of an old wooden training mannequin come to life, articulated hardwood limbs held together with leather straps and brass hinge pins, a canvas-wrapped torso with a painted red target on the chest, a carved wooden head with two glowing angry eyes burned into it, cracks in the varnish, standing on a weighted stone base, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text

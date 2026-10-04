@@ -9,3 +9,5 @@ playwright-report/
 
 # Raw CC0 downloads (re-fetch with scripts/fetch-cc0.mjs)
 assets-src/cc0/models/
+assets-src/ai-meshes/
+assets-src/scripts/ai/.deps/
