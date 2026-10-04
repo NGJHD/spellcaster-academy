@@ -1832,3 +1832,19 @@ kbd {
   color: #ff7ab8;
   animation: combo-bump 0.35s ease-out;
 }
+
+.results__medals {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin: 0.4rem 0 0.8rem;
+  font-weight: 700;
+}
+
+.results__medal-stars {
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  color: #ffd45a;
+  text-shadow: 0 0 12px rgba(255, 200, 80, 0.8);
+}

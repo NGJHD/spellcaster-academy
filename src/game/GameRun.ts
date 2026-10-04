@@ -1416,6 +1416,9 @@ export class GameRun {
     if (!stars) return;
     const bonus = MEDAL_SCORE[stars];
     m.score += bonus;
+    m.medalsEarned++;
+    m.medalStars += stars;
+    if (stars === 3) m.threeStarMedals++;
     audio.playSfx(stars === 3 ? 'checkpoint' : 'unlock', { volume: 0.8 });
     patchRunUi({ medal: { key: nextKey(), stars, bonus }, score: m.score });
   }

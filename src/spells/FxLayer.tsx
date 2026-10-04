@@ -36,6 +36,7 @@ const RINGS = 6;
 const PILLARS = 4;
 const BOLTS = 3;
 const BOLT_POINTS = 14;
+const BIRDS = 40;
 
 interface ParticlePreset {
   count: number;
@@ -188,6 +189,19 @@ export function FxLayer() {
     [],
   );
   const debrisRef = useRef<InstancedMesh>(null);
+  const birdsRef = useRef<InstancedMesh>(null);
+  const birds = useMemo(
+    () => Array.from({ length: BIRDS }, () => ({ active: false, t: 0, life: 3, flap: 0, position: new Vector3(), velocity: new Vector3() })),
+    [],
+  );
+  const birdGeometry = useMemo(() => {
+    // A small body with two swept wings (a flapping "V"), about 30 cm across at scale 1.
+    const g = new BufferGeometry();
+    const v = [0, 0, 0.4, -1, 0.15, -0.15, 0, 0, -0.35, 0, 0, 0.4, 0, 0, -0.35, 1, 0.15, -0.15, 0, -0.08, 0.35, 0.12, 0, -0.1, -0.12, 0, -0.1];
+    g.setAttribute('position', new BufferAttribute(new Float32Array(v), 3));
+    g.computeVertexNormals();
+    return g;
+  }, []);
   const seen = useRef(0);
   const scheduled = useRef<{ inSec: number; event: FxEvent }[]>([]);
   const dummy = useMemo(() => new Object3D(), []);
@@ -290,6 +304,23 @@ export function FxLayer() {
     b.line.visible = true;
   };
 
+  const startBirds = (origin: Vector3, scale: number) => {
+    const count = Math.round(10 * Math.min(2, Math.max(0.5, scale)));
+    let made = 0;
+    for (const b of birds) {
+      if (made >= count) break;
+      if (b.active) continue;
+      made++;
+      b.active = true;
+      b.t = 0;
+      b.life = 2.6 + Math.random();
+      b.position.copy(origin).add(new Vector3((Math.random() - 0.5) * 3, Math.random() * 0.5, (Math.random() - 0.5) * 3));
+      const a = Math.random() * Math.PI * 2;
+      b.velocity.set(Math.cos(a) * (3 + Math.random() * 3), 4 + Math.random() * 3, Math.sin(a) * (3 + Math.random() * 3));
+      b.flap = Math.random() * 6;
+    }
+  };
+
   const play = (e: FxEvent) => {
     const scale = e.scale;
     switch (e.kind) {
@@ -308,6 +339,9 @@ export function FxLayer() {
         break;
       case 'lightning':
         startBolt(e.position);
+        break;
+      case 'birds':
+        startBirds(e.position, scale);
         break;
       case 'meteors':
         startParticles(PRESETS.meteors as ParticlePreset, e.position, scale, e.color, true);
@@ -440,6 +474,36 @@ export function FxLayer() {
       p.mesh.scale.set(p.scale * (1 + Math.sin(p.t * 9) * 0.06), grow, p.scale * (1 + Math.sin(p.t * 9) * 0.06));
       (p.mesh.material as MeshBasicMaterial).opacity = 0.75 * Math.min(1, (1 - u) * 2.5);
     }
+    const flock = birdsRef.current;
+    if (flock) {
+      let any = false;
+      birds.forEach((b, i) => {
+        if (!b.active) {
+          dummy.position.set(0, -9999, 0);
+          dummy.scale.setScalar(0.0001);
+          dummy.updateMatrix();
+          flock.setMatrixAt(i, dummy.matrix);
+          return;
+        }
+        any = true;
+        b.t += dt;
+        if (b.t >= b.life) b.active = false;
+        // Startled take-off: climb steeply, then level out and scatter.
+        b.velocity.y = Math.max(1, b.velocity.y - 2.5 * dt);
+        b.position.addScaledVector(b.velocity, dt);
+        b.flap += dt * 22;
+        dummy.position.copy(b.position);
+        dummy.rotation.set(0, Math.atan2(b.velocity.x, b.velocity.z), 0);
+        const wing = Math.sin(b.flap);
+        dummy.scale.set(0.32, 0.32 * (0.35 + Math.abs(wing) * 0.65), 0.32);
+        dummy.rotateZ(wing * 0.25);
+        dummy.updateMatrix();
+        flock.setMatrixAt(i, dummy.matrix);
+      });
+      flock.instanceMatrix.needsUpdate = true;
+      flock.visible = any;
+    }
+
     for (const b of bolts) {
       if (!b.active) continue;
       b.t += dt;
@@ -500,6 +564,9 @@ export function FxLayer() {
       {bolts.map((b, i) => (
         <primitive key={`b${i}`} object={b.line} />
       ))}
+      <instancedMesh ref={birdsRef} args={[birdGeometry, undefined, BIRDS]} frustumCulled={false} visible={false}>
+        <meshStandardMaterial color="#5b5e66" roughness={0.9} side={DoubleSide} />
+      </instancedMesh>
     </group>
   );
 }

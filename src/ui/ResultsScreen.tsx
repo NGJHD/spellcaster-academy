@@ -60,6 +60,16 @@ export function ResultsScreen() {
             <span className="results__rank-title">{results.rank}</span>
           </div>
         </header>
+        {results.medals.fights > 0 && (
+          <div className="results__medals" aria-label={t.medals}>
+            <span className="results__medal-stars" aria-hidden="true">
+              {'★'.repeat(Math.max(1, Math.round((results.medals.stars / (results.medals.fights * 3)) * 5)))}
+            </span>
+            <span>
+              {t.medals}: {t.medalSummary(results.medals.stars, results.medals.fights * 3, results.medals.perfect)}
+            </span>
+          </div>
+        )}
         <ul className="results__messages">
           {results.messages.map((m) => (
             <li key={m}>{m}</li>

@@ -42,6 +42,10 @@ export interface PersistedRunMetrics {
   checkpointRestarts: number;
   optionalTargetsCompleted: number;
   score: number;
+  /** Encounter medals (CLAUDE.md §1B): fights rated, stars earned, and three-star fights. */
+  medalsEarned: number;
+  medalStars: number;
+  threeStarMedals: number;
 }
 
 export function emptyMetrics(): PersistedRunMetrics {
@@ -62,6 +66,9 @@ export function emptyMetrics(): PersistedRunMetrics {
     checkpointRestarts: 0,
     optionalTargetsCompleted: 0,
     score: 0,
+    medalsEarned: 0,
+    medalStars: 0,
+    threeStarMedals: 0,
   };
 }
 

@@ -35,3 +35,24 @@ describe('resuming a save made before the excitement rewrite', () => {
     expect(run.progress.resumeBeatId).not.toBe('east-hall-mira');
   });
 });
+
+describe('medal totals in saves', () => {
+  it('survive a save round-trip and default to zero for older saves', () => {
+    const storage = memoryStorage();
+    const save = newAutosave('run-medals', 'standard', 'courtyard-c1');
+    save.metrics.medalsEarned = 4;
+    save.metrics.medalStars = 10;
+    save.metrics.threeStarMedals = 2;
+    storage.setItem(AUTOSAVE_KEY, JSON.stringify(save));
+    const loaded = readAutosave(storage, (id) => resolveBeatId(id) !== null);
+    expect(loaded?.metrics.medalStars).toBe(10);
+    expect(loaded?.metrics.threeStarMedals).toBe(2);
+
+    const older = JSON.parse(JSON.stringify(save)) as { metrics: Record<string, unknown> };
+    delete older.metrics.medalsEarned;
+    delete older.metrics.medalStars;
+    delete older.metrics.threeStarMedals;
+    storage.setItem(AUTOSAVE_KEY, JSON.stringify(older));
+    expect(readAutosave(storage, (id) => resolveBeatId(id) !== null)?.metrics.medalStars).toBe(0);
+  });
+});

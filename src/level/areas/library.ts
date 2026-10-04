@@ -7,7 +7,7 @@
  */
 import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
 import { anchorBlast } from './courtyard';
 
 const A = 'whispering-library';
@@ -114,9 +114,25 @@ export const library: AreaScript = {
     }),
     fight('library-anchor', A),
     reveal('library-anchor-pillar', A, 'LIB_ANCHOR', ['LIB_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
+    fight('library-power', A, { barks: ['power-frost'] }),
     checkpoint('library-checkpoint', A, 'library-restored', { objective: 'greenhouse-anchor' }),
   ],
   encounters: [
+    // First use of Frost Thread: perfect words freeze the rest of this flock of books.
+    powerWave(
+      'library-power',
+      A,
+      'book',
+      [
+        [
+          { path: [L(10, 4.5, -27), L(7.5, 2.4, -24.5)], variant: 'red' },
+          { path: [L(3, 4.8, -28), L(5, 2.6, -25.5)], variant: 'blue' },
+          { path: [L(11, 3.2, -22), L(8.5, 2.2, -23)], variant: 'green' },
+          { path: [L(6, 5.2, -30), L(6.5, 3, -26.5)], variant: 'red' },
+        ],
+      ],
+      { labelHeight: 0.45 },
+    ),
     {
       id: 'library-l1',
       areaId: A,

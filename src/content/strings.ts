@@ -189,6 +189,8 @@ export const strings = {
     playAgain: 'PLAY LEVEL 1 AGAIN',
     returnToTitle: 'RETURN TO TITLE',
     score: 'Score',
+    medals: 'Medals',
+    medalSummary: (stars: number, max: number, perfect: number) => `${stars} / ${max} stars · ${perfect} perfect ${perfect === 1 ? 'fight' : 'fights'}`,
     newCosmetics: 'New wand trails',
     none: '—',
     metrics: {

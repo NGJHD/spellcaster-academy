@@ -142,6 +142,11 @@ export const LINES = {
   'obs-restored': line('warden', 'WARD RESTORED · APPRENTICE RECOGNISED'),
   'obs-end': line('pip', 'It was never our enemy. It was waiting for someone who could finish the spell.'),
 
+  // Power-up waves (first use of each new spell)
+  'power-spark': line('pip', 'Try out your Spark Bolt — BLAST them!'),
+  'power-frost': line('pip', 'Perfect words freeze the rest! Show them Frost Thread!'),
+  'power-chain': line('pip', 'Five perfect in a row and the sparks LEAP! Go, go, go!'),
+
   // Shared
   'focus-reset': line('pip', "Let's take a breath and try that part again."),
   'assist-offer': line('pip', "I'll make the words a little shorter for this part. You've got this."),

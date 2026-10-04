@@ -114,6 +114,36 @@ export const ATTACKS = {
   dummyArm: { kind: 'contact', windupSec: 1.1, recoverSec: 0.9, intervalSec: 1.6, damage: 5 },
 } satisfies Record<string, AttackSpec>;
 
+/**
+ * Power-up wave (CLAUDE.md §1B "Unlock moments"): right after a new spell, a burst of easy, harmless
+ * enemies with short words so the player feels the new power at once. Never damages.
+ */
+export function powerWave(
+  id: string,
+  areaId: AreaId,
+  kind: TargetSpawn['kind'],
+  waves: readonly (readonly { path: readonly Vec3[]; delaySec?: number; variant?: string }[])[],
+  options: Partial<TargetSpawn> = {},
+): import('../levelTypes').EncounterDef {
+  return {
+    id,
+    areaId,
+    kind: 'combat',
+    waves: waves.map((wave, w) => ({
+      id: `${id}-${w + 1}`,
+      targets: wave.map((t, i) =>
+        target(`${id}-${w + 1}-${i + 1}`, kind, t.path[0] ?? [0, 0, 0], [len(3, 3)], {
+          movement: { kind: 'approach', path: t.path, speed: 1.4 },
+          weak: true,
+          delaySec: t.delaySec ?? i * 0.35,
+          variant: t.variant,
+          ...options,
+        }),
+      ),
+    })),
+  };
+}
+
 /** Everything one area contributes to the level. */
 export interface AreaScript {
   readonly nodes: Readonly<Record<string, import('../rail/railTypes').CameraNode>>;

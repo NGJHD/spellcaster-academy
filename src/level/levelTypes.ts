@@ -49,6 +49,8 @@ export type FxKind =
   | 'glass'
   | 'sparks'
   | 'lightning'
+  /** A startled flock of birds taking off. */
+  | 'birds'
   /** Full-screen white flash (UI). */
   | 'flash'
   /** Camera shake. */

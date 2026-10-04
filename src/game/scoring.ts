@@ -60,6 +60,8 @@ export interface ResultsData {
   readonly difficulty: Difficulty;
   readonly newCosmetics: readonly CosmeticId[];
   readonly score: number;
+  /** Medal summary: stars earned out of the stars available in the fights rated. */
+  readonly medals: { readonly fights: number; readonly stars: number; readonly perfect: number };
   readonly rank: RankTitle;
   readonly messages: readonly string[];
 }
@@ -96,6 +98,7 @@ export function buildResults(
     difficulty,
     newCosmetics,
     score: m.score,
+    medals: { fights: m.medalsEarned, stars: m.medalStars, perfect: m.threeStarMedals },
     rank: rankTitle(acc, avg, starPages.length),
     messages: positiveMessages(m, starPages),
   };

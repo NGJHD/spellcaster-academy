@@ -6,7 +6,7 @@
  */
 import type { EncounterDef, TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
 import { anchorBlast } from './courtyard';
 
 const A = 'enchanted-greenhouse';
@@ -158,9 +158,29 @@ export const greenhouse: AreaScript = {
     travel('greenhouse-to-anchor', A, ['GH_COMBAT', 'GH_ANCHOR'], 5, { barks: ['gh-anchor-intro'] }),
     fight('greenhouse-anchor', A),
     reveal('greenhouse-anchor-pillar', A, 'GH_ANCHOR', ['GH_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
+    fight('greenhouse-power', A, { barks: ['power-chain'] }),
     checkpoint('greenhouse-checkpoint', A, 'greenhouse-restored', { objective: 'reach-observatory' }),
   ],
   encounters: [
+    // First use of Chain Spark: two packs of weak mosslings for the sparks to leap between.
+    powerWave(
+      'greenhouse-power',
+      A,
+      'mossling',
+      [
+        [
+          { path: [G(-9, 0, -48), G(-6.5, 0, -44), G(-4.2, 0, -41.6)] },
+          { path: [G(-3, 0, -50), G(-3.2, 0, -45), G(-2.8, 0, -42.2)] },
+          { path: [G(-10, 0, -42), G(-7, 0, -42), G(-5, 0, -40.6)] },
+        ],
+        [
+          { path: [G(-8, 0, -50), G(-5.5, 0, -45), G(-3.6, 0, -42)] },
+          { path: [G(-1, 0, -49), G(-2, 0, -45), G(-2.2, 0, -42.4)] },
+          { path: [G(-10, 0, -45), G(-7.5, 0, -43), G(-4.8, 0, -41.2)] },
+        ],
+      ],
+      { labelHeight: 1.45, entrance: { kind: 'dust', scale: 0.7 } },
+    ),
     vineWord('greenhouse-vine', 0, 'leaf'),
     vineWord('greenhouse-vine-2', 1, 'root'),
     { ...vineWord('greenhouse-vine-3', 2, 'bloom'), onComplete: { flags: ['vine-bridge-grown'] } },

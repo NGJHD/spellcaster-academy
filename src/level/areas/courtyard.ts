@@ -6,7 +6,7 @@
  */
 import type { FxCue, TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fight, len, marker, reveal, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fight, len, marker, powerWave, reveal, target, travel, type AreaScript } from './builders';
 
 const A = 'sunlit-courtyard';
 
@@ -139,6 +139,9 @@ export const courtyard: AreaScript = {
         { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.22, scale: 2.2 },
         { kind: 'debris', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.22, scale: 1.2, color: '#b9a58a' },
         { kind: 'shake', atBeat: 0.22, scale: 1.6 },
+        // Pigeons scatter from the roofs and the paving as it lands.
+        { kind: 'birds', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.23, scale: 1.4 },
+        { kind: 'birds', at: 'COURTYARD_ROOF_WARDEN', atBeat: 0.2, scale: 1 },
         { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.8, scale: 1.4 },
       ],
     }),
@@ -149,10 +152,29 @@ export const courtyard: AreaScript = {
     fight('courtyard-anchor', A),
     // The anchor blasts a pillar of light into the sky; the camera looks up.
     reveal('courtyard-anchor-pillar', A, 'COURTYARD_ANCHOR', ['COURTYARD_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
+    fight('courtyard-power', A, { barks: ['power-spark'] }),
     checkpoint('courtyard-checkpoint', A, 'courtyard-restored', { objective: 'library-anchor' }),
     travel('courtyard-exit', A, ['COURTYARD_ANCHOR', 'COURTYARD_EXIT_EAST_HALL'], 3.5, { reducedMotion: 'glide' }),
   ],
   encounters: [
+    // First use of Spark Bolt: a burst of sprites to blast.
+    powerWave(
+      'courtyard-power',
+      A,
+      'sprite',
+      [
+        [
+          { path: [[11, 0, -12], [8, 0, -8], [5.6, 0, -6]] },
+          { path: [[4, 0, -13], [4.5, 0, -9], [4.4, 0, -6.4]] },
+          { path: [[12, 0, -4], [9, 0, -5], [6.4, 0, -5.4]] },
+        ],
+        [
+          { path: [[9, 0, -13], [7, 0, -9], [5, 0, -6.2]], variant: 'grey' },
+          { path: [[13, 0, -8], [9, 0, -7], [6.2, 0, -5.8]] },
+        ],
+      ],
+      { labelHeight: 0.95, entrance: { kind: 'leaves', scale: 0.6 } },
+    ),
     {
       id: 'courtyard-c1',
       areaId: A,
