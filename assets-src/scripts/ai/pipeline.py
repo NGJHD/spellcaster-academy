@@ -2,7 +2,10 @@
 Runs the AI creature pipeline for each name whose raw TRELLIS.2 shape exists:
 prep_raw.py (clean watertight mesh) -> comfy.py texture (per-vertex colour) -> build_ai_creature.py.
 
-    python assets-src/scripts/ai/pipeline.py <name> [<name> ...]
+    python assets-src/scripts/ai/pipeline.py <name> [<name> ...] [--tris=N]
+
+Big subjects (the Vellum Wyrm) can run the 10 GB texturing GPU out of memory at 300k triangles;
+pass a lower --tris for them.
 """
 import os
 import subprocess
@@ -24,11 +27,13 @@ def blender(script, *extra):
         print(out.stderr[-2000:])
 
 
-for name in sys.argv[1:]:
+TRIS = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--tris=")), "300000")
+
+for name in [a for a in sys.argv[1:] if not a.startswith("--")]:
     print(f"== {name}")
     if not os.path.exists(os.path.join(MESHES, f"{name}_white.glb")):
         print("   no raw shape yet")
         continue
-    blender("prep_raw.py", name, "300000")
+    blender("prep_raw.py", name, TRIS)
     print("   ", texture(name))
     blender("build_ai_creature.py", name, "--preview")
