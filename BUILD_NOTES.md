@@ -73,6 +73,10 @@ Running log of decisions, environment facts, architecture and milestone status. 
     - The music ducks to 35% while any subtitle is on screen: 80 ms to soften, about 1 s to swell back. Measured average level was 0.019 while talking versus 0.052 between lines.
     - `window.__spellcaster.music()` (with `?test`) reports the context state, the mood and the output level.
 
+- 2026-10-04: **specification split.** `CLAUDE.md` now holds only the game-wide rules, including a new §5 covering the campaign, the overall story and the owner decisions that override the spec.
+  - Level 1 content moved to `LEVEL1_DESIGN.md`, with section numbers kept so code comments stay valid.
+  - New `LEVEL2_DESIGN.md` (The Siege of Asterfall) and `LEVEL3_DESIGN.md` (Into the Unwritten; the finale against the Unwriter).
+
 ## Spec conflict resolutions
 
 The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:
