@@ -103,9 +103,9 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
 
 /** The Cinder Citadel on the Blank's horizon: a black fortress of spires wrapped in fire (L3-6). */
 export function CitadelOnHorizon() {
-  const spires = useMemo(() => [0, 1, 2, 3, 4, 5, 6].map((i) => ({ x: (i - 3) * 18 + (rand(i, 3) - 0.5) * 8, h: 90 + rand(i, 4) * 120, w: 10 + rand(i, 5) * 10 })), []);
+  const spires = useMemo(() => [0, 1, 2, 3, 4, 5, 6].map((i) => ({ x: (i - 3) * 12 + (rand(i, 3) - 0.5) * 6, h: 50 + rand(i, 4) * 70, w: 7 + rand(i, 5) * 7 })), []);
   return (
-    <group position={[120, -20, -560]}>
+    <group position={[220, -30, -620]}>
       {spires.map((s, i) => (
         <group key={i} position={[s.x, 0, (rand(i, 6) - 0.5) * 30]}>
           <mesh position={[0, s.h / 2, 0]}>
@@ -122,8 +122,8 @@ export function CitadelOnHorizon() {
           </mesh>
         </group>
       ))}
-      <mesh position={[0, 120, 10]}>
-        <sphereGeometry args={[110, 24, 16]} />
+      <mesh position={[0, 70, 10]}>
+        <sphereGeometry args={[70, 24, 16]} />
         <meshBasicMaterial color="#ff3a10" transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
       </mesh>
     </group>
@@ -147,7 +147,7 @@ export function Rift() {
       const t = i / 13;
       // Irregular kinks, like a crack in glass, slanting up across the sky.
       const jag = (rand(i, 7) - 0.5) * 40;
-      pts.push(new Vector3(-320 + t * 640 + (rand(i, 9) - 0.5) * 30, 230 + t * 70 + jag, -470 + (rand(i, 8) - 0.5) * 30));
+      pts.push(new Vector3(-300 + t * 600 + (rand(i, 9) - 0.5) * 30, 300 + t * 60 + jag, -540 + (rand(i, 8) - 0.5) * 30));
     }
     // Straight segments keep the corners sharp: a crack, not a ribbon.
     const curve = new CurvePath<Vector3>();
@@ -156,7 +156,7 @@ export function Rift() {
       const b = pts[i];
       if (a && b) curve.add(new LineCurve3(a, b));
     }
-    return { core: new TubeGeometry(curve, 260, 3.2, 6, false), halo: new TubeGeometry(curve, 260, 18, 8, false) };
+    return { core: new TubeGeometry(curve, 260, 2.2, 6, false), halo: new TubeGeometry(curve, 260, 12, 8, false) };
   }, []);
   useFrame((state, delta) => {
     const run = getRun();

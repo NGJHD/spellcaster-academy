@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
-import { MeshStandardMaterial, type Group } from 'three';
+import { MeshStandardMaterial, PlaneGeometry, type Group } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, SLIDE_SECTIONS, WALKWAYS } from '../../level/areas3/journey2';
@@ -17,15 +17,17 @@ import { Bookshelf, Box, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
+import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 
-const ash = new MeshStandardMaterial({ color: '#5a5450', roughness: 0.98 });
-const ashDark = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
+const ash = () => metreSurface('ash', 7);
+const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
+const scorchedRock = () => metreSurface('scorched', 5);
 const redInk = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.2 });
-const blackIron = new MeshStandardMaterial({ color: '#16141a', roughness: 0.45, metalness: 0.8 });
+const blackIron = () => metreSurface('iron', 3, { metalness: 0.45 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 const paper = new MeshStandardMaterial({ color: '#d8d2c4', roughness: 0.9 });
-const greyPaper = new MeshStandardMaterial({ color: '#8a8682', roughness: 0.95 });
+const greyPaper = () => metreSurface('paper', 6);
 const inkBlue = new MeshStandardMaterial({ color: '#2a5cff', roughness: 0.3, emissive: '#2a5cff', emissiveIntensity: 0.4 });
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -53,11 +55,11 @@ function BurntTree({ position, height = 9, seed = 1 }: { position: Vec3; height?
   const branches = useMemo(() => [0, 1, 2].map((i) => ({ y: height * (0.45 + i * 0.15), a: seed * 2.1 + i * 2.3, l: 1.6 + ((seed + i) % 3) * 0.7 })), [height, seed]);
   return (
     <group position={position}>
-      <mesh position={[0, height / 2, 0]} material={ashDark} castShadow>
+      <mesh position={[0, height / 2, 0]} material={ashDarkFlat} castShadow>
         <cylinderGeometry args={[0.18, 0.42, height, 8]} />
       </mesh>
       {branches.map((b, i) => (
-        <mesh key={i} position={[Math.cos(b.a) * b.l * 0.5, b.y, Math.sin(b.a) * b.l * 0.5]} rotation={[Math.sin(b.a) * 0.9, 0, -Math.cos(b.a) * 0.9]} material={ashDark}>
+        <mesh key={i} position={[Math.cos(b.a) * b.l * 0.5, b.y, Math.sin(b.a) * b.l * 0.5]} rotation={[Math.sin(b.a) * 0.9, 0, -Math.cos(b.a) * 0.9]} material={ashDarkFlat}>
           <cylinderGeometry args={[0.05, 0.12, b.l, 6]} />
         </mesh>
       ))}
@@ -70,7 +72,7 @@ function BurntTree({ position, height = 9, seed = 1 }: { position: Vec3; height?
 }
 
 function AshGround({ x, z, y = 0 }: { x: readonly [number, number]; z: readonly [number, number]; y?: number }) {
-  return <Slab x={x} y={[y - 0.3, y]} z={z} material={ash} />;
+  return <Slab x={x} y={[y - 0.3, y]} z={z} material={ash()} />;
 }
 
 // ---------- Rift Shore ----------
@@ -78,11 +80,11 @@ function AshGround({ x, z, y = 0 }: { x: readonly [number, number]; z: readonly 
 export function ShoreScene() {
   return (
     <group position={SHORE_ORIGIN}>
-      <AshGround x={[-60, 60]} z={[-4, 40]} />
-      <AshGround x={[-60, 60]} z={[-80, -16]} />
+      <AshGround x={[-220, 220]} z={[-4, 260]} />
+      <AshGround x={[-220, 220]} z={[-260, -16]} />
       {/* The river of molten red ink */}
       <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
-        <planeGeometry args={[140, 12]} />
+        <planeGeometry args={[440, 12]} />
       </mesh>
       {/* Stepping stones written across the ink */}
       {STONES.map((s, i) => (
@@ -123,7 +125,7 @@ export function CinderwoodScene() {
   const tortoise = sub(TORTOISE, WOOD_ORIGIN);
   return (
     <group position={WOOD_ORIGIN}>
-      <AshGround x={[-50, 50]} z={[-110, 20]} />
+      <AshGround x={[-160, 160]} z={[-200, 80]} />
       {Array.from({ length: 26 }, (_, i) => {
         const side = i % 2 ? 1 : -1;
         return <BurntTree key={i} position={[side * (5 + ((i * 7) % 14)), 0, 10 - i * 4.5]} height={8 + ((i * 5) % 6)} seed={i + 2} />;
@@ -165,8 +167,8 @@ export function InkfallScene() {
         {[[40, 0, -30], [30, -30, -60], [20, -60, -88], [0, -120, -150]].map(([y, z0, z1], i) => (
           <group key={i}>
             <Slab x={[-6, 6]} y={[(y ?? 0) - 0.4, (y ?? 0) - 0.2]} z={[z1 ?? 0, z0 ?? 0]} material={redInk} />
-            <Slab x={[-14, -6]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={ashDark} />
-            <Slab x={[6, 14]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={ashDark} />
+            <Slab x={[-14, -6]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={scorchedRock()} />
+            <Slab x={[6, 14]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={scorchedRock()} />
             {[-1, 1].map((s) => (
               <Fire key={s} position={[s * 7, (y ?? 0) + 2, ((z0 ?? 0) + (z1 ?? 0)) / 2]} size={3} count={4} spread={14} light={i === 1 && s < 0} />
             ))}
@@ -233,11 +235,11 @@ export function Gallery3Scene() {
   return (
     <group position={GALLERY3_ORIGIN}>
       <Slab x={[-16, 16]} y={[-0.3, 0]} z={[-26, 22]} material={MAT.marble} />
-      <Slab x={[-16, 16]} y={[0, 14]} z={[-27, -26]} material={greyPaper} />
+      <Slab x={[-16, 16]} y={[0, 14]} z={[-27, -26]} material={greyPaper()} />
       {[-12, -4, 4, 12].map((z) => (
         <group key={z}>
-          <Box position={[-15.5, 7, z]} size={[1, 14, 6]} material={greyPaper} />
-          <Box position={[15.5, 7, z]} size={[1, 14, 6]} material={greyPaper} />
+          <Box position={[-15.5, 7, z]} size={[1, 14, 6]} material={greyPaper()} />
+          <Box position={[15.5, 7, z]} size={[1, 14, 6]} material={greyPaper()} />
         </group>
       ))}
       <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.2, -2], size: 1, count: 2, spread: 1.6, smoke: false }}>
@@ -283,14 +285,14 @@ function IronGiant({ height }: { height: number }) {
   const s = height / 7;
   return (
     <group scale={s}>
-      <Box position={[0, 4.2, 0]} size={[2.4, 3, 1.4]} material={blackIron} />
+      <Box position={[0, 4.2, 0]} size={[2.4, 3, 1.4]} material={blackIron()} />
       <Box position={[0, 4.4, 0.72]} size={[0.6, 0.8, 0.05]} material={ironSeam} />
-      <Box position={[0, 6.3, 0]} size={[1, 1, 1]} material={blackIron} />
+      <Box position={[0, 6.3, 0]} size={[1, 1, 1]} material={blackIron()} />
       <Box position={[0, 6.3, 0.51]} size={[0.7, 0.1, 0.02]} material={ironSeam} />
       {[-1, 1].map((x) => (
         <group key={x}>
-          <Box position={[x * 1.6, 4.2, 0]} size={[0.7, 2.8, 0.7]} material={blackIron} />
-          <Box position={[x * 0.6, 1.4, 0]} size={[0.8, 2.8, 0.8]} material={blackIron} />
+          <Box position={[x * 1.6, 4.2, 0]} size={[0.7, 2.8, 0.7]} material={blackIron()} />
+          <Box position={[x * 0.6, 1.4, 0]} size={[0.8, 2.8, 0.8]} material={blackIron()} />
         </group>
       ))}
       <Fire position={[0, 4.6, 0.8]} size={1.2} count={2} spread={0.6} smoke={false} />
@@ -310,14 +312,14 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
   });
   return (
     <group position={position}>
-      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={blackIron} />
-      <Box position={[0, 2.6, -5]} size={[4, 1.2, 3]} material={blackIron} />
+      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={blackIron()} />
+      <Box position={[0, 2.6, -5]} size={[4, 1.2, 3]} material={blackIron()} />
       <Fire position={[0, 2.4, 7.4]} size={2} count={3} spread={1} light={index === 2} />
       <group ref={mast} position={[0, 2.2, 0]}>
         <mesh position={[0, 6, 0]} material={MAT.darkOak}>
           <cylinderGeometry args={[0.2, 0.3, 12, 10]} />
         </mesh>
-        <mesh position={[0, 7, 0.3]} material={ashDark}>
+        <mesh position={[0, 7, 0.3]} material={ashDarkFlat}>
           <planeGeometry args={[6, 7]} />
         </mesh>
         <Fire position={[0, 9, 0]} size={2.4} count={3} spread={3} smoke={false} fromFlag={`l3-mast-${index}-down`} />
@@ -326,19 +328,40 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
   );
 }
 
+/** The Paper Sea: creased paper rolling in slow swells (vertex waves, updated each frame). */
+function PaperWaves() {
+  const { geometry, material } = useMemo(() => {
+    const g = new PlaneGeometry(500, 500, 120, 120);
+    g.rotateX(-Math.PI / 2);
+    return { geometry: g, material: surface('paper', [500, 500], 10) };
+  }, []);
+  const base = useMemo(() => Float32Array.from(geometry.getAttribute('position').array), [geometry]);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    const pos = geometry.getAttribute('position');
+    const arr = pos.array as Float32Array;
+    for (let i = 0; i < arr.length; i += 3) {
+      const x = base[i] ?? 0;
+      const z = base[i + 2] ?? 0;
+      arr[i + 1] = Math.sin(x * 0.08 + t * 0.9) * 0.6 + Math.sin(z * 0.11 - t * 1.2) * 0.5 + Math.sin((x + z) * 0.03 + t * 0.4) * 0.8;
+    }
+    pos.needsUpdate = true;
+    geometry.computeVertexNormals();
+  });
+  return <mesh geometry={geometry} material={material} position={[0, -0.6, -100]} receiveShadow />;
+}
+
 export function SeaScene() {
   return (
     <>
       <group position={SEA_ORIGIN}>
-        <mesh position={[0, -0.2, -100]} rotation={[-Math.PI / 2, 0, 0]} material={greyPaper}>
-          <planeGeometry args={[500, 500, 1, 1]} />
-        </mesh>
+        <PaperWaves />
         {GALLEONS.map((g, i) => (
           <Galleon key={i} position={sub(g, SEA_ORIGIN)} index={i + 1} />
         ))}
         {[[-20, -30], [24, -60], [-30, -140], [18, -190], [-10, -240]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0, z ?? 0]}>
-            <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, i, 0.3]} material={ashDark} />
+            <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, i, 0.3]} material={ashDarkFlat} />
             <Fire position={[0, 1.2, 0]} size={2.6} count={3} spread={3} />
           </group>
         ))}
@@ -367,10 +390,10 @@ function Hammer({ position, phase }: { position: Vec3; phase: number }) {
   return (
     <group position={position}>
       <group ref={head}>
-        <Box position={[0, 0, 0]} size={[6, 4, 6]} material={blackIron} />
+        <Box position={[0, 0, 0]} size={[6, 4, 6]} material={blackIron()} />
         <Box position={[0, 10, 0]} size={[0.6, 16, 0.6]} material={MAT.darkSteel} />
       </group>
-      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={blackIron} />
+      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={blackIron()} />
     </group>
   );
 }
@@ -378,18 +401,18 @@ function Hammer({ position, phase }: { position: Vec3; phase: number }) {
 export function ForgeScene() {
   return (
     <group position={FORGE_ORIGIN}>
-      <Slab x={[-20, 20]} y={[-0.3, 0]} z={[-50, 20]} material={blackIron} />
-      <Slab x={[-21, -20]} y={[0, 30]} z={[-50, 20]} material={blackIron} />
-      <Slab x={[20, 21]} y={[0, 30]} z={[-50, 20]} material={blackIron} />
+      <Slab x={[-20, 20]} y={[-0.3, 0]} z={[-50, 20]} material={blackIron()} />
+      <Slab x={[-21, -20]} y={[0, 30]} z={[-50, 20]} material={blackIron()} />
+      <Slab x={[20, 21]} y={[0, 30]} z={[-50, 20]} material={blackIron()} />
       {FORGE_LINES.map((x, i) => (
         <group key={x} position={[x, 0, 0]}>
           {/* The line: a conveyor of moulds running towards the player, its furnace at the back */}
           <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={MAT.darkSteel} />
-          <Box position={[0, 4, -28]} size={[5, 8, 4]} material={blackIron} />
+          <Box position={[0, 4, -28]} size={[5, 8, 4]} material={blackIron()} />
           <Box position={[0, 3, -25.9]} size={[2.4, 2.6, 0.1]} material={ironSeam} />
           <Fire position={[0, 1.6, -25.6]} size={3} count={4} spread={2} light untilFlag={`l3-line-${i + 1}`} />
           {/* Cauldron pouring molten red ink */}
-          <mesh position={[0, 9, -22]} material={blackIron}>
+          <mesh position={[0, 9, -22]} material={blackIron()}>
             <cylinderGeometry args={[1.6, 1.2, 2, 16]} />
           </mesh>
           <mesh position={[0, 5, -22]} material={redInk}>
@@ -419,9 +442,9 @@ export function CitadelScene() {
   });
   return (
     <group position={CITADEL_ORIGIN}>
-      <Slab x={[-8, 8]} y={[-0.3, 0]} z={[-4, 8]} material={blackIron} />
-      <Slab x={[-9, -8]} y={[-10, 44]} z={[-60, 8]} material={blackIron} />
-      <Slab x={[8, 9]} y={[-10, 44]} z={[-60, 8]} material={blackIron} />
+      <Slab x={[-8, 8]} y={[-0.3, 0]} z={[-4, 8]} material={blackIron()} />
+      <Slab x={[-9, -8]} y={[-10, 44]} z={[-60, 8]} material={blackIron()} />
+      <Slab x={[8, 9]} y={[-10, 44]} z={[-60, 8]} material={blackIron()} />
       {/* Arrow slits glowing red */}
       {[4, 12, 20, 28, 36].map((y) => (
         <group key={y}>
@@ -438,9 +461,9 @@ export function CitadelScene() {
       )}
       {/* Landings at the top of each flight */}
       {[1, 2, 3].map((n) => (
-        <Box key={n} position={[0, n * 8 - 0.2, -n * 12 + 2]} size={[10, 0.4, 6]} material={blackIron} />
+        <Box key={n} position={[0, n * 8 - 0.2, -n * 12 + 2]} size={[10, 0.4, 6]} material={blackIron()} />
       ))}
-      <Box position={[0, 36, -56]} size={[8, 10, 0.6]} material={blackIron} />
+      <Box position={[0, 36, -56]} size={[8, 10, 0.6]} material={blackIron()} />
       <Fire position={[0, 33, -55]} size={3} count={4} spread={8} light />
       <group ref={rising}>
         <Fire position={[0, 0, -20]} size={6} count={6} spread={14} light smoke={false} />
@@ -460,7 +483,7 @@ function UnwriterFallback() {
   });
   return (
     <group>
-      <mesh position={[0, 2.2, 0]} material={ashDark} castShadow>
+      <mesh position={[0, 2.2, 0]} material={ashDarkFlat} castShadow>
         <coneGeometry args={[1.3, 4.4, 20, 1, true]} />
       </mesh>
       <mesh position={[0, 0.06, 0]} rotation={[Math.PI / 2, 0, 0]} material={ironSeam}>
@@ -471,7 +494,7 @@ function UnwriterFallback() {
       </mesh>
       <Box position={[0, 4.7, 0.44]} size={[0.06, 0.6, 0.04]} material={ironSeam} />
       <group ref={quill}>
-        <mesh rotation={[0, 0, 0.5]} material={blackIron}>
+        <mesh rotation={[0, 0, 0.5]} material={blackIron()}>
           <coneGeometry args={[0.12, 2.4, 8]} />
         </mesh>
         <Fire position={[0, 1, 0]} size={0.9} count={2} spread={0.3} smoke={false} />
@@ -497,7 +520,7 @@ export function ThroneScene() {
   const pip = sub(PIP_SEIZED, THRONE_ORIGIN);
   return (
     <group position={THRONE_ORIGIN}>
-      <mesh position={[0, -0.2, 0]} material={blackIron} receiveShadow>
+      <mesh position={[0, -0.2, 0]} material={blackIron()} receiveShadow>
         <cylinderGeometry args={[14, 13, 0.4, 48]} />
       </mesh>
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={ironSeam}>
@@ -506,15 +529,15 @@ export function ThroneScene() {
       {/* Braziers ringing the platform */}
       {Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2).map((a, i) => (
         <group key={i} position={[Math.cos(a) * 12.5, 0, Math.sin(a) * 12.5]}>
-          <mesh position={[0, 0.6, 0]} material={blackIron}>
+          <mesh position={[0, 0.6, 0]} material={blackIron()}>
             <cylinderGeometry args={[0.5, 0.3, 1.2, 10]} />
           </mesh>
           <Fire position={[0, 1.2, 0]} size={1.4} count={2} spread={0.4} smoke={false} light={i % 4 === 0} />
         </group>
       ))}
       {/* The throne and the sea of fire far below */}
-      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={blackIron} />
-      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={blackIron} />
+      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={blackIron()} />
+      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={blackIron()} />
       <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
         <planeGeometry args={[600, 600]} />
       </mesh>

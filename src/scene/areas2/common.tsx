@@ -13,6 +13,7 @@ import { getRun } from '../../state/gameStore';
 import { Box } from '../kit';
 import { Fire } from '../Fire';
 import { MAT } from '../materials';
+import { metreSurface } from '../surfaceTextures';
 import { useBeatIndex } from '../props';
 
 /** True once the current level has reached (or passed) the given beat. */
@@ -163,22 +164,42 @@ export function BurningSkyline({ position, rotationY = 0, seed = 1 }: { position
   }, [seed]);
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      {blocks.map((b, i) => (
-        <group key={i} position={[b.x, 0, 0]}>
-          <Box position={[0, b.h / 2, 0]} size={[b.w, b.h, b.d]} material={MAT.academyStoneDark} shadows={false} />
-          {b.tower ? (
-            <mesh position={[0, b.h + 4, 0]} material={MAT.slate}>
-              <coneGeometry args={[b.w * 0.7, 8, 4]} />
-            </mesh>
-          ) : (
-            <Box position={[0, b.h + 1, 0]} size={[b.w + 0.4, 2, b.d * 0.6]} material={MAT.slate} shadows={false} />
-          )}
-          {[0.3, 0.6].map((f) => (
-            <Box key={f} position={[0, b.h * f, b.d / 2 + 0.02]} size={[b.w * 0.6, 0.9, 0.05]} material={MAT.windowGlow} shadows={false} />
-          ))}
-          {b.fire && <Fire position={[0, b.h + (b.tower ? 1 : 2), 0]} size={4 + (i % 3)} count={3} spread={b.w * 0.6} />}
-        </group>
-      ))}
+      {blocks.map((b, i) => {
+        const cols = Math.max(2, Math.floor(b.w / 2.4));
+        const rows = Math.max(2, Math.floor(b.h / 4));
+        return (
+          <group key={i} position={[b.x, 0, 0]}>
+            <Box position={[0, b.h / 2, 0]} size={[b.w, b.h, b.d]} material={metreSurface('stone', 3)} shadows={false} />
+            {/* Cornice and buttresses break up the silhouette */}
+            <Box position={[0, b.h - 0.3, b.d / 2 + 0.2]} size={[b.w + 0.6, 0.6, 0.4]} material={MAT.academyStoneDark} shadows={false} />
+            {b.tower ? (
+              <mesh position={[0, b.h + 5, 0]} material={MAT.slate}>
+                <coneGeometry args={[b.w * 0.72, 10, 8]} />
+              </mesh>
+            ) : (
+              <mesh position={[0, b.h + 2.2, 0]} rotation={[0, Math.PI / 4, 0]} scale={[b.w / 2, 1, b.d / 2]} material={MAT.slate}>
+                <coneGeometry args={[1.42, 4.4, 4]} />
+              </mesh>
+            )}
+            {/* Rows of windows, most glowing with firelight, some dark */}
+            {Array.from({ length: rows * cols }, (_, k) => {
+              const r = Math.floor(k / cols);
+              const c = k % cols;
+              const lit = (k * 7 + i * 3) % 5 !== 0;
+              return (
+                <Box
+                  key={k}
+                  position={[-b.w / 2 + (c + 0.5) * (b.w / cols), 2.5 + r * 4, b.d / 2 + 0.03]}
+                  size={[0.9, 1.8, 0.05]}
+                  material={lit ? MAT.windowGlow : MAT.slate}
+                  shadows={false}
+                />
+              );
+            })}
+            {b.fire && <Fire position={[0, b.h + (b.tower ? 1 : 2), 0]} size={4 + (i % 3)} count={3} spread={b.w * 0.6} />}
+          </group>
+        );
+      })}
     </group>
   );
 }

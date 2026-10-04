@@ -20,20 +20,22 @@ import { Fire, Restorable } from '../Fire';
 import { Banner, Box, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
+import { metreSurface } from '../surfaceTextures';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const nightWater = new MeshStandardMaterial({ color: '#0a0606', roughness: 0.35, metalness: 0.1, emissive: '#4a0c04', emissiveIntensity: 0.35, envMapIntensity: 0.15 });
-const scorched = new MeshStandardMaterial({ color: '#2a2422', roughness: 0.95 });
-const lawnGrass = new MeshStandardMaterial({ color: '#2a3a1e', roughness: 1 });
+const scorched = () => metreSurface('scorched', 6);
+const lawnGrass = () => metreSurface('grass', 5);
+const stoneFloor = () => metreSurface('stone', 3);
 
 // ---------- Lantern Festival Lawn ----------
 
 export function LawnScene() {
   return (
     <group position={LAWN_ORIGIN}>
-      <Slab x={[-40, 40]} y={[-0.2, 0]} z={[-24, 30]} material={lawnGrass} />
+      <Slab x={[-120, 120]} y={[-0.2, 0]} z={[-24, 120]} material={lawnGrass()} />
       {/* Lantern Lake beyond the lawn, reflecting the red sky */}
       <mesh position={[0, -0.3, -140]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 240]} />
@@ -163,8 +165,8 @@ export function BridgeScene() {
         </Restorable>
       ))}
       {/* Gorge walls and the far floor */}
-      <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={scorched} />
-      <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={scorched} />
+      <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={scorched()} />
+      <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={scorched()} />
       {/* Belfry: a stone tower straddling the bridge, the great bell hanging inside */}
       <group position={[0, 0, bell[2]]}>
         {[-1, 1].map((s) => (
@@ -198,7 +200,7 @@ export function HallScene() {
   const herald = sub(HERALD_POSITION, HALL_ORIGIN);
   return (
     <group position={HALL_ORIGIN}>
-      <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={MAT.paving} />
+      <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={stoneFloor()} />
       <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStone} />
       <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStone} />
       <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={MAT.academyStone} />
@@ -267,7 +269,7 @@ export function WorkshopScene() {
   const furnace = sub(FURNACE_POSITION, WORKSHOP_ORIGIN);
   return (
     <group position={WORKSHOP_ORIGIN}>
-      <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={MAT.paving} />
+      <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={stoneFloor()} />
       <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
       <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
       <Slab x={[-12, 12]} y={[9, 9.4]} z={[-32, 8]} material={MAT.darkOak} />
@@ -308,7 +310,7 @@ export function WorkshopScene() {
         <mesh position={[0, 8.5, 0]} material={MAT.academyStoneDark}>
           <cylinderGeometry args={[1.2, 1.8, 5, 16]} />
         </mesh>
-        <Box position={[0, 2, 2.05]} size={[2.6, 2.2, 0.1]} material={scorched} />
+        <Box position={[0, 2, 2.05]} size={[2.6, 2.2, 0.1]} material={scorched()} />
         <Fire position={[0, 1, 2]} size={2.6} count={5} spread={2} kind="warm" light fromFlag="l2-beacon-furnace" />
         <Fire position={[0, 11, 0]} size={3} count={3} spread={1.6} kind="warm" fromFlag="l2-beacon-furnace" />
       </group>
@@ -367,7 +369,7 @@ export function LakeScene() {
         </group>
         <Box position={[12, 0.3, -46]} size={[7, 0.3, 2.4]} material={MAT.lightOak} />
         {/* Lighthouse island */}
-        <mesh position={[0, -0.5, -128]} material={scorched}>
+        <mesh position={[0, -0.5, -128]} material={scorched()}>
           <cylinderGeometry args={[12, 16, 2, 32]} />
         </mesh>
         <group position={[0, 0, -128]}>
@@ -419,7 +421,7 @@ export function RampartScene() {
   const warden = sub(RAMPART_WARDEN, RAMPART_ORIGIN);
   return (
     <group position={RAMPART_ORIGIN}>
-      <Slab x={[-20, 20]} y={[-1, 0]} z={[-2.6, 6]} material={MAT.paving} />
+      <Slab x={[-20, 20]} y={[-1, 0]} z={[-2.6, 6]} material={stoneFloor()} />
       {/* Parapet with crenellations along the cliff edge */}
       <Slab x={[-20, 20]} y={[0, 1]} z={[-3.2, -2.6]} material={MAT.academyStone} />
       {Array.from({ length: 20 }, (_, i) => -19 + i * 2).map((x) => (
@@ -435,7 +437,7 @@ export function RampartScene() {
         </group>
       ))}
       {/* The cliff, the ladders of the Hush, and the lake far below */}
-      <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={scorched} />
+      <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={scorched()} />
       {LADDERS.map((l, i) => {
         const p = sub(l, RAMPART_ORIGIN);
         return (
