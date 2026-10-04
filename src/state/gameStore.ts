@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { GameRun, type RunSettings } from '../game/GameRun';
 import { browserStorage, readAutosave, type KeyValueStorage, type Level1Autosave } from '../game/saveData';
 import type { Difficulty } from '../game/types';
-import { LEVEL1_ROUTE, beatIndexOf } from '../level/level1Route';
+import { LEVEL1_ROUTE, resolveBeatId } from '../level/level1Route';
 import { initialRunUi, useRunStore } from './runStore';
 import { TRAVEL_SPEED_MULTIPLIER } from './settings';
 import { getSettings } from './settingsStore';
@@ -30,7 +30,7 @@ export function getRun(): GameRun | null {
 }
 
 export function knownBeat(id: string): boolean {
-  return beatIndexOf(id) >= 0;
+  return resolveBeatId(id) !== null;
 }
 
 export function readResumableSave(): Level1Autosave | null {

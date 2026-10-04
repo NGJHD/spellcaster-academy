@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLine } from '../content/dialogue';
 import { ALL_STAR_PAGES } from '../game/types';
-import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from './level1Route';
+import { BEAT_ALIASES, LEVEL1_ENCOUNTERS, LEVEL1_ROUTE, beatIndexOf, resolveBeatId } from './level1Route';
 import { validateRoute } from './rail/validateRoute';
 
 describe('Level 1 content', () => {
@@ -58,5 +58,16 @@ describe('Level 1 content', () => {
 
   it('includes all ten areas plus the celebration', () => {
     expect(new Set(LEVEL1_ROUTE.beats.map((b) => b.areaId)).size).toBe(11);
+  });
+});
+
+describe('saves from before the excitement rewrite', () => {
+  it('every removed beat resumes at a beat that exists', () => {
+    for (const [old, now] of Object.entries(BEAT_ALIASES)) {
+      expect(beatIndexOf(old), `${old} should be gone`).toBe(-1);
+      expect(resolveBeatId(old), `${old} → ${now}`).toBe(now);
+    }
+    expect(resolveBeatId('courtyard-c2')).toBe('courtyard-c2');
+    expect(resolveBeatId('no-such-beat')).toBeNull();
   });
 });

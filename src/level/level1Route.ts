@@ -47,6 +47,51 @@ export function beatIndexOf(beatId: string): number {
   return BEAT_INDEX.get(beatId) ?? -1;
 }
 
+/**
+ * Beats removed by the LD-0 excitement rewrite, mapped to the beat that now plays that moment, so a
+ * save made before the rewrite still resumes sensibly (LEVEL1_DESIGN LD-0 implementation notes).
+ */
+export const BEAT_ALIASES: Readonly<Record<string, string>> = {
+  'arrival-gate-intro': 'arrival-crystals',
+  'arrival-fracture-talk': 'arrival-checkpoint',
+  'courtyard-c1-talk': 'courtyard-c1',
+  'courtyard-c2-talk': 'courtyard-c2',
+  'east-hall-walk': 'east-hall-door',
+  'east-hall-mira': 'east-hall-door',
+  'east-hall-chest-reveal': 'east-hall-chest',
+  'east-hall-chest-return': 'east-hall-stampede-2',
+  'east-hall-mira-2': 'east-hall-slam',
+  'east-hall-to-library': 'library-doors',
+  'library-wisps-talk': 'library-l2',
+  'library-clue': 'library-to-grimoire',
+  'library-grimoire-done': 'library-to-anchor',
+  'portraits-whispers': 'portraits-ambush',
+  'greenhouse-vine-talk': 'greenhouse-vine',
+  'greenhouse-pods-talk': 'greenhouse-h1',
+  'stairwell-to-l1': 'stairwell-slide-1',
+  'stair-1': 'stairwell-slide-1',
+  'stairwell-to-l2': 'stairwell-slide-2',
+  'stair-2': 'stairwell-slide-2',
+  'stairwell-to-l3': 'stairwell-slide-3',
+  'stair-3': 'stairwell-slide-3',
+  'stairwell-done': 'stairwell-checkpoint',
+  'gallery-mira': 'gallery-to-zone1',
+  'gallery-done-hold': 'gallery-checkpoint',
+  'gallery-done': 'gallery-checkpoint',
+  'tower-climb-1': 'tower-lift-1',
+  'tower-floor-2': 'tower-t2',
+  'tower-climb-2': 'tower-lift-2',
+  'tower-floor-3': 'tower-t3',
+  'observatory-repair-talk': 'warden-w3',
+};
+
+/** The current beat for a saved beat id (following aliases for removed beats), or null if unknown. */
+export function resolveBeatId(beatId: string): string | null {
+  if (BEAT_INDEX.has(beatId)) return beatId;
+  const alias = BEAT_ALIASES[beatId];
+  return alias !== undefined && BEAT_INDEX.has(alias) ? alias : null;
+}
+
 /** First beat of each area (autosave on area entry; resume summaries). */
 export const AREA_FIRST_BEAT: ReadonlyMap<AreaId, string> = (() => {
   const map = new Map<AreaId, string>();

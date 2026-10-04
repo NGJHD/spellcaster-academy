@@ -10,7 +10,7 @@ import { strings } from '../content/strings';
 import { FROST_SEC, isShielded, setPhase, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
-import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from '../level/level1Route';
+import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE, resolveBeatId } from '../level/level1Route';
 import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
 import { patchRunUi, useRunStore, type LabelInfo } from '../state/runStore';
@@ -296,11 +296,14 @@ export class GameRun {
     });
 
     if (resume) {
-      // LD-5: resume at the last committed beat after a short, safe establishing moment.
-      this.pendingStartBeat = resume.resumeBeatId;
-      this.pendingStartWave = resume.resumeWaveIndex;
+      // LD-5: resume at the last committed beat after a short, safe establishing moment. A beat removed
+      // by a later version resumes at the beat that replaced it, from its first wave.
+      const beatId = resolveBeatId(resume.resumeBeatId) ?? firstBeat;
+      this.pendingStartBeat = beatId;
+      this.pendingStartWave = beatId === resume.resumeBeatId ? resume.resumeWaveIndex : 0;
+      this.progress.resumeBeatId = beatId;
       this.resumeIntro = RESUME_INTRO_SEC;
-      this.director.previewPose(resume.resumeBeatId, this.director.pose);
+      this.director.previewPose(beatId, this.director.pose);
       patchRunUi({ resumeIntro: true, areaId: this.areaId, areaCardKey: nextKey() });
     } else {
       this.director.start(this.settings().rail, options.startBeatId);
