@@ -365,7 +365,7 @@ button {
 }
 
 .word-label--phrase {
-  --fly-scale: 1.8;
+  --fly-scale: 1.15;
 }
 
 /*
@@ -438,6 +438,13 @@ button {
 
 .word-label--phrase .word-label__inner {
   font-size: calc(1.75rem * var(--font-scale));
+  /* Long sentences (the six-word finale) wrap rather than run off screen. */
+  max-width: min(70vw, 900px);
+}
+
+.word-label--phrase .word-label__text {
+  white-space: normal;
+  text-align: center;
 }
 
 .word-label--danger .word-label__inner {
@@ -949,6 +956,17 @@ button {
 
 .subtitle__speaker--oarsby {
   color: #ffd8a8;
+}
+
+/* Counter-words (Ward Shield): a small pale-blue tag. */
+.word-label--counter .word-label__inner {
+  background: rgba(20, 52, 88, 0.92);
+  border-color: #9fd8ff;
+}
+
+/* Erased letters (Level 3): faded but still typed. */
+.word-label__erased {
+  opacity: 0.32;
 }
 
 .subtitle__speaker--unwriter {

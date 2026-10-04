@@ -44,6 +44,22 @@ export const CHAIN_STREAK = 5;
 export const CHAIN_TARGETS = 2;
 /** Starfall (LEVEL2_DESIGN L2-4): an eight-word perfect streak. */
 export const STARFALL_STREAK = 8;
+
+/**
+ * Erased letters by difficulty (LEVEL3_DESIGN L3-4): Gentle fades one letter lightly, Standard up to
+ * two, Challenge also shows one as a blank slot in 6+ letter words. Never the first letter.
+ */
+export function erasedLetters(word: string, difficulty: Difficulty): { erased: number[]; erasedBlank?: number } {
+  if (word.length < 3) return { erased: [] };
+  let h = 0;
+  for (const ch of word) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const first = 1 + (h % (word.length - 1));
+  const second = 1 + ((h >>> 5) % (word.length - 1));
+  if (difficulty === 'gentle') return { erased: [first] };
+  const erased = second !== first ? [first, second] : [first];
+  if (difficulty === 'challenge' && word.length >= 6) return { erased, erasedBlank: first };
+  return { erased };
+}
 const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
@@ -404,6 +420,7 @@ export class GameRun {
     if (this.bonus) list.push(this.bonus);
     if (this.chase) list.push(this.chase);
     if (this.gem) list.push(this.gem);
+    if (this.song) list.push(this.song);
     return list;
   }
 
@@ -518,6 +535,7 @@ export class GameRun {
       if (events.some((e) => e.type === 'complete') && this.chase === chase) this.chase = null;
     }
     if (this.updateGems(simDt, timeScale, locked)) changed = true;
+    if (this.updateSong(simDt, timeScale, locked)) changed = true;
     this.applyFollow(dt);
     this.updateSpeedRound(dt);
     if (changed) this.refreshTargets();
@@ -980,6 +998,13 @@ export class GameRun {
 
     const result = runner.completeWord(targetId, mistakes);
 
+    if (perfect && this.progress.unlockedSpells.includes('bright-quill') && runner !== this.gem) {
+      // Bright Quill: a splash of colour where the perfect word lands, and a little extra score.
+      const colours = ['#ff6a5a', '#ffd24a', '#5ae08a', '#4ab8ff', '#c78aff'];
+      this.emitFx({ kind: 'burst', scale: 1.4, color: colours[m.completedWords % colours.length] }, target.position);
+      m.score += 15;
+    }
+
     if (frost) {
       audio.playSfx('frost');
       for (const other of this.allTargets()) if (other.id !== targetId && !other.defeated) other.frostTimer = FROST_SEC;
@@ -1399,6 +1424,11 @@ export class GameRun {
     if (reward.score) m.score += reward.score;
     if (reward.starPage) this.collectStarPage(reward.starPage);
     if (reward.cosmetic) this.unlockCosmetic(reward.cosmetic);
+    if (reward.heal) {
+      this.setFocus(this.focus + reward.heal);
+      this.songShield = true;
+      audio.playSfx('star-page', { rate: 0.8 });
+    }
   }
 
   private collectStarPage(page: StarPageId): void {
@@ -1441,6 +1471,53 @@ export class GameRun {
 
   // ---------- Focus ----------
 
+  /** Mira's Shield Song (Level 3): one hit blocked after the song word. */
+  private songShield = false;
+  private songCooldown = 0;
+  private song: EncounterRunner | null = null;
+
+  /** Offers the Shield Song when HP runs low in Level 3 (L3-4): optional, at most every 20 s. */
+  private updateSong(dt: number, timeScale: number, locked: string | null): boolean {
+    this.songCooldown = Math.max(0, this.songCooldown - dt);
+    let changed = false;
+    const boss = this.encounter?.def.bossPhase !== undefined;
+    const threshold = boss ? 50 : 40;
+    if (
+      !this.song &&
+      this.level.id === 'level-3' &&
+      this.songCooldown <= 0 &&
+      this.focus < threshold &&
+      !DIFFICULTY[this.difficulty].unlimitedHp &&
+      this.encounter?.state === 'active' &&
+      this.encounter.def.kind === 'combat'
+    ) {
+      const spawn: TargetSpawn = {
+        id: `song-${Math.round(this.now())}`,
+        kind: 'gem',
+        position: [0, 0, 0],
+        follow: { ahead: 3.6, side: -1.4, up: -0.35 },
+        words: [{ min: 4, max: 5 }],
+        optional: true,
+        leaveAfterSec: 10,
+        labelHeight: 0.28,
+        variant: 'song',
+        reward: { heal: 25 },
+      };
+      this.song = new EncounterRunner({ id: 'song', areaId: this.areaId, kind: 'interaction', waves: [{ id: 'song', targets: [spawn] }] }, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
+      this.songCooldown = 20;
+      this.queueBark(getLine('l3-shield-song'));
+      changed = true;
+    }
+    const song = this.song;
+    if (!song) return changed;
+    const events = song.update(dt, timeScale, locked);
+    if (events.some((e) => e.type === 'complete')) {
+      this.song = null;
+      return true;
+    }
+    return changed || events.length > 0;
+  }
+
   private setFocus(value: number): void {
     this.focus = Math.max(0, Math.min(MAX_FOCUS, value));
     patchRunUi({ focus: this.focus });
@@ -1451,6 +1528,12 @@ export class GameRun {
     if (DIFFICULTY[this.difficulty].unlimitedHp) {
       // Gentle: the hit still reads (a soft glow), but nothing is lost.
       patchRunUi({ damageKey: nextKey() });
+      return;
+    }
+    if (this.songShield) {
+      // Mira's Shield Song blocks one hit.
+      this.songShield = false;
+      audio.playSfx('shield-break');
       return;
     }
     const before = this.focus;
@@ -1818,6 +1901,8 @@ export class GameRun {
         phrase: t.spawn.phrase ? t.spawn.words.map((w, i) => (typeof w === 'string' ? w : (t.words[i] ?? '…'))) : null,
         danger: t.attackPhase === 'windup',
         tabHint: view.lockedId !== null && !locked,
+        counter: t.spawn.counter === true,
+        ...(t.spawn.erased ? erasedLetters(word, this.difficulty) : {}),
       });
     }
     patchRunUi({ labels });

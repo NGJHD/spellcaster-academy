@@ -93,11 +93,11 @@ export function levelOfArea(area: AreaId): LevelId {
 /** Checkpoint ids are defined per level (CLAUDE.md §12). */
 export type CheckpointId = string;
 
-export type SpellId = 'spark-bolt' | 'frost-thread' | 'chain-spark' | 'starfall';
+export type SpellId = 'spark-bolt' | 'frost-thread' | 'chain-spark' | 'starfall' | 'bright-quill';
 
 export type AnchorId = 'courtyard' | 'library' | 'greenhouse';
 
-export type CosmeticId = 'trail-starlight' | 'trail-verdant' | 'trail-inkwell';
+export type CosmeticId = 'trail-starlight' | 'trail-verdant' | 'trail-inkwell' | 'trail-bright-quill' | 'trail-prism';
 
 /** Collectible ids (star pages in Level 1; each level lists its own in the level registry). */
 export type StarPageId = string;

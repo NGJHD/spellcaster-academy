@@ -28,6 +28,7 @@ const EnemyWordLabel = memo(function EnemyWordLabel({ label, mistakeKey }: { lab
     label.shielded && 'word-label--shielded',
     label.danger && 'word-label--danger',
     label.phrase && 'word-label--phrase',
+    label.counter && 'word-label--counter',
   ]
     .filter(Boolean)
     .join(' ');
@@ -45,7 +46,17 @@ const EnemyWordLabel = memo(function EnemyWordLabel({ label, mistakeKey }: { lab
           <span className="word-label__done">{word.slice(0, done)}</span>
           {label.wrongText && <span className="word-label__wrong">{label.wrongText}</span>}
           {!label.wrongText && done < word.length && <span className="word-label__current">{word[done]}</span>}
-          <span className="word-label__rest">{word.slice(label.wrongText ? done : done + 1)}</span>
+          {label.erased && label.erased.length > 0 ? (
+            <span className="word-label__rest">
+              {[...word.slice(label.wrongText ? done : done + 1)].map((ch, k) => {
+                const i = (label.wrongText ? done : done + 1) + k;
+                if (i === label.erasedBlank) return <span key={i} className="word-label__erased">_</span>;
+                return label.erased?.includes(i) ? <span key={i} className="word-label__erased">{ch}</span> : ch;
+              })}
+            </span>
+          ) : (
+            <span className="word-label__rest">{word.slice(label.wrongText ? done : done + 1)}</span>
+          )}
           {label.phrase && <span className="word-label__later">{label.phrase.slice(label.stage + 1).map((w) => ` ${w}`).join('')}</span>}
         </span>
         {label.stages > 1 && !label.phrase && (

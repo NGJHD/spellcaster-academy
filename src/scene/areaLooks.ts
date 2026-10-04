@@ -14,6 +14,8 @@ export interface AreaLook {
   readonly envIntensity: number;
   /** CC0 HDRI used for image-based lighting (public/assets/hdri/<id>_1k.hdr). */
   readonly hdri: string;
+  /** Level 3: the Cinder Citadel burning on the horizon. */
+  readonly citadelOnHorizon?: boolean;
 }
 
 const DAY = 'kloofendal_48d_partly_cloudy_puresky';
@@ -141,8 +143,9 @@ const BLANK: AreaLook = {
   exposure: 1.05,
   envIntensity: 0.5,
   hdri: 'belfast_sunset_puresky',
+  citadelOnHorizon: true,
 };
-const CITADEL: AreaLook = { ...BLANK, background: '#2a0806', fog: ['#3a0e08', 20, 160], hemi: ['#ff7a4a', '#1a0a08', 0.5] };
+const CITADEL: AreaLook = { ...BLANK, background: '#2a0806', fog: ['#3a0e08', 20, 160], hemi: ['#ff7a4a', '#1a0a08', 0.5], citadelOnHorizon: false };
 
 export const LEVEL_LOOKS: Record<Exclude<AreaId, keyof typeof AREA_LOOKS_L1>, AreaLook> = {
   'l2-festival-lawn': SIEGE,

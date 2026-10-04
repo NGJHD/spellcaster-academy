@@ -22,7 +22,7 @@ density = float(args[2]) if len(args) > 2 else 560.0
 # The octree remesh keeps thin parts (petals, plates, drips) that a VDB voxel shell drops or detaches;
 # the voxel path stays available for subjects that prefer it.
 # Furry and soft-bodied creatures: the octree keeps their noisy fur shards, the voxel shell smooths them.
-VOXEL = {"sprite_a", "mossling", "ink_wisp"}
+VOXEL = {"sprite_a", "mossling", "ink_wisp", "blotling", "smudgehound", "redactor", "unwriter"}
 mode = "voxel" if name in VOXEL else "octree"
 src = os.path.join(ROOT, "assets-src", "ai-meshes", f"{name}_white.glb")
 dst = os.path.join(ROOT, "assets-src", "ai-meshes", f"{name}_dec.glb")

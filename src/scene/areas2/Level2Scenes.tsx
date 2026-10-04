@@ -319,7 +319,7 @@ export function WorkshopScene() {
 // ---------- Lantern Lake ----------
 
 /** The boat (and the lighthouse lift) carried under the camera during their rail beats. */
-function Carried({ beats, children, drop }: { beats: readonly string[]; children: React.ReactNode; drop: number }) {
+export function Carried({ beats, children, drop }: { beats: readonly string[]; children: React.ReactNode; drop: number }) {
   const group = useRef<Group>(null);
   useBeatIndex();
   useFrame((state) => {

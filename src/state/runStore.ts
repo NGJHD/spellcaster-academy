@@ -28,6 +28,11 @@ export interface LabelInfo {
   readonly danger: boolean;
   /** Another target is locked, so this one can be reached with Tab. */
   readonly tabHint: boolean;
+  /** Counter-word (Ward Shield): drawn on a pale-blue tag. */
+  readonly counter?: boolean;
+  /** Letter indices shown faded (erased letters); `blank` shows one as an empty slot. */
+  readonly erased?: readonly number[];
+  readonly erasedBlank?: number;
 }
 
 export interface SubtitleInfo {

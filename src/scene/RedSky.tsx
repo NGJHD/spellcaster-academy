@@ -101,6 +101,35 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
   );
 }
 
+/** The Cinder Citadel on the Blank's horizon: a black fortress of spires wrapped in fire (L3-6). */
+export function CitadelOnHorizon() {
+  const spires = useMemo(() => [0, 1, 2, 3, 4, 5, 6].map((i) => ({ x: (i - 3) * 18 + (rand(i, 3) - 0.5) * 8, h: 90 + rand(i, 4) * 120, w: 10 + rand(i, 5) * 10 })), []);
+  return (
+    <group position={[120, -20, -560]}>
+      {spires.map((s, i) => (
+        <group key={i} position={[s.x, 0, (rand(i, 6) - 0.5) * 30]}>
+          <mesh position={[0, s.h / 2, 0]}>
+            <boxGeometry args={[s.w, s.h, s.w]} />
+            <meshBasicMaterial color="#0a0406" fog={false} />
+          </mesh>
+          <mesh position={[0, s.h + s.w, 0]}>
+            <coneGeometry args={[s.w * 0.8, s.w * 2.4, 4]} />
+            <meshBasicMaterial color="#0a0406" fog={false} />
+          </mesh>
+          <mesh position={[0, s.h * 0.6, s.w / 2 + 0.5]}>
+            <planeGeometry args={[s.w * 0.4, s.h * 0.5]} />
+            <meshBasicMaterial color="#ff4a12" transparent opacity={0.5} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, 120, 10]}>
+        <sphereGeometry args={[110, 24, 16]} />
+        <meshBasicMaterial color="#ff3a10" transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
+      </mesh>
+    </group>
+  );
+}
+
 /**
  * The Rift (LEVEL2_DESIGN L2-6): a ragged tear of red fire across the sky over Lantern Lake. Before
  * the opening beat it is the thin seam left by Level 1; once the sky splits it blazes wide.

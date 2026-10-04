@@ -224,6 +224,8 @@ export interface Reward {
   readonly starPage?: StarPageId;
   readonly cosmetic?: CosmeticId;
   readonly score?: number;
+  /** HP restored (Mira's Shield Song, Level 3); also blocks the next hit. */
+  readonly heal?: number;
 }
 
 export interface TargetSpawn {
@@ -269,6 +271,11 @@ export interface TargetSpawn {
    * mid-word; typing it raises a Ward Shield and deflects the attack.
    */
   readonly counter?: boolean;
+  /**
+   * Erased letters (LEVEL3_DESIGN L3-4): some letters are faded (by difficulty); the player still types
+   * the whole word. Never the first letter.
+   */
+  readonly erased?: boolean;
   /** Line spoken when this target is beaten. */
   readonly defeatBark?: LineId;
   /** Story flag set when this target is beaten (scene props react, e.g. a guardian stepping aside). */

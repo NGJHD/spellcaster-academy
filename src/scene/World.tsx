@@ -12,6 +12,7 @@ import { PortraitsScene } from './areas/PortraitsScene';
 import { StairwellScene } from './areas/StairwellScene';
 import { TowerScene } from './areas/TowerScene';
 import { Atmosphere } from './Atmosphere';
+import { CinderwoodScene, CitadelScene, ForgeScene, Gallery3Scene, InkfallScene, MarginScene, SeaScene, ShoreScene, ThroneScene } from './areas3/Level3Scenes';
 import { AftermathScene, BridgeScene, DormitoryFires, HallScene, LakeScene, LawnScene, LibraryFires, RampartScene, RoofScene, WorkshopScene } from './areas2/Level2Scenes';
 
 type SceneKey =
@@ -33,7 +34,18 @@ type SceneKey =
   | 'l2-library'
   | 'l2-ramparts'
   | 'l2-roof'
-  | 'l2-aftermath';
+  | 'l2-aftermath'
+  // Level 3
+  | 'l3-shore'
+  | 'l3-wood'
+  | 'l3-falls'
+  | 'l3-margin'
+  | 'l3-gallery'
+  | 'l3-sea'
+  | 'l3-forge'
+  | 'l3-citadel'
+  | 'l3-throne'
+  | 'l3-home';
 
 const LEVEL2_SCENES: Partial<Record<AreaId, SceneKey>> = {
   'l2-festival-lawn': 'l2-lawn',
@@ -46,6 +58,16 @@ const LEVEL2_SCENES: Partial<Record<AreaId, SceneKey>> = {
   'l2-ramparts': 'l2-ramparts',
   'l2-tower-roof': 'l2-roof',
   'l2-aftermath': 'l2-aftermath',
+  'l3-rift-shore': 'l3-shore',
+  'l3-cinderwood': 'l3-wood',
+  'l3-inkfall': 'l3-falls',
+  'l3-margin-library': 'l3-margin',
+  'l3-unfinished-gallery': 'l3-gallery',
+  'l3-paper-sea': 'l3-sea',
+  'l3-forge': 'l3-forge',
+  'l3-citadel': 'l3-citadel',
+  'l3-throne': 'l3-throne',
+  'l3-homecoming': 'l3-home',
 };
 
 function sceneFor(area: AreaId): SceneKey {
@@ -123,6 +145,17 @@ export function World() {
     'l2-ramparts': <RampartScene />,
     'l2-roof': <RoofScene />,
     'l2-aftermath': <AftermathScene />,
+    'l3-shore': <ShoreScene />,
+    'l3-wood': <CinderwoodScene />,
+    'l3-falls': <InkfallScene />,
+    'l3-margin': <MarginScene />,
+    'l3-gallery': <Gallery3Scene />,
+    'l3-sea': <SeaScene />,
+    'l3-forge': <ForgeScene />,
+    'l3-citadel': <CitadelScene />,
+    'l3-throne': <ThroneScene />,
+    // The homecoming ends in the Level 1 courtyard at dawn, celebrating.
+    'l3-home': <ExteriorScene celebration />,
   };
 
   return (
