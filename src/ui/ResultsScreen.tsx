@@ -2,7 +2,8 @@ import { strings } from '../content/strings';
 import { LEVEL_ORDER } from '../game/types';
 import { nextLevel } from '../level/levels';
 import type { ResultsData } from '../game/scoring';
-import { useGameStore } from '../state/gameStore';
+import { readProfile } from '../game/saveData';
+import { gameStorage, useGameStore } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 
 const fmtSeconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -42,6 +43,30 @@ function rows(r: ResultsData): { group: keyof typeof strings.results.groups; lab
   ];
 }
 
+/** After Level 3 (L3-17): each chapter's best, with positive framing only. */
+function CampaignSummary() {
+  const profile = readProfile(gameStorage());
+  const t = strings.results;
+  const rows = LEVEL_ORDER.map((id) => ({ id, best: profile.bestByLevel[id] })).filter((r) => r.best);
+  if (rows.length === 0) return null;
+  const first = rows[0]?.best?.bestAccuracy ?? 0;
+  const last = rows.at(-1)?.best?.bestAccuracy ?? 0;
+  return (
+    <section className="results__campaign" aria-label={t.campaign}>
+      <h2 className="results__campaign-heading">{t.campaign}</h2>
+      {rows.map(({ id, best }) => (
+        <div key={id} className="results__campaign-row">
+          <span>{strings.levels[id].number}</span>
+          <span>{Math.round(best?.bestAverageWpm ?? 0)} WPM</span>
+          <span>{Math.round(best?.bestAccuracy ?? 0)}%</span>
+          <span>{best?.fastestLevelMs ? fmtClock(best.fastestLevelMs) : '—'}</span>
+        </div>
+      ))}
+      {last > first && <p className="results__subheading">{t.campaignRise(Math.round(first), Math.round(last))}</p>}
+    </section>
+  );
+}
+
 /** LD-19 completion screen: encouraging, no grades, no comparisons. */
 export function ResultsScreen() {
   const results = useRunStore((s) => s.results);
@@ -75,6 +100,7 @@ export function ResultsScreen() {
             </span>
           </div>
         )}
+        {results.levelId === 'level-3' && <CampaignSummary />}
         <ul className="results__messages">
           {results.messages.map((m) => (
             <li key={m}>{m}</li>

@@ -254,6 +254,8 @@ export const strings = {
     playAgainFor: (n: number) => `PLAY LEVEL ${n} AGAIN`,
     nextLevel: (n: number) => `CONTINUE TO LEVEL ${n}`,
     campaignDone: 'You saved Asterfall. THE END — thank you for playing!',
+    campaign: 'Your whole adventure',
+    campaignRise: (a: number, b: number) => `Your accuracy rose from ${a}% to ${b}% across the adventure!`,
     rank: 'Title earned',
     playAgain: 'PLAY LEVEL 1 AGAIN',
     returnToTitle: 'RETURN TO TITLE',
