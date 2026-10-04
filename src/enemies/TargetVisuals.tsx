@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
-import { CatmullRomCurve3, Quaternion, Vector3, type Group, type MeshStandardMaterial } from 'three';
+import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, Vector2, Vector3, type Group } from 'three';
 import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
 
@@ -552,6 +552,42 @@ export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boo
       <mesh>
         <sphereGeometry args={[0.22, 16, 12]} />
         <meshBasicMaterial color={cosmetic ? '#8fffd8' : '#ffe9a0'} transparent opacity={0.1} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Cut-gem silhouette (crown and pavilion), revolved with eight facets for a crisp sparkle. */
+const GEM_PROFILE = [new Vector2(0, -0.19), new Vector2(0.15, -0.02), new Vector2(0.16, 0.02), new Vector2(0.1, 0.08), new Vector2(0, 0.08)];
+const GEM_COLOURS = ['#ffd45a', '#5ec8ff', '#ff7ab8', '#6dffa8'];
+
+/** Spark gem (CLAUDE.md §1B): spins, glints, and bursts outward when caught. */
+export function GemModel({ pose, seed }: { pose: PoseRef; seed: string }) {
+  const body = useRef<Group>(null);
+  const colour = GEM_COLOURS[[...seed].reduce((n, c) => n + c.charCodeAt(0), 0) % GEM_COLOURS.length] ?? '#ffd45a';
+  const geometry = useMemo(() => new LatheGeometry(GEM_PROFILE, 8), []);
+  const material = useMemo(
+    () => new MeshStandardMaterial({ color: colour, emissive: colour, emissiveIntensity: 1.6, roughness: 0.15, metalness: 0.3, flatShading: true }),
+    [colour],
+  );
+  useFrame(() => {
+    const p = pose.current;
+    const b = body.current;
+    if (!b) return;
+    b.rotation.y = p.time * 2.4;
+    b.rotation.z = Math.sin(p.time * 1.7) * 0.25;
+    const burst = p.defeated ? Math.min(1, p.dispel * 2) : 0;
+    b.scale.setScalar(1 + burst * 1.8);
+    material.opacity = 1 - burst;
+    material.transparent = burst > 0;
+    material.emissiveIntensity = 1.6 + Math.sin(p.time * 6) * 0.4 + burst * 4;
+  });
+  return (
+    <group ref={body}>
+      <mesh geometry={geometry} material={material} />
+      <mesh>
+        <sphereGeometry args={[0.32, 16, 12]} />
+        <meshBasicMaterial color={colour} transparent opacity={0.16} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   );

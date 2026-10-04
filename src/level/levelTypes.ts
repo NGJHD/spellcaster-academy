@@ -37,6 +37,8 @@ export interface BeatExtras {
   readonly bonus?: TargetSpawn;
   /** Refill Focus when the beat starts (fountains, safe rooms). */
   readonly restoreFocus?: boolean;
+  /** Beats the 7-second attention rule does not cover (CLAUDE.md §1B): boss intros and endings. */
+  readonly attention?: 'boss-intro' | 'ending';
 }
 
 export type LevelCameraBeat = CameraBeat & BeatExtras;
@@ -102,7 +104,9 @@ export type TargetKind =
   | 'clasp'
   | 'flying-page'
   | 'plate'
-  | 'rune';
+  | 'rune'
+  /** Spark gem: a bonus word that flies alongside the camera (CLAUDE.md §1B). */
+  | 'gem';
 
 /** A fixed word, or a request for a generated word. Lengths are Standard and shift with difficulty. */
 export type WordSpec = string | { readonly min: number; readonly max: number; readonly category?: WordCategory };

@@ -39,7 +39,7 @@ const EnemyWordLabel = memo(function EnemyWordLabel({ label, mistakeKey }: { lab
       {!label.locked && label.danger && <div className="word-label__tag word-label__tag--danger">{strings.hud.danger}</div>}
       <div className="word-label__inner">
         {label.shielded && <span className="word-label__badge" aria-label={strings.hud.shield}>🛡</span>}
-        {label.optional && <span className="word-label__badge word-label__badge--bonus">★</span>}
+        {label.optional && <span className="word-label__badge word-label__badge--bonus">{label.kind === 'gem' ? '◆' : '★'}</span>}
         <span className="word-label__text" key={mistakeKey} data-mistake={label.wrongText ? 'true' : undefined}>
           {label.phrase && <span className="word-label__done">{label.phrase.slice(0, label.stage).map((w) => `${w} `).join('')}</span>}
           <span className="word-label__done">{word.slice(0, done)}</span>

@@ -18,6 +18,7 @@ import {
   RuneModel,
   SpriteModel,
   StarPageModel,
+  GemModel,
   WispModel,
   WispShield,
   type TargetPose,
@@ -61,6 +62,8 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
       return <Guardian pose={pose} />;
     case 'star-page':
       return <StarPageModel pose={pose} cosmetic={spawn.variant === 'cosmetic'} />;
+    case 'gem':
+      return <GemModel pose={pose} seed={spawn.id} />;
     case 'clasp':
       return <ClaspModel pose={pose} />;
     case 'flying-page':

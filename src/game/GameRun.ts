@@ -105,6 +105,13 @@ export function readSeconds(text: string): number {
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
 
+/** A spark gem swoops in after this long with nothing to type (CLAUDE.md §1B 7-second rule, at Fast). */
+const GEM_AFTER_IDLE_SEC = 1.8;
+/** An ignored gem flies off after this long. */
+const GEM_LIFETIME_SEC = 5;
+/** Score for catching a gem (before the combo multiplier). */
+const GEM_SCORE = 40;
+
 /** A bonus word stays typeable at least this long before the camera may move on. */
 const BONUS_MIN_VISIBLE_SEC = 3;
 
@@ -273,9 +280,11 @@ export class GameRun {
   allTargets(): IterableIterator<TargetRuntime> {
     const a = this.encounter?.targets.values() ?? [][Symbol.iterator]();
     const b = this.bonus?.targets.values() ?? [][Symbol.iterator]();
+    const g = this.gem?.targets.values() ?? [][Symbol.iterator]();
     function* both() {
       yield* a;
       yield* b;
+      yield* g;
     }
     return both();
   }
@@ -299,7 +308,7 @@ export class GameRun {
   }
 
   findTarget(id: string): TargetRuntime | undefined {
-    return this.encounter?.targets.get(id) ?? this.bonus?.targets.get(id);
+    return this.encounter?.targets.get(id) ?? this.bonus?.targets.get(id) ?? this.gem?.targets.get(id);
   }
 
   // ---------- Frame update ----------
@@ -355,7 +364,82 @@ export class GameRun {
       if (events.length > 0) changed = true;
       this.handleBonusEvents(events);
     }
+    if (this.updateGems(dt, timeScale, locked)) changed = true;
     if (changed) this.refreshTargets();
+  }
+
+  // ---------- Spark gems (CLAUDE.md §1B: never more than ~7 s at Fast with nothing to type) ----------
+
+  gem: EncounterRunner | null = null;
+  private idleSec = 0;
+  private gemCount = 0;
+  private readonly gemForward = new Vector3();
+  private readonly gemRight = new Vector3();
+  private readonly gemGoal = new Vector3();
+
+  /** Spawns a gem after a short lull and keeps live gems flying beside the camera. Returns true if targets changed. */
+  private updateGems(dt: number, timeScale: number, locked: string | null): boolean {
+    let changed = false;
+    const prompt = locked !== null || this.candidateCount() > 0 || this.choice !== null;
+    this.idleSec = prompt ? 0 : this.idleSec + dt;
+    if (!this.gem && this.idleSec >= GEM_AFTER_IDLE_SEC && this.gemsAllowed()) {
+      this.spawnGem();
+      changed = true;
+    }
+    const gem = this.gem;
+    if (!gem) return changed;
+    const pose = this.director.pose;
+    const fwd = this.gemForward.copy(pose.lookAt).sub(pose.position).normalize();
+    const right = this.gemRight.set(-fwd.z, 0, fwd.x).normalize();
+    const k = 1 - Math.exp(-5 * dt);
+    for (const t of gem.targets.values()) {
+      const side = Number(t.spawn.variant ?? '1');
+      this.gemGoal
+        .copy(pose.position)
+        .addScaledVector(fwd, 4.2)
+        .addScaledVector(right, side * 1.25);
+      this.gemGoal.y += 0.15 + Math.sin(t.clock * 2.2) * 0.08;
+      t.position.lerp(this.gemGoal, k);
+    }
+    const events = gem.update(dt, timeScale, locked);
+    for (const e of events) {
+      if (e.type === 'complete') {
+        this.gem = null;
+        this.idleSec = 0;
+        return true;
+      }
+    }
+    return changed || events.length > 0;
+  }
+
+  private gemsAllowed(): boolean {
+    if (this.ended || this.focusResetTimer > 0 || this.resumeIntro > 0) return false;
+    const beat = this.director.currentBeat;
+    if (!beat || beat.kind === 'results' || beat.attention) return false;
+    if (this.encounter && this.encounter.state !== 'complete' && this.encounter.def.kind === 'combat') return false;
+    return this.director.pose.fade < 0.2;
+  }
+
+  private spawnGem(): void {
+    const n = ++this.gemCount;
+    const side = n % 2 === 0 ? 1 : -1;
+    const pose = this.director.pose;
+    const fwd = this.gemForward.copy(pose.lookAt).sub(pose.position).normalize();
+    const right = this.gemRight.set(-fwd.z, 0, fwd.x).normalize();
+    // Swoop in from well ahead and to the side, then settle beside the camera.
+    const start = pose.position.clone().addScaledVector(fwd, 12).addScaledVector(right, side * 4).add(new Vector3(0, 1.5, 0));
+    const spawn: TargetSpawn = {
+      id: `gem-${n}`,
+      kind: 'gem',
+      position: [start.x, start.y, start.z],
+      words: [{ min: 3, max: 4 }],
+      optional: true,
+      leaveAfterSec: GEM_LIFETIME_SEC,
+      labelHeight: 0.28,
+      variant: String(side),
+    };
+    const def: EncounterDef = { id: `gem:${n}`, areaId: this.areaId, kind: 'interaction', waves: [{ id: 'gem', targets: [spawn] }] };
+    this.gem = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: n });
   }
 
   setPaused(paused: boolean): void {
@@ -393,7 +477,10 @@ export class GameRun {
         // Enter/Space always skip at once; a letter is guarded briefly in case it was held over.
         this.advanceDialogue(true, intent.kind === 'letter');
       }
-      return;
+      // Letters, Backspace and Tab also reach typing: gems fly in during conversations, so there is
+      // always something to do, and a typo on one must be fixable mid-line.
+      const typingKey = intent.kind === 'letter' || intent.kind === 'backspace' || intent.kind === 'tab';
+      if (!typingKey || (this.typing.lockedId === null && this.candidateCount() === 0)) return;
     }
     if (intent.kind === 'letter') this.dismissBarks();
     // Enter or Space while a line is still being said skips to the next line (owner feedback).
@@ -428,7 +515,7 @@ export class GameRun {
   }
 
   private candidateCount(): number {
-    return (this.encounter?.candidates().length ?? 0) + (this.bonus?.candidates().length ?? 0);
+    return (this.encounter?.candidates().length ?? 0) + (this.bonus?.candidates().length ?? 0) + (this.gem?.candidates().length ?? 0);
   }
 
   private handleTypingEvents(events: readonly TypingEvent[], nowMs: number): void {
@@ -467,7 +554,7 @@ export class GameRun {
   }
 
   private onWordComplete(targetId: string, word: string, mistakes: number, nowMs: number): void {
-    const runner = this.encounter?.targets.has(targetId) ? this.encounter : this.bonus;
+    const runner = this.encounter?.targets.has(targetId) ? this.encounter : this.gem?.targets.has(targetId) ? this.gem : this.bonus;
     const target = runner?.targets.get(targetId);
     if (!runner || !target) return;
     this.metrics.recordCompletion(targetId, word, mistakes, nowMs);
@@ -505,7 +592,11 @@ export class GameRun {
       this.castChainSpark(targetId);
     }
 
-    if (result.defeated) {
+    if (result.defeated && runner === this.gem) {
+      // Spark gem caught: a bright chime and bonus score, no other rewards.
+      m.score += GEM_SCORE * this.activeMultiplier;
+      audio.playSfx('star-page', { rate: 1.25, volume: 0.7 });
+    } else if (result.defeated) {
       audio.playSfx('dispel');
       const spawn = target.spawn;
       if (spawn.optional) m.optionalTargetsCompleted++;
@@ -683,7 +774,7 @@ export class GameRun {
     if (def.bossPhase) audio.playSfx('boss-phase');
     if (isDangerous(def)) this.setBattleMusic(BATTLE_MUSIC[this.areaId] ?? 'courtyard-action');
     patchRunUi({ prompt: def.optionalPrompt ?? null });
-    this.typing.reset();
+    this.resetEncounterTyping();
   }
 
   private handleEncounterEvents(events: readonly EncounterEvent[]): void {
@@ -774,7 +865,7 @@ export class GameRun {
     const beatId = this.encounterBeatId;
     this.encounter = null;
     this.encounterBeatId = null;
-    this.typing.reset();
+    this.resetEncounterTyping();
     patchRunUi({ prompt: null, hazard: null });
     this.refreshTargets();
     // Resume after a completed encounter from the beat that follows it.
@@ -794,7 +885,7 @@ export class GameRun {
     const beatId = this.encounterBeatId;
     this.encounter = null;
     this.encounterBeatId = null;
-    this.typing.reset();
+    this.resetEncounterTyping();
     patchRunUi({ prompt: null });
     this.refreshTargets();
     audio.playSfx('ui-select');
@@ -875,6 +966,16 @@ export class GameRun {
     patchRunUi({ damageKey: nextKey() });
     this.fireBarks({ on: 'focus-below', value: this.focus });
     if (this.focus <= 0) this.beginFocusReset();
+  }
+
+  /**
+   * Clears typing between encounters, but keeps a word the player is part-way through on a gem or
+   * bonus target (they outlive encounters; dropping them turned correct letters into mistakes).
+   */
+  private resetEncounterTyping(): void {
+    const locked = this.typing.lockedId;
+    if (locked !== null && (this.gem?.targets.has(locked) || this.bonus?.targets.has(locked))) return;
+    this.typing.reset();
   }
 
   private beginFocusReset(): void {
@@ -1155,7 +1256,7 @@ export class GameRun {
   // ---------- Targets / labels ----------
 
   private refreshTargets(): void {
-    const candidates = [...(this.encounter?.candidates() ?? []), ...(this.bonus?.candidates() ?? [])];
+    const candidates = [...(this.encounter?.candidates() ?? []), ...(this.bonus?.candidates() ?? []), ...(this.gem?.candidates() ?? [])];
     const unlocks = this.typing.setCandidates(candidates);
     if (unlocks.length > 0) this.metrics.closeAttempt();
     const ids = [...this.allTargets()].map((t) => t.id);
