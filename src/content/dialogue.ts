@@ -53,14 +53,17 @@ export const LINES = {
   'page-hint': line('pip', 'A star page! Type its word to catch it — only if you want to.'),
 
   // East Hall
-  'east-1': line('mira', "You're the new apprentice, aren't you? Good timing. Terrible first day, though."),
+  'east-1': line('mira', "You're the new apprentice?! RUN — the books got loose!"),
+  'east-run-1': line('mira', 'Terrible first day, huh?!'),
+  'east-run-2': line('pip', 'Everything is going entirely according to plan!'),
+  'east-run-3': line('mira', 'Your plan started AFTER the ward broke!'),
   'east-2': line('pip', 'We restored the courtyard anchor entirely according to plan.'),
   'east-3': line('mira', 'Your plan began after the ward broke.'),
   'east-4': line('pip', 'The best plans are flexible.'),
   'east-5': line('mira', 'The library anchor is next. Watch the floating books. They hate being read backwards.'),
-  'east-chest': line('pip', "A constellation chest! Type its word if you'd like to open it."),
+  'east-chest': line('pip', 'A constellation chest! Quick — crack it open!'),
   'east-chest-done': line('pip', 'A Starlight wand trail! Very stylish.'),
-  'east-6': line('mira', 'I saw the Warden carrying broken ward pieces toward the tower. It looked more worried than angry.'),
+  'east-6': line('mira', 'I saw the Warden carry ward pieces to the tower — it looked worried, not angry!'),
   'east-7': line('pip', 'Stone faces cannot look worried.'),
   'east-8': line('mira', 'That one did.'),
 

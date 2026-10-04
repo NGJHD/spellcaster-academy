@@ -7,12 +7,13 @@ import { useMemo, useRef } from 'react';
 import { BackSide, type Group, type MeshBasicMaterial } from 'three';
 import { CRYSTAL_POSITIONS } from '../../level/areas/arrivalGate';
 import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../level/areas/courtyard';
-import { CHEST_POSITION, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
+import { CHEST_POSITION, MIRA_EAST_HALL_END, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
 import { Arch, Banner, Bookshelf, Column, Facade, GableRoof, KitModel, Planter, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
+import { BookSwarm } from '../Swarm';
 import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
 import { worldBox, worldCylinder, worldPlane } from '../surfaces';
@@ -392,7 +393,8 @@ function EastHall() {
         <Portrait key={x} position={[x, 2.2, W - 0.05]} rotationY={Math.PI} painting={painting} size={size} />
       ))}
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
-      {inHall && <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-2.2} />}
+      <EastHallMira inHall={inHall} />
+      <BookSwarm beats={['east-hall-stampede', 'east-hall-chest', 'east-hall-stampede-2']} startAt={0.3} />
       <Chest />
       <Prop id="GothicCabinet_01" position={[21, 0, -W + 0.35]} height={2.1} />
       <Prop id="vintage_grandfather_clock_01" position={[36.5, 0, -W + 0.3]} height={2.2} />
@@ -402,6 +404,18 @@ function EastHall() {
       <Prop id="potted_plant_02" position={[16.5, 0, W - 0.5]} height={1.3} />
     </group>
   );
+}
+
+const MIRA_BURST_LAST = beatIndexOf('east-hall-mira-burst');
+const MIRA_SLAM = beatIndexOf('east-hall-slam');
+
+/** Mira bursts out of the alcove, runs beside the camera (out of frame), and holds the line at the end. */
+function EastHallMira({ inHall }: { inHall: boolean }) {
+  const beat = useBeatIndex();
+  if (!inHall) return null;
+  if (beat <= MIRA_BURST_LAST) return <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-1.9} waving />;
+  if (beat >= MIRA_SLAM) return <Mira position={MIRA_EAST_HALL_END} rotationY={-1.4} />;
+  return null;
 }
 
 function Chest() {

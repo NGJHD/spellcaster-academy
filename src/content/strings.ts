@@ -147,7 +147,7 @@ export const strings = {
     warden: { name: 'THE WARD WARDEN', title: 'Guardian of Asterfall' },
   } as Record<string, { name: string; title: string } | undefined>,
   prompts: {
-    chest: 'Open the constellation chest? Type its word, or press Enter to continue.',
+    chest: 'Speed round! Open the chest — or press Enter to keep running.',
     constellations: 'Name the constellations for a bonus, or press Enter to continue.',
   } as Record<string, string>,
   hazards: {
