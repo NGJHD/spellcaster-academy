@@ -1,0 +1,2 @@
+seed: 35
+prompt: Full body of a tall imposing dark wizard villain in long robes of charred black paper with glowing ember edges, a cracked white porcelain mask with a burning red line across it, hands of dripping black ink with small flames, holding a long black quill pen burning with red fire, menacing, standing facing the camera, no skeleton, no gore, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

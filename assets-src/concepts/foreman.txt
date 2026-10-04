@@ -1,0 +1,2 @@
+seed: 33
+prompt: Full body of a hulking armoured forge-master construct of black iron, a furnace burning in its open chest, glowing red seams, carrying a huge forge hammer, massive shoulders, menacing, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

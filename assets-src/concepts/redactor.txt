@@ -1,0 +1,2 @@
+seed: 32
+prompt: Full body of a tall thin sinister figure shaped like a thick black bar of ink, a burning red slit for a face, fire dripping from its edges, long thin arms, gliding, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

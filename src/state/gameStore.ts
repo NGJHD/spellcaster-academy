@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { GameRun, type RunSettings } from '../game/GameRun';
 import { browserStorage, readAutosave, type KeyValueStorage, type Level1Autosave } from '../game/saveData';
 import type { Difficulty } from '../game/types';
-import { LEVEL1_ROUTE, resolveBeatId } from '../level/level1Route';
+import { LEVELS, levelOfBeat } from '../level/levels';
+import type { LevelId } from '../game/types';
 import { initialRunUi, useRunStore } from './runStore';
 import { TRAVEL_SPEED_MULTIPLIER } from './settings';
 import { getSettings } from './settingsStore';
@@ -30,7 +31,7 @@ export function getRun(): GameRun | null {
 }
 
 export function knownBeat(id: string): boolean {
-  return resolveBeatId(id) !== null;
+  return levelOfBeat(id) !== null;
 }
 
 export function readResumableSave(): Level1Autosave | null {
@@ -60,7 +61,7 @@ interface GameState {
   /** Incremented whenever a run starts, so the scene can rebuild. */
   readonly runId: number;
 
-  startNewRun(difficulty: Difficulty): void;
+  startNewRun(difficulty: Difficulty, levelId?: LevelId): void;
   resumeSavedRun(): boolean;
   pause(): void;
   resume(): void;
@@ -78,7 +79,7 @@ export const useGameStore = create<GameState>()((set, get) => {
     modeBeforePause: 'exploration',
     runId: 0,
 
-    startNewRun: (difficulty) => {
+    startNewRun: (difficulty, levelId = 'level-1') => {
       useRunStore.setState(initialRunUi());
       const existing = readResumableSave();
       begin(
@@ -89,6 +90,7 @@ export const useGameStore = create<GameState>()((set, get) => {
           deferSavesUntilFirstCheckpoint: existing !== null,
           settings: runSettings,
           onResults: () => set({ mode: 'results' }),
+          levelId,
           startBeatId: DEV_START_BEAT && knownBeat(DEV_START_BEAT) ? DEV_START_BEAT : undefined,
         }),
       );
@@ -135,4 +137,4 @@ export const useGameStore = create<GameState>()((set, get) => {
 
 export const isGameplayActive = (mode: GameMode): boolean => mode !== 'menu' && mode !== 'paused' && mode !== 'results';
 
-export const FIRST_BEAT_ID = LEVEL1_ROUTE.beats[0]?.id ?? '';
+export const FIRST_BEAT_ID = LEVELS['level-1'].route.beats[0]?.id ?? '';

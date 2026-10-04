@@ -1,0 +1,2 @@
+seed: 26
+prompt: Full body of a tall faceless herald figure made of charred black paper with glowing red edges, long tattered paper robes, holding a flaming brass trumpet in one hand and a burning scroll in the other, formal and threatening, standing facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

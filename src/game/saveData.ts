@@ -3,8 +3,8 @@
  * Writes go to a temporary key, are validated, then promoted; the previous valid save is kept as backup.
  */
 import { cloneMetrics, emptyMetrics, type PersistedRunMetrics } from '../typing/TypingMetrics';
-import type { AnchorId, AreaId, CheckpointId, CosmeticId, Difficulty, SpellId, StarPageId } from './types';
-import { AREA_ORDER } from './types';
+import type { AnchorId, AreaId, CheckpointId, CosmeticId, Difficulty, LevelId, SpellId, StarPageId } from './types';
+import { AREA_ORDER, LEVEL_ORDER } from './types';
 
 export const SAVE_SCHEMA_VERSION = 1;
 export const AUTOSAVE_KEY = 'spellcaster-academy.autosave';
@@ -20,6 +20,8 @@ export interface KeyValueStorage {
 
 export interface Level1Autosave {
   schemaVersion: number;
+  /** Which level this run belongs to (older saves are Level 1). */
+  levelId: LevelId;
   runId: string;
   status: 'in-progress' | 'complete';
   resumeBeatId: string;
@@ -54,8 +56,12 @@ export interface BestResults {
 
 export interface Profile {
   schemaVersion: number;
+  /** Level 1 completed (kept for older code paths; mirrors completedLevels). */
   levelCompleted: boolean;
+  /** Level 1 best results (mirrors bestByLevel['level-1']). */
   bestResults: BestResults | null;
+  completedLevels: LevelId[];
+  bestByLevel: Partial<Record<LevelId, BestResults>>;
   /** Cosmetics are kept across runs once earned. */
   cosmetics: CosmeticId[];
   selectedTrail: CosmeticId | null;
@@ -67,21 +73,24 @@ export function defaultProfile(): Profile {
     schemaVersion: SAVE_SCHEMA_VERSION,
     levelCompleted: false,
     bestResults: null,
+    completedLevels: [],
+    bestByLevel: {},
     cosmetics: [],
     selectedTrail: null,
     tutorialSeen: false,
   };
 }
 
-export function newAutosave(runId: string, difficulty: Difficulty, firstBeatId: string): Level1Autosave {
+export function newAutosave(runId: string, difficulty: Difficulty, firstBeatId: string, levelId: LevelId = 'level-1', firstArea: AreaId = 'arrival-gate'): Level1Autosave {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
+    levelId,
     runId,
     status: 'in-progress',
     resumeBeatId: firstBeatId,
     resumeWaveIndex: 0,
     checkpointId: null,
-    areaId: 'arrival-gate',
+    areaId: firstArea,
     difficulty,
     assist: false,
     restoredAnchors: [],
@@ -150,6 +159,7 @@ export function validateAutosave(raw: unknown, knownBeat: (id: string) => boolea
   if (!areaId) return null;
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
+    levelId: (LEVEL_ORDER as readonly string[]).includes(raw.levelId as string) ? (raw.levelId as LevelId) : 'level-1',
     runId: raw.runId,
     status,
     resumeBeatId: raw.resumeBeatId,
@@ -214,24 +224,40 @@ export function clearAutosave(storage: KeyValueStorage): void {
   storage.removeItem(AUTOSAVE_BACKUP_KEY);
 }
 
+function readBest(raw: unknown): BestResults | null {
+  if (!isObj(raw)) return null;
+  return {
+    bestAverageWpm: num(raw.bestAverageWpm, 0),
+    bestAccuracy: num(raw.bestAccuracy, 0),
+    bestStreak: num(raw.bestStreak, 0),
+    fastestLevelMs: typeof raw.fastestLevelMs === 'number' ? raw.fastestLevelMs : null,
+    mostStarPages: num(raw.mostStarPages, 0),
+    bestScore: num(raw.bestScore, 0),
+  };
+}
+
 export function readProfile(storage: KeyValueStorage): Profile {
   const raw = parse(storage, PROFILE_KEY);
   const base = defaultProfile();
   if (!isObj(raw)) return base;
-  const best = isObj(raw.bestResults) ? raw.bestResults : null;
+  const level1Best = readBest(raw.bestResults);
+  const completed = strArray(raw.completedLevels).filter((l): l is LevelId => (LEVEL_ORDER as readonly string[]).includes(l));
+  // Older profiles only knew about Level 1.
+  if (raw.levelCompleted === true && !completed.includes('level-1')) completed.unshift('level-1');
+  const bestByLevel: Partial<Record<LevelId, BestResults>> = {};
+  if (isObj(raw.bestByLevel)) {
+    for (const id of LEVEL_ORDER) {
+      const b = readBest(raw.bestByLevel[id]);
+      if (b) bestByLevel[id] = b;
+    }
+  }
+  if (level1Best && !bestByLevel['level-1']) bestByLevel['level-1'] = level1Best;
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
-    levelCompleted: raw.levelCompleted === true,
-    bestResults: best
-      ? {
-          bestAverageWpm: num(best.bestAverageWpm, 0),
-          bestAccuracy: num(best.bestAccuracy, 0),
-          bestStreak: num(best.bestStreak, 0),
-          fastestLevelMs: typeof best.fastestLevelMs === 'number' ? best.fastestLevelMs : null,
-          mostStarPages: num(best.mostStarPages, 0),
-          bestScore: num(best.bestScore, 0),
-        }
-      : null,
+    levelCompleted: completed.includes('level-1'),
+    bestResults: bestByLevel['level-1'] ?? null,
+    completedLevels: completed,
+    bestByLevel,
     cosmetics: strArray(raw.cosmetics) as CosmeticId[],
     selectedTrail: typeof raw.selectedTrail === 'string' ? (raw.selectedTrail as CosmeticId) : null,
     tutorialSeen: raw.tutorialSeen === true,

@@ -10,7 +10,7 @@ import {
   type PersistedRunMetrics,
 } from '../typing/TypingMetrics';
 import type { CosmeticId, Difficulty, StarPageId } from './types';
-import { ALL_STAR_PAGES, STAR_PAGE_AREA } from './types';
+import { ALL_STAR_PAGES, STAR_PAGE_AREA, type LevelId } from './types';
 
 export function wordScore(letters: number, perfect: boolean, multiplier: number): number {
   return Math.round(letters * 10 * (perfect ? 1.5 : 1) * multiplier);
@@ -60,6 +60,7 @@ export interface ResultsData {
   readonly difficulty: Difficulty;
   readonly newCosmetics: readonly CosmeticId[];
   readonly score: number;
+  readonly levelId: LevelId;
   /** Medal summary: stars earned out of the stars available in the fights rated. */
   readonly medals: { readonly fights: number; readonly stars: number; readonly perfect: number };
   readonly rank: RankTitle;
@@ -71,6 +72,8 @@ export function buildResults(
   difficulty: Difficulty,
   starPages: readonly StarPageId[],
   newCosmetics: readonly CosmeticId[],
+  levelId: LevelId = 'level-1',
+  collectiblesTotal: number = ALL_STAR_PAGES.length,
 ): ResultsData {
   const avg = averageWpm(m);
   const acc = characterAccuracy(m);
@@ -93,7 +96,8 @@ export function buildResults(
     focusLost: Math.round(m.focusLost),
     checkpointRestarts: m.checkpointRestarts,
     starPages: starPages.length,
-    starPagesTotal: ALL_STAR_PAGES.length,
+    starPagesTotal: collectiblesTotal,
+    levelId,
     optionalTargets: m.optionalTargetsCompleted,
     difficulty,
     newCosmetics,

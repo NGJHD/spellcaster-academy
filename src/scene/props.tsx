@@ -22,7 +22,8 @@ import { useParts } from './partsGlb';
 /** Current beat index (re-renders only when the beat changes). */
 export function useBeatIndex(): number {
   const beatId = useRunStore((s) => s.beatId);
-  return beatId ? beatIndexOf(beatId) : -1;
+  // Index within the level being played (scene props compare against their own level's beats).
+  return beatId ? (getRun()?.level.beatIndexOf(beatId) ?? beatIndexOf(beatId)) : -1;
 }
 
 const damp = (current: number, goal: number, rate: number, dt: number) => current + (goal - current) * (1 - Math.exp(-rate * Math.min(dt, 0.1)));
@@ -198,7 +199,7 @@ export function DormantTarget({ encounterId, targetId, kind, position, rotationY
 
 /** Spawn position of a target in an encounter definition (so dormant props line up exactly). */
 export function spawnPosition(encounterId: string, targetId: string): Vec3 {
-  const def = LEVEL1_ENCOUNTERS.get(encounterId);
+  const def = getRun()?.level.encounters.get(encounterId) ?? LEVEL1_ENCOUNTERS.get(encounterId);
   for (const w of def?.waves ?? []) for (const t of w.targets) if (t.id === targetId) return t.position;
   return [0, 0, 0];
 }
@@ -324,8 +325,8 @@ export interface CameoKey {
 export function WardenCameo({ beatId, keys, scale = 1, rotationY = 0 }: { beatId: string; keys: readonly CameoKey[]; scale?: number; rotationY?: number }) {
   const group = useRef<Group>(null);
   const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.6, calm: 0, attack: 0, bow: 0 });
-  const index = beatIndexOf(beatId);
   const beat = useBeatIndex();
+  const index = getRun()?.level.beatIndexOf(beatId) ?? beatIndexOf(beatId);
   useFrame(() => {
     const g = group.current;
     const run = getRun();

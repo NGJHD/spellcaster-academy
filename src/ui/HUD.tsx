@@ -1,23 +1,28 @@
 import { SPEAKER_NAMES } from '../content/dialogue';
 import { strings } from '../content/strings';
 import type { AreaId } from '../game/types';
-import { LEVEL1_ROUTE } from '../level/level1Route';
+import type { LevelRoute } from '../level/levelTypes';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { useSettingsStore } from '../state/settingsStore';
 import { BossBar, BossCard, FlashOverlay, MedalCard, PaintSplats, Popups, PowerUpCard, ScoreMeter, SpeedRoundBanner } from './Juice';
 
-/** Chapter marks on the progress bar: where each area begins along the route. */
-const CHAPTERS: readonly { areaId: AreaId; at: number }[] = (() => {
-  const beats = LEVEL1_ROUTE.beats;
+/** Chapter marks on the progress bar: where each area begins along the level's route. */
+const chapterCache = new WeakMap<LevelRoute, readonly { areaId: AreaId; at: number }[]>();
+function chaptersOf(route: LevelRoute | undefined): readonly { areaId: AreaId; at: number }[] {
+  if (!route) return [];
+  const cached = chapterCache.get(route);
+  if (cached) return cached;
+  const beats = route.beats;
   const out: { areaId: AreaId; at: number }[] = [];
   beats.forEach((b, i) => {
     if (i > 0 && b.areaId !== beats[i - 1]?.areaId && !out.some((c) => c.areaId === b.areaId)) {
       out.push({ areaId: b.areaId, at: i / Math.max(1, beats.length - 1) });
     }
   });
+  chapterCache.set(route, out);
   return out;
-})();
+}
 
 /** HUD (GD-19): Focus, objective, streak, star pages, subtitles, prompts and short notices only. */
 export function HUD() {
@@ -58,7 +63,7 @@ export function HUD() {
         <div className="hud__progress-label">{strings.hud.progress}</div>
         <div className="hud__progress" role="progressbar" aria-label={strings.hud.progress} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
           <span className="hud__progress-fill" style={{ transform: `scaleX(${progress})` }} />
-          {CHAPTERS.map((c) => (
+          {chaptersOf(getRun()?.level.route).map((c) => (
             <span
               key={c.areaId}
               className={`hud__chapter${progress >= c.at ? ' hud__chapter--reached' : ''}`}
@@ -82,7 +87,7 @@ export function HUD() {
         {starPages > 0 && (
           <div className="hud__chip" title={strings.hud.starPagesHelp}>
             <span className="hud__chip-icon">★</span>
-            <span className="hud__chip-label">{strings.hud.starPages}</span> {starPages} / 8
+            <span className="hud__chip-label">{strings.hud.starPages}</span> {starPages} / {getRun()?.level.collectibles.length ?? 8}
           </div>
         )}
         {showWpm && liveWpm > 0 && (

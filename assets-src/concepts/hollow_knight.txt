@@ -1,0 +1,2 @@
+seed: 25
+prompt: Full body of an empty suit of spiked blackened iron armour, red fire burning inside the visor slit and glowing through the joints, heavy and menacing, no face, no weapons, standing facing the camera with arms slightly away from the body, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

@@ -10,7 +10,7 @@ import { strings } from '../content/strings';
 import { FROST_SEC, isShielded, setPhase, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
-import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE, resolveBeatId } from '../level/level1Route';
+import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
 import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
 import { patchRunUi, useRunStore, type LabelInfo } from '../state/runStore';
@@ -33,7 +33,7 @@ import { SpeedRound } from './speedRound';
 import { MEDAL_SCORE, encounterStars } from './medals';
 import { bossForEncounter, bossForIntroBeat, bossWordTotal, type BossDef } from '../level/bosses';
 import type { AreaId, CosmeticId, Difficulty, SpellId, StarPageId } from './types';
-import { ALL_STAR_PAGES } from './types';
+import type { LevelId } from './types';
 
 export const MAX_FOCUS = 100;
 export const FOCUS_RESET_SEC = 1.8;
@@ -59,6 +59,8 @@ export interface RunOptions {
   readonly now?: () => number;
   /** Development/testing only: begin a new run at this beat. */
   readonly startBeatId?: string;
+  /** Level to play (default Level 1). A resumed save plays its own level. */
+  readonly levelId?: LevelId;
 }
 
 export interface SpellEvent {
@@ -195,6 +197,24 @@ const BATTLE_MUSIC: Partial<Record<AreaId, MusicId>> = {
   'practice-gallery': 'courtyard-action',
   'moon-tower': 'tower-battle',
   observatory: 'warden-defence',
+  'l2-festival-lawn': 'siege-battle',
+  'l2-dormitory': 'siege-battle',
+  'l2-bell-bridge': 'siege-battle',
+  'l2-great-hall': 'siege-battle',
+  'l2-workshops': 'siege-battle',
+  'l2-lantern-lake': 'siege-battle',
+  'l2-burning-library': 'siege-battle',
+  'l2-ramparts': 'siege-battle',
+  'l2-tower-roof': 'wyrm-battle',
+  'l3-rift-shore': 'citadel-battle',
+  'l3-cinderwood': 'citadel-battle',
+  'l3-inkfall': 'citadel-battle',
+  'l3-margin-library': 'citadel-battle',
+  'l3-unfinished-gallery': 'citadel-battle',
+  'l3-paper-sea': 'citadel-battle',
+  'l3-forge': 'citadel-battle',
+  'l3-citadel': 'citadel-battle',
+  'l3-throne': 'unwriter-battle',
 };
 
 /** Story music when resuming mid-area before any beat has named a mood. */
@@ -210,6 +230,26 @@ const AREA_MUSIC: Record<AreaId, MusicId> = {
   'moon-tower': 'tower-ascent',
   observatory: 'tower-ascent',
   'celebration-courtyard': 'celebration',
+  'l2-festival-lawn': 'siege-dread',
+  'l2-dormitory': 'siege-dread',
+  'l2-bell-bridge': 'siege-dread',
+  'l2-great-hall': 'evacuation-hope',
+  'l2-workshops': 'siege-dread',
+  'l2-lantern-lake': 'evacuation-hope',
+  'l2-burning-library': 'siege-dread',
+  'l2-ramparts': 'siege-dread',
+  'l2-tower-roof': 'siege-dread',
+  'l2-aftermath': 'ward-repair',
+  'l3-rift-shore': 'blank-wander',
+  'l3-cinderwood': 'blank-wander',
+  'l3-inkfall': 'blank-wander',
+  'l3-margin-library': 'blank-wander',
+  'l3-unfinished-gallery': 'blank-wander',
+  'l3-paper-sea': 'blank-wander',
+  'l3-forge': 'blank-wander',
+  'l3-citadel': 'blank-wander',
+  'l3-throne': 'blank-wander',
+  'l3-homecoming': 'homecoming',
 };
 
 const CALM_FOR_ACTION: Partial<Record<MusicId, MusicId>> = {
@@ -265,13 +305,19 @@ export class GameRun {
   private newCosmetics: CosmeticId[] = [];
   private readonly now: () => number;
 
+  readonly level: LevelDef;
+
   constructor(private readonly options: RunOptions) {
     this.now = options.now ?? (() => performance.now());
-    const firstBeat = LEVEL1_ROUTE.beats[0]?.id ?? '';
     const resume = options.resume;
+    const levelId = resume?.levelId ?? (options.startBeatId ? levelOfBeat(options.startBeatId) : null) ?? options.levelId ?? 'level-1';
+    this.level = LEVELS[levelId];
+    const firstBeat = this.level.route.beats[0]?.id ?? '';
     this.progress = resume
       ? { ...resume, metrics: cloneMetrics(resume.metrics) }
-      : newAutosave(`run-${Date.now().toString(36)}`, options.difficulty, firstBeat);
+      : newAutosave(`run-${Date.now().toString(36)}`, options.difficulty, firstBeat, levelId, this.level.route.beats[0]?.areaId);
+    // Spells carry over between levels (CLAUDE.md §5).
+    for (const spell of this.level.startingSpells) if (!this.progress.unlockedSpells.includes(spell)) this.progress.unlockedSpells.push(spell);
     this.committed = cloneMetrics(this.progress.metrics);
     this.flags = new Set(this.progress.flags);
     this.pendingMultiplier = this.progress.pendingScoreMultiplier;
@@ -282,7 +328,7 @@ export class GameRun {
       rejectMistakes: DIFFICULTY[this.progress.difficulty].rejectMistakes,
       centralityOf: (id) => this.centralityOf(id),
     });
-    this.director = new LevelDirector(LEVEL1_ROUTE, {
+    this.director = new LevelDirector(this.level.route, {
       onBeatStart: (beat) => this.onBeatStart(beat),
       onBeatEnd: (beat) => this.onBeatEnd(beat),
     });
@@ -298,7 +344,7 @@ export class GameRun {
     if (resume) {
       // LD-5: resume at the last committed beat after a short, safe establishing moment. A beat removed
       // by a later version resumes at the beat that replaced it, from its first wave.
-      const beatId = resolveBeatId(resume.resumeBeatId) ?? firstBeat;
+      const beatId = this.level.resolveBeatId(resume.resumeBeatId) ?? firstBeat;
       this.pendingStartBeat = beatId;
       this.pendingStartWave = beatId === resume.resumeBeatId ? resume.resumeWaveIndex : 0;
       this.progress.resumeBeatId = beatId;
@@ -369,7 +415,7 @@ export class GameRun {
 
   /** Progress of an encounter for scene props: live while running, full once completed. */
   encounterProgress(encounterId: string): { done: number; total: number; complete: boolean } {
-    const def = LEVEL1_ENCOUNTERS.get(encounterId);
+    const def = this.level.encounters.get(encounterId);
     const total = def ? def.waves.reduce((n, w) => n + w.targets.filter((t) => !t.optional).length, 0) : 0;
     if (this.progress.completedEncounterIds.includes(encounterId)) return { done: total, total, complete: true };
     if (this.encounter?.def.id === encounterId) {
@@ -383,7 +429,7 @@ export class GameRun {
 
   /** Current wave of an encounter for scene props: -1 before it starts, the wave count once done. */
   encounterWave(encounterId: string): number {
-    const def = LEVEL1_ENCOUNTERS.get(encounterId);
+    const def = this.level.encounters.get(encounterId);
     if (this.progress.completedEncounterIds.includes(encounterId)) return def?.waves.length ?? 0;
     if (this.encounter?.def.id === encounterId) return this.encounter.waveIndex;
     return -1;
@@ -575,7 +621,7 @@ export class GameRun {
     }
     const position = new Vector3();
     if (typeof cue.at === 'string') {
-      const p = LEVEL1_ROUTE.lookPoints[cue.at];
+      const p = this.level.route.lookPoints[cue.at];
       if (p) position.set(...p);
     } else if (cue.at) {
       position.set(...cue.at);
@@ -1029,8 +1075,8 @@ export class GameRun {
 
   private onBeatStart(beat: LevelBeat): void {
     if (beat.areaId !== this.areaId) this.enterArea(beat.areaId);
-    const beatIndex = LEVEL1_ROUTE.beats.indexOf(beat);
-    patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, LEVEL1_ROUTE.beats.length - 1) });
+    const beatIndex = this.level.route.beats.indexOf(beat);
+    patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, this.level.route.beats.length - 1) });
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
     for (const id of beat.barks ?? []) this.queueBark(getLine(id));
@@ -1042,7 +1088,7 @@ export class GameRun {
       if (cue.atBeat !== undefined && isCameraBeat(beat)) this.beatFx.push({ cue, atBeat: cue.atBeat, beatId: beat.id });
       else this.emitFx(cue);
     }
-    const boss = bossForIntroBeat(beat.id);
+    const boss = bossForIntroBeat(beat.id, this.level.bosses);
     if (boss) {
       patchRunUi({ bossCard: { key: nextKey(), id: boss.id } });
       audio.playSfx('boss-phase');
@@ -1135,7 +1181,7 @@ export class GameRun {
   }
 
   private startEncounter(beatId: string, encounterId: string): void {
-    const def = LEVEL1_ENCOUNTERS.get(encounterId);
+    const def = this.level.encounters.get(encounterId);
     if (!def) {
       this.director.completeGatedBeat(beatId);
       return;
@@ -1160,7 +1206,7 @@ export class GameRun {
     if (isDangerous(def)) this.setBattleMusic(BATTLE_MUSIC[this.areaId] ?? 'courtyard-action');
     const m = this.progress.metrics;
     this.tally = { words: 0, correct: m.correctEntries, incorrect: m.incorrectEntries, damage: m.focusLost };
-    const boss = bossForEncounter(def.id);
+    const boss = bossForEncounter(def.id, this.level.bosses);
     if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
     this.startSpeedRound(def);
     // A spark gem left over from travel flies off: encounters have their own words.
@@ -1283,7 +1329,7 @@ export class GameRun {
     patchRunUi({ prompt: null, hazard: null });
     this.refreshTargets();
     // Resume after a completed encounter from the beat that follows it.
-    const next = LEVEL1_ROUTE.beats[this.director.currentIndex + 1];
+    const next = this.level.route.beats[this.director.currentIndex + 1];
     if (next) {
       this.progress.resumeBeatId = next.id;
       this.progress.resumeWaveIndex = 0;
@@ -1330,7 +1376,7 @@ export class GameRun {
     audio.playSfx('star-page');
     patchRunUi({
       starPages: count,
-      toast: { key: nextKey(), title: strings.toasts.starPage, detail: `${count} / ${ALL_STAR_PAGES.length}` },
+      toast: { key: nextKey(), title: strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
     });
     this.saveNow();
   }
@@ -1354,7 +1400,7 @@ export class GameRun {
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (!this.savesEnabled) this.savesEnabled = true;
     this.commitMetrics();
-    const next = LEVEL1_ROUTE.beats[this.director.currentIndex + 1];
+    const next = this.level.route.beats[this.director.currentIndex + 1];
     if (next) this.progress.resumeBeatId = next.id;
     if (beat.checkpointId === 'level-1-complete') this.progress.status = 'complete';
     audio.playSfx('checkpoint');
@@ -1425,11 +1471,11 @@ export class GameRun {
 
   /** Boss name card and health bar (§1B). Health counts words already typed in finished phases. */
   private startBoss(def: BossDef): void {
-    const total = bossWordTotal(def, LEVEL1_ENCOUNTERS);
+    const total = bossWordTotal(def, this.level.encounters);
     let done = 0;
     for (const id of def.phases) {
       if (!this.progress.completedEncounterIds.includes(id)) continue;
-      done += bossWordTotal({ ...def, phases: [id] }, LEVEL1_ENCOUNTERS);
+      done += bossWordTotal({ ...def, phases: [id] }, this.level.encounters);
     }
     this.boss = { def, total, done };
     patchRunUi({ boss: { id: def.id, health: 1 - done / Math.max(1, total) } });
@@ -1478,7 +1524,7 @@ export class GameRun {
   /** Where a conversation lets the camera go: early before travel, at the last line before a fight. */
   private releaseIndex(lineCount: number): number {
     const i = this.director.currentIndex;
-    const following = LEVEL1_ROUTE.beats.slice(i + 1, i + 4);
+    const following = this.level.route.beats.slice(i + 1, i + 4);
     if (lineCount === 0 || following.some((b) => b.kind === 'results' || b.kind === 'choice')) return -1;
     const next = following[0];
     if (!next) return -1;
@@ -1784,11 +1830,12 @@ export class GameRun {
     this.metrics.suspend();
     this.progress.status = 'complete';
     const metrics = this.progress.metrics;
-    const results = buildResults(metrics, this.difficulty, this.progress.collectedStarPageIds, this.newCosmetics);
+    const results = buildResults(metrics, this.difficulty, this.progress.collectedStarPageIds, this.newCosmetics, this.level.id, this.level.collectibles.length);
     const storage = this.options.storage;
     const profile = readProfile(storage);
-    profile.levelCompleted = true;
-    profile.bestResults = mergeBestResults(profile.bestResults, {
+    if (!profile.completedLevels.includes(this.level.id)) profile.completedLevels.push(this.level.id);
+    profile.levelCompleted = profile.completedLevels.includes('level-1');
+    const best = mergeBestResults(profile.bestByLevel[this.level.id] ?? null, {
       bestAverageWpm: results.averageWpm,
       bestAccuracy: results.accuracy,
       bestStreak: results.bestStreak,
@@ -1796,6 +1843,8 @@ export class GameRun {
       mostStarPages: results.starPages,
       bestScore: results.score,
     });
+    profile.bestByLevel[this.level.id] = best;
+    if (this.level.id === 'level-1') profile.bestResults = best;
     writeProfile(storage, profile);
     this.committed = cloneMetrics(metrics);
     this.saveNow();

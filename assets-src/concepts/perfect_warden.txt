@@ -1,0 +1,2 @@
+seed: 34
+prompt: Full body of a tall floating stone-and-iron guardian made of polished black iron plates held together by red fire, a faceless mask with a burning red light seam, a ring halo behind its head, red fire burning through its seams and chest core, cold and perfect, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

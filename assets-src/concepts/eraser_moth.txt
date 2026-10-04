@@ -1,0 +1,2 @@
+seed: 22
+prompt: A huge menacing moth monster seen from the front with wings spread, charred black wings edged with glowing orange embers, furry dark body, glowing red eyes, sparks drifting off the wings, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

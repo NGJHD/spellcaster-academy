@@ -1,0 +1,2 @@
+seed: 31
+prompt: A menacing moth monster seen from the front with wings spread, wings made of burning paper with black ink veins and glowing ember edges, dark body, glowing red eyes, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

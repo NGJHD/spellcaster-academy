@@ -1,0 +1,2 @@
+seed: 23
+prompt: Full body of a small jittery imp creature made of tangled scribbled black ink lines, glowing ember eyes, sharp grin, holding a burning feather quill like a torch, standing facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

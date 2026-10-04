@@ -1,0 +1,2 @@
+seed: 27
+prompt: A huge serpentine dragon made of burning book pages and leather book spines, a horned head made from an open book with blazing red eyes and a mouth full of fire, a black crystal heart glowing red between rib-like book spines, embers streaming off its body, coiled, facing the camera, highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, plain light grey background, entire body in frame, centered, no shadows, no text, no blood

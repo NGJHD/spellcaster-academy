@@ -28,10 +28,10 @@ export function bossWordTotal(boss: BossDef, encounters: ReadonlyMap<string, Enc
   return total;
 }
 
-export function bossForEncounter(encounterId: string): BossDef | undefined {
-  return LEVEL1_BOSSES.find((b) => b.phases.includes(encounterId));
+export function bossForEncounter(encounterId: string, bosses: readonly BossDef[] = LEVEL1_BOSSES): BossDef | undefined {
+  return bosses.find((b) => b.phases.includes(encounterId));
 }
 
-export function bossForIntroBeat(beatId: string): BossDef | undefined {
-  return LEVEL1_BOSSES.find((b) => b.introBeat === beatId);
+export function bossForIntroBeat(beatId: string, bosses: readonly BossDef[] = LEVEL1_BOSSES): BossDef | undefined {
+  return bosses.find((b) => b.introBeat === beatId);
 }

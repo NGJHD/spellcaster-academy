@@ -1,0 +1,70 @@
+"""
+Level 2 (the Hush) and Level 3 (the Blank) mob and boss concepts for the image-to-3D pipeline.
+Owner (2026-10-04): realistic, scary, fire and red; no gore. One full-body subject, neutral pose,
+plain background (what TRELLIS.2 needs).
+
+    python assets-src/scripts/ai/concepts_level23.py [name ...]
+"""
+import sys
+
+from comfy import concept
+
+STYLE = (
+    "highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, "
+    "plain light grey background, entire body in frame, centered, no shadows, no text, no blood"
+)
+
+CONCEPTS = {
+    # Level 2: the Hush (ink-and-ember constructs).
+    "blotling": (
+        "Full body of a knee-high monster made of glossy bubbling black ink, squat blob body on stubby legs, two burning "
+        "orange ember eyes, a jagged glowing red crack running down its front like a mouth of fire, drips of ink, "
+        "menacing, facing the camera", 21),
+    "eraser_moth": (
+        "A huge menacing moth monster seen from the front with wings spread, charred black wings edged with glowing orange "
+        "embers, furry dark body, glowing red eyes, sparks drifting off the wings", 22),
+    "scribble_imp": (
+        "Full body of a small jittery imp creature made of tangled scribbled black ink lines, glowing ember eyes, sharp "
+        "grin, holding a burning feather quill like a torch, standing facing the camera", 23),
+    "smudgehound": (
+        "Full body of a lean snarling wolf-like hound made of smouldering black charcoal, cracks of glowing red embers "
+        "across its body, flames running along its spine, burning red eyes, bared fangs, standing side-on to the camera "
+        "with head turned to the viewer", 24),
+    "hollow_knight": (
+        "Full body of an empty suit of spiked blackened iron armour, red fire burning inside the visor slit and glowing "
+        "through the joints, heavy and menacing, no face, no weapons, standing facing the camera with arms slightly away "
+        "from the body", 25),
+    "grey_herald": (
+        "Full body of a tall faceless herald figure made of charred black paper with glowing red edges, long tattered "
+        "paper robes, holding a flaming brass trumpet in one hand and a burning scroll in the other, formal and "
+        "threatening, standing facing the camera", 26),
+    "vellum_wyrm": (
+        "A huge serpentine dragon made of burning book pages and leather book spines, a horned head made from an open "
+        "book with blazing red eyes and a mouth full of fire, a black crystal heart glowing red between rib-like book "
+        "spines, embers streaming off its body, coiled, facing the camera", 27),
+    # Level 3: the Blank and the Cinder Citadel.
+    "correction_moth": (
+        "A menacing moth monster seen from the front with wings spread, wings made of burning paper with black ink veins "
+        "and glowing ember edges, dark body, glowing red eyes", 31),
+    "redactor": (
+        "Full body of a tall thin sinister figure shaped like a thick black bar of ink, a burning red slit for a face, "
+        "fire dripping from its edges, long thin arms, gliding, facing the camera", 32),
+    "foreman": (
+        "Full body of a hulking armoured forge-master construct of black iron, a furnace burning in its open chest, "
+        "glowing red seams, carrying a huge forge hammer, massive shoulders, menacing, facing the camera", 33),
+    "perfect_warden": (
+        "Full body of a tall floating stone-and-iron guardian made of polished black iron plates held together by red "
+        "fire, a faceless mask with a burning red light seam, a ring halo behind its head, red fire burning through its "
+        "seams and chest core, cold and perfect, facing the camera", 34),
+    "unwriter": (
+        "Full body of a tall imposing dark wizard villain in long robes of charred black paper with glowing ember edges, "
+        "a cracked white porcelain mask with a burning red line across it, hands of dripping black ink with small "
+        "flames, holding a long black quill pen burning with red fire, menacing, standing facing the camera, "
+        "no skeleton, no gore", 35),
+}
+
+if __name__ == "__main__":
+    names = sys.argv[1:] or list(CONCEPTS)
+    for name in names:
+        prompt, seed = CONCEPTS[name]
+        print(concept(name, f"{prompt}, {STYLE}", seed))

@@ -22,7 +22,17 @@ export type MusicId =
   | 'tower-battle'
   | 'ward-repair'
   | 'celebration'
-  | 'results';
+  | 'results'
+  // Level 2: the siege.
+  | 'siege-dread'
+  | 'siege-battle'
+  | 'evacuation-hope'
+  | 'wyrm-battle'
+  // Level 3: the Blank and the Cinder Citadel.
+  | 'blank-wander'
+  | 'citadel-battle'
+  | 'unwriter-battle'
+  | 'homecoming';
 
 export type LineId = string;
 

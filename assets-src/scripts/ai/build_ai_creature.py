@@ -41,6 +41,20 @@ CONFIG = {
     "tea_tray": dict(out="tea_tray", folder="props", height=0.06, fit="width", width=0.7, tris=6000, tex=1024, rig="none", defeat="vanish", metallic=0.8, roughness=0.3),
     "lift_platform": dict(out="lift_platform", folder="props", height=3.0, fit="width", width=2.5, tris=20000, tex=1024, rig="none", defeat="vanish", metallic=0.75, roughness=0.4),
     "inkwell": dict(out="inkwell", folder="props", height=0.2, fit="width", width=1.1, tris=8000, tex=1024, rig="none", defeat="vanish"),
+    # Level 2: the Hush.
+    "blotling": dict(out="blotling", height=0.7, tris=24000, tex=1024, rig="biped", defeat="vanish"),
+    "eraser_moth": dict(out="eraser_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
+    "scribble_imp": dict(out="scribble_imp", height=0.8, tris=24000, tex=1024, rig="biped", defeat="vanish"),
+    "smudgehound": dict(out="smudgehound", height=1.1, tris=28000, tex=1024, rig="rigid", defeat="vanish"),
+    "hollow_knight": dict(out="hollow_knight", height=2.2, tris=34000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
+    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish"),
+    "vellum_wyrm": dict(out="vellum_wyrm", height=6.0, tris=60000, tex=2048, rig="plant", defeat="vanish"),
+    # Level 3: the Blank and the Cinder Citadel.
+    "correction_moth": dict(out="correction_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
+    "redactor": dict(out="redactor", height=2.4, tris=24000, tex=1024, rig="floater", defeat="vanish"),
+    "foreman": dict(out="foreman", height=2.7, tris=36000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
+    "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45),
+    "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish"),
     "snapvine": dict(out="snapvine_head", height=1.6, tris=30000, tex=1024, rig="rigid", defeat="vanish"),
 }
 cfg = CONFIG[NAME]

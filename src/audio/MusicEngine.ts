@@ -55,6 +55,16 @@ const MOODS: Record<MusicId, Mood> = {
   'ward-repair': { tempo: 84, root: 60, scale: MAJOR, progression: [IV, V, III, VI], pad: 0.65, arp: 0.4, bass: 0.35, drums: 0.15, brightness: 2600, lead: 0.5 },
   celebration: { tempo: 112, root: 62, scale: MAJOR, progression: [I, V, VI, IV], pad: 0.4, arp: 0.45, bass: 0.4, drums: 0.4, brightness: 2800, lead: 0.5 },
   results: { tempo: 76, root: 60, scale: MAJOR, progression: [I, IV, I, V], pad: 0.45, arp: 0.3, bass: 0.25, drums: 0, brightness: 1800, lead: 0.4 },
+  // Level 2: a burning night. Low, dark keys; driving battle grooves.
+  'siege-dread': { tempo: 92, root: 50, scale: MINOR, progression: [I, VI, VII, I], pad: 0.6, arp: 0.3, bass: 0.55, drums: 0.35, brightness: 900, lead: 0.3 },
+  'siege-battle': { tempo: 140, root: 50, scale: MINOR, progression: [I, VI, III, VII], pad: 0.35, arp: 0.55, bass: 0.7, drums: 0.8, brightness: 2400, lead: 0.5, battle: true },
+  'evacuation-hope': { tempo: 100, root: 57, scale: DORIAN, progression: [I, IV, VI, V], pad: 0.5, arp: 0.4, bass: 0.45, drums: 0.4, brightness: 1800, lead: 0.45 },
+  'wyrm-battle': { tempo: 148, root: 48, scale: MINOR, progression: [I, VI, IV, V], pad: 0.4, arp: 0.6, bass: 0.75, drums: 0.85, brightness: 2600, lead: 0.55, battle: true },
+  // Level 3: the Blank (eerie, hollow) and the Citadel (heavy).
+  'blank-wander': { tempo: 70, root: 49, scale: MINOR, progression: [I, II, I, VII], pad: 0.65, arp: 0.25, bass: 0.4, drums: 0.15, brightness: 700, lead: 0.25 },
+  'citadel-battle': { tempo: 138, root: 47, scale: MINOR, progression: [I, VII, VI, V], pad: 0.4, arp: 0.55, bass: 0.75, drums: 0.85, brightness: 2200, lead: 0.5, battle: true },
+  'unwriter-battle': { tempo: 152, root: 45, scale: MINOR, progression: [I, VI, III, V], pad: 0.45, arp: 0.6, bass: 0.8, drums: 0.9, brightness: 2600, lead: 0.6, battle: true },
+  homecoming: { tempo: 96, root: 62, scale: MAJOR, progression: [I, V, VI, IV], pad: 0.55, arp: 0.45, bass: 0.4, drums: 0.3, brightness: 2800, lead: 0.55 },
 };
 
 const LOOKAHEAD_SEC = 0.25;

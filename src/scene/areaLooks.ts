@@ -1,7 +1,7 @@
 /** Per-area lighting and atmosphere (colour script: warm academy → green greenhouse → moonlit tower). */
 import type { AreaId } from '../game/types';
 
-export type SkyKind = 'afternoon' | 'dawn' | 'night' | 'interior';
+export type SkyKind = 'afternoon' | 'dawn' | 'night' | 'interior' | 'inferno' | 'blank';
 
 export interface AreaLook {
   readonly sky: SkyKind;
@@ -31,7 +31,7 @@ const EXTERIOR: AreaLook = {
   hdri: DAY,
 };
 
-export const AREA_LOOKS: Record<AreaId, AreaLook> = {
+const AREA_LOOKS_L1 = {
   'arrival-gate': EXTERIOR,
   'sunlit-courtyard': EXTERIOR,
   'east-hall': { ...EXTERIOR, fog: ['#3a2f25', 12, 60] },
@@ -116,6 +116,74 @@ export const AREA_LOOKS: Record<AreaId, AreaLook> = {
     envIntensity: 0.9,
     hdri: 'belfast_sunset_puresky',
   },
+} satisfies Record<string, AreaLook>;
+
+/** Level 2: night siege lit by fire (CLAUDE.md §5 visual tone: red and orange inkfire against the dark). */
+const SIEGE: AreaLook = {
+  sky: 'inferno',
+  background: '#1a0806',
+  fog: ['#2a0d08', 30, 220],
+  sun: { position: [40, 30, -60], color: '#ff6a3a', intensity: 1.6 },
+  hemi: ['#ff8a5a', '#1a0a08', 0.55],
+  exposure: 1.15,
+  envIntensity: 0.45,
+  hdri: NIGHT,
+};
+const SIEGE_INDOOR: AreaLook = { ...SIEGE, sky: 'interior', background: '#160806', fog: ['#2a100a', 12, 70], hemi: ['#ff9a6a', '#2a120c', 0.5] };
+
+/** Level 3: the Blank, a red sky that never darkens over scorched grey ash. */
+const BLANK: AreaLook = {
+  sky: 'blank',
+  background: '#5a1410',
+  fog: ['#6a2a20', 40, 320],
+  sun: { position: [-30, 40, -80], color: '#ff7a4a', intensity: 2.0 },
+  hemi: ['#ff9a7a', '#2a2422', 0.6],
+  exposure: 1.05,
+  envIntensity: 0.5,
+  hdri: 'belfast_sunset_puresky',
+};
+const CITADEL: AreaLook = { ...BLANK, background: '#2a0806', fog: ['#3a0e08', 20, 160], hemi: ['#ff7a4a', '#1a0a08', 0.5] };
+
+export const LEVEL_LOOKS: Record<Exclude<AreaId, keyof typeof AREA_LOOKS_L1>, AreaLook> = {
+  'l2-festival-lawn': SIEGE,
+  'l2-dormitory': SIEGE_INDOOR,
+  'l2-bell-bridge': SIEGE,
+  'l2-great-hall': SIEGE_INDOOR,
+  'l2-workshops': SIEGE_INDOOR,
+  'l2-lantern-lake': SIEGE,
+  'l2-burning-library': SIEGE_INDOOR,
+  'l2-ramparts': SIEGE,
+  'l2-tower-roof': { ...SIEGE, fog: ['#2a0d08', 60, 300] },
+  // Dawn after the siege: the beacons have pushed the red back.
+  'l2-aftermath': {
+    sky: 'dawn',
+    background: '#e8b090',
+    fog: ['#d8a890', 60, 320],
+    sun: { position: [80, 14, 60], color: '#ffb880', intensity: 2.2 },
+    hemi: ['#ffd8b8', '#4a3a30', 0.75],
+    exposure: 1.0,
+    envIntensity: 0.8,
+    hdri: 'belfast_sunset_puresky',
+  },
+  'l3-rift-shore': BLANK,
+  'l3-cinderwood': BLANK,
+  'l3-inkfall': BLANK,
+  'l3-margin-library': { ...BLANK, sky: 'interior', fog: ['#4a2420', 14, 80] },
+  'l3-unfinished-gallery': { ...BLANK, sky: 'interior', fog: ['#4a2420', 14, 90] },
+  'l3-paper-sea': BLANK,
+  'l3-forge': CITADEL,
+  'l3-citadel': CITADEL,
+  'l3-throne': CITADEL,
+  'l3-homecoming': {
+    sky: 'dawn',
+    background: '#f2c9a0',
+    fog: ['#f3d8be', 60, 360],
+    sun: { position: [80, 18, 60], color: '#ffc58a', intensity: 2.4 },
+    hemi: ['#ffe0c2', '#5c4a3a', 0.8],
+    exposure: 1.0,
+    envIntensity: 0.9,
+    hdri: 'belfast_sunset_puresky',
+  },
 };
 
 /** Areas sharing the exterior campus geometry. */
@@ -125,3 +193,5 @@ export const EXTERIOR_AREAS: ReadonlySet<AreaId> = new Set<AreaId>([
   'east-hall',
   'celebration-courtyard',
 ]);
+
+export const AREA_LOOKS: Record<AreaId, AreaLook> = { ...AREA_LOOKS_L1, ...LEVEL_LOOKS };
