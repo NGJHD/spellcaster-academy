@@ -599,6 +599,7 @@ export function ImpModel({ pose, variant }: { pose: PoseRef; variant?: string })
     if (arm.current) arm.current.rotation.x = -p.windup * 2.4 + (p.recovering ? 1.2 : 0) + Math.sin(p.time * 5) * 0.15;
   });
   return (
+    <group scale={1.5}>
     <group ref={body}>
       <mesh geometry={geometry} material={paint} castShadow />
       {[-1, 1].map((s) => (
@@ -623,6 +624,7 @@ export function ImpModel({ pose, variant }: { pose: PoseRef; variant?: string })
           <sphereGeometry args={[0.07, 14, 10]} />
         </mesh>
       </group>
+    </group>
     </group>
   );
 }

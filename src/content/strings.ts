@@ -148,7 +148,7 @@ export const strings = {
   } as Record<string, { name: string; title: string } | undefined>,
   prompts: {
     chest: 'Speed round! Open the chest — or press Enter to keep running.',
-    constellations: 'Name the constellations for a bonus, or press Enter to continue.',
+    constellations: 'Speed round! Name the constellations — or press Enter to continue.',
   } as Record<string, string>,
   hazards: {
     'arc-left': 'Light arc from the left',

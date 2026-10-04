@@ -104,7 +104,7 @@ function CommunicationMirror() {
   const surface = useRef<Mesh>(null);
   useFrame(() => {
     const beat = getRun()?.director.currentBeat?.id;
-    if (surface.current) surface.current.visible = beat === 'portraits-mirror';
+    if (surface.current) surface.current.visible = beat === 'portraits-mirror' || beat === 'portraits-to-plaques';
   });
   return (
     <group position={[-W + 0.06, 1.9, -22]} rotation={[0, Math.PI / 2, 0]}>

@@ -7,7 +7,7 @@ import { audio } from '../audio/AudioManager';
 import { voice } from '../audio/voice';
 import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue';
 import { strings } from '../content/strings';
-import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
+import { FROST_SEC, isShielded, setPhase, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from '../level/level1Route';
@@ -164,6 +164,7 @@ const MUSIC_REVERT_SEC = 3;
 const BATTLE_MUSIC: Partial<Record<AreaId, MusicId>> = {
   'sunlit-courtyard': 'courtyard-action',
   'whispering-library': 'grimoire-battle',
+  'hall-of-portraits': 'courtyard-action',
   'enchanted-greenhouse': 'greenhouse-action',
   'lower-stairwell': 'tower-battle',
   'practice-gallery': 'courtyard-action',
@@ -1117,6 +1118,11 @@ export class GameRun {
     const boss = bossForEncounter(def.id);
     if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
     this.startSpeedRound(def);
+    // A spark gem left over from travel flies off: encounters have their own words.
+    const gem = this.gem;
+    if (gem && !(this.typing.lockedId !== null && gem.targets.has(this.typing.lockedId))) {
+      for (const t of gem.targets.values()) if (!t.defeated && t.phase !== 'gone') setPhase(t, 'leaving');
+    }
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.resetEncounterTyping();
   }

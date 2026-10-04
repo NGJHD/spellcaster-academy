@@ -81,13 +81,14 @@ export const LINES = {
   'lib-anchor-done': line('pip', 'Two anchors. And a new spell for perfect words — Frost Thread.'),
 
   // Hall of Portraits
+  'por-ambush': line('pip', 'The portraits are ALIVE! Paint imps — dodge the splats!'),
   'por-1': line('portrait-1', 'A new apprentice during a ward fracture? How traditional.'),
   'por-2': line('portrait-2', 'Nonsense. In my year, the ceiling became a whale.'),
   'por-3': line('pip', 'Please ignore historical exaggeration.'),
-  'por-fountain': line('pip', 'A healing fountain. Take a breath — your HP is full again.'),
-  'por-4': line('mira', 'The Greenhouse Anchor is wrapped in ward vines. The Warden passed that way, but it cleared falling glass away from the seedlings.'),
+  'por-fountain': line('pip', 'A healing fountain! HP full. Catch the droplets!'),
+  'por-4': line('mira', 'Vines have the Greenhouse Anchor! The Warden went that way — it moved falling glass away from the seedlings.'),
   'por-5': line('pip', 'That is… unexpectedly considerate destruction.'),
-  'por-const': line('pip', 'Constellation plaques! Name all three for a bonus in the greenhouse.'),
+  'por-const': line('pip', 'Constellation plaques! Name all three, fast, for a big bonus!'),
   'por-const-done': line('pip', 'Star-reader! Your next spells will shine extra bright.'),
 
   // Enchanted Greenhouse
