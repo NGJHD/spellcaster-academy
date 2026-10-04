@@ -19,6 +19,7 @@ import {
   SpriteModel,
   StarPageModel,
   GemModel,
+  ImpModel,
   WispModel,
   WispShield,
   type TargetPose,
@@ -26,7 +27,7 @@ import {
 
 const HIT_SEC = 0.5;
 /** Kinds that turn to face the camera (creatures); props keep their authored orientation. */
-const FACES_CAMERA = new Set(['sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
+const FACES_CAMERA = new Set(['imp', 'sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
 
 /** Rigged GLB when one exists for the kind, with the code-built stand-in while it streams in. */
 function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
@@ -62,6 +63,8 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
       return <Guardian pose={pose} />;
     case 'star-page':
       return <StarPageModel pose={pose} cosmetic={spawn.variant === 'cosmetic'} />;
+    case 'imp':
+      return <ImpModel pose={pose} variant={spawn.variant} />;
     case 'gem':
       return <GemModel pose={pose} seed={spawn.id} />;
     case 'clasp':

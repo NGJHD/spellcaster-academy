@@ -13,6 +13,7 @@ const FOLLOW_RATE = 2.6;
 
 const goal = new Vector3();
 const offset = new Vector3();
+const carried = new Vector3();
 
 /**
  * PLACEHOLDER Pip (§14A.2): brass astrolabe rings around a warm opalescent core. Follows the camera
@@ -41,12 +42,19 @@ export function PipCompanion() {
     offset.copy(combat ? OFFSET_COMBAT : OFFSET_CALM).applyQuaternion(state.camera.quaternion);
     goal.copy(state.camera.position).add(offset);
     goal.y += Math.sin(time.current * 1.6) * 0.04;
+    // Snatched! A creature is carrying Pip off (LD-0 cold open): Pip dangles and struggles.
+    const snatched = run?.pipCarrier(carried) ?? false;
+    if (snatched) {
+      goal.copy(carried);
+      goal.x += Math.sin(time.current * 13) * 0.08;
+      goal.y += Math.sin(time.current * 17) * 0.06;
+    }
     if (!placed.current) {
       g.position.copy(goal);
       placed.current = true;
     }
     // Soft inertia: Pip lags behind camera moves and settles (never a rigid UI icon).
-    const k = 1 - Math.exp(-FOLLOW_RATE * Math.min(delta, 0.1));
+    const k = 1 - Math.exp(-(snatched ? 9 : FOLLOW_RATE) * Math.min(delta, 0.1));
     g.position.lerp(goal, k);
     g.lookAt(state.camera.position);
 

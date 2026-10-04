@@ -11,7 +11,7 @@ import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from '../level/level1Route';
-import type { BarkTrigger, EncounterDef, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
+import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
 import { patchRunUi, useRunStore, type LabelInfo } from '../state/runStore';
 import type { KeyIntent } from '../typing/keys';
@@ -29,6 +29,7 @@ import {
 } from './saveData';
 import { buildResults, wordScore, type ResultsData } from './scoring';
 import { Combo } from './combo';
+import { SpeedRound } from './speedRound';
 import { MEDAL_SCORE, encounterStars } from './medals';
 import { bossForEncounter, bossForIntroBeat, bossWordTotal, type BossDef } from '../level/bosses';
 import type { AreaId, CosmeticId, Difficulty, SpellId, StarPageId } from './types';
@@ -70,6 +71,29 @@ export interface SpellEvent {
   readonly power?: number;
 }
 
+/** A spectacle for the FX layer to play (consumed like spell events). */
+export interface FxEvent {
+  readonly key: number;
+  readonly kind: FxKind;
+  readonly position: Vector3;
+  readonly scale: number;
+  readonly color: string | undefined;
+}
+
+/** Sound for each spectacle (none for the quiet ones). */
+const FX_SOUND: Partial<Record<FxKind, { id: 'boom' | 'crash' | 'firework' | 'shield-break' | 'gate-open'; volume: number }>> = {
+  burst: { id: 'boom', volume: 0.55 },
+  debris: { id: 'crash', volume: 0.8 },
+  glass: { id: 'shield-break', volume: 0.9 },
+  shockwave: { id: 'boom', volume: 0.9 },
+  pillar: { id: 'gate-open', volume: 0.8 },
+  fireworks: { id: 'firework', volume: 0.8 },
+  meteors: { id: 'boom', volume: 0.5 },
+  geyser: { id: 'crash', volume: 0.5 },
+  lightning: { id: 'boom', volume: 1 },
+  dust: { id: 'crash', volume: 0.45 },
+};
+
 export interface RetiredTarget {
   readonly id: string;
   readonly spawn: TargetSpawn;
@@ -109,6 +133,11 @@ export function readSeconds(text: string): number {
 
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
+
+/** Rail speed while typing a chase word during a fast-rail set piece. */
+const CHASE_TYPING_RAIL = 0.4;
+/** How long a finished speed round's result stays on screen. */
+const SPEED_RESULT_SEC = 2.2;
 
 /** Targets freeze this long when a word lands (hit-stop). */
 const HIT_STOP_SEC = 0.05;
@@ -287,16 +316,22 @@ export class GameRun {
     return true;
   }
 
+  /** Every live target runner: the encounter, a bonus window, a chase and a spark gem. */
+  private runners(): EncounterRunner[] {
+    const list: EncounterRunner[] = [];
+    if (this.encounter) list.push(this.encounter);
+    if (this.bonus) list.push(this.bonus);
+    if (this.chase) list.push(this.chase);
+    if (this.gem) list.push(this.gem);
+    return list;
+  }
+
   allTargets(): IterableIterator<TargetRuntime> {
-    const a = this.encounter?.targets.values() ?? [][Symbol.iterator]();
-    const b = this.bonus?.targets.values() ?? [][Symbol.iterator]();
-    const g = this.gem?.targets.values() ?? [][Symbol.iterator]();
-    function* both() {
-      yield* a;
-      yield* b;
-      yield* g;
+    const runners = this.runners();
+    function* all() {
+      for (const r of runners) yield* r.targets.values();
     }
-    return both();
+    return all();
   }
 
   /** Progress of an encounter for scene props: live while running, full once completed. */
@@ -318,7 +353,11 @@ export class GameRun {
   }
 
   findTarget(id: string): TargetRuntime | undefined {
-    return this.encounter?.targets.get(id) ?? this.bonus?.targets.get(id) ?? this.gem?.targets.get(id);
+    for (const r of this.runners()) {
+      const t = r.targets.get(id);
+      if (t) return t;
+    }
+    return undefined;
   }
 
   // ---------- Frame update ----------
@@ -353,11 +392,14 @@ export class GameRun {
     }
 
     if (this.dialogue) this.updateDialogue(dt);
+    this.updatePendingFx(dt);
 
     // Never carry the camera away from a bonus word too soon or once the player has started it
     // (owner bugs: "gle" for "glint", then "glint is skipped entirely" after the pace-up). The camera
     // finishes its move, then waits at the end pose.
     let railDt = dt;
+    // Fast-rail set pieces ease off while a chase word is being typed (§1A comfort, §1B speed).
+    if (this.chaseTyping()) railDt *= CHASE_TYPING_RAIL;
     if (this.bonusNeedsTime()) railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
     this.director.update(railDt, settings.rail);
 
@@ -378,8 +420,215 @@ export class GameRun {
       if (events.length > 0) changed = true;
       this.handleBonusEvents(events);
     }
+    if (this.chase) {
+      const chase = this.chase;
+      const events = chase.update(simDt, timeScale, locked);
+      if (events.length > 0) changed = true;
+      this.fxFromRunnerEvents(events);
+      if (events.some((e) => e.type === 'complete') && this.chase === chase) this.chase = null;
+    }
     if (this.updateGems(simDt, timeScale, locked)) changed = true;
+    this.applyFollow(dt);
+    this.updateSpeedRound(dt);
     if (changed) this.refreshTargets();
+  }
+
+  // ---------- Set pieces: chases, camera-relative targets, spectacle (CLAUDE.md §1B) ----------
+
+  chase: EncounterRunner | null = null;
+  /** Spectacle waiting for the FX layer. */
+  readonly fxEvents: FxEvent[] = [];
+  private pendingFx: { cue: FxCue; inSec: number; origin: Vector3 | null }[] = [];
+  private readonly followPlaced = new WeakSet<TargetRuntime>();
+  private readonly followGoal = new Vector3();
+  private readonly camForward = new Vector3();
+  private readonly camRight = new Vector3();
+  private speed: SpeedRound | null = null;
+  private speedClearIn = 0;
+
+  /** True while the player is mid-word on a chase target. */
+  private chaseTyping(): boolean {
+    const id = this.typing.lockedId;
+    return id !== null && this.typing.isMidWord && (this.chase?.targets.has(id) ?? false);
+  }
+
+  /** Camera basis for camera-relative placement. */
+  private cameraBasis(): { fwd: Vector3; right: Vector3 } {
+    const pose = this.director.pose;
+    const fwd = this.camForward.copy(pose.lookAt).sub(pose.position);
+    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+    fwd.normalize();
+    const right = this.camRight.set(-fwd.z, 0, fwd.x);
+    if (right.lengthSq() < 1e-6) right.set(1, 0, 0);
+    right.normalize();
+    return { fwd, right };
+  }
+
+  /** Targets with `follow` fly beside the camera; they swoop in from ahead the first time. */
+  private applyFollow(dt: number): void {
+    const { fwd, right } = this.cameraBasis();
+    const pose = this.director.pose;
+    const k = 1 - Math.exp(-5 * dt);
+    for (const t of this.allTargets()) {
+      const f = t.spawn.follow;
+      if (!f || t.phase === 'waiting' || t.phase === 'gone') continue;
+      const goal = this.followGoal.copy(pose.position).addScaledVector(fwd, f.ahead).addScaledVector(right, f.side);
+      goal.y += f.up + Math.sin(t.clock * 2.2) * 0.08;
+      if (t.phase === 'leaving') goal.addScaledVector(right, Math.sign(f.side || 1) * t.phaseTime * 6);
+      if (!this.followPlaced.has(t)) {
+        this.followPlaced.add(t);
+        t.position.copy(goal).addScaledVector(fwd, 10).addScaledVector(right, Math.sign(f.side || 1) * 3);
+        t.position.y += 2;
+      }
+      t.position.lerp(goal, k);
+    }
+  }
+
+  private startChase(beat: LevelBeat): void {
+    if (!isCameraBeat(beat) || !beat.chase || beat.chase.length === 0) return;
+    const duration = this.director.remainingSec(this.settings().rail);
+    const targets = beat.chase.map((c) => ({ ...c.target, delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
+    const def: EncounterDef = { id: `chase:${beat.id}`, areaId: beat.areaId, kind: 'interaction', waves: [{ id: 'chase', targets }] };
+    this.chase = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
+  }
+
+  /** Play (or schedule) a spectacle. `origin` is used when the cue has no position of its own. */
+  emitFx(cue: FxCue, origin: Vector3 | null = null): void {
+    if ((cue.delaySec ?? 0) > 0) {
+      this.pendingFx.push({ cue, inSec: cue.delaySec ?? 0, origin: origin?.clone() ?? null });
+      return;
+    }
+    const scale = cue.scale ?? 1;
+    if (cue.kind === 'flash') {
+      patchRunUi({ flashKey: nextKey() });
+      audio.playSfx('boom', { volume: 0.7 });
+      return;
+    }
+    if (cue.kind === 'shake') {
+      this.shakeTime = Math.max(this.shakeTime, SHAKE_SEC * scale);
+      return;
+    }
+    const position = new Vector3();
+    if (typeof cue.at === 'string') {
+      const p = LEVEL1_ROUTE.lookPoints[cue.at];
+      if (p) position.set(...p);
+    } else if (cue.at) {
+      position.set(...cue.at);
+    } else if (origin) {
+      position.copy(origin);
+    } else {
+      const { fwd } = this.cameraBasis();
+      position.copy(this.director.pose.position).addScaledVector(fwd, 6);
+    }
+    this.fxEvents.push({ key: nextKey(), kind: cue.kind, position, scale, color: cue.color });
+    if (this.fxEvents.length > 64) this.fxEvents.splice(0, this.fxEvents.length - 64);
+    const sound = FX_SOUND[cue.kind];
+    if (sound) audio.playSfx(sound.id, { volume: sound.volume, rate: 0.9 + Math.random() * 0.2 });
+    if (cue.kind === 'lightning' || cue.kind === 'shockwave') this.shakeTime = Math.max(this.shakeTime, SHAKE_SEC * Math.min(1.5, scale));
+  }
+
+  private updatePendingFx(dt: number): void {
+    if (this.pendingFx.length === 0) return;
+    const due: { cue: FxCue; origin: Vector3 | null }[] = [];
+    this.pendingFx = this.pendingFx.filter((p) => {
+      p.inSec -= dt;
+      if (p.inSec > 0) return true;
+      due.push(p);
+      return false;
+    });
+    for (const p of due) this.emitFx({ ...p.cue, delaySec: 0 }, p.origin);
+  }
+
+  /** Entrance spectacle for targets that just appeared, from any runner. */
+  private fxFromRunnerEvents(events: readonly EncounterEvent[]): void {
+    for (const e of events) {
+      if (e.type === 'target-spawned' && e.target.spawn.entrance) this.emitFx(e.target.spawn.entrance, e.target.position);
+    }
+  }
+
+  /** Point Pip is being carried to, if a target is holding Pip (the opening cold open). */
+  pipCarrier(out: Vector3): boolean {
+    for (const t of this.allTargets()) {
+      if (!t.spawn.carriesPip || t.defeated || t.phase === 'waiting' || t.phase === 'gone' || t.phase === 'leaving') continue;
+      out.copy(t.position);
+      out.y -= 0.35;
+      return true;
+    }
+    return false;
+  }
+
+  /** Beam struggle (§1B): where the player's beam aims and how far it has pushed (0–1). */
+  beamStruggle(out: Vector3): { progress: number; color: string } | null {
+    const def = this.encounter?.def;
+    if (!def?.beam || this.encounter?.state === 'complete') return null;
+    out.set(...def.beam.to);
+    const p = this.encounterProgress(def.id);
+    return { progress: p.total > 0 ? p.done / p.total : 0, color: def.beam.color };
+  }
+
+  private startSpeedRound(def: EncounterDef): void {
+    if (!def.speedRound) {
+      if (this.speed) this.clearSpeedRound();
+      return;
+    }
+    const words = def.waves.reduce((n, w) => n + w.targets.filter((t) => !t.optional && !t.challengeOnly).reduce((m, t) => m + t.words.length, 0), 0);
+    this.speed = new SpeedRound(def.speedRound.sec, this.difficulty, words);
+    this.speedClearIn = 0;
+    this.publishSpeedRound(nextKey());
+  }
+
+  private publishSpeedRound(key?: number): void {
+    const r = this.speed;
+    if (!r) return;
+    const current = useRunStore.getState().speedRound;
+    patchRunUi({
+      speedRound: {
+        key: key ?? current?.key ?? nextKey(),
+        totalSec: r.totalSec,
+        remainingSec: Math.ceil(r.remainingSec * 10) / 10,
+        done: r.done,
+        words: r.words,
+        state: r.state,
+        bonus: r.bonus,
+      },
+    });
+  }
+
+  private updateSpeedRound(dt: number): void {
+    if (this.speedClearIn > 0) {
+      this.speedClearIn -= dt;
+      if (this.speedClearIn <= 0) this.clearSpeedRound();
+      return;
+    }
+    const r = this.speed;
+    if (!r || r.state !== 'running' || !this.encounter || this.encounter.state === 'intro') return;
+    const before = Math.ceil(r.remainingSec * 10);
+    if (r.tick(dt)) {
+      audio.playSfx('enemy-telegraph', { volume: 0.5 });
+      this.speedClearIn = SPEED_RESULT_SEC;
+    }
+    if (Math.ceil(r.remainingSec * 10) !== before || r.state !== 'running') this.publishSpeedRound();
+  }
+
+  private speedRoundWord(at: Vector3, height: number): void {
+    const r = this.speed;
+    if (!r || !r.word()) {
+      if (r) this.publishSpeedRound();
+      return;
+    }
+    const m = this.progress.metrics;
+    m.score += r.bonus;
+    audio.playSfx('checkpoint');
+    this.popup(`SPEED BONUS +${r.bonus}`, 'cheer', at, height);
+    this.speedClearIn = SPEED_RESULT_SEC;
+    this.publishSpeedRound();
+    patchRunUi({ score: m.score });
+  }
+
+  private clearSpeedRound(): void {
+    this.speed = null;
+    this.speedClearIn = 0;
+    patchRunUi({ speedRound: null });
   }
 
   // ---------- Spark gems (CLAUDE.md §1B: never more than ~7 s at Fast with nothing to type) ----------
@@ -391,11 +640,9 @@ export class GameRun {
   private hitStopSec = 0;
   private tally = { words: 0, correct: 0, incorrect: 0, damage: 0 };
   private boss: { def: BossDef; total: number; done: number } | null = null;
+  private hazardFxIndex = 0;
   private idleSec = 0;
   private gemCount = 0;
-  private readonly gemForward = new Vector3();
-  private readonly gemRight = new Vector3();
-  private readonly gemGoal = new Vector3();
 
   /** Spawns a gem after a short lull and keeps live gems flying beside the camera. Returns true if targets changed. */
   private updateGems(dt: number, timeScale: number, locked: string | null): boolean {
@@ -408,19 +655,6 @@ export class GameRun {
     }
     const gem = this.gem;
     if (!gem) return changed;
-    const pose = this.director.pose;
-    const fwd = this.gemForward.copy(pose.lookAt).sub(pose.position).normalize();
-    const right = this.gemRight.set(-fwd.z, 0, fwd.x).normalize();
-    const k = 1 - Math.exp(-5 * dt);
-    for (const t of gem.targets.values()) {
-      const side = Number(t.spawn.variant ?? '1');
-      this.gemGoal
-        .copy(pose.position)
-        .addScaledVector(fwd, 4.2)
-        .addScaledVector(right, side * 1.25);
-      this.gemGoal.y += 0.15 + Math.sin(t.clock * 2.2) * 0.08;
-      t.position.lerp(this.gemGoal, k);
-    }
     const events = gem.update(dt, timeScale, locked);
     for (const e of events) {
       if (e.type === 'complete') {
@@ -444,14 +678,12 @@ export class GameRun {
     const n = ++this.gemCount;
     const side = n % 2 === 0 ? 1 : -1;
     const pose = this.director.pose;
-    const fwd = this.gemForward.copy(pose.lookAt).sub(pose.position).normalize();
-    const right = this.gemRight.set(-fwd.z, 0, fwd.x).normalize();
-    // Swoop in from well ahead and to the side, then settle beside the camera.
-    const start = pose.position.clone().addScaledVector(fwd, 12).addScaledVector(right, side * 4).add(new Vector3(0, 1.5, 0));
     const spawn: TargetSpawn = {
       id: `gem-${n}`,
       kind: 'gem',
-      position: [start.x, start.y, start.z],
+      position: [pose.position.x, pose.position.y, pose.position.z],
+      // Swoops in from well ahead (applyFollow), then flies beside the camera.
+      follow: { ahead: 4.2, side: side * 1.25, up: 0.15 },
       words: [{ min: 3, max: 4 }],
       optional: true,
       leaveAfterSec: GEM_LIFETIME_SEC,
@@ -535,7 +767,7 @@ export class GameRun {
   }
 
   private candidateCount(): number {
-    return (this.encounter?.candidates().length ?? 0) + (this.bonus?.candidates().length ?? 0) + (this.gem?.candidates().length ?? 0);
+    return this.runners().reduce((n, r) => n + r.candidates().length, 0);
   }
 
   private handleTypingEvents(events: readonly TypingEvent[], nowMs: number): void {
@@ -576,7 +808,7 @@ export class GameRun {
   }
 
   private onWordComplete(targetId: string, word: string, mistakes: number, nowMs: number): void {
-    const runner = this.encounter?.targets.has(targetId) ? this.encounter : this.gem?.targets.has(targetId) ? this.gem : this.bonus;
+    const runner = this.runners().find((r) => r.targets.has(targetId));
     const target = runner?.targets.get(targetId);
     if (!runner || !target) return;
     this.metrics.recordCompletion(targetId, word, mistakes, nowMs);
@@ -588,7 +820,10 @@ export class GameRun {
     this.kickTime = KICK_SEC;
     this.popup(cheer ?? (perfect ? 'PERFECT!' : null), cheer ? 'cheer' : 'perfect', target.position, target.spawn.labelHeight ?? 1);
     if (cheer) audio.playSfx('unlock', { volume: 0.6, rate: 1 + Math.min(0.5, this.combo.count / 40) });
-    if (runner === this.encounter) this.tally.words++;
+    if (runner === this.encounter) {
+      this.tally.words++;
+      if (this.speed) this.speedRoundWord(target.position, target.spawn.labelHeight ?? 1);
+    }
     if (runner === this.encounter && this.boss?.def.phases.includes(runner.def.id)) {
       this.boss.done = Math.min(this.boss.total, this.boss.done + 1);
       patchRunUi({ boss: { id: this.boss.def.id, health: 1 - this.boss.done / Math.max(1, this.boss.total) } });
@@ -632,6 +867,7 @@ export class GameRun {
     } else if (result.defeated) {
       audio.playSfx('dispel');
       const spawn = target.spawn;
+      if (spawn.defeatFx) this.emitFx(spawn.defeatFx, target.position);
       if (spawn.optional) m.optionalTargetsCompleted++;
       const qualifies =
         spawn.rewardIf === undefined ||
@@ -711,6 +947,8 @@ export class GameRun {
     for (const id of beat.barks ?? []) this.queueBark(getLine(id));
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
+    if (isCameraBeat(beat) && beat.chase) this.startChase(beat);
+    for (const cue of beat.fx ?? []) this.emitFx(cue);
     const boss = bossForIntroBeat(beat.id);
     if (boss) {
       patchRunUi({ bossCard: { key: nextKey(), id: boss.id } });
@@ -753,6 +991,12 @@ export class GameRun {
   }
 
   private onBeatEnd(beat: LevelBeat): void {
+    if (this.chase && isCameraBeat(beat) && beat.chase) {
+      // Chase targets leave with their camera beat; nothing is ever required.
+      for (const t of this.chase.targets.values()) if (!t.defeated) t.phase = 'gone';
+      this.chase = null;
+      this.refreshTargets();
+    }
     if (this.bonus && isCameraBeat(beat) && beat.bonus) {
       // Bonus windows close with their camera beat; missed pages never block progress.
       for (const t of this.bonus.targets.values()) if (!t.defeated) t.phase = 'gone';
@@ -771,6 +1015,8 @@ export class GameRun {
 
   /** True while a bonus word must stay reachable: locked mid-word, or not yet shown long enough. */
   private bonusNeedsTime(): boolean {
+    const lockedId = this.typing.lockedId;
+    if (lockedId !== null && this.typing.isMidWord && this.chase?.targets.has(lockedId)) return true;
     const bonus = this.bonus;
     if (!bonus) return false;
     if (this.typing.lockedId !== null && bonus.targets.has(this.typing.lockedId)) return true;
@@ -823,6 +1069,7 @@ export class GameRun {
     this.tally = { words: 0, correct: m.correctEntries, incorrect: m.incorrectEntries, damage: m.focusLost };
     const boss = bossForEncounter(def.id);
     if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
+    this.startSpeedRound(def);
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.resetEncounterTyping();
   }
@@ -833,6 +1080,7 @@ export class GameRun {
     for (const e of events) {
       switch (e.type) {
         case 'wave-start':
+          for (const cue of runner.def.waves[e.wave]?.fx ?? []) this.emitFx(cue);
           this.progress.resumeWaveIndex = e.wave;
           this.fireBarks({ on: 'wave-start', wave: e.wave });
           this.requestSave();
@@ -848,10 +1096,20 @@ export class GameRun {
           return;
         case 'hit':
           this.applyDamage(e.damage);
+          if (e.source?.spawn.kind === 'imp') patchRunUi({ splatKey: nextKey() });
           break;
-        case 'hazard-hit':
+        case 'hazard-hit': {
           this.applyDamage(e.damage);
           patchRunUi({ hazard: null });
+          const cues = runner.def.hazard?.fx;
+          if (cues && cues.length > 0) {
+            const cue = cues[this.hazardFxIndex++ % cues.length];
+            if (cue) this.emitFx(cue);
+          }
+          break;
+        }
+        case 'target-spawned':
+          if (e.target.spawn.entrance) this.emitFx(e.target.spawn.entrance, e.target.position);
           break;
         case 'hazard-windup':
           audio.playSfx('enemy-telegraph');
@@ -877,6 +1135,7 @@ export class GameRun {
   }
 
   private handleBonusEvents(events: readonly EncounterEvent[]): void {
+    this.fxFromRunnerEvents(events);
     for (const e of events) {
       if (e.type === 'complete') {
         this.bonus = null;
@@ -910,6 +1169,8 @@ export class GameRun {
       this.progress.completedBossPhases.push(def.bossPhase);
     }
     this.awardMedal();
+    for (const cue of def.completeFx ?? []) this.emitFx(cue);
+    if (this.speed?.state === 'running') this.clearSpeedRound();
     if (this.boss && this.boss.def.phases[this.boss.def.phases.length - 1] === def.id) {
       this.boss = null;
       patchRunUi({ boss: null });
@@ -937,6 +1198,7 @@ export class GameRun {
     const runner = this.encounter;
     if (!runner) return;
     runner.skip();
+    if (this.speed) this.clearSpeedRound();
     const beatId = this.encounterBeatId;
     this.encounter = null;
     this.encounterBeatId = null;
@@ -1029,7 +1291,7 @@ export class GameRun {
    */
   private resetEncounterTyping(): void {
     const locked = this.typing.lockedId;
-    if (locked !== null && (this.gem?.targets.has(locked) || this.bonus?.targets.has(locked))) return;
+    if (locked !== null && this.runners().some((r) => r !== this.encounter && r.targets.has(locked))) return;
     this.typing.reset();
   }
 
@@ -1341,7 +1603,7 @@ export class GameRun {
   // ---------- Targets / labels ----------
 
   private refreshTargets(): void {
-    const candidates = [...(this.encounter?.candidates() ?? []), ...(this.bonus?.candidates() ?? []), ...(this.gem?.candidates() ?? [])];
+    const candidates = this.runners().flatMap((r) => r.candidates());
     const unlocks = this.typing.setCandidates(candidates);
     if (unlocks.length > 0) this.metrics.closeAttempt();
     const ids = [...this.allTargets()].map((t) => t.id);

@@ -124,6 +124,13 @@ export const strings = {
     score: 'Score',
     combo: 'Combo',
   },
+  speedRound: {
+    title: 'SPEED ROUND!',
+    goal: (words: number, sec: number) => `${words} words in ${sec} seconds!`,
+    won: 'SPEED ROUND CLEAR!',
+    timeUp: 'TIME!',
+    keepGoing: 'Nice try! Finish the words for the reward.',
+  },
   medals: {
     1: 'Nice work!',
     2: 'Great casting!',

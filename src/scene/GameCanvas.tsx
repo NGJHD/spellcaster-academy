@@ -6,6 +6,8 @@ import { EnemyManager } from '../enemies/EnemyManager';
 import { PipCompanion } from '../player/PipCompanion';
 import { RunDriver } from '../player/RunDriver';
 import { Wand } from '../player/Wand';
+import { BeamStruggle } from '../spells/BeamStruggle';
+import { FxLayer } from '../spells/FxLayer';
 import { SpellEffects } from '../spells/SpellEffects';
 import { useSettingsStore } from '../state/settingsStore';
 import { RailGizmos } from './RailGizmos';
@@ -35,6 +37,8 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       </Suspense>
       <EnemyManager />
       <SpellEffects />
+      <FxLayer />
+      <BeamStruggle />
       {!HIDE_WAND && <Wand />}
       <PipCompanion />
       {SHOW_RAILS && <RailGizmos />}

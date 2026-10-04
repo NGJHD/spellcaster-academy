@@ -63,6 +63,17 @@ export interface BossBarInfo {
   readonly health: number;
 }
 
+export interface SpeedRoundInfo {
+  readonly key: number;
+  readonly totalSec: number;
+  /** Rounded to tenths so the store updates at most ten times a second. */
+  readonly remainingSec: number;
+  readonly done: number;
+  readonly words: number;
+  readonly state: 'running' | 'won' | 'time-up';
+  readonly bonus: number;
+}
+
 export interface ChoiceInfo {
   readonly options: readonly { id: string; label: string }[];
   readonly index: number;
@@ -109,6 +120,11 @@ export interface RunUiState {
   /** Bumps when a boss name card should play. */
   bossCard: { key: number; id: string } | null;
   boss: BossBarInfo | null;
+  speedRound: SpeedRoundInfo | null;
+  /** Bumps for a full-screen flash (explosions, the ward re-sealing). */
+  flashKey: number;
+  /** Bumps when a paint splat lands on the screen edge (Hall of Portraits imps). */
+  splatKey: number;
 }
 
 export const initialRunUi = (): RunUiState => ({
@@ -144,6 +160,9 @@ export const initialRunUi = (): RunUiState => ({
   medal: null,
   bossCard: null,
   boss: null,
+  speedRound: null,
+  flashKey: 0,
+  splatKey: 0,
 });
 
 export const useRunStore = create<RunUiState>()(() => initialRunUi());

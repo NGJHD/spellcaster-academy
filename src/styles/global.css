@@ -1638,3 +1638,124 @@ kbd {
 @keyframes boss-card-leave {
   to { opacity: 0; transform: translateX(-6%); }
 }
+
+.speed-round {
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 15rem;
+  padding: 0.5rem 1.2rem 0.6rem;
+  border: 2px solid #ff9f43;
+  border-radius: 14px;
+  background: rgba(30, 14, 8, 0.86);
+  text-align: center;
+  animation: speed-in 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.speed-round--won {
+  border-color: #ffd45a;
+  animation: speed-in 0.35s cubic-bezier(0.3, 1.6, 0.5, 1), fade-card 2.2s ease forwards;
+}
+
+.speed-round--time-up {
+  border-color: #9fe7ff;
+  animation: fade-card 2.2s ease forwards;
+}
+
+.speed-round__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: 0.12em;
+  color: #ffb86b;
+  text-shadow: 0 0 10px rgba(255, 140, 50, 0.8);
+}
+
+.speed-round--won .speed-round__title {
+  color: #ffe08a;
+}
+
+.speed-round__goal {
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+}
+
+.speed-round__clock {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.speed-round__track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.speed-round__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #ffb86b, #ffe08a);
+}
+
+.speed-round__fill--low {
+  background: #ff7a3d;
+  animation: low-pulse 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes low-pulse {
+  to { opacity: 0.55; }
+}
+
+.speed-round__count {
+  margin-top: 2px;
+  font-weight: 700;
+  color: #9fe7ff;
+}
+
+.speed-round__bonus {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #9fe7ff;
+}
+
+@keyframes speed-in {
+  from { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  to { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.screen-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff8e6;
+  pointer-events: none;
+  animation: screen-flash 0.7s ease-out forwards;
+}
+
+@keyframes screen-flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.paint-splat {
+  position: absolute;
+  width: min(18vw, 200px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0.92;
+  animation: splat 2.6s ease-in forwards;
+}
+
+@keyframes splat {
+  0% { scale: 0.2; opacity: 0; }
+  8% { scale: 1.15; opacity: 0.95; }
+  14% { scale: 1; }
+  70% { opacity: 0.9; translate: 0 0; }
+  100% { opacity: 0; translate: 0 40px; }
+}

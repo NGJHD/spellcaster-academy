@@ -124,6 +124,32 @@ const SOUNDS = {
       ),
       0.5,
     ),
+  // Excitement pass (CLAUDE.md §1B): explosions, smashes and fireworks.
+  boom: () =>
+    normalise(
+      mix(
+        lowpass(render(1.4, (t) => env(t, 0.003, 0.35) * noise()), 260),
+        render(1.4, (t) => env(t, 0.005, 0.4) * sine(62 - t * 30, t) * 1.2),
+      ),
+      0.75,
+    ),
+  crash: () =>
+    normalise(
+      mix(
+        lowpass(render(0.9, (t) => env(t, 0.002, 0.12) * noise()), 2400),
+        ...[0, 1, 2, 3, 4, 5].map((i) => lowpass(render(0.9, (t) => (t > i * 0.07 ? env(t - i * 0.07, 0.001, 0.05) * noise() * 0.6 : 0)), 1600 - i * 150)),
+      ),
+      0.6,
+    ),
+  firework: () =>
+    normalise(
+      mix(
+        render(1.2, (t) => (t < 0.35 ? (t / 0.35) * noise() * 0.12 : 0)),
+        lowpass(render(1.2, (t) => (t > 0.35 ? env(t - 0.35, 0.002, 0.18) * noise() : 0)), 1800),
+        ...[0, 1, 2, 3].map((i) => chime(note(88 + i * 4), 0.4 + i * 0.06, 0.6, 0.25)),
+      ),
+      0.6,
+    ),
   dispel: () =>
     normalise(
       mix(...[0, 1, 2, 3, 4].map((i) => chime(note(96 - i * 3), i * 0.05, 0.35, 0.5))),

@@ -26,6 +26,51 @@ export type MusicId =
 
 export type LineId = string;
 
+/**
+ * Cosmetic spectacle (CLAUDE.md §1B "Destruction" and "Surprise entrances"). Rendered by the FX
+ * layer; never affects gameplay and never covers a word for long.
+ */
+export type FxKind =
+  /** Sparkling magical explosion. */
+  | 'burst'
+  /** Tumbling chunks with gravity (wood, stone, books, crates: tinted by `color`). */
+  | 'debris'
+  | 'dust'
+  /** Expanding ring of light along the ground. */
+  | 'shockwave'
+  /** Column of light into the sky. */
+  | 'pillar'
+  | 'fireworks'
+  /** Streaks falling from the sky (falling ward pieces). */
+  | 'meteors'
+  /** Upward fountain of particles (ink geyser, soil eruption). */
+  | 'geyser'
+  | 'leaves'
+  | 'glass'
+  | 'sparks'
+  | 'lightning'
+  /** Full-screen white flash (UI). */
+  | 'flash'
+  /** Camera shake. */
+  | 'shake';
+
+export interface FxCue {
+  readonly kind: FxKind;
+  /** World position or a named look point. Omitted: a few metres in front of the camera. */
+  readonly at?: Vec3 | string;
+  readonly delaySec?: number;
+  /** Size (or strength for shake). Default 1. */
+  readonly scale?: number;
+  readonly color?: string;
+}
+
+/** A target that joins a camera beat part-way through (chases and fast-rail set pieces). */
+export interface ChaseSpawn {
+  /** 0–1 through the camera beat when the target appears. */
+  readonly at: number;
+  readonly target: TargetSpawn;
+}
+
 /** Shared optional fields for every beat. */
 export interface BeatExtras {
   readonly music?: MusicId;
@@ -39,6 +84,13 @@ export interface BeatExtras {
   readonly restoreFocus?: boolean;
   /** Beats the 7-second attention rule does not cover (CLAUDE.md §1B): boss intros and endings. */
   readonly attention?: 'boss-intro' | 'ending';
+  /** Spectacle played when the beat starts (each cue may be delayed). */
+  readonly fx?: readonly FxCue[];
+  /**
+   * Fast-rail set piece (§1B): targets that join the camera beat as it plays. They never block or
+   * damage; untyped ones fly away. The camera slows while the player is mid-word on one.
+   */
+  readonly chase?: readonly ChaseSpawn[];
 }
 
 export type LevelCameraBeat = CameraBeat & BeatExtras;
@@ -105,6 +157,8 @@ export type TargetKind =
   | 'flying-page'
   | 'plate'
   | 'rune'
+  /** Paint imp that leaps out of a portrait (Hall of Portraits ambush). */
+  | 'imp'
   /** Spark gem: a bonus word that flies alongside the camera (CLAUDE.md §1B). */
   | 'gem';
 
@@ -172,6 +226,14 @@ export interface TargetSpawn {
   readonly variant?: string;
   /** Stays in the scene in its calm/inactive pose after defeat (dummy, guardian, moss mound, dormant pod). */
   readonly persist?: boolean;
+  /** Flies with the camera at this offset (metres ahead, right, up) instead of staying at `position`. */
+  readonly follow?: { readonly ahead: number; readonly side: number; readonly up: number };
+  /** Spectacle when the target appears (bursting out of soil, smashing through a door). */
+  readonly entrance?: FxCue;
+  /** Spectacle when the target is beaten. */
+  readonly defeatFx?: FxCue;
+  /** Pip is held by this target until it is beaten (the opening cold open). */
+  readonly carriesPip?: boolean;
 }
 
 export type WaveRule =
@@ -200,6 +262,8 @@ export interface Wave {
   /** Activate one target at a time, in order. */
   readonly sequential?: boolean;
   readonly rule?: WaveRule;
+  /** Spectacle when the wave starts. */
+  readonly fx?: readonly FxCue[];
 }
 
 export type HazardAttack = 'arc-left' | 'arc-right' | 'pulse' | 'gust';
@@ -211,6 +275,8 @@ export interface HazardSpec {
   readonly intervalSec: number;
   readonly windupSec: number;
   readonly damage: number;
+  /** Spectacle for each hit, used in turn (gusts smashing furniture). */
+  readonly fx?: readonly FxCue[];
 }
 
 export interface CompletionEffects {
@@ -238,4 +304,10 @@ export interface EncounterDef {
   readonly bossPhase?: string;
   /** After this many Focus resets in this encounter, assist mode is offered. */
   readonly assistAfterFailures?: number;
+  /** Optional speed round (§1B): a countdown for bonus score. Never a fail state. */
+  readonly speedRound?: { readonly sec: number };
+  /** Beam struggle (§1B): each word pushes the player's beam towards this point. */
+  readonly beam?: { readonly to: Vec3; readonly color: string };
+  /** Spectacle when the encounter completes. */
+  readonly completeFx?: readonly FxCue[];
 }

@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
-import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, Vector2, Vector3, type Group } from 'three';
+import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, SphereGeometry, Vector2, Vector3, type Group } from 'three';
 import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
 
@@ -553,6 +553,76 @@ export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boo
         <sphereGeometry args={[0.22, 16, 12]} />
         <meshBasicMaterial color={cosmetic ? '#8fffd8' : '#ffe9a0'} transparent opacity={0.1} depthWrite={false} />
       </mesh>
+    </group>
+  );
+}
+
+const IMP_PAINT: Record<string, string> = { red: '#e8483c', blue: '#3f7fe8', yellow: '#f2c230', green: '#3fbf6a', purple: '#9b5de5' };
+
+/** Paint-blob body: a smooth sphere with soft lumps and a drippy base (no faceting). */
+function impBodyGeometry(): SphereGeometry {
+  const g = new SphereGeometry(0.28, 40, 28);
+  const pos = g.getAttribute('position');
+  const v = new Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const lump = 1 + 0.07 * Math.sin(v.x * 21 + v.y * 9) * Math.cos(v.z * 17);
+    v.multiplyScalar(lump);
+    // Drips hang from the lower half.
+    if (v.y < -0.05) v.y -= Math.max(0, Math.sin(Math.atan2(v.z, v.x) * 5)) * 0.12 * (-v.y / 0.28);
+    v.y *= 1.15;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
+ * PLACEHOLDER paint imp (LD-0 Hall of Portraits): a cheeky glossy blob of portrait paint with big
+ * eyes and stubby arms. Hops, rears back to throw a splat, and bursts back into paint when beaten.
+ */
+export function ImpModel({ pose, variant }: { pose: PoseRef; variant?: string }) {
+  const body = useRef<Group>(null);
+  const arm = useRef<Group>(null);
+  const colour = IMP_PAINT[variant ?? 'red'] ?? '#e8483c';
+  const geometry = useMemo(() => impBodyGeometry(), []);
+  const paint = useMemo(() => new MeshStandardMaterial({ color: colour, roughness: 0.18, metalness: 0, emissive: colour, emissiveIntensity: 0.08 }), [colour]);
+  useFrame(() => {
+    const p = pose.current;
+    const b = body.current;
+    if (!b) return;
+    const hop = Math.abs(Math.sin(p.time * (p.moving ? 9 : 3.4))) * (p.moving ? 0.25 : 0.06);
+    const squash = 1 - p.hit * 0.35 + Math.sin(p.time * 6.8) * 0.03;
+    b.position.y = hop + 0.3;
+    b.scale.set(1 / Math.sqrt(squash) + p.dispel * 1.4, squash * (1 - p.dispel * 0.8), 1 / Math.sqrt(squash) + p.dispel * 1.4);
+    b.rotation.x = -p.windup * 0.45;
+    if (arm.current) arm.current.rotation.x = -p.windup * 2.4 + (p.recovering ? 1.2 : 0) + Math.sin(p.time * 5) * 0.15;
+  });
+  return (
+    <group ref={body}>
+      <mesh geometry={geometry} material={paint} castShadow />
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <mesh position={[0.1 * s, 0.1, 0.24]} material={MAT.eyeWhite}>
+            <sphereGeometry args={[0.075, 16, 12]} />
+          </mesh>
+          <mesh position={[0.11 * s, 0.1, 0.31]} material={MAT.eyeDark}>
+            <sphereGeometry args={[0.035, 12, 10]} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[-0.27, -0.02, 0.05]} rotation={[0, 0, 0.9]} material={paint}>
+        <capsuleGeometry args={[0.045, 0.14, 6, 10]} />
+      </mesh>
+      <group ref={arm} position={[0.24, 0.05, 0]}>
+        <mesh position={[0.06, 0.08, 0]} rotation={[0, 0, -0.5]} material={paint}>
+          <capsuleGeometry args={[0.045, 0.14, 6, 10]} />
+        </mesh>
+        {/* The paint ball it is about to throw. */}
+        <mesh position={[0.12, 0.2, 0]} material={paint}>
+          <sphereGeometry args={[0.07, 14, 10]} />
+        </mesh>
+      </group>
     </group>
   );
 }

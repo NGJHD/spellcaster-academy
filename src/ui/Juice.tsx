@@ -130,3 +130,67 @@ export function BossBar() {
     </div>
   );
 }
+
+export function SpeedRoundBanner() {
+  const r = useRunStore((s) => s.speedRound);
+  if (!r) return null;
+  const t = strings.speedRound;
+  const fraction = r.totalSec > 0 ? r.remainingSec / r.totalSec : 0;
+  return (
+    <div key={r.key} className={`speed-round speed-round--${r.state}`} role="status">
+      <div className="speed-round__title">{r.state === 'won' ? t.won : r.state === 'time-up' ? t.timeUp : t.title}</div>
+      {r.state === 'running' && (
+        <>
+          <div className="speed-round__goal">{t.goal(r.words, Math.round(r.totalSec))}</div>
+          <div className="speed-round__clock">{r.remainingSec.toFixed(1)}</div>
+          <div className="speed-round__track">
+            <span className={`speed-round__fill${fraction < 0.3 ? ' speed-round__fill--low' : ''}`} style={{ transform: `scaleX(${fraction})` }} />
+          </div>
+          <div className="speed-round__count">
+            {r.done} / {r.words}
+          </div>
+        </>
+      )}
+      {r.state === 'won' && <div className="speed-round__bonus">+{r.bonus}</div>}
+      {r.state === 'time-up' && <div className="speed-round__goal">{t.keepGoing}</div>}
+    </div>
+  );
+}
+
+/** Full-screen white flash for explosions and the ward re-sealing. */
+export function FlashOverlay() {
+  const key = useRunStore((s) => s.flashKey);
+  if (key === 0) return null;
+  return <div key={key} className="screen-flash" aria-hidden="true" />;
+}
+
+const SPLAT_SPOTS = [
+  { left: '3%', top: '18%', rotate: 20, colour: '#e8483c' },
+  { left: '82%', top: '62%', rotate: -35, colour: '#3f7fe8' },
+  { left: '6%', top: '64%', rotate: 75, colour: '#f2c230' },
+  { left: '86%', top: '14%', rotate: -10, colour: '#3fbf6a' },
+  { left: '1%', top: '40%', rotate: 140, colour: '#9b5de5' },
+];
+
+/**
+ * Paint splats from the portrait imps land at the screen edges only (LD-0: they never cover a
+ * word) and slide off after a moment.
+ */
+export function PaintSplats() {
+  const key = useRunStore((s) => s.splatKey);
+  if (key === 0) return null;
+  const spot = SPLAT_SPOTS[key % SPLAT_SPOTS.length] ?? SPLAT_SPOTS[0];
+  if (!spot) return null;
+  return (
+    <div key={key} className="paint-splat" aria-hidden="true" style={{ left: spot.left, top: spot.top, transform: `rotate(${spot.rotate}deg)`, color: spot.colour }}>
+      <svg viewBox="0 0 100 100" width="100%" height="100%">
+        <path
+          fill="currentColor"
+          d="M50 12c7 0 9 10 15 11s14-8 18-2-4 13 0 19 15 5 14 13-12 6-14 12 6 15-1 19-12-5-18-3-8 13-15 12-6-12-12-14-16 6-19-1 6-12 3-18-14-7-12-15 13-5 16-11-3-14 3-18 13 4 18 2 3-15 4-16z"
+        />
+        <circle cx="88" cy="20" r="5" fill="currentColor" />
+        <circle cx="12" cy="84" r="4" fill="currentColor" />
+      </svg>
+    </div>
+  );
+}

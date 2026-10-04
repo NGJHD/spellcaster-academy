@@ -19,6 +19,9 @@ export const SFX_IDS = [
   'unlock',
   'gate-open',
   'dispel',
+  'boom',
+  'crash',
+  'firework',
 ] as const;
 
 export type SfxId = (typeof SFX_IDS)[number];
@@ -43,5 +46,8 @@ export const SFX_CATEGORY: Record<SfxId, 'sfx' | 'ui'> = {
   'ui-move': 'ui',
   unlock: 'ui',
   'gate-open': 'sfx',
+  boom: 'sfx',
+  crash: 'sfx',
+  firework: 'sfx',
   dispel: 'sfx',
 };

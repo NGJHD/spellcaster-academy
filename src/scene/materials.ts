@@ -61,6 +61,7 @@ export const MAT = {
   eyeAmber: std('#ffb84d', 0.3, 0, { emissive: '#ff9a1f', emissiveIntensity: 2 }),
   eyeCyan: std('#bff6ff', 0.3, 0, { emissive: '#55e6ff', emissiveIntensity: 2.4 }),
   eyeDark: std('#16110c', 0.2),
+  eyeWhite: std('#f4f1ea', 0.25),
   tealGlow: std('#7ff0e0', 0.4, 0, { emissive: '#2fd6c0', emissiveIntensity: 1.6 }),
   skin: std('#c99a78', 0.7),
   hair: std('#3a2a20', 0.8),
