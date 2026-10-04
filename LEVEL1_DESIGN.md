@@ -2887,6 +2887,15 @@ A valid complete run must support this exact experience:
 
 Level 1 plants three threads that later levels pay off (see `CLAUDE.md` §5 and the Level 2 and 3 design documents):
 
-- **The seam.** After the ward is repaired, a faint hairline seam remains in the sky. It is visible on close inspection during the Celebration Courtyard sequence, but no character comments on it. It tears open in Level 2.
-- **Who fractured the ward.** Level 1 never answers this. Pip's assumption that the Warden caused the fracture is proved wrong, and the real culprit, the Unwriter, is first heard in Level 2 and met in Level 3.
+- **The seam.** After the ward is repaired, a burning hairline seam remains in the sky (the observatory reveal), faint over the Celebration Courtyard. It tears open in Level 2.
+- **Who fractured the ward (owner revision, 2026-10-04: a mystery that is solved at the end).** Level 1 is an investigation. Every area adds a clue, in words an 8-year-old can follow:
+  - Arrival: the gate crystals are asleep and a sprite is scared, not naughty.
+  - Courtyard: a star page half rubbed out to grey; the anchor's runes scratched out on purpose.
+  - East Hall: the books are fleeing, not attacking, because their pages are going blank.
+  - Library: a mosaic of the Warden locking a man with a pen behind the sky; Pip's memory goes blank; the Grimoire whispers "Unwriter".
+  - Hall of Portraits: the portraits refuse to say a banished wizard's name; his frame beside the Warden's is scratched out.
+  - Greenhouse: plants turn grey in the crack's light; the Warden is holding the crack shut.
+  - Observatory: after the ward is mended, a burning seam is left in the sky and a voice speaks through it ("one crack is all I need"). Pip knows the voice.
+  - Ending: Keeper Orin names him: the ward was torn from outside by the only wizard who ever wrote in fire, the Unwriter. The seam lingers over the celebration.
+  The Unwriter is not seen in Level 1. His army attacks in Level 2, and he is met in Level 3.
 - **Pip's imperfection.** Pip is "occasionally wrong" by design. Level 3 reveals that Pip's creator tried to erase it for exactly that reason, and Pip chooses to stay imperfect.

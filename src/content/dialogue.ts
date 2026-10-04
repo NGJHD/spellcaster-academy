@@ -4,7 +4,7 @@
  */
 import type { AreaId } from '../game/types';
 
-export type Speaker = 'pip' | 'mira' | 'orin' | 'portrait-1' | 'portrait-2' | 'warden';
+export type Speaker = 'pip' | 'mira' | 'orin' | 'portrait-1' | 'portrait-2' | 'warden' | 'unwriter';
 
 export interface DialogueLine {
   readonly speaker: Speaker;
@@ -19,6 +19,8 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
   'portrait-1': 'Portrait',
   'portrait-2': 'Another Portrait',
   warden: 'Ward Warden (translated by Pip)',
+  // Unnamed in Level 1: Orin names him in the ending.
+  unwriter: '???',
 };
 
 const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text });
@@ -27,67 +29,67 @@ export const LINES = {
   // Opening and Arrival Gate
   'open-1': line('pip', 'Asterfall Academy! Quick — type the sparks as we fly!'),
   'open-snatch': line('pip', 'HEY! Put me DOWN! Type its word — quick!'),
-  'open-rescued': line('pip', 'Thank you! Ahem. I meant to do that.'),
-  'open-2': line('pip', "I'm Pip, your guide orb. And you're the new apprentice — perfect timing!"),
-  'open-3': line('pip', 'This gate listens to letters. Type each crystal word and blast it open!'),
+  'open-rescued': line('pip', 'Thank you! That sprite looked scared, not naughty. Strange.'),
+  'open-2': line('pip', "I'm Pip, your guide orb. Odd — the gate should already be open for you."),
+  'open-3': line('pip', 'The gate crystals have gone dim. Type their words to wake them!'),
   'gate-first-correct': line('pip', 'Good! Each correct letter gathers magic.'),
   'gate-first-word': line('pip', 'And the final letter casts it. Very neat.'),
   'gate-first-mistake': line('pip', 'Almost. Backspace can pull that letter back.'),
   'gate-pause-tip': line('pip', 'If you ever need a rest, press Escape to pause.'),
-  'gate-done': line('pip', 'Gate unlocked! I knew I had selected the correct apprentice.'),
+  'gate-done': line('pip', 'Open! But crystals never fall asleep. Something is wrong today.'),
   'fracture-1': line('pip', 'That is… not part of the welcome ceremony.'),
   'fracture-2': line('orin', 'All students, stay inside! The celestial ward is breaking!'),
-  'fracture-3': line('pip', 'That is NOT part of the ceremony! Three anchors can fix it — courtyard first!'),
+  'fracture-3': line('pip', "Breaking? It's kept us safe for a hundred years! Quick — the anchors, courtyard first!"),
 
   // Sunlit Courtyard
-  'court-1': line('pip', "Training dummies should not train themselves. Let's settle them down."),
+  'court-1': line('pip', 'The dummies are fighting by themselves? The whole academy has gone jumpy.'),
   'court-first': line('pip', 'Perfect. You did not need to aim — the word guided your spell.'),
-  'court-sprites': line('pip', 'Sprites! Mischievous, quick, and extremely bad at following signs.'),
+  'court-sprites': line('pip', 'Sprites? They never leave the forest. What scared them out here?'),
   'court-tab-tip': line('pip', 'Start any word you like. Tab also switches targets, if you ever need it.'),
   'court-breathe': line('pip', 'Breathe. Read the whole word, then begin.'),
-  'court-warden': line('pip', 'That stone guardian is making the damage worse. I think.'),
+  'court-warden': line('pip', 'The Warden! Is it breaking the ward… or trying to fix it?'),
   'court-chase': line('pip', 'That sprite stole a star page! After it — along the roof!'),
-  'court-chase-caught': line('pip', 'Got it! One star page, slightly chewed.'),
-  'court-anchor-intro': line('pip', "The anchor's runes are cracked. Type each one to line up the rings."),
-  'court-anchor-done': line('pip', 'One anchor restored. Your wand has learned Spark Bolt properly now.'),
+  'court-chase-caught': line('pip', 'Got it! Look — half the page has gone grey, like the ink was rubbed out.'),
+  'court-anchor-intro': line('pip', "The anchor's runes are scratched out. Someone did this on purpose!"),
+  'court-anchor-done': line('pip', "Fixed! But runes don't scratch themselves. Who did this?"),
   'page-hint': line('pip', 'A star page! Type its word to catch it — only if you want to.'),
 
   // East Hall
-  'east-1': line('mira', "You're the new apprentice?! RUN — the books got loose!"),
-  'east-run-1': line('mira', 'Terrible first day, huh?!'),
-  'east-run-2': line('pip', 'Everything is going entirely according to plan!'),
-  'east-run-3': line('mira', 'Your plan started AFTER the ward broke!'),
+  'east-1': line('mira', "You're the new apprentice?! RUN — the books are escaping!"),
+  'east-run-1': line('mira', "They're not chasing us — they're running AWAY from something!"),
+  'east-run-2': line('pip', "Running from what? Books don't get scared!"),
+  'east-run-3': line('mira', 'These ones do! Their pages are going blank!'),
   'east-2': line('pip', 'We restored the courtyard anchor entirely according to plan.'),
   'east-3': line('mira', 'Your plan began after the ward broke.'),
   'east-4': line('pip', 'The best plans are flexible.'),
   'east-5': line('mira', 'The library anchor is next. Watch the floating books. They hate being read backwards.'),
   'east-chest': line('pip', 'A constellation chest! Quick — crack it open!'),
   'east-chest-done': line('pip', 'A Starlight wand trail! Very stylish.'),
-  'east-6': line('mira', 'I saw the Warden carry ward pieces to the tower — it looked worried, not angry!'),
+  'east-6': line('mira', 'And I saw the Warden carry a piece of the sky into the tower. It looked worried.'),
   'east-7': line('pip', 'Stone faces cannot look worried.'),
   'east-8': line('mira', 'That one did.'),
 
   // Whispering Library
-  'lib-1': line('pip', 'Library rule: quiet voices, careful steps, and absolutely no airborne dictionaries.'),
+  'lib-1': line('pip', 'Listen… the books are whispering. They keep saying "the crack".'),
   'lib-books': line('pip', "Runaway books! Type their words and they'll settle back on the shelves."),
-  'lib-wisps': line('pip', 'Those are ink wisps. Break the shield word first, then type the binding word.'),
-  'lib-mosaic': line('pip', "That mosaic! The Warden protects the ward… it's asking for help!"),
-  'lib-grim-1': line('pip', "Uh-oh. That's the biggest book in the building — and it's AWAKE!"),
+  'lib-wisps': line('pip', 'Spilled ink, come alive! Shield word first, then the binding word.'),
+  'lib-mosaic': line('pip', 'This mosaic shows the Warden locking a man with a pen behind the sky. Who is he?'),
+  'lib-grim-1': line('pip', "The Grimoire is awake — the oldest book in the school. And it's terrified!"),
   'lib-grim-clasps': line('pip', 'Its clasps! Type each word to loosen one.'),
   'lib-grim-pages': line('pip', 'Flying pages! Watch for the gusts — they glow before they blow.'),
   'lib-grim-sentence': line('pip', 'Push it back! Every word makes your beam stronger!'),
-  'lib-grim-done': line('pip', 'Returned on time, only slightly enchanted. The librarian may never know.'),
+  'lib-grim-done': line('pip', "It's calm. It whispered one word before it slept: \"Unwriter\"."),
   'lib-anchor-intro': line('pip', 'The library anchor wants four words. Read carefully.'),
-  'lib-anchor-done': line('pip', 'Two anchors. And a new spell for perfect words — Frost Thread.'),
+  'lib-anchor-done': line('pip', 'Two anchors — and Frost Thread! Now… what is an Unwriter?'),
 
   // Hall of Portraits
   'por-ambush': line('pip', 'The portraits are ALIVE! Paint imps — dodge the splats!'),
-  'por-1': line('portrait-1', 'A new apprentice during a ward fracture? How traditional.'),
-  'por-2': line('portrait-2', 'Nonsense. In my year, the ceiling became a whale.'),
-  'por-3': line('pip', 'Please ignore historical exaggeration.'),
+  'por-1': line('portrait-1', 'The ink is waking up! Last time this happened, a wizard was banished!'),
+  'por-2': line('portrait-2', "Hush, you old fool! We don't say his name!"),
+  'por-3': line('pip', "Whose name? Why won't anyone tell us?"),
   'por-fountain': line('pip', 'A healing fountain! HP full. Catch the droplets!'),
-  'por-4': line('mira', 'Vines have the Greenhouse Anchor! The Warden went that way — it moved falling glass away from the seedlings.'),
-  'por-5': line('pip', 'That is… unexpectedly considerate destruction.'),
+  'por-4': line('mira', "There's an empty frame down here. The name on it is scratched out — right next to the Warden's."),
+  'por-5': line('pip', 'Scratched-out names. Grey pages. Someone is rubbing things out of our world.'),
   'por-const': line('pip', 'Constellation plaques! Name all three, fast, for a big bonus!'),
   'por-const-done': line('pip', 'Star-reader! Your next spells will shine extra bright.'),
 
@@ -96,20 +98,20 @@ export const LINES = {
   'gh-snap': line('pip', 'Missed us! Ha! Keep going!'),
   'gh-stampede': line('pip', 'Mossling stampede! Here they come!'),
   'gh-pods': line('pip', 'The glowing pod is about to fire. Type its word first!'),
-  'gh-moss': line('pip', 'They are not monsters. The broken ward has frightened them.'),
-  'gh-warden': line('pip', 'Mira was right. The Warden is trying to protect the academy.'),
+  'gh-moss': line('pip', "They're frightened. Look — every plant near the crack's light has gone grey."),
+  'gh-warden': line('pip', "The Warden saved the seedlings! It's not our enemy — it's fighting the crack!"),
   'gh-anchor-intro': line('pip', 'Three vine knots: weather, plants and colours.'),
-  'gh-anchor-done': line('pip', 'Three anchors restored. The Warden has been carrying the broken energy alone. We need to reach the observatory.'),
+  'gh-anchor-done': line('pip', 'Three anchors! The Warden is holding the crack shut all alone. To the observatory!'),
   'gh-chain': line('pip', 'Chain Spark unlocked! Five perfect words in a row send sparks to nearby foes.'),
 
   // Lower Stairwell
   'st-1': line('pip', 'No time for stairs — hop on the tea tray! WHEEEE!'),
   'st-2': line('pip', 'Guards ahead! Command them out of the way!'),
   'st-3': line('pip', 'Uh-oh. This one needs a little more convincing.'),
-  'st-done': line('pip', 'Very formal. Even during an emergency.'),
+  'st-done': line('pip', 'Even the guards are nervous. Whatever is outside the ward, they can feel it.'),
 
   // Practice Gallery
-  'gal-1': line('mira', 'The gallery can tune your wand before the tower. Show us what you can do!'),
+  'gal-1': line('mira', 'Every strange thing points to the observatory. Tune your wand here first!'),
   'gal-2': line('pip', 'Welcome to the GALLERY GAUNTLET! Targets UP!'),
   'gal-p1': line('pip', 'Zone one: ACCURACY! Clean letters, folks — the crowd goes wild!'),
   'gal-p2': line('pip', 'Zone two! Two quick dummies and a big guard. Who goes first?'),
@@ -117,7 +119,7 @@ export const LINES = {
   'gal-bonus': line('pip', 'BONUS ROUND! Six targets, one clock — can you beat your best?'),
   'gal-bonus-done': line('pip', 'What a finish! Somebody frame that score!'),
   'gal-assist': line('pip', "Let's try some shorter words. Same magic, smaller spells."),
-  'gal-5': line('mira', "Your wand is steady. The Warden needs help, and you're ready to give it."),
+  'gal-5': line('mira', "The crack is right above the tower. Whatever's pushing on it — we stop it tonight."),
   'gal-6': line('pip', 'Ready enough. Fully ready would require six more forms and a signed—'),
   'gal-7': line('mira', 'Go.'),
 
@@ -128,10 +130,10 @@ export const LINES = {
   'tw-2': line('pip', 'Shielded wisps. Shield word first, then the binding word.'),
   'tw-3': line('pip', 'WHOA — it came through the FLOOR! Three commands should calm it!'),
   'tw-guard-done': line('pip', "It's kneeling. And opening the door for us!"),
-  'tw-pre': line('pip', 'Beyond this door, the Warden may not recognise us. Read first. Type clearly. We are here to repair, not destroy.'),
+  'tw-pre': line('pip', 'The crack is behind this door. Read first. Type clearly. Ready?'),
 
   // Observatory
-  'obs-1': line('pip', 'Its defence routine has locked us out! Reach the core — gently.'),
+  'obs-1': line('pip', 'The Warden is holding the crack shut — and its defences think WE are the danger!'),
   'obs-symbol': line('warden', 'PROTECT — SEAL — NO ENTRY'),
   'obs-2': line('pip', "It thinks keeping everyone out is the only safe choice. Let's prove there is another way."),
   'obs-w1': line('pip', 'Each word loosens one plate. Watch for the light — it glows before it swings.'),
@@ -140,13 +142,16 @@ export const LINES = {
   'obs-anchors': line('pip', 'It can feel the anchors. It knows we restored them.'),
   'obs-w3': line('pip', 'The ward is cracking! Push it back — type the academy values!'),
   'obs-restored': line('warden', 'WARD RESTORED · APPRENTICE RECOGNISED'),
-  'obs-end': line('pip', 'It was never our enemy. It was waiting for someone who could finish the spell.'),
+  'obs-end': line('pip', 'It was never our enemy. It was holding the door shut… against someone on the other side.'),
 
   // Power-up waves (first use of each new spell)
   'power-spark': line('pip', 'Try out your Spark Bolt — BLAST them!'),
   'power-frost': line('pip', 'Perfect words freeze the rest! Show them Frost Thread!'),
   'power-chain': line('pip', 'Five perfect in a row and the sparks LEAP! Go, go, go!'),
 
+  'lib-mosaic-2': line('pip', "I… don't know. That part of my memory is blank. That's never happened before."),
+  'seam-1': line('unwriter', 'Clever little apprentice. But one crack is all I need.'),
+  'seam-2': line('pip', 'That voice… I know that voice. But how?'),
   // Shared
   'focus-reset': line('pip', "Let's take a breath and try that part again."),
   'assist-offer': line('pip', "I'll make the words a little shorter for this part. You've got this."),
@@ -154,12 +159,12 @@ export const LINES = {
   'spell-chain': line('pip', 'Chain Spark! Five perfect words in a row!'),
 
   // Ending
-  'end-1': line('orin', "An apprentice's first lesson is usually how to hold a wand."),
-  'end-2': line('orin', 'Yours was how to understand one.'),
+  'end-1': line('orin', 'You mended the ward, apprentice. But it was not broken from in here.'),
+  'end-2': line('orin', 'It was torn from OUTSIDE — by the only wizard who ever wrote in fire. The Unwriter.'),
   'end-3': line('mira', "And how to survive Pip's planning."),
-  'end-4': line('pip', 'My planning achieved a complete success rate! Eventually.'),
+  'end-4': line('pip', 'The man with the pen. My blank memory. Keeper… who IS he?'),
   'end-5': line('mira', 'Eventually.'),
-  'end-6': line('orin', 'Welcome to Asterfall Academy, apprentice.'),
+  'end-6': line('orin', 'A story for another night. Welcome to Asterfall, apprentice. Rest — we may need you soon.'),
 } satisfies Record<string, DialogueLine>;
 
 export type KnownLineId = keyof typeof LINES;

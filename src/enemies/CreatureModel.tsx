@@ -48,6 +48,8 @@ function chooseClip(p: TargetPose): ClipName {
 const TINTS: Readonly<Record<string, { color: string; emissive?: string; emissiveIntensity?: number }>> = {
   grey: { color: '#9a9aa4' },
   teal: { color: '#c9e8e2', emissive: '#1fa594', emissiveIntensity: 0.35 },
+  'book-blue': { color: '#7fa0ff' },
+  'book-green': { color: '#8fd09a' },
 };
 
 export function CreatureModel({ url, pose, tint }: { url: string; pose: RefObject<TargetPose>; tint?: string }) {

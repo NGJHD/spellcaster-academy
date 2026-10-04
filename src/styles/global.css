@@ -943,6 +943,11 @@ button {
   color: #ffe7a8;
 }
 
+.subtitle__speaker--unwriter {
+  color: #ff5a3c;
+  text-shadow: 0 0 8px rgba(255, 60, 30, 0.8);
+}
+
 .subtitle__text {
   margin-top: 0.2rem;
   font-size: calc(1.25rem * var(--font-scale));

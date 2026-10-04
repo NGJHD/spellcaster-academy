@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, type RefObject } from 'react';
 import { Quaternion, Vector3 } from 'three';
 import { useParts } from '../scene/partsGlb';
+import { CreatureModel } from './CreatureModel';
 import { BookModel, DummyModel, ThornPodModel, type TargetPose } from './TargetVisuals';
 
 type PoseRef = RefObject<TargetPose>;
@@ -86,10 +87,22 @@ function ThornPodGLB({ pose }: { pose: PoseRef }) {
   return <primitive object={parts.root} />;
 }
 
+/** Realistic AI-pipeline models (assets-src/scripts/ai) used when present. */
+const AI_DUMMY = `${import.meta.env.BASE_URL}assets/creatures/training_dummy.glb`;
+const AI_BOOK = `${import.meta.env.BASE_URL}assets/creatures/runaway_book.glb`;
+
 export function Dummy({ pose, practice }: { pose: PoseRef; practice: boolean }) {
+  // Practice-gallery targets keep the clean arcade look; the courtyard dummies are the creepy realistic ones.
+  if (practice) {
+    return (
+      <Suspense fallback={<DummyModel pose={pose} practice />}>
+        <DummyGLB pose={pose} />
+      </Suspense>
+    );
+  }
   return (
-    <Suspense fallback={<DummyModel pose={pose} practice={practice} />}>
-      <DummyGLB pose={pose} />
+    <Suspense fallback={<DummyModel pose={pose} practice={false} />}>
+      <CreatureModel url={AI_DUMMY} pose={pose} />
     </Suspense>
   );
 }
@@ -97,10 +110,13 @@ export function Dummy({ pose, practice }: { pose: PoseRef; practice: boolean }) 
 export function Book({ pose, variant }: { pose: PoseRef; variant?: string }) {
   return (
     <Suspense fallback={<BookModel pose={pose} variant={variant} />}>
-      <BookGLB pose={pose} variant={variant} />
+      <CreatureModel url={AI_BOOK} pose={pose} tint={variant === 'blue' ? 'book-blue' : variant === 'green' ? 'book-green' : undefined} />
     </Suspense>
   );
 }
+
+/** The previous Blender book, kept for reference while the AI model is reviewed. */
+export const LegacyBookGLB = BookGLB;
 
 export function ThornPod({ pose }: { pose: PoseRef }) {
   return (

@@ -1,0 +1,2 @@
+seed: 14
+prompt: A round antique brass elevator platform for a wizard tower, circular brass floor plate with riveted rim, a waist-high ornate brass railing with curled scrollwork, four thick chains rising from the railing, single object, highly detailed realistic 3D render, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no text

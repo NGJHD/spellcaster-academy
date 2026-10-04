@@ -21,6 +21,7 @@ density = float(args[2]) if len(args) > 2 else 560.0
 # well-defined inside; the octree remesh wraps any surface.
 # The octree remesh keeps thin parts (petals, plates, drips) that a VDB voxel shell drops or detaches;
 # the voxel path stays available for subjects that prefer it.
+# Furry and soft-bodied creatures: the octree keeps their noisy fur shards, the voxel shell smooths them.
 VOXEL = {"sprite_a", "mossling", "ink_wisp"}
 mode = "voxel" if name in VOXEL else "octree"
 src = os.path.join(ROOT, "assets-src", "ai-meshes", f"{name}_white.glb")
@@ -114,6 +115,23 @@ for _ in range(4):
     dec.ratio = max(0.02, target / now)
     dec.use_collapse_triangulate = True
     bpy.ops.object.modifier_apply(modifier=dec.name)
+obj.data.calc_loop_triangles()
+if len(obj.data.loop_triangles) > target * 1.5:
+    # Collapse decimation stalls on some octree output; the mesh is closed now, so a fine voxel shell
+    # keeps its thin parts and decimates cleanly.
+    fix = obj.modifiers.new("Revoxel", "REMESH")
+    fix.mode = "VOXEL"
+    fix.voxel_size = height / density
+    bpy.ops.object.modifier_apply(modifier=fix.name)
+    for _ in range(4):
+        obj.data.calc_loop_triangles()
+        now = len(obj.data.loop_triangles)
+        if now <= target * 1.05:
+            break
+        dec = obj.modifiers.new("Decimate", "DECIMATE")
+        dec.ratio = max(0.02, target / now)
+        dec.use_collapse_triangulate = True
+        bpy.ops.object.modifier_apply(modifier=dec.name)
 bpy.ops.object.shade_smooth()
 obj.data.calc_loop_triangles()
 print(f"PREP {name}: {len(islands)} islands, kept {kept} outer parts, {before} -> {len(obj.data.loop_triangles)} tris")

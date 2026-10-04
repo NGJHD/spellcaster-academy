@@ -80,7 +80,7 @@ export const library: AreaScript = {
     fight('library-l2', A, { barks: ['lib-wisps'] }),
     travel('library-to-clue', A, ['LIB_COMBAT', 'LIB_CLUE_VIEW'], 4),
     reveal('library-balcony-pan', A, 'LIB_CLUE_VIEW', ['LIB_BALCONY_PAGE'], 1.8, 3.4, {
-      barks: ['lib-mosaic'],
+      barks: ['lib-mosaic', 'lib-mosaic-2'],
       bonus: target('bonus-page-balcony', 'star-page', L(9.5, 5.1, -12), ['shelf'], {
         optional: true,
         labelHeight: 0.45,

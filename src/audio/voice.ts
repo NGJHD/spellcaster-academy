@@ -22,6 +22,7 @@ const DELIVERY: Record<Speaker, { pitch: number; rate: number; prefer: RegExp }>
   'portrait-1': { pitch: 0.95, rate: 0.98, prefer: /male|george|ryan|david/i },
   'portrait-2': { pitch: 1.15, rate: 1.0, prefer: /female|hazel|susan|sonia/i },
   warden: { pitch: 0.4, rate: 0.82, prefer: /male|george|ryan|david/i },
+  unwriter: { pitch: 0.55, rate: 0.85, prefer: /male|george|ryan|david|daniel/i },
 };
 
 /** Installs browser speech synthesis (Web Speech API). `settings()` supplies on/off and volume. */

@@ -14,6 +14,7 @@ import { useRunStore } from '../../state/runStore';
 import { Arch, Banner, Bookshelf, Column, Facade, GableRoof, KitModel, Planter, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { BookSwarm } from '../Swarm';
+import { Seam } from '../Seam';
 import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
 import { worldBox, worldCylinder, worldPlane } from '../surfaces';
@@ -44,6 +45,8 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
       <EastHall />
       {celebration && <CelebrationDressing />}
       <WardDome celebration={celebration} />
+      {/* The seam lingers faintly over the celebration (LD-21). */}
+      {celebration && <Seam points={[[-60, 95, -150], [-25, 108, -160], [0, 100, -165], [30, 112, -158], [65, 102, -148]]} radius={0.5} strength={0.55} />}
       {/* LD-0: the Warden silhouetted on the tower against the lightning as the ward fractures. */}
       <WardenCameo
         beatId="arrival-ward-fracture"

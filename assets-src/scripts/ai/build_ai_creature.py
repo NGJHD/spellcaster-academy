@@ -36,8 +36,11 @@ CONFIG = {
     "armour_guardian": dict(out="armour_guardian", height=2.05, tris=40000, tex=2048, rig="biped", defeat="bow", metallic=0.45, roughness=0.5),
     "paint_imp": dict(out="paint_imp", height=0.8, tris=26000, tex=1024, rig="biped", defeat="vanish"),
     "thorn_pod": dict(out="thorn_pod", height=1.4, tris=30000, tex=1024, rig="plant", defeat="wilt"),
-    "runaway_book": dict(out="runaway_book", height=0.5, tris=20000, tex=1024, rig="rigid", defeat="vanish"),
+    "runaway_book": dict(out="runaway_book", yaw=-90, height=0.5, tris=20000, tex=1024, rig="rigid", defeat="vanish"),
     "training_dummy": dict(out="training_dummy", height=1.65, tris=24000, tex=1024, rig="dummy", defeat="slump"),
+    "tea_tray": dict(out="tea_tray", folder="props", height=0.06, fit="width", width=0.7, tris=6000, tex=1024, rig="none", defeat="vanish", metallic=0.8, roughness=0.3),
+    "lift_platform": dict(out="lift_platform", folder="props", height=3.0, fit="width", width=2.5, tris=20000, tex=1024, rig="none", defeat="vanish", metallic=0.75, roughness=0.4),
+    "inkwell": dict(out="inkwell", folder="props", height=0.2, fit="width", width=1.1, tris=8000, tex=1024, rig="none", defeat="vanish"),
     "snapvine": dict(out="snapvine_head", height=1.6, tris=30000, tex=1024, rig="rigid", defeat="vanish"),
 }
 cfg = CONFIG[NAME]
@@ -72,10 +75,12 @@ high.select_set(True)
 bpy.context.view_layer.objects.active = high
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 lo, hi = bbox(high)
-scale = H / (hi.z - lo.z)
+scale = cfg["width"] / max(hi.x - lo.x, hi.y - lo.y) if cfg.get("fit") == "width" else H / (hi.z - lo.z)
 for v in high.data.vertices:
     v.co = Vector(((v.co.x - (lo.x + hi.x) / 2) * scale, (v.co.y - (lo.y + hi.y) / 2) * scale, (v.co.z - lo.z) * scale))
 high.data.update()
+if cfg.get("fit") == "width":
+    H = max(0.01, bbox(high)[1].z)
 high.name = "HighPoly"
 
 
@@ -216,135 +221,139 @@ W = hi.x - lo.x
 D = hi.y - lo.y
 
 
-# ---------- Skeleton: height bands along the body's centre line ----------
-# Arbitrary AI meshes have no reliable limb topology, so the rig is robust rather than anatomical:
-# a planted root (legs, roots, base), torso, chest and head, blended smoothly by height. That gives
-# believable rearing, lunging, breathing, nodding, waddling, recoil and defeat poses at play distance.
+# Static props (rig="none") skip the skeleton and clips.
+rig = None
+if cfg["rig"] != "none":
+    # ---------- Skeleton: height bands along the body's centre line ----------
+    # Arbitrary AI meshes have no reliable limb topology, so the rig is robust rather than anatomical:
+    # a planted root (legs, roots, base), torso, chest and head, blended smoothly by height. That gives
+    # believable rearing, lunging, breathing, nodding, waddling, recoil and defeat poses at play distance.
 
-J = C.Joint
-if cfg["rig"] == "rigid":
-    BANDS = [("pelvis", 0.0, H)]
-    joints = [J("pelvis", (0, 0, 0.5 * H), (0, 0, H))]
-else:
-    cut = {"biped": (0.3, 0.6, 0.8), "dummy": (0.18, 0.62, 0.82), "floater": (0.35, 0.62, 0.82), "plant": (0.25, 0.55, 0.72)}[cfg["rig"]]
-    z1, z2, z3 = (c * H for c in cut)
-    BANDS = [("pelvis", 0.0, z1), ("spine", z1, z2), ("chest", z2, z3), ("head", z3, H)]
-    joints = [
-        J("pelvis", (0, 0, 0.0), (0, 0, z1)),
-        J("spine", (0, 0, z1), (0, 0, z2), "pelvis"),
-        J("chest", (0, 0, z2), (0, 0, z3), "spine"),
-        J("head", (0, 0, z3), (0, 0, H), "chest"),
-    ]
-
-arm_data = bpy.data.armatures.new(cfg["out"] + "Rig")
-rig = bpy.data.objects.new(cfg["out"] + "Rig", arm_data)
-bpy.context.collection.objects.link(rig)
-bpy.ops.object.select_all(action="DESELECT")
-bpy.context.view_layer.objects.active = rig
-bpy.ops.object.mode_set(mode="EDIT")
-made = {}
-for j in joints:
-    b = arm_data.edit_bones.new(j.name)
-    b.head, b.tail = j.head, j.tail
-    if j.parent:
-        b.parent = made[j.parent]
-        b.use_connect = True
-    made[j.name] = b
-bpy.ops.object.mode_set(mode="OBJECT")
-
-blend = 0.07 * H
-groups = {name: body.vertex_groups.new(name=name) for name, _, _ in BANDS}
-
-
-def band_weights(z):
-    """Smoothly blended membership of each band (overlapping by `blend` at every boundary)."""
-    out = {}
-    for name, lo_z, hi_z in BANDS:
-        rise = 1.0 if lo_z <= 0 else min(1.0, max(0.0, (z - (lo_z - blend)) / (2 * blend)))
-        fall = 1.0 if hi_z >= H else min(1.0, max(0.0, ((hi_z + blend) - z) / (2 * blend)))
-        w = rise * fall
-        if w > 0:
-            out[name] = w
-    total = sum(out.values()) or 1.0
-    return {k: v / total for k, v in out.items()}
-
-
-for v in body.data.vertices:
-    for name, w in band_weights(v.co.z).items():
-        groups[name].add([v.index], w, "REPLACE")
-body.parent = rig
-mod = body.modifiers.new("Armature", "ARMATURE")
-mod.object = rig
-
-# ---------- Clips (30 fps, degrees, bone-local; +X leans a bone forward, local Z is forward) ----------
-
-P = C.pose_action
-style = cfg["rig"]
-
-if style == "rigid":
-    # A flying book: hover bob and tilt; lunge; recoil; spin away.
-    P(rig, "Idle", [(0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}}), (30, {"pelvis": {"rot": (8, 0, 6), "loc": (0, 0.03 * H, 0)}}), (60, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}})])
-    P(rig, "Move", [(0, {"pelvis": {"rot": (10, 0, -12), "loc": (0, 0, 0)}}), (10, {"pelvis": {"rot": (14, 0, 12), "loc": (0, 0.04 * H, 0)}}), (20, {"pelvis": {"rot": (10, 0, -12), "loc": (0, 0, 0)}})])
-    P(rig, "Attack", [(0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}}), (14, {"pelvis": {"rot": (-35, 0, 0), "loc": (0, 0.05 * H, -0.15 * H)}}), (20, {"pelvis": {"rot": (30, 0, 0), "loc": (0, -0.02 * H, 0.35 * H)}}), (30, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}})])
-    P(rig, "Hit", [(0, {"pelvis": {"rot": (0, 0, 0)}}), (3, {"pelvis": {"rot": (-25, 15, 10)}}), (12, {"pelvis": {"rot": (0, 0, 0)}})])
-    P(rig, "Dispel", [(0, {"pelvis": {"rot": (0, 0, 0), "scale": (1, 1, 1)}}), (15, {"pelvis": {"rot": (-40, 360, 0), "scale": (0.7, 0.7, 0.7)}}), (30, {"pelvis": {"rot": (-80, 720, 0), "scale": (0.05, 0.05, 0.05)}})])
-else:
-    sway = {"biped": 4, "dummy": 2, "floater": 6, "plant": 5}[style]
-    P(rig, "Idle", [
-        (0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-        (30, {"spine": (sway * 0.4, 0, sway * 0.3), "chest": (sway * 0.5, 0, 0), "head": (-sway * 0.6, sway * 2, 0)}),
-        (60, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-    ])
-    if style == "plant":
-        move = [(0, {"spine": (0, 0, 5), "chest": (0, 0, 7)}), (20, {"spine": (0, 0, -5), "chest": (0, 0, -7)}), (40, {"spine": (0, 0, 5), "chest": (0, 0, 7)})]
+    J = C.Joint
+    if cfg["rig"] == "rigid":
+        BANDS = [("pelvis", 0.0, H)]
+        joints = [J("pelvis", (0, 0, 0.5 * H), (0, 0, H))]
     else:
-        # A heavy, rolling gait: bob on each step, the body rolling side to side and leaning in.
-        bob = 0.025 * H if style != "floater" else 0.015 * H
-        move = []
-        for i, frame in enumerate((0, 6, 12, 18, 24)):
-            up = i % 2 == 1
-            roll = (6 if i in (0, 4) else -6) if not up else 0
-            move.append((frame, {"pelvis": {"loc": (0, bob if up else 0, 0), "rot": (0, roll, 0)}, "spine": (10, 0, -roll * 0.5), "chest": (4, 0, 0), "head": (-8, 0, roll * 0.4)}))
-    P(rig, "Move", move)
-    # Anticipation (rear back and crouch), strike (lunge forward), recovery.
-    P(rig, "Attack", [
-        (0, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-        (14, {"pelvis": {"loc": (0, -0.03 * H, -0.03 * H)}, "spine": (-16, 0, 0), "chest": (-14, 0, 0), "head": (16, 0, 0)}),
-        (20, {"pelvis": {"loc": (0, 0.02 * H, 0.08 * H)}, "spine": (24, 0, 0), "chest": (18, 0, 0), "head": (-10, 0, 0)}),
-        (30, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-    ])
-    P(rig, "Hit", [
-        (0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-        (3, {"spine": (-14, 0, 6), "chest": (-10, 0, 0), "head": (-18, 10, 0)}),
-        (12, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-    ])
-    defeat = cfg["defeat"]
-    if defeat == "vanish":
-        P(rig, "Dispel", [
-            (0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0), "scale": (1, 1, 1)}}),
-            (15, {"pelvis": {"rot": (0, 360, 0), "loc": (0, 0.1 * H, 0), "scale": (0.7, 0.7, 0.7)}}),
-            (30, {"pelvis": {"rot": (0, 720, 0), "loc": (0, 0.2 * H, 0), "scale": (0.05, 0.05, 0.05)}}),
-        ])
-    elif defeat == "bow":
-        P(rig, "Dispel", [(0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}), (30, {"spine": (26, 0, 0), "chest": (12, 0, 0), "head": (16, 0, 0)})])
-    elif defeat == "wilt":
-        P(rig, "Dispel", [(0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}), (30, {"spine": (18, 0, 0), "chest": (30, 0, 0), "head": (45, 0, 0)})])
-    else:
-        # Slumps down and goes still (stays in the scene: a moss mound, a resting dummy).
-        P(rig, "Dispel", [
-            (0, {"pelvis": {"loc": (0, 0, 0), "scale": (1, 1, 1)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-            (30, {"pelvis": {"loc": (0, 0, 0), "scale": (1.08, 0.82, 1.08)}, "spine": (30, 0, 0), "chest": (22, 0, 0), "head": (28, 0, 0)}),
-        ])
+        cut = {"biped": (0.3, 0.6, 0.8), "dummy": (0.18, 0.62, 0.82), "floater": (0.35, 0.62, 0.82), "plant": (0.25, 0.55, 0.72)}[cfg["rig"]]
+        z1, z2, z3 = (c * H for c in cut)
+        BANDS = [("pelvis", 0.0, z1), ("spine", z1, z2), ("chest", z2, z3), ("head", z3, H)]
+        joints = [
+            J("pelvis", (0, 0, 0.0), (0, 0, z1)),
+            J("spine", (0, 0, z1), (0, 0, z2), "pelvis"),
+            J("chest", (0, 0, z2), (0, 0, z3), "spine"),
+            J("head", (0, 0, z3), (0, 0, H), "chest"),
+        ]
 
-out = os.path.join(ROOT, "public", "assets", "creatures", f"{cfg['out']}.glb")
+    arm_data = bpy.data.armatures.new(cfg["out"] + "Rig")
+    rig = bpy.data.objects.new(cfg["out"] + "Rig", arm_data)
+    bpy.context.collection.objects.link(rig)
+    bpy.ops.object.select_all(action="DESELECT")
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode="EDIT")
+    made = {}
+    for j in joints:
+        b = arm_data.edit_bones.new(j.name)
+        b.head, b.tail = j.head, j.tail
+        if j.parent:
+            b.parent = made[j.parent]
+            b.use_connect = True
+        made[j.name] = b
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+    blend = 0.07 * H
+    groups = {name: body.vertex_groups.new(name=name) for name, _, _ in BANDS}
+
+
+    def band_weights(z):
+        """Smoothly blended membership of each band (overlapping by `blend` at every boundary)."""
+        out = {}
+        for name, lo_z, hi_z in BANDS:
+            rise = 1.0 if lo_z <= 0 else min(1.0, max(0.0, (z - (lo_z - blend)) / (2 * blend)))
+            fall = 1.0 if hi_z >= H else min(1.0, max(0.0, ((hi_z + blend) - z) / (2 * blend)))
+            w = rise * fall
+            if w > 0:
+                out[name] = w
+        total = sum(out.values()) or 1.0
+        return {k: v / total for k, v in out.items()}
+
+
+    for v in body.data.vertices:
+        for name, w in band_weights(v.co.z).items():
+            groups[name].add([v.index], w, "REPLACE")
+    body.parent = rig
+    mod = body.modifiers.new("Armature", "ARMATURE")
+    mod.object = rig
+
+    # ---------- Clips (30 fps, degrees, bone-local; +X leans a bone forward, local Z is forward) ----------
+
+    P = C.pose_action
+    style = cfg["rig"]
+
+    if style == "rigid":
+        # A flying book: hover bob and tilt; lunge; recoil; spin away.
+        P(rig, "Idle", [(0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}}), (30, {"pelvis": {"rot": (8, 0, 6), "loc": (0, 0.03 * H, 0)}}), (60, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}})])
+        P(rig, "Move", [(0, {"pelvis": {"rot": (10, 0, -12), "loc": (0, 0, 0)}}), (10, {"pelvis": {"rot": (14, 0, 12), "loc": (0, 0.04 * H, 0)}}), (20, {"pelvis": {"rot": (10, 0, -12), "loc": (0, 0, 0)}})])
+        P(rig, "Attack", [(0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}}), (14, {"pelvis": {"rot": (-35, 0, 0), "loc": (0, 0.05 * H, -0.15 * H)}}), (20, {"pelvis": {"rot": (30, 0, 0), "loc": (0, -0.02 * H, 0.35 * H)}}), (30, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}})])
+        P(rig, "Hit", [(0, {"pelvis": {"rot": (0, 0, 0)}}), (3, {"pelvis": {"rot": (-25, 15, 10)}}), (12, {"pelvis": {"rot": (0, 0, 0)}})])
+        P(rig, "Dispel", [(0, {"pelvis": {"rot": (0, 0, 0), "scale": (1, 1, 1)}}), (15, {"pelvis": {"rot": (-40, 360, 0), "scale": (0.7, 0.7, 0.7)}}), (30, {"pelvis": {"rot": (-80, 720, 0), "scale": (0.05, 0.05, 0.05)}})])
+    else:
+        sway = {"biped": 4, "dummy": 2, "floater": 6, "plant": 5}[style]
+        P(rig, "Idle", [
+            (0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (30, {"spine": (sway * 0.4, 0, sway * 0.3), "chest": (sway * 0.5, 0, 0), "head": (-sway * 0.6, sway * 2, 0)}),
+            (60, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        if style == "plant":
+            move = [(0, {"spine": (0, 0, 5), "chest": (0, 0, 7)}), (20, {"spine": (0, 0, -5), "chest": (0, 0, -7)}), (40, {"spine": (0, 0, 5), "chest": (0, 0, 7)})]
+        else:
+            # A heavy, rolling gait: bob on each step, the body rolling side to side and leaning in.
+            bob = 0.025 * H if style != "floater" else 0.015 * H
+            move = []
+            for i, frame in enumerate((0, 6, 12, 18, 24)):
+                up = i % 2 == 1
+                roll = (6 if i in (0, 4) else -6) if not up else 0
+                move.append((frame, {"pelvis": {"loc": (0, bob if up else 0, 0), "rot": (0, roll, 0)}, "spine": (10, 0, -roll * 0.5), "chest": (4, 0, 0), "head": (-8, 0, roll * 0.4)}))
+        P(rig, "Move", move)
+        # Anticipation (rear back and crouch), strike (lunge forward), recovery.
+        P(rig, "Attack", [
+            (0, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (14, {"pelvis": {"loc": (0, -0.03 * H, -0.03 * H)}, "spine": (-16, 0, 0), "chest": (-14, 0, 0), "head": (16, 0, 0)}),
+            (20, {"pelvis": {"loc": (0, 0.02 * H, 0.08 * H)}, "spine": (24, 0, 0), "chest": (18, 0, 0), "head": (-10, 0, 0)}),
+            (30, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        P(rig, "Hit", [
+            (0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (3, {"spine": (-14, 0, 6), "chest": (-10, 0, 0), "head": (-18, 10, 0)}),
+            (12, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        defeat = cfg["defeat"]
+        if defeat == "vanish":
+            P(rig, "Dispel", [
+                (0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0), "scale": (1, 1, 1)}}),
+                (15, {"pelvis": {"rot": (0, 360, 0), "loc": (0, 0.1 * H, 0), "scale": (0.7, 0.7, 0.7)}}),
+                (30, {"pelvis": {"rot": (0, 720, 0), "loc": (0, 0.2 * H, 0), "scale": (0.05, 0.05, 0.05)}}),
+            ])
+        elif defeat == "bow":
+            P(rig, "Dispel", [(0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}), (30, {"spine": (26, 0, 0), "chest": (12, 0, 0), "head": (16, 0, 0)})])
+        elif defeat == "wilt":
+            P(rig, "Dispel", [(0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}), (30, {"spine": (18, 0, 0), "chest": (30, 0, 0), "head": (45, 0, 0)})])
+        else:
+            # Slumps down and goes still (stays in the scene: a moss mound, a resting dummy).
+            P(rig, "Dispel", [
+                (0, {"pelvis": {"loc": (0, 0, 0), "scale": (1, 1, 1)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+                (30, {"pelvis": {"loc": (0, 0, 0), "scale": (1.08, 0.82, 1.08)}, "spine": (30, 0, 0), "chest": (22, 0, 0), "head": (28, 0, 0)}),
+            ])
+
+out = os.path.join(ROOT, "public", "assets", cfg.get("folder", "creatures"), f"{cfg['out']}.glb")
 C.export_glb(out)
 print(f"BUILT {cfg['out']}: {C.triangle_count()} tris, {W:.2f} x {D:.2f} x {H:.2f} m -> {out}")
 if "--preview" in args:
     C.render_previews(os.path.join(ROOT, "assets-src", "previews", cfg["out"]), H)
     # Deformation check: the Attack wind-up and strike poses (§14.5 motion check).
-    for track in rig.animation_data.nla_tracks:
+    for track in (rig.animation_data.nla_tracks if rig else []):
         track.mute = True
-    rig.animation_data.action = bpy.data.actions.get("Attack")
-    for frame, label in ((14, "windup"), (20, "strike")):
+    if rig:
+        rig.animation_data.action = bpy.data.actions.get("Attack")
+    for frame, label in (((14, "windup"), (20, "strike")) if rig else ()):
         bpy.context.scene.frame_set(frame)
         C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_{label}"), H, views=((35, "three-quarter"),))

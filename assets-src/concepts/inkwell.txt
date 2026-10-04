@@ -1,0 +1,2 @@
+seed: 15
+prompt: An overturned antique glass inkwell bottle lying on its side with a brass cap, a puddle of glossy dark indigo ink spreading from its mouth, single object, highly detailed realistic 3D render, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no text

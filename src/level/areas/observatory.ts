@@ -92,6 +92,18 @@ export const observatory: AreaScript = {
     fight('warden-w3', O, { barks: ['obs-w3'] }),
     travel('observatory-look-warden', O, ['OBS_DOME_VIEW', 'OBS_COMBAT'], 2.5, { reducedMotion: 'glide', attention: 'ending' }),
     talk('observatory-restored', O, ['obs-restored', 'obs-end'], { attention: 'ending' }),
+    // The reveal: a burning seam is left in the healed ward, and a voice speaks through it.
+    reveal('observatory-seam', O, 'OBS_COMBAT', ['OBS_DOME'], 1.2, 9, {
+      attention: 'ending',
+      music: 'warden-defence',
+      barks: ['seam-1', 'seam-2'],
+      fx: [
+        { kind: 'flash', atBeat: 0.12, color: '#ff3a20' },
+        { kind: 'meteors', at: 'OBS_DOME', atBeat: 0.15, scale: 0.5, color: '#ff4a2a' },
+        { kind: 'lightning', at: 'OBS_DOME', atBeat: 0.2 },
+        { kind: 'shake', atBeat: 0.2, scale: 1.2 },
+      ],
+    }),
     checkpoint('observatory-checkpoint', O, 'level-1-complete'),
   ],
   encounters: [

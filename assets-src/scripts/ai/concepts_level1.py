@@ -9,6 +9,12 @@ import sys
 
 from comfy import concept
 
+PROP_STYLE = (
+    "highly detailed realistic 3D render, physically based materials, soft even studio lighting, plain light grey "
+    "background, entire object in frame, centered, no text"
+)
+PROPS = {"tea_tray", "lift_platform", "inkwell"}
+
 STYLE = (
     "highly detailed realistic 3D creature render, physically based materials, soft even studio lighting, "
     "plain light grey background, entire body in frame, centered, no shadows, no text"
@@ -51,10 +57,20 @@ CONCEPTS = {
         "Full body of an old wooden training mannequin come to life, articulated hardwood limbs held together with leather "
         "straps and brass hinge pins, a canvas-wrapped torso with a painted red target on the chest, a carved wooden head with "
         "two glowing angry eyes burned into it, cracks in the varnish, standing on a weighted stone base, facing the camera", 8),
+    "tea_tray": (
+        "An ornate antique silver tea tray seen from above at an angle, oval with raised scalloped rim and two curved "
+        "handles, engraved floral and star patterns, slightly tarnished, single object", 12),
+    "lift_platform": (
+        "A round antique brass elevator platform for a wizard tower, circular brass floor plate with riveted rim, a "
+        "waist-high ornate brass railing with curled scrollwork, four thick chains rising from the railing, "
+        "single object", 14),
+    "inkwell": (
+        "An overturned antique glass inkwell bottle lying on its side with a brass cap, a puddle of glossy dark "
+        "indigo ink spreading from its mouth, single object", 15),
 }
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(CONCEPTS)
     for name in names:
         prompt, seed = CONCEPTS[name]
-        print(concept(name, f"{prompt}, {STYLE}", seed))
+        print(concept(name, f"{prompt}, {PROP_STYLE if name in PROPS else STYLE}", seed))

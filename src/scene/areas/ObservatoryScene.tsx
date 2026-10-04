@@ -8,6 +8,7 @@ import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
 import { Box, KitModel } from '../kit';
 import { MAT } from '../materials';
+import { Seam } from '../Seam';
 import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { WardenModel, useBeatIndex, type WardenState } from '../props';
 
@@ -22,6 +23,8 @@ export function ObservatoryScene() {
       <Instruments />
       <BossWarden />
       <WardDome />
+      {/* The torn seam across the dome (local coordinates; the dome is centred on the arena). */}
+      <Seam points={[[-1.5, 18, -40], [2.5, 30, -44], [-2.5, 42, -46], [2, 55, -45], [-1, 68, -42]]} radius={0.35} />
       <ValueBeams />
     </group>
   );

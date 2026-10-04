@@ -47,6 +47,12 @@ The Hush's greatest weapon is the **Vellum Wyrm**, a dragon made of thousands of
 
 Keeper Orin recognises it. It belonged to **Magister Corvane Hale**, an archivist of the academy who vanished centuries ago. Pip's lights flicker strangely when it sees the shard; Pip doesn't know why. The Lantern Ward holds, but the Rift stays open. Orin admits it can only be closed from the other side.
 
+### Focus: the evacuation (owner, 2026-10-04)
+
+Level 2 is about **getting everyone out**. The academy is on fire and the apprentice's job is to clear the way: every area ends with students reaching safety (the Great Hall, then the lake boats), and the progress bar doubles as an evacuation count ("Students safe: 46 / 120"). Rescues are short, exciting beats inside that flow, not the main goal. The beacons protect the evacuation route; the Vellum Wyrm is the last thing between the final boats and the far shore.
+
+The mystery from Level 1 is answered at the start: everyone now knows the name **the Unwriter**, and the opening voice from the Rift is his.
+
 ## L2-3. Characters
 
 ### Returning
