@@ -5,7 +5,7 @@ import { LEVEL1_ROUTE } from '../level/level1Route';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { useSettingsStore } from '../state/settingsStore';
-import { BossBar, BossCard, FlashOverlay, MedalCard, PaintSplats, Popups, ScoreMeter, SpeedRoundBanner } from './Juice';
+import { BossBar, BossCard, FlashOverlay, MedalCard, PaintSplats, Popups, PowerUpCard, ScoreMeter, SpeedRoundBanner } from './Juice';
 
 /** Chapter marks on the progress bar: where each area begins along the route. */
 const CHAPTERS: readonly { areaId: AreaId; at: number }[] = (() => {
@@ -127,6 +127,7 @@ export function HUD() {
       <BossBar />
       <BossCard />
       <MedalCard />
+      <PowerUpCard />
       <FlashOverlay />
       <Subtitles />
 

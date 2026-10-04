@@ -25,17 +25,19 @@ const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text 
 
 export const LINES = {
   // Opening and Arrival Gate
-  'open-1': line('pip', 'There it is! Asterfall Academy. First day, first wand, first adventure.'),
-  'open-2': line('pip', "I'm Pip, your guide orb! Apprentice detected. Robes tidy… wand ready… yes, you'll do nicely."),
-  'open-3': line('pip', 'This gate listens to letters. Type the word you see, and your wand will do the rest.'),
+  'open-1': line('pip', 'Asterfall Academy! Quick — type the sparks as we fly!'),
+  'open-snatch': line('pip', 'HEY! Put me DOWN! Type its word — quick!'),
+  'open-rescued': line('pip', 'Thank you! Ahem. I meant to do that.'),
+  'open-2': line('pip', "I'm Pip, your guide orb. And you're the new apprentice — perfect timing!"),
+  'open-3': line('pip', 'This gate listens to letters. Type each crystal word and blast it open!'),
   'gate-first-correct': line('pip', 'Good! Each correct letter gathers magic.'),
   'gate-first-word': line('pip', 'And the final letter casts it. Very neat.'),
   'gate-first-mistake': line('pip', 'Almost. Backspace can pull that letter back.'),
   'gate-pause-tip': line('pip', 'If you ever need a rest, press Escape to pause.'),
   'gate-done': line('pip', 'Gate unlocked! I knew I had selected the correct apprentice.'),
   'fracture-1': line('pip', 'That is… not part of the welcome ceremony.'),
-  'fracture-2': line('orin', 'All students, remain inside the marked halls. The celestial ward is unstable.'),
-  'fracture-3': line('pip', 'Three local anchors can steady it. Courtyard first. Hold on!'),
+  'fracture-2': line('orin', 'All students, stay inside! The celestial ward is breaking!'),
+  'fracture-3': line('pip', 'That is NOT part of the ceremony! Three anchors can fix it — courtyard first!'),
 
   // Sunlit Courtyard
   'court-1': line('pip', "Training dummies should not train themselves. Let's settle them down."),
@@ -44,6 +46,8 @@ export const LINES = {
   'court-tab-tip': line('pip', 'Start any word you like. Tab also switches targets, if you ever need it.'),
   'court-breathe': line('pip', 'Breathe. Read the whole word, then begin.'),
   'court-warden': line('pip', 'That stone guardian is making the damage worse. I think.'),
+  'court-chase': line('pip', 'That sprite stole a star page! After it — along the roof!'),
+  'court-chase-caught': line('pip', 'Got it! One star page, slightly chewed.'),
   'court-anchor-intro': line('pip', "The anchor's runes are cracked. Type each one to line up the rings."),
   'court-anchor-done': line('pip', 'One anchor restored. Your wand has learned Spark Bolt properly now.'),
   'page-hint': line('pip', 'A star page! Type its word to catch it — only if you want to.'),

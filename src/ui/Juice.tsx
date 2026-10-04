@@ -194,3 +194,19 @@ export function PaintSplats() {
     </div>
   );
 }
+
+/** New spell announced like a power-up (§1B "Unlock moments"). */
+export function PowerUpCard() {
+  const p = useRunStore((s) => s.powerUp);
+  const wordsShowing = useRunStore((s) => s.labels.length > 0);
+  if (!p) return null;
+  const card = strings.powerUps[p.spell];
+  return (
+    <div key={p.key} className={`power-up${wordsShowing ? ' boss-card--leaving' : ''}`} role="status">
+      <div className="power-up__burst" />
+      <div className="power-up__kicker">{strings.powerUpKicker}</div>
+      <div className="power-up__name">{card.name}</div>
+      <div className="power-up__detail">{card.detail}</div>
+    </div>
+  );
+}

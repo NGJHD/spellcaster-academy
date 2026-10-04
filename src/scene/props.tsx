@@ -299,6 +299,48 @@ function WardenFallback({ state, scale = 1 }: { state: { current: WardenState };
   );
 }
 
+export interface CameoKey {
+  /** 0–1 through the beat. */
+  readonly t: number;
+  readonly position: Vec3;
+  /** Arm raised towards something (drives the attack pose). */
+  readonly arm?: number;
+}
+
+/**
+ * Scripted Warden appearance during one beat (LD-0: crash-landing in the courtyard, smashing
+ * through the greenhouse roof): moves through keyframes by beat progress with eased motion.
+ */
+export function WardenCameo({ beatId, keys, scale = 1, rotationY = 0 }: { beatId: string; keys: readonly CameoKey[]; scale?: number; rotationY?: number }) {
+  const group = useRef<Group>(null);
+  const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.6, calm: 0, attack: 0, bow: 0 });
+  const index = beatIndexOf(beatId);
+  const beat = useBeatIndex();
+  useFrame(() => {
+    const g = group.current;
+    const run = getRun();
+    if (!g || !run) return;
+    g.visible = beat === index;
+    if (!g.visible) return;
+    const t = run.beatProgress();
+    let i = 0;
+    while (i < keys.length - 2 && (keys[i + 1]?.t ?? 1) < t) i++;
+    const a = keys[i];
+    const b = keys[i + 1] ?? a;
+    if (!a || !b) return;
+    const span = Math.max(1e-3, b.t - a.t);
+    const u = Math.min(1, Math.max(0, (t - a.t) / span));
+    const e = u * u * (3 - 2 * u);
+    g.position.set(a.position[0] + (b.position[0] - a.position[0]) * e, a.position[1] + (b.position[1] - a.position[1]) * e, a.position[2] + (b.position[2] - a.position[2]) * e);
+    state.current.attack = (a.arm ?? 0) + ((b.arm ?? 0) - (a.arm ?? 0)) * e;
+  });
+  return (
+    <group ref={group} visible={false} rotation={[0, rotationY, 0]}>
+      <WardenModel state={state} scale={scale} />
+    </group>
+  );
+}
+
 /** A Warden that simply hovers calmly (sightings, ending balcony). */
 export function StaticWarden({ position, scale = 1, visible = true, rotationY = 0 }: { position: Vec3; scale?: number; visible?: boolean; rotationY?: number }) {
   const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.3, calm: 0, attack: 0, bow: 0 });

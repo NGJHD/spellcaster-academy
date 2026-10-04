@@ -117,6 +117,8 @@ function TargetView({ id }: { id: string }) {
     g.visible = true;
     writePose(t, pose.current);
     g.position.copy(t.position);
+    // LD-0: charging training dummies hop on their weighted bases.
+    if (t.spawn.kind === 'dummy' && pose.current.moving) g.position.y += Math.abs(Math.sin(t.clock * 6.5)) * 0.32;
     if (FACES_CAMERA.has(t.spawn.kind)) {
       const dx = state.camera.position.x - t.position.x;
       const dz = state.camera.position.z - t.position.z;

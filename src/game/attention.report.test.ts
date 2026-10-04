@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { TRAVEL_SPEED_MULTIPLIER } from '../state/settings';
 import { useRunStore } from '../state/runStore';
-import { ATTENTION_GAP_LIMIT_SEC, AttentionTracker, BOSS_INTRO_LIMIT_SEC } from './attention';
+import { ATTENTION_GAP_LIMIT_SEC, AttentionTracker, BOSS_INTRO_LIMIT_SEC, SPECTACLE_LIMIT_SEC } from './attention';
 import { GameRun } from './GameRun';
 import type { KeyValueStorage } from './saveData';
 
@@ -26,6 +26,7 @@ export function measureGaps(msPerKey = 200) {
   });
   const tracker = new AttentionTracker();
   const introTracker = new AttentionTracker();
+  const spectacleTracker = new AttentionTracker();
   const dt = 1 / 30;
   let sinceKey = 0;
   for (let frame = 0; frame < 40 * 60 * 30 && !run.isEnded; frame++) {
@@ -37,8 +38,10 @@ export function measureGaps(msPerKey = 200) {
     const area = run.currentAreaId;
     const prompt = ui.labels.length > 0 || ui.choice !== null;
     const attention = beat && 'attention' in beat ? beat.attention : undefined;
-    tracker.step(dt, area, beatId, prompt, attention !== undefined);
+    // Spectacle beats count as action for the main rule but are measured on their own.
+    tracker.step(dt, area, beatId, prompt || attention === 'spectacle', attention === 'boss-intro' || attention === 'ending');
     introTracker.step(dt, area, beatId, prompt, attention !== 'boss-intro');
+    spectacleTracker.step(dt, area, beatId, prompt, attention !== 'spectacle');
     if (ui.choice) {
       run.handleIntent({ kind: 'enter' });
       continue;
@@ -51,16 +54,17 @@ export function measureGaps(msPerKey = 200) {
     const char = label.word[label.locked ? label.correctLength : label.pendingPrefix] ?? 'a';
     run.handleIntent({ kind: 'letter', char });
   }
-  return { gaps: tracker.report(), intros: introTracker.report(), ended: run.isEnded, minutes: clock / 60000 };
+  return { gaps: tracker.report(), intros: introTracker.report(), spectacles: spectacleTracker.report(), ended: run.isEnded, minutes: clock / 60000 };
 }
 
 describe('attention rule (Level 1 at Fast)', () => {
   it('never leaves more than 7 s with nothing to type (boss intros 8 s)', () => {
-    const { gaps, intros, ended, minutes } = measureGaps();
+    const { gaps, intros, spectacles, ended, minutes } = measureGaps();
     expect(ended).toBe(true);
     const lines = gaps.map((g) => `${g.areaId.padEnd(22)} ${g.longest.toFixed(1).padStart(5)} s  (ends at ${g.beatId})`);
     console.log(`Level 1 at Fast: ${minutes.toFixed(1)} min\n${lines.join('\n')}`);
     for (const g of gaps) expect(g.longest, `${g.areaId} gap ending at ${g.beatId}`).toBeLessThanOrEqual(ATTENTION_GAP_LIMIT_SEC);
     for (const g of intros) expect(g.longest, `boss intro in ${g.areaId}`).toBeLessThanOrEqual(BOSS_INTRO_LIMIT_SEC);
+    for (const g of spectacles) expect(g.longest, `spectacle ending at ${g.beatId}`).toBeLessThanOrEqual(SPECTACLE_LIMIT_SEC);
   });
 });

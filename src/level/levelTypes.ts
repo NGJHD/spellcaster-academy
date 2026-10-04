@@ -59,6 +59,8 @@ export interface FxCue {
   /** World position or a named look point. Omitted: a few metres in front of the camera. */
   readonly at?: Vec3 | string;
   readonly delaySec?: number;
+  /** Beat cues only: fire this far (0–1) through the camera beat, in step with the camera at any travel speed. */
+  readonly atBeat?: number;
   /** Size (or strength for shake). Default 1. */
   readonly scale?: number;
   readonly color?: string;
@@ -82,8 +84,12 @@ export interface BeatExtras {
   readonly bonus?: TargetSpawn;
   /** Refill Focus when the beat starts (fountains, safe rooms). */
   readonly restoreFocus?: boolean;
-  /** Beats the 7-second attention rule does not cover (CLAUDE.md §1B): boss intros and endings. */
-  readonly attention?: 'boss-intro' | 'ending';
+  /**
+   * How the 7-second attention rule treats the beat (CLAUDE.md §1B). Boss intros and endings are
+   * exempt. 'spectacle' beats (a crash-landing, an explosion, a big reveal) count as action: no spark
+   * gems cover them, and each must stay short.
+   */
+  readonly attention?: 'boss-intro' | 'ending' | 'spectacle';
   /** Spectacle played when the beat starts (each cue may be delayed). */
   readonly fx?: readonly FxCue[];
   /**
@@ -234,6 +240,8 @@ export interface TargetSpawn {
   readonly defeatFx?: FxCue;
   /** Pip is held by this target until it is beaten (the opening cold open). */
   readonly carriesPip?: boolean;
+  /** Line spoken when this target is beaten. */
+  readonly defeatBark?: LineId;
 }
 
 export type WaveRule =

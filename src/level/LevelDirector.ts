@@ -58,6 +58,12 @@ export class LevelDirector {
     return this.route.beats.findIndex((b) => b.id === beatId);
   }
 
+  /** Full length of the current camera beat at these settings (0 for gated beats). */
+  beatDurationSec(settings: RailSettings): number {
+    const beat = this.currentBeat;
+    return beat && isCameraBeat(beat) ? beatDurationSec(this.route, beat, settings) : 0;
+  }
+
   /** Seconds left in the current camera beat (0 for gated beats). */
   remainingSec(settings: RailSettings): number {
     const beat = this.currentBeat;

@@ -6,6 +6,8 @@
 export const ATTENTION_GAP_LIMIT_SEC = 7;
 /** Boss introductions may run a little longer (§1B). */
 export const BOSS_INTRO_LIMIT_SEC = 8;
+/** A spectacle beat (crash, explosion, reveal) counts as action, but must stay this short at Fast. */
+export const SPECTACLE_LIMIT_SEC = 4;
 
 export interface GapRecord {
   readonly areaId: string;

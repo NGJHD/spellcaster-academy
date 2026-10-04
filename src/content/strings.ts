@@ -124,6 +124,12 @@ export const strings = {
     score: 'Score',
     combo: 'Combo',
   },
+  powerUpKicker: 'NEW SPELL!',
+  powerUps: {
+    'spark-bolt': { name: 'SPARK BOLT', detail: 'Every finished word blasts a bolt of light.' },
+    'frost-thread': { name: 'FROST THREAD', detail: 'Perfect words freeze the other foes for a moment.' },
+    'chain-spark': { name: 'CHAIN SPARK', detail: 'Five perfect words in a row: lightning leaps to more foes!' },
+  } satisfies Record<SpellId, { name: string; detail: string }>,
   speedRound: {
     title: 'SPEED ROUND!',
     goal: (words: number, sec: number) => `${words} words in ${sec} seconds!`,

@@ -23,6 +23,7 @@ import {
   Mira,
   ProgressCrystal,
   StaticWarden,
+  WardenCameo,
   Student,
   WardAnchor,
   useBeatIndex,
@@ -42,6 +43,17 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
       <EastHall />
       {celebration && <CelebrationDressing />}
       <WardDome celebration={celebration} />
+      {/* LD-0: the Warden silhouetted on the tower against the lightning as the ward fractures. */}
+      <WardenCameo
+        beatId="arrival-ward-fracture"
+        scale={1.5}
+        keys={[
+          { t: 0, position: [0, 38, -57] },
+          { t: 0.3, position: [0, 44, -57], arm: 1 },
+          { t: 0.7, position: [0, 44, -57], arm: 1 },
+          { t: 1, position: [0, 52, -62] },
+        ]}
+      />
     </group>
   );
 }
@@ -204,7 +216,8 @@ function GateDoors() {
   useFrame((_, delta) => {
     const open = beat >= GATE_OPEN_BEAT || (getRun()?.flags.has('gate-open') ?? false);
     const goal = open ? 1.75 : 0;
-    const k = 1 - Math.exp(-1.8 * Math.min(delta, 0.1));
+    // The crystal words blast the doors open (LD-0): a fast swing with a little overshoot damping.
+    const k = 1 - Math.exp(-(open ? 6 : 1.8) * Math.min(delta, 0.1));
     if (left.current) left.current.rotation.y += (goal - left.current.rotation.y) * k;
     if (right.current) right.current.rotation.y += (-goal - right.current.rotation.y) * k;
   });
@@ -233,10 +246,8 @@ function GateDoors() {
 
 const DOOR_HALF = 1.5;
 const DOOR_HEIGHT = 3.2;
-const WARDEN_SIGHTING = beatIndexOf('courtyard-warden-sighting');
 
 function Courtyard({ celebration }: { celebration: boolean }) {
-  const beat = useBeatIndex();
   return (
     <group name="courtyard">
       <MergeStatic>
@@ -273,7 +284,21 @@ function Courtyard({ celebration }: { celebration: boolean }) {
       {[-12, -4, 4, 12].map((z) => (
         <WallLamp key={z} position={[-13.9, 3.2, z]} rotationY={Math.PI / 2} />
       ))}
-      <StaticWarden position={[6, 15.8, -16.5]} scale={0.7} visible={beat === WARDEN_SIGHTING} />
+      {/* LD-0: the Warden crash-lands in the courtyard, raises an arm at the anchor, then leaps away. */}
+      <WardenCameo
+        beatId="courtyard-warden-sighting"
+        scale={0.8}
+        rotationY={0.5}
+        keys={[
+          { t: 0, position: [3, 26, -14] },
+          { t: 0.22, position: [3, 0.2, -10] },
+          { t: 0.34, position: [3, 0.2, -10] },
+          { t: 0.46, position: [3, 0.2, -10], arm: 1 },
+          { t: 0.72, position: [3, 0.2, -10], arm: 1 },
+          { t: 0.8, position: [3, 0.2, -10] },
+          { t: 1, position: [-2, 34, -24] },
+        ]}
+      />
     </group>
   );
 }

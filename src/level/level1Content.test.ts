@@ -27,7 +27,10 @@ describe('Level 1 content', () => {
       if (reward?.starPage) pages.add(reward.starPage);
       if (reward?.cosmetic) cosmetics.add(reward.cosmetic);
     };
-    for (const beat of LEVEL1_ROUTE.beats) visit(beat.bonus?.reward);
+    for (const beat of LEVEL1_ROUTE.beats) {
+      visit(beat.bonus?.reward);
+      if ('chase' in beat) for (const c of beat.chase ?? []) visit(c.target.reward);
+    }
     for (const e of LEVEL1_ENCOUNTERS.values()) {
       visit(e.onComplete?.reward);
       for (const w of e.waves) for (const t of w.targets) visit(t.reward);

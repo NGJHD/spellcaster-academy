@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import type { Speaker } from '../content/dialogue';
 import type { HazardAttack, TargetKind } from '../level/levelTypes';
 import type { ResultsData } from '../game/scoring';
-import type { AreaId } from '../game/types';
+import type { AreaId, SpellId } from '../game/types';
 
 export interface LabelInfo {
   readonly id: string;
@@ -121,6 +121,8 @@ export interface RunUiState {
   bossCard: { key: number; id: string } | null;
   boss: BossBarInfo | null;
   speedRound: SpeedRoundInfo | null;
+  /** New-spell power-up card (§1B "Unlock moments"). */
+  powerUp: { key: number; spell: SpellId } | null;
   /** Bumps for a full-screen flash (explosions, the ward re-sealing). */
   flashKey: number;
   /** Bumps when a paint splat lands on the screen edge (Hall of Portraits imps). */
@@ -161,6 +163,7 @@ export const initialRunUi = (): RunUiState => ({
   bossCard: null,
   boss: null,
   speedRound: null,
+  powerUp: null,
   flashKey: 0,
   splatKey: 0,
 });

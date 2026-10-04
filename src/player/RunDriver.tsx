@@ -90,7 +90,9 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
 
     projectLabels(run, camera, size.width, size.height);
     projectPopups(camera, size.width, size.height);
-  });
+    // Runs before every other frame callback (targets at -1, effects at 0) so models, labels and the
+    // camera all use this frame's simulation: no one-frame lag during fast-rail set pieces.
+  }, -2);
 
   return null;
 }

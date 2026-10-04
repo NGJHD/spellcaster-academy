@@ -134,6 +134,10 @@ export function readSeconds(text: string): number {
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
 
+/** Spell unlocks play a short slow-motion beat. */
+const SLOW_MO_SEC = 1.2;
+const SLOW_MO_SCALE = 0.3;
+
 /** Rail speed while typing a chase word during a fast-rail set piece. */
 const CHASE_TYPING_RAIL = 0.4;
 /** How long a finished speed round's result stays on screen. */
@@ -407,7 +411,8 @@ export class GameRun {
     const locked = this.typing.lockedId;
     if (this.kickTime > 0) this.kickTime = Math.max(0, this.kickTime - dt);
     // Hit-stop: targets freeze for a beat when a word lands, so every hit feels solid (§1B).
-    const simDt = this.hitStopSec > 0 ? 0 : dt;
+    if (this.slowMoSec > 0) this.slowMoSec = Math.max(0, this.slowMoSec - dt);
+    const simDt = this.hitStopSec > 0 ? 0 : this.slowMoSec > 0 ? dt * SLOW_MO_SCALE : dt;
     if (this.hitStopSec > 0) this.hitStopSec = Math.max(0, this.hitStopSec - dt);
     let changed = false;
     if (this.encounter) {
@@ -439,12 +444,22 @@ export class GameRun {
   /** Spectacle waiting for the FX layer. */
   readonly fxEvents: FxEvent[] = [];
   private pendingFx: { cue: FxCue; inSec: number; origin: Vector3 | null }[] = [];
-  private readonly followPlaced = new WeakSet<TargetRuntime>();
-  private readonly followGoal = new Vector3();
+  private beatFx: { cue: FxCue; atBeat: number; beatId: string }[] = [];
+  private readonly followOffsets = new WeakMap<TargetRuntime, Vector3>();
   private readonly camForward = new Vector3();
   private readonly camRight = new Vector3();
+  private readonly camUp = new Vector3();
   private speed: SpeedRound | null = null;
   private speedClearIn = 0;
+
+  /** 0–1 through the current camera beat (scripted scene cameos). 1 for gated beats. */
+  beatProgress(): number {
+    const beat = this.director.currentBeat;
+    if (!beat || !isCameraBeat(beat)) return 1;
+    const remaining = this.director.remainingSec(this.settings().rail);
+    const total = this.director.beatDurationSec(this.settings().rail);
+    return total > 0 ? Math.min(1, Math.max(0, 1 - remaining / total)) : 1;
+  }
 
   /** True while the player is mid-word on a chase target. */
   private chaseTyping(): boolean {
@@ -464,23 +479,33 @@ export class GameRun {
     return { fwd, right };
   }
 
-  /** Targets with `follow` fly beside the camera; they swoop in from ahead the first time. */
+  /**
+   * Targets with `follow` move rigidly with the camera (no lag, however fast the rail) plus an offset
+   * that starts well ahead (the swoop-in) and eases to zero.
+   */
   private applyFollow(dt: number): void {
     const { fwd, right } = this.cameraBasis();
     const pose = this.director.pose;
-    const k = 1 - Math.exp(-5 * dt);
+    const up = this.camUp.crossVectors(right, fwd).normalize();
+    const decay = Math.exp(-4 * dt);
     for (const t of this.allTargets()) {
       const f = t.spawn.follow;
       if (!f || t.phase === 'waiting' || t.phase === 'gone') continue;
-      const goal = this.followGoal.copy(pose.position).addScaledVector(fwd, f.ahead).addScaledVector(right, f.side);
-      goal.y += f.up + Math.sin(t.clock * 2.2) * 0.08;
-      if (t.phase === 'leaving') goal.addScaledVector(right, Math.sign(f.side || 1) * t.phaseTime * 6);
-      if (!this.followPlaced.has(t)) {
-        this.followPlaced.add(t);
-        t.position.copy(goal).addScaledVector(fwd, 10).addScaledVector(right, Math.sign(f.side || 1) * 3);
-        t.position.y += 2;
+      const side = Math.sign(f.side || 1);
+      let offset = this.followOffsets.get(t);
+      if (!offset) {
+        offset = new Vector3().addScaledVector(fwd, 10).addScaledVector(right, side * 3).addScaledVector(up, 2);
+        this.followOffsets.set(t, offset);
       }
-      t.position.lerp(goal, k);
+      offset.multiplyScalar(decay);
+      if (t.phase === 'leaving') offset.addScaledVector(right, side * 7 * dt).addScaledVector(fwd, 4 * dt);
+      // Camera-relative placement, so a pitched camera still sees the target where it was authored.
+      t.position
+        .copy(pose.position)
+        .addScaledVector(fwd, f.ahead)
+        .addScaledVector(right, f.side)
+        .addScaledVector(up, f.up + Math.sin(t.clock * 2.2) * 0.08)
+        .add(offset);
     }
   }
 
@@ -528,6 +553,13 @@ export class GameRun {
   }
 
   private updatePendingFx(dt: number): void {
+    if (this.beatFx.length > 0) {
+      const beatId = this.director.currentBeat?.id;
+      const progress = this.beatProgress();
+      const due = this.beatFx.filter((b) => b.beatId === beatId && progress >= b.atBeat);
+      this.beatFx = this.beatFx.filter((b) => b.beatId === beatId && progress < b.atBeat);
+      for (const b of due) this.emitFx({ ...b.cue, atBeat: undefined });
+    }
     if (this.pendingFx.length === 0) return;
     const due: { cue: FxCue; origin: Vector3 | null }[] = [];
     this.pendingFx = this.pendingFx.filter((p) => {
@@ -641,6 +673,7 @@ export class GameRun {
   private tally = { words: 0, correct: 0, incorrect: 0, damage: 0 };
   private boss: { def: BossDef; total: number; done: number } | null = null;
   private hazardFxIndex = 0;
+  private slowMoSec = 0;
   private idleSec = 0;
   private gemCount = 0;
 
@@ -669,6 +702,7 @@ export class GameRun {
   private gemsAllowed(): boolean {
     if (this.ended || this.focusResetTimer > 0 || this.resumeIntro > 0) return false;
     const beat = this.director.currentBeat;
+    // Exempt beats and scripted spectacle are never covered by a gem.
     if (!beat || beat.kind === 'results' || beat.attention) return false;
     if (this.encounter && this.encounter.state !== 'complete' && this.encounter.def.kind === 'combat') return false;
     return this.director.pose.fade < 0.2;
@@ -868,6 +902,7 @@ export class GameRun {
       audio.playSfx('dispel');
       const spawn = target.spawn;
       if (spawn.defeatFx) this.emitFx(spawn.defeatFx, target.position);
+      if (spawn.defeatBark) this.queueBark(getLine(spawn.defeatBark));
       if (spawn.optional) m.optionalTargetsCompleted++;
       const qualifies =
         spawn.rewardIf === undefined ||
@@ -948,7 +983,11 @@ export class GameRun {
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
     if (isCameraBeat(beat) && beat.chase) this.startChase(beat);
-    for (const cue of beat.fx ?? []) this.emitFx(cue);
+    this.beatFx = [];
+    for (const cue of beat.fx ?? []) {
+      if (cue.atBeat !== undefined && isCameraBeat(beat)) this.beatFx.push({ cue, atBeat: cue.atBeat, beatId: beat.id });
+      else this.emitFx(cue);
+    }
     const boss = bossForIntroBeat(beat.id);
     if (boss) {
       patchRunUi({ bossCard: { key: nextKey(), id: boss.id } });
@@ -1213,7 +1252,9 @@ export class GameRun {
     if (this.progress.unlockedSpells.includes(spell)) return;
     this.progress.unlockedSpells.push(spell);
     audio.playSfx('unlock');
-    patchRunUi({ toast: { key: nextKey(), title: strings.toasts.spellUnlocked, detail: strings.spells[spell] } });
+    // Announced like a power-up: a slow-motion beat and a big title card (§1B "Unlock moments").
+    this.slowMoSec = SLOW_MO_SEC;
+    patchRunUi({ powerUp: { key: nextKey(), spell } });
   }
 
   private grantReward(reward: Reward): void {
