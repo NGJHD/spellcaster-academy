@@ -28,6 +28,9 @@ import {
   type Level1Autosave,
 } from './saveData';
 import { buildResults, wordScore, type ResultsData } from './scoring';
+import { Combo } from './combo';
+import { MEDAL_SCORE, encounterStars } from './medals';
+import { bossForEncounter, bossForIntroBeat, bossWordTotal, type BossDef } from '../level/bosses';
 import type { AreaId, CosmeticId, Difficulty, SpellId, StarPageId } from './types';
 import { ALL_STAR_PAGES } from './types';
 
@@ -63,6 +66,8 @@ export interface SpellEvent {
   readonly to: Vector3;
   readonly targetId: string;
   readonly shieldBreak: boolean;
+  /** 0 (a thin bolt) to 1 (a blazing comet): grows with the combo (CLAUDE.md §1B). */
+  readonly power?: number;
 }
 
 export interface RetiredTarget {
@@ -104,6 +109,11 @@ export function readSeconds(text: string): number {
 
 let keyCounter = 1;
 const nextKey = () => keyCounter++;
+
+/** Targets freeze this long when a word lands (hit-stop). */
+const HIT_STOP_SEC = 0.05;
+/** Length of the small camera kick on a hit. */
+export const KICK_SEC = 0.12;
 
 /** A spark gem swoops in after this long with nothing to type (CLAUDE.md §1B 7-second rule, at Fast). */
 const GEM_AFTER_IDLE_SEC = 1.8;
@@ -353,24 +363,34 @@ export class GameRun {
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
     const locked = this.typing.lockedId;
+    if (this.kickTime > 0) this.kickTime = Math.max(0, this.kickTime - dt);
+    // Hit-stop: targets freeze for a beat when a word lands, so every hit feels solid (§1B).
+    const simDt = this.hitStopSec > 0 ? 0 : dt;
+    if (this.hitStopSec > 0) this.hitStopSec = Math.max(0, this.hitStopSec - dt);
     let changed = false;
     if (this.encounter) {
-      const events = this.encounter.update(dt, timeScale, locked);
+      const events = this.encounter.update(simDt, timeScale, locked);
       if (events.length > 0) changed = true;
       this.handleEncounterEvents(events);
     }
     if (this.bonus) {
-      const events = this.bonus.update(dt, timeScale, locked);
+      const events = this.bonus.update(simDt, timeScale, locked);
       if (events.length > 0) changed = true;
       this.handleBonusEvents(events);
     }
-    if (this.updateGems(dt, timeScale, locked)) changed = true;
+    if (this.updateGems(simDt, timeScale, locked)) changed = true;
     if (changed) this.refreshTargets();
   }
 
   // ---------- Spark gems (CLAUDE.md §1B: never more than ~7 s at Fast with nothing to type) ----------
 
   gem: EncounterRunner | null = null;
+  readonly combo = new Combo();
+  /** Small camera kick when a word lands (seconds remaining; read by the camera driver). */
+  kickTime = 0;
+  private hitStopSec = 0;
+  private tally = { words: 0, correct: 0, incorrect: 0, damage: 0 };
+  private boss: { def: BossDef; total: number; done: number } | null = null;
   private idleSec = 0;
   private gemCount = 0;
   private readonly gemForward = new Vector3();
@@ -532,6 +552,8 @@ export class GameRun {
         case 'incorrect':
           this.metrics.recordEntry(false, e.targetId, nowMs);
           audio.playSfx('key-incorrect');
+          this.combo.mistake();
+          patchRunUi({ combo: this.combo.count, comboMultiplier: this.combo.multiplier });
           patchRunUi({ mistakeKey: nextKey(), mistakeTargetId: e.targetId });
           if (!this.encounterFirstMistake && this.encounter) {
             this.encounterFirstMistake = true;
@@ -560,7 +582,17 @@ export class GameRun {
     this.metrics.recordCompletion(targetId, word, mistakes, nowMs);
     const perfect = mistakes === 0;
     const m = this.progress.metrics;
-    m.score += wordScore(word.length, perfect, this.activeMultiplier);
+    const cheer = this.combo.word();
+    m.score += wordScore(word.length, perfect, this.activeMultiplier) * this.combo.multiplier;
+    this.hitStopSec = HIT_STOP_SEC;
+    this.kickTime = KICK_SEC;
+    this.popup(cheer ?? (perfect ? 'PERFECT!' : null), cheer ? 'cheer' : 'perfect', target.position, target.spawn.labelHeight ?? 1);
+    if (cheer) audio.playSfx('unlock', { volume: 0.6, rate: 1 + Math.min(0.5, this.combo.count / 40) });
+    if (runner === this.encounter) this.tally.words++;
+    if (runner === this.encounter && this.boss?.def.phases.includes(runner.def.id)) {
+      this.boss.done = Math.min(this.boss.total, this.boss.done + 1);
+      patchRunUi({ boss: { id: this.boss.def.id, health: 1 - this.boss.done / Math.max(1, this.boss.total) } });
+    }
 
     const shieldBreak = isShielded(target);
     const frost = perfect && this.progress.unlockedSpells.includes('frost-thread');
@@ -570,6 +602,7 @@ export class GameRun {
       to: target.position.clone(),
       targetId,
       shieldBreak,
+      power: Math.min(1, this.combo.count / 10),
     });
     audio.playSfx('spell-cast');
     if (perfect) audio.playSfx('perfect-word');
@@ -594,7 +627,7 @@ export class GameRun {
 
     if (result.defeated && runner === this.gem) {
       // Spark gem caught: a bright chime and bonus score, no other rewards.
-      m.score += GEM_SCORE * this.activeMultiplier;
+      m.score += GEM_SCORE * this.activeMultiplier * this.combo.multiplier;
       audio.playSfx('star-page', { rate: 1.25, volume: 0.7 });
     } else if (result.defeated) {
       audio.playSfx('dispel');
@@ -607,8 +640,15 @@ export class GameRun {
       if (spawn.reward && qualifies) this.grantReward(spawn.reward);
       if (runner === this.encounter) this.fireBarks({ on: 'defeats', count: runner.totalDefeats });
     }
-    patchRunUi({ streak: m.currentStreak, liveWpm: averageWpm(m) });
+    patchRunUi({ streak: m.currentStreak, liveWpm: averageWpm(m), score: m.score, combo: this.combo.count, comboMultiplier: this.combo.multiplier });
     this.refreshTargets();
+  }
+
+  /** A short cheer that pops above a target. Keeps only the newest few. */
+  private popup(text: string | null, tier: 'perfect' | 'cheer', at: Vector3, height: number): void {
+    if (!text) return;
+    const popups = [...useRunStore.getState().popups.slice(-3), { key: nextKey(), text, tier, position: [at.x, at.y + height * 0.6, at.z] as const }];
+    patchRunUi({ popups });
   }
 
   private castChainSpark(sourceId: string): void {
@@ -671,6 +711,12 @@ export class GameRun {
     for (const id of beat.barks ?? []) this.queueBark(getLine(id));
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
+    const boss = bossForIntroBeat(beat.id);
+    if (boss) {
+      patchRunUi({ bossCard: { key: nextKey(), id: boss.id } });
+      audio.playSfx('boss-phase');
+      this.startBoss(boss);
+    }
 
     // Every beat start is a stable resume point (LD-6).
     this.progress.resumeBeatId = beat.id;
@@ -773,6 +819,10 @@ export class GameRun {
     }
     if (def.bossPhase) audio.playSfx('boss-phase');
     if (isDangerous(def)) this.setBattleMusic(BATTLE_MUSIC[this.areaId] ?? 'courtyard-action');
+    const m = this.progress.metrics;
+    this.tally = { words: 0, correct: m.correctEntries, incorrect: m.incorrectEntries, damage: m.focusLost };
+    const boss = bossForEncounter(def.id);
+    if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.resetEncounterTyping();
   }
@@ -858,6 +908,11 @@ export class GameRun {
     if (!this.progress.completedEncounterIds.includes(def.id)) this.progress.completedEncounterIds.push(def.id);
     if (def.bossPhase && !this.progress.completedBossPhases.includes(def.bossPhase)) {
       this.progress.completedBossPhases.push(def.bossPhase);
+    }
+    this.awardMedal();
+    if (this.boss && this.boss.def.phases[this.boss.def.phases.length - 1] === def.id) {
+      this.boss = null;
+      patchRunUi({ boss: null });
     }
     this.activeMultiplier = 1;
     this.commitMetrics();
@@ -980,9 +1035,39 @@ export class GameRun {
 
   private beginFocusReset(): void {
     this.focusResetTimer = FOCUS_RESET_SEC;
+    this.combo.reset();
+    patchRunUi({ combo: 0, comboMultiplier: 1 });
     this.typing.reset();
     this.metrics.closeAttempt();
     patchRunUi({ focusReset: true, labels: [], hazard: null });
+  }
+
+  /** 1–3 stars for the encounter just finished (§1B). Tiny encounters are not rated. */
+  private awardMedal(): void {
+    const m = this.progress.metrics;
+    const stars = encounterStars({
+      words: this.tally.words,
+      correct: m.correctEntries - this.tally.correct,
+      incorrect: m.incorrectEntries - this.tally.incorrect,
+      damage: m.focusLost - this.tally.damage,
+    });
+    if (!stars) return;
+    const bonus = MEDAL_SCORE[stars];
+    m.score += bonus;
+    audio.playSfx(stars === 3 ? 'checkpoint' : 'unlock', { volume: 0.8 });
+    patchRunUi({ medal: { key: nextKey(), stars, bonus }, score: m.score });
+  }
+
+  /** Boss name card and health bar (§1B). Health counts words already typed in finished phases. */
+  private startBoss(def: BossDef): void {
+    const total = bossWordTotal(def, LEVEL1_ENCOUNTERS);
+    let done = 0;
+    for (const id of def.phases) {
+      if (!this.progress.completedEncounterIds.includes(id)) continue;
+      done += bossWordTotal({ ...def, phases: [id] }, LEVEL1_ENCOUNTERS);
+    }
+    this.boss = { def, total, done };
+    patchRunUi({ boss: { id: def.id, health: 1 - done / Math.max(1, total) } });
   }
 
   private finishFocusReset(): void {

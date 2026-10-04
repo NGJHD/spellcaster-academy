@@ -41,6 +41,8 @@ interface Projectile {
   arc: Vector3;
   history: Vector3[];
   color: { core: Color; halo: Color };
+  /** 0–1: grows with the combo, making the bolt bigger and the burst wider. */
+  power: number;
 }
 
 interface Burst {
@@ -65,6 +67,7 @@ export function SpellEffects() {
         arc: new Vector3(),
         history: Array.from({ length: TRAIL }, () => new Vector3()),
         color: { core: new Color(), halo: new Color() },
+        power: 0,
       })),
     [],
   );
@@ -139,6 +142,7 @@ export function SpellEffects() {
       p.from.copy(wandTip);
       p.to.copy(to);
       p.arc.set((Math.random() - 0.5) * 0.4, 0.35 + Math.random() * 0.2, 0);
+      p.power = e.power ?? 0;
       for (const h of p.history) h.copy(wandTip);
       const palette = TRAILS[e.kind === 'frost' ? 'frost' : trailKey] ?? TRAILS.default;
       if (palette) {
@@ -166,6 +170,7 @@ export function SpellEffects() {
         if (k === 0) {
           const mat = (child as Mesh).material as MeshBasicMaterial;
           mat.color.copy(p.color.core);
+          child.scale.setScalar(1 + p.power * 1.4);
           return;
         }
         const h = p.history[k - 1];
@@ -173,11 +178,11 @@ export function SpellEffects() {
         const mat = (child as Mesh).material as MeshBasicMaterial;
         mat.color.copy(p.color.halo);
         mat.opacity = 0.5 * (1 - k / (TRAIL + 1));
-        child.scale.setScalar(1 - k / (TRAIL + 2));
+        child.scale.setScalar((1 - k / (TRAIL + 2)) * (1 + p.power * 1.4));
       });
       if (u >= 1) {
         p.active = false;
-        startBurst(bursts, p.to, false, p.color.halo);
+        startBurst(bursts, p.to, false, p.color.halo, p.power);
       }
     });
 
@@ -239,7 +244,7 @@ export function SpellEffects() {
   );
 }
 
-function startBurst(bursts: Burst[], origin: Vector3, reduced: boolean, color?: Color): void {
+function startBurst(bursts: Burst[], origin: Vector3, reduced: boolean, color?: Color, power = 0): void {
   const b = bursts.find((x) => !x.active) ?? bursts[0];
   if (!b) return;
   b.active = true;
@@ -251,7 +256,7 @@ function startBurst(bursts: Burst[], origin: Vector3, reduced: boolean, color?: 
     const a = Math.random() * Math.PI * 2;
     const y = Math.random() * 2 - 1;
     const r = Math.sqrt(1 - y * y);
-    const speed = live ? 0.4 + Math.random() * 0.5 : 0;
+    const speed = live ? (0.4 + Math.random() * 0.5) * (1 + power * 1.5) : 0;
     b.velocities[k * 3] = Math.cos(a) * r * speed;
     b.velocities[k * 3 + 1] = y * speed + (live ? 0.2 : 0);
     b.velocities[k * 3 + 2] = Math.sin(a) * r * speed;

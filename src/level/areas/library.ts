@@ -65,7 +65,7 @@ export const library: AreaScript = {
     }),
     talk('library-clue', A, ['lib-mosaic-1', 'lib-mosaic-2']),
     travel('library-to-grimoire', A, ['LIB_CLUE_VIEW', 'LIB_GRIMOIRE_ARENA'], 4, { reducedMotion: 'glide' }),
-    talk('library-grimoire-wakes', A, ['lib-grim-1'], { music: 'grimoire-battle', objective: 'calm-grimoire' }),
+    talk('library-grimoire-wakes', A, ['lib-grim-1'], { music: 'grimoire-battle', objective: 'calm-grimoire', attention: 'boss-intro' }),
     fight('grimoire-g1', A, { barks: ['lib-grim-clasps'] }),
     fight('grimoire-g2', A, { barks: ['lib-grim-pages'] }),
     fight('grimoire-g3', A, { barks: ['lib-grim-sentence'] }),

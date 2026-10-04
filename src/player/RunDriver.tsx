@@ -2,12 +2,16 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, type RefObject } from 'react';
 import { Vector3 } from 'three';
 import { TIME_SCALE, getRun, isGameplayActive, useGameStore } from '../state/gameStore';
+import { KICK_SEC } from '../game/GameRun';
 import { labelElements } from '../ui/EnemyWordLabel';
+import { popupElements } from '../ui/Juice';
 
 /** How far the camera eases its gaze toward the locked target (subtle combat framing). */
 const FRAMING_WEIGHT = 0.14;
 const FRAMING_RATE = 3;
 const SHAKE_AMPLITUDE = 0.045;
+const KICK_DISTANCE = 0.06;
+const kick = new Vector3();
 /** Labels stay this many pixels inside the viewport edge. */
 const SAFE_MARGIN = 56;
 /** Labels never drop into the subtitle band at the bottom of the screen (GD-19). */
@@ -72,6 +76,12 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
       camera.position.x += Math.sin(t) * k;
       camera.position.y += Math.sin(t * 1.3 + 1) * k;
     }
+    if (run.kickTime > 0) {
+      // A small forward punch when a word lands (hit feedback, CLAUDE.md §1B).
+      const k = Math.sin((run.kickTime / KICK_SEC) * Math.PI) * KICK_DISTANCE;
+      kick.copy(look).sub(camera.position).normalize();
+      camera.position.addScaledVector(kick, k);
+    }
     camera.lookAt(look);
     camera.updateMatrixWorld();
 
@@ -79,9 +89,19 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
     if (overlay) overlay.style.opacity = pose.fade.toFixed(3);
 
     projectLabels(run, camera, size.width, size.height);
+    projectPopups(camera, size.width, size.height);
   });
 
   return null;
+}
+
+function projectPopups(camera: import('three').Camera, width: number, height: number): void {
+  for (const { el, position } of popupElements.values()) {
+    projected.set(position[0], position[1], position[2]).project(camera);
+    const x = Math.min(width - SAFE_MARGIN, Math.max(SAFE_MARGIN, (projected.x * 0.5 + 0.5) * width));
+    const y = Math.min(height - SUBTITLE_BAND, Math.max(SAFE_MARGIN, (-projected.y * 0.5 + 0.5) * height));
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  }
 }
 
 function projectLabels(

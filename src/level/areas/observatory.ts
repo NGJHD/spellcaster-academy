@@ -50,8 +50,8 @@ export const observatory: AreaScript = {
     fade('observatory-enter', O, 'OBS_ENTRY', { music: 'warden-defence', objective: 'break-defence' }),
     reveal('observatory-dome-reveal', O, 'OBS_ENTRY', ['OBS_DOME', 'OBS_WARDEN'], 2.2, 1.2),
     travel('observatory-approach', O, ['OBS_ENTRY', 'OBS_COMBAT'], 4, { reducedMotion: 'glide' }),
-    talk('observatory-intro', O, ['obs-1', 'obs-symbol', 'obs-2']),
-    fight('warden-w1', O, { barks: ['obs-w1'] }),
+    talk('observatory-intro', O, ['obs-1', 'obs-symbol'], { attention: 'boss-intro' }),
+    fight('warden-w1', O, { barks: ['obs-w1', 'obs-2'] }),
     fight('warden-w2', O, { barks: ['obs-w2'] }),
     reveal('observatory-to-dome', O, 'OBS_COMBAT', [], 0, 0.1, { returnToNode: false }),
     travel('observatory-look-dome', O, ['OBS_COMBAT', 'OBS_DOME_VIEW'], 2.5, {

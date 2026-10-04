@@ -5,6 +5,7 @@ import { LEVEL1_ROUTE } from '../level/level1Route';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { useSettingsStore } from '../state/settingsStore';
+import { BossBar, BossCard, MedalCard, Popups, ScoreMeter } from './Juice';
 
 /** Chapter marks on the progress bar: where each area begins along the route. */
 const CHAPTERS: readonly { areaId: AreaId; at: number }[] = (() => {
@@ -71,6 +72,7 @@ export function HUD() {
       </div>
 
       <div className="hud__top-right">
+        <ScoreMeter />
         {streak > 0 && (
           <div className="hud__chip" title={strings.hud.streakHelp}>
             <span className="hud__chip-icon">✦</span>
@@ -119,6 +121,10 @@ export function HUD() {
 
       {prompt && <div className="hud__prompt">{strings.prompts[prompt]}</div>}
 
+      <Popups />
+      <BossBar />
+      <BossCard />
+      <MedalCard />
       <Subtitles />
 
       <div className="hud__pause-hint">{strings.pause.hint}</div>

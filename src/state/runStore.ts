@@ -43,6 +43,26 @@ export interface ToastInfo {
   readonly detail?: string;
 }
 
+/** A cheer that pops near a target ("PERFECT!", "SUPER!"). Position is in world space. */
+export interface PopupInfo {
+  readonly key: number;
+  readonly text: string;
+  readonly tier: 'perfect' | 'cheer';
+  readonly position: readonly [number, number, number];
+}
+
+export interface MedalInfo {
+  readonly key: number;
+  readonly stars: 1 | 2 | 3;
+  readonly bonus: number;
+}
+
+export interface BossBarInfo {
+  readonly id: string;
+  /** 1 = full health, 0 = beaten. */
+  readonly health: number;
+}
+
 export interface ChoiceInfo {
   readonly options: readonly { id: string; label: string }[];
   readonly index: number;
@@ -81,6 +101,14 @@ export interface RunUiState {
   beatId: string | null;
   /** 0–1 through the level route, for the progress bar. */
   progress: number;
+  score: number;
+  combo: number;
+  comboMultiplier: number;
+  popups: readonly PopupInfo[];
+  medal: MedalInfo | null;
+  /** Bumps when a boss name card should play. */
+  bossCard: { key: number; id: string } | null;
+  boss: BossBarInfo | null;
 }
 
 export const initialRunUi = (): RunUiState => ({
@@ -109,6 +137,13 @@ export const initialRunUi = (): RunUiState => ({
   liveWpm: 0,
   beatId: null,
   progress: 0,
+  score: 0,
+  combo: 0,
+  comboMultiplier: 1,
+  popups: [],
+  medal: null,
+  bossCard: null,
+  boss: null,
 });
 
 export const useRunStore = create<RunUiState>()(() => initialRunUi());

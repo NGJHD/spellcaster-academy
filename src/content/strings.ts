@@ -121,7 +121,18 @@ export const strings = {
     wpm: 'WPM',
     focusReset: 'Take a breath…',
     focusResetBody: "Let's try that part again.",
+    score: 'Score',
+    combo: 'Combo',
   },
+  medals: {
+    1: 'Nice work!',
+    2: 'Great casting!',
+    3: 'Perfect!',
+  } satisfies Record<1 | 2 | 3, string>,
+  bosses: {
+    grimoire: { name: 'THE GREAT GRIMOIRE', title: 'Keeper of a Thousand Pages' },
+    warden: { name: 'THE WARD WARDEN', title: 'Guardian of Asterfall' },
+  } as Record<string, { name: string; title: string } | undefined>,
   prompts: {
     chest: 'Open the constellation chest? Type its word, or press Enter to continue.',
     constellations: 'Name the constellations for a bonus, or press Enter to continue.',

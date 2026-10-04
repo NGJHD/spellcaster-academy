@@ -120,7 +120,7 @@ export const LINES = {
   'tw-pre': line('pip', 'Beyond this door, the Warden may not recognise us. Read first. Type clearly. We are here to repair, not destroy.'),
 
   // Observatory
-  'obs-1': line('pip', 'Its defence routine has locked us out. We must reach the core without harming the Warden.'),
+  'obs-1': line('pip', 'Its defence routine has locked us out! Reach the core — gently.'),
   'obs-symbol': line('warden', 'PROTECT — SEAL — NO ENTRY'),
   'obs-2': line('pip', "It thinks keeping everyone out is the only safe choice. Let's prove there is another way."),
   'obs-w1': line('pip', 'Each word loosens one plate. Watch for the light — it glows before it swings.'),

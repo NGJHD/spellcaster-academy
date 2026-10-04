@@ -186,6 +186,20 @@ Kit pieces are built in Blender by `assets-src/scripts/props/kit_props.py`, whic
   - New CC0 props: chandelier, compass, microscope, vases, tea set, garden tools, plants and more (`scripts/fetch-cc0.mjs`, `repack_cc0.py`).
   - Single-channel textures that WebP cannot store keep their original image format.
 
+## Level 1 excitement pass, part 1: shared systems (2026-10-04)
+
+Built to CLAUDE.md §1B and LEVEL1_DESIGN.md LD-0:
+
+- **7-second attention rule, enforced.** A bot plays Level 1 at the Fast travel speed (`src/game/attention.report.test.ts`) and fails the test if any area goes more than 7 s with nothing to type. Boss intros (beats marked `attention: 'boss-intro'`) may run up to 8 s. The worst gap fell from 33.8 s to about 3 s.
+- **Spark gems.** After about 1.8 s with nothing to type, a glowing gem with a 3–4 letter word swoops in and flies beside the camera. It never appears during combat, fades, menus or exempt beats. Typing a letter during dialogue now also types (it skips the line and still counts).
+- **Combo and score.** Every word adds to the combo. The multiplier is ×2 at 3, ×3 at 6 and ×4 at 10, and a mistake halves the combo instead of zeroing it. The score counts up in the HUD. Popups show PERFECT! and cheers at combos of 3, 5, 8, 12 and 20.
+- **Hit feedback.** 50 ms hit-stop on targets, a small forward camera kick, and spell bolts and bursts that grow with the combo.
+- **Encounter medals.** 1–3 stars (accuracy, plus no HP lost for 3 stars) with bonus score. Encounters with fewer than 2 words are not rated.
+- **Bosses.** Full-width name cards (THE GREAT GRIMOIRE, THE WARD WARDEN) that clear as the first word flies in, and a boss health bar across all phases. The Warden intro is trimmed to two lines; Pip's second line now plays during phase 1.
+- Fixes found by the gap bot: a word half-typed on a gem or bonus is no longer dropped when an encounter starts or ends, and Backspace/Tab work during dialogue.
+
+Next: speed rounds, then the area rewrites in LD-0 (cold open, courtyard charge, East Hall stampede, library, paint ambush, snapvine chase, banister slide, arcade gallery, runaway lift, observatory beam struggle, fireworks).
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.
