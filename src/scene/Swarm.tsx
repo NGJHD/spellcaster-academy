@@ -62,7 +62,7 @@ export function BookSwarm({
     const m = mesh.current;
     if (!m) return;
     const run = getRun();
-    const waiting = startAt > 0 && run?.director.currentBeat?.id === beats[0] && run.beatProgress() < startAt;
+    const waiting = startAt > 0 && run?.director.currentBeat?.id === beats[0] && (run?.beatProgress() ?? 1) < startAt;
     m.visible = active && !waiting;
     if (!m.visible) {
       placed.current = false;
