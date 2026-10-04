@@ -18,7 +18,7 @@ Level 1 keeps its bright, sunny look; the drama comes from action, comedy, speed
 
 | Problem in the current Level 1 | Fix |
 | --- | --- |
-| Long opening before the first typing | The first word appears within 10 seconds of START at Fast |
+| Long opening before the first typing | The first word appears within 7 seconds of START at Fast |
 | Stationary training dummies | Dummies leap off their stands and charge |
 | East Hall and Hall of Portraits are calm walks | Both become action sequences |
 | Long dialogue stops | Two lines at most, played over travel |
@@ -30,12 +30,11 @@ Level 1 keeps its bright, sunny look; the drama comes from action, comedy, speed
 
 #### Opening (replaces LD-7)
 
-1. **Fly-over:** a fast swoop over the treetops towards the academy (8 s), with the title card.
-2. **Cold open:** halfway through the swoop, a **mischief sprite snatches Pip right out of the air**. Pip squeals, and the camera dives after them.
-3. **First words:** the sprite drops Pip and flees. Three bonus spark gems float along the dive (`go`, `fly`, `zap`), taught by Pip mid-air: "Type it! Quick!"
-4. **The gate:** the camera lands at the Arrival Gate. The three crystal words (`star`, `moon`, `open`) now **blast the gate doors open** with an explosion of light and flying leaves.
+1. **Fly-over:** a fast swoop over the treetops towards the academy, with the title card. **Spark gems** float in the air along the swoop from the first second (`go`, `fly`, `zap`, `sky`), with Pip's first line: "Type it! Quick!"
+2. **Cold open:** about 4 seconds in, a **mischief sprite snatches Pip right out of the air**. Pip squeals, and the camera dives after them. The sprite carries a word; typing it makes the sprite drop Pip.
+3. **The gate:** the camera lands at the Arrival Gate. The three crystal words (`star`, `moon`, `open`) **blast the gate doors open** with an explosion of light and flying leaves.
 
-The first typed word arrives within about 12 seconds.
+The first typeable word appears within about 2 seconds of the level starting.
 
 #### Arrival Gate fracture (shortens LD-8)
 
@@ -78,7 +77,7 @@ The first typed word arrives within about 12 seconds.
   - The splats are telegraphed and cost a little HP on Standard.
   - The screen-edge paint they leave never covers a word.
 - **Portrait gags:** the "ceiling became a whale" lines stay as quick shouted gags from the frames mid-fight.
-- **Fountain:** the healing fountain arrives **after** the ambush as a 10-second breather, with Mira's mirror call (one line).
+- **Fountain:** the healing fountain arrives **after** the ambush as a short breather with healing-droplet spark gems to catch, and Mira's mirror call (one line) over it.
 - **Constellations:** the challenge becomes a **speed round** for the score multiplier.
 
 #### Greenhouse (revises LD-13)
@@ -122,7 +121,7 @@ The first typed word arrives within about 12 seconds.
 
 ### Pacing budget
 
-The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 10-second rule in §1B. Measure this in the Playwright bot run with travel speed set to **Fast**: log the longest gap between typing prompts per area. Any gap over 10 s at Fast, outside boss intros and the ending, is a bug.
+The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 7-second rule in §1B. Measure this in the Playwright bot run with travel speed set to **Fast**: log the longest gap between typing prompts per area. Any gap over 7 s at Fast is a bug, except boss intros (up to 8 s) and the ending.
 
 ### Implementation notes
 
@@ -142,7 +141,7 @@ The rewrite aims at about **14–18 minutes** for a first play. Every area must 
   - the runaway lift
   - the fireworks VFX
   - cosmetic debris pieces (crates, vases, shelf books, glass shards)
-- **Tests:** unit-test speed-round timing and medal thresholds, combo multiplier rules (a mistake halves it), and the 10-second gap metric helper.
+- **Tests:** unit-test speed-round timing and medal thresholds, combo multiplier rules (a mistake halves it), and the 7-second gap metric helper.
 
 ---
 

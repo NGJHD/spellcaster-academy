@@ -6,7 +6,7 @@ Game-wide rules live in `CLAUDE.md`: the on-rails format, audience and IP rules,
 
 Section ids use the prefix `L2-` for level design, `M2-` for mobs, `A2-` for the asset bible and `G2-` for general design.
 
-Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 10-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
+Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
 
 ---
 
@@ -132,6 +132,22 @@ Title Screen (START begins Level 2 once Level 1 is complete)
 
 Areas reuse Level 1 locations where it makes sense: the library, the Moon Tower and the courtyard architecture. They are shown at night, under siege, with new staging. New spaces are the lawn, the dormitory tower, the Bell Bridge, the Great Hall, the workshops, the lake and the ramparts.
 
+### Attention pass (CLAUDE.md §1B)
+
+| Area | Set piece or big moment | Spark gems / speed round | Gap-killers |
+| --- | --- | --- | --- |
+| Festival Lawn | Interactive Rift opening, fireball counter-words | Lantern words; gems among the stalls | Opening typed from about 2 s |
+| Dormitory Tower | Smudgehound bursting through a burning door | Gems on each landing | Fight, restore and rescue chained back to back |
+| Bell Bridge | **Collapsing bridge race** (fast rail) | Gems in the smoke | The bell boom blasts the wave away |
+| Great Hall | Herald blasts the doors open; name card | Speed round: barricade repair (optional) | Lanes keep three targets live |
+| Workshops | Furnace roars back; Starfall power-up wave | Speed round: valves | Smudgehounds between benches |
+| Lantern Lake | Burning lake, **lighthouse lift** (fast rail) | Burning-lantern gems on the water | Moths and Blotlings in every segment |
+| Library | A shelf collapses in flames; Wyrm glimpse | Speed round: restore shelves | Sprites and wisps between story lines |
+| Ramparts | Hush scale the walls; Warden Strikes | Gems on the battlements | Three lanes live |
+| Tower Roof | **Palm ride** (fast rail); Wyrm name card; sky chase | Gems in the updraft | Boss phases are continuous typing |
+
+Encounter medals (1–3 stars) appear after every encounter. Every dialogue line in this document plays over typing or action unless it is marked as the ending.
+
 ### Checkpoints
 
 ```text
@@ -148,31 +164,35 @@ level-2-complete
 
 Autosave triggers and save boundaries follow LD-6, including boss-phase saves.
 
-## L2-6. Opening Cinematic
+## L2-6. Opening — Interactive
 
-### Shot 1 — Lantern Festival (8 s)
+The opening is played, not watched: the player is typing within about 2 seconds.
 
-Night. Hundreds of paper lanterns drift over Lantern Lake. The repaired ward shimmers faintly overhead. Students cheer on the lawn. This is the last calm, warm image of the level, and the contrast with what follows should be strong.
+### Beat 1 — Lantern Festival
 
-Pip:
+Night. Hundreds of paper lanterns drift over Lantern Lake, and students cheer on the lawn. It's the last calm, warm image of the level. The player launches the festival lanterns: three lantern words (`glow`, `lift`, `wish`), each sending a lantern soaring with a burst of gold.
 
-> Welcome to the Lantern Festival! Organised by me. Mostly. Entirely, if anyone asks.
+Pip (over the typing):
 
-### Shot 2 — The seam (6 s)
+> Welcome to the Lantern Festival! Organised by me. Mostly.
 
-The camera tilts up. A thin crack in the sky that nobody else has noticed. It begins to glow red. A lantern drifting near it bursts into red-black flame and falls as grey ash.
+### Beat 2 — The seam
 
-Pip:
+The third lantern drifts up towards a thin crack in the sky that is starting to glow red. It bursts into red-black flame and falls as grey ash.
 
-> That lantern just... burned. Grey. That is NOT a festival effect.
+Pip (one line):
 
-### Shot 3 — The Rift opens (6 s)
+> That is NOT a festival effect.
 
-With a deep boom the crack splits into a long, ragged Rift of red fire. The sky turns red. Burning shapes rain down like comets and crash into the lawn, the boathouse and the rooftops, which catch fire. The Hush climb out of the flames. Students scatter towards the halls. The music cuts from festival to siege.
+### Beat 3 — The Rift opens
 
-Keeper Orin (projected message):
+- With a deep boom the crack splits into a long, ragged Rift of red fire. The sky turns red and the music cuts to the siege theme.
+- Burning comets streak down. The first two carry **counter-words** (`ink`, `run`), so the counter-word tutorial happens here, as the first fireball heads straight for the camera. Time freezes on the first one only.
+- The rest crash into the lawn, the boathouse and the rooftops, which catch fire. The Hush climb out of the flames.
 
-> Students, to the Great Hall. Apprentice, Pip — I need the four beacons lit. Go!
+Keeper Orin (projected message, over the first wave):
+
+> Apprentice — light the four beacons. Go!
 
 ## L2-7. Lantern Festival Lawn
 
@@ -180,11 +200,11 @@ Keeper Orin (projected message):
 
 - **Camera:** stops on the lawn among overturned festival stalls, then pans to reveal three Blotlings dropping out of the sky.
 - **Encounter F1 (tutorial, no damage):** three Blotlings, one at a time, with 3–4 letter words.
-- **Counter-word tutorial:** a Blotling flicks an ink drop at the player with the counter-word `ink`. Time freezes until the player types it, the first time only.
+- **Counter-words in combat:** counter-words were introduced in the opening. Here Blotlings flick ink drops with counter-words while their own words wait.
 
-  Pip:
+  Pip (during the first wave):
 
-  > Words can block, too! Type the little word on anything flying at you.
+  > Block the little words!
 
 - **Fire tutorial:** a festival stall catches inkfire and starts burning to ash. Its restore word, `stall`, appears. Typing it blasts out the flames and repaints the stall in colour.
 
@@ -219,13 +239,16 @@ Checkpoint: `dormitory-rescued`.
 **Purpose:** first beacon; travel under pressure.
 
 - A long covered bridge between the dormitory and the Great Hall. A huge bronze bell in a central belfry is the Bell Beacon.
-- **Travel:** the bridge is on fire. The camera moves along it through smoke and falling embers. Burning planks ahead must be restored (`plank`, `beam`, `rail`) before the camera can continue. There's no timer; the Hush wait on the far side, howling.
+- **Set piece: the collapsing bridge.** The bridge is on fire, and as the camera **races** along it, sections collapse into the gorge behind. Burning planks ahead show restore words (`plank`, `beam`, `rail`). Each restored plank lets the camera dash on.
+  - Collapses are scripted to land just behind the camera and never catch the player.
+  - On Gentle the camera waits as long as needed.
+  - Spark gems hang in the smoke between planks.
 - **Encounter B1:** Eraser Moths swarm the belfry. Each carries a 4–5 letter word, and some throw dust bursts (counter-words).
-- **Beacon:** three words relight it: `ring`, `bright`, `signal`. Each word swings the bell. On the third, the bell rings and a gold beam rises into the sky.
+- **Beacon:** three words relight it: `ring`, `bright`, `signal`. Each word swings the bell harder. On the third, the bell **booms** so loudly that every Moth on the bridge is blasted away, and a gold beam erupts into the sky.
 
-Pip:
+Pip (over the next travel, among spark gems):
 
-> One beacon lit! Hear that? That's the sound of us winning. Probably.
+> One beacon lit! That's the sound of us winning. Probably.
 
 Checkpoint: `bell-beacon-lit`.
 
@@ -246,17 +269,20 @@ Checkpoint: `bell-beacon-lit`.
 
 A tall, thin herald made of charred black paper with glowing red edges, carrying a long trumpet. It reads the Unwriter's decree aloud, and every sentence sets something in the hall ablaze.
 
+- **Entrance:** the Herald blasts the main doors off their hinges with a trumpet note and stalks in through the smoke.
+- **Name card:** **THE GREY HERALD**, plus a boss health bar.
+
 - **Phase 1 — The Decree:** the Herald unrolls a scroll. Each of its four lines is a short 4–6 letter word. Completing a word tears that line before it can be read out. Any line the player doesn't tear sets a banner or table on fire, which is cosmetic only and restorable afterwards.
 - **Phase 2 — Trumpet Blasts:** the Herald blows long counter-word blasts (a 3–4 letter word each) between summoning pairs of Scribble Imps.
 - **Phase 3 — Last Word:** the Herald tries to burn through Idris's barrier. The player completes the phrase `not on my watch`, word by word. Each word punches a blast of light through the Herald. On the last word it bursts into a shower of sparks and ash, and its trumpet clatters to the floor.
 
-Before Phase 1, the Voice in the Rift speaks through the Herald for the first time:
+During the entrance (within the 8 s boss-intro allowance), the Voice in the Rift speaks through the Herald for the first time:
 
 > "Such a noisy, untidy school. Let me tidy it."
 
-Pip:
+Pip (as Phase 1's first word appears):
 
-> Who was THAT? And how rude!
+> Who was THAT? How rude!
 
 After the fight, the student-hall erasures can be restored as optional bonus words.
 
@@ -268,12 +294,10 @@ Checkpoint: `great-hall-held`.
 
 - Workshops lit by copper stills, glass alembics and a great furnace (the Furnace Beacon). The Hush has choked the furnace with grey ash, and inkfire runs along the pipes.
 - **Encounter W1:** Smudgehounds dart between workbenches along authored paths. Some knock over alembics; the spilled liquid is never harmful, only colourful.
-- **Puzzle beat (typing only):** three valves need restoring (`copper`, `steam`, `spark`) to get air to the furnace.
+- **Speed round (optional bonus):** "Open the valves: 3 words in 8 seconds!" (`copper`, `steam`, `spark`). If the countdown runs out, the valves still open after the words are typed; only the bonus is missed.
 - **Beacon:** `ember`, `flame`, `forge`, `blaze`. The furnace roars back to life, and Starfall is unlocked.
 
-Pip:
-
-> New spell! Eight perfect words in a row and the stars do the rest.
+- **Power-up moment:** a slow-motion beat and a big **STARFALL** card. Then a wave of six easy Blotlings pours in so the player can trigger Starfall almost at once and feel its power.
 
 Checkpoint: `furnace-beacon-lit`.
 
@@ -283,13 +307,13 @@ Checkpoint: `furnace-beacon-lit`.
 
 Oarsby's boat glides across a lake that reflects the red Rift. Burning lanterns float on the water, and the boathouse is on fire on the shore. Fire and its reflection make this the most dramatic view of the level.
 
-Oarsby:
+Oarsby (as the boat pushes off, with the first Moths already swooping):
 
-> All aboard, apprentice. Mind the oars, mind the ink, mind your manners.
+> All aboard! Mind the oars, mind the ink.
 
-- **Segment 1:** Eraser Moths swoop over the water. Counter-words come from Blotlings bobbing on the waves.
+- **Segment 1:** Eraser Moths swoop over the water. Counter-words come from Blotlings bobbing on the waves. Burning lanterns on the water carry spark-gem words between waves.
 - **Segment 2:** passing the boathouse, Hollow Knights stand on the jetty. The boat stops for each, then moves on.
-- **Lighthouse island:** the boat docks. Climb the lighthouse (an authored lift ride up its centre) while Moths circle outside the windows.
+- **Lighthouse island, set piece: the lighthouse lift.** The boat docks and a brass lift **rockets** up the lighthouse's centre. Moths smash through the windows as it passes each floor. The lift slows while the player types and speeds up between words.
 - **Beacon:** `harbour`, `guide`, `shine`, `homeward`. The lighthouse lamp turns, and its beam sweeps the lake and adds to the dome.
 
 **Optional:** four Festival Lanterns float on the lake; each needs a 3–5 letter bonus word as the boat passes.
@@ -334,13 +358,15 @@ Checkpoint: `rampart-beacon-lit`.
 
 ### Introduction
 
-The Warden lifts the apprentice to the tower roof on its open palm (an authored ride). The Vellum Wyrm rears up out of the smoke: thirty metres of burning pages, its head a great horned book with blazing red eyes, fire roaring in its throat, and a black crystal heart pulsing red between its "ribs" of book spines. It roars, and the roof shakes.
+**Set piece: the palm ride.** The Warden lifts the apprentice up the outside of the burning tower on its open palm. Fireballs streak down the wall at them, each with a counter-word, and spark gems ride the updraft.
 
-Pip:
+At the roof, the Vellum Wyrm rears up out of the smoke: thirty metres of burning pages, its head a great horned book with blazing red eyes, fire roaring in its throat, and a black crystal heart pulsing red between its "ribs" of book spines. It roars, and the roof shakes. Name card: **THE VELLUM WYRM**, plus a boss health bar.
 
-> It's made of our books — and it's on FIRE. Hit it with everything!
+Pip (as the card fades and the first scale lights up):
 
-The Voice in the Rift:
+> It's on FIRE. Hit it with everything!
+
+The Voice in the Rift (during Phase V1, over the typing):
 
 > "Every book corrected. Every error gone. Wouldn't that be lovely?"
 
@@ -381,6 +407,8 @@ The Voice in the Rift:
 - Never shame the player.
 
 ## L2-16. Observatory Aftermath and Ending
+
+This is the level's ending cinematic, so it is exempt from the 7-second rule. It must still stay under about 25 seconds at Fast, and every line can be skipped.
 
 - **The quill shard:** Keeper Orin examines it in the Observatory.
 

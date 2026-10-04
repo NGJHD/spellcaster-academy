@@ -97,16 +97,24 @@ A separate non-story asset viewer or optional celebration diorama may allow orbi
 
 Owner feedback (2026-10-04): playtesters found Level 1 boring. The audience is 8–10-year-olds with short attention spans. These rules apply to every level and override any calmer pacing elsewhere in the specification.
 
-### The 10-second rule
+### The 7-second rule
 
-With the travel speed set to **Fast**, the player should never go more than about **10 seconds** without at least one of the moments below. Fast is the reference setting for this rule. At Normal (1.6× against Fast's 2.4×) the same route stretches to about 15 seconds, and at Slow (1×) to about 24 seconds, which suits players who choose a calmer pace.
+With the travel speed set to **Fast**, the player should never go more than about **7 seconds** without at least one of the moments below. Fast is the reference setting for this rule. At Normal (1.6× against Fast's 2.4×) the same route stretches to about 10.5 seconds, and at Slow (1×) to about 17 seconds, which suits players who choose a calmer pace.
 
 - something to type
 - something exploding, crashing, bursting or transforming on screen
 - a new enemy entrance
 - a reveal (a creature, a boss or a dramatic view)
 
-The exceptions are boss introductions and the ending, and even those use big visuals. At 10 seconds (Fast), ordinary camera travel is not enough on its own: every travel segment longer than 10 s at Fast needs spark gems, a bonus target or a scripted action moment along it. A two-line dialogue beat must also play over something to type or watch. Story dialogue between fights is **at most two short lines** and plays over camera travel.
+At 7 seconds the game is close to continuous action:
+
+- **Travel:** ordinary camera travel is never enough on its own. Every travel segment longer than 7 s at Fast needs spark gems, a bonus target or a scripted action moment along it, spaced no more than about 7 s apart.
+- **Dialogue:** dialogue never stops the action. Lines play over typing or over an action moment. A beat with no typing at all has at most one short line.
+- **Tutorials:** freezes such as the first counter-word are fine, because the player has something to type immediately.
+- **Exceptions:**
+  - Boss introductions may run up to **8 s at Fast** without typing. They must use the name card, camera move and roar, and the boss's first target appears as the card fades.
+  - The ending cinematic of each level is exempt, but keeps lines short and skippable.
+- **Measurement:** the gap check counts from the moment a typeable prompt disappears to the moment the next one appears. Story dialogue between fights is **at most two short lines** and plays over camera travel.
 
 ### Every word should feel powerful
 

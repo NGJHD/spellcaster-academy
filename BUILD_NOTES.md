@@ -81,7 +81,7 @@ Running log of decisions, environment facts, architecture and milestone status. 
   - Levels 2 and 3 now use fire and a red palette: inkfire siege in Level 2; scorched Blank and the Cinder Citadel stronghold in Level 3.
   - Boss defeats are decisive; the Unwriter is sealed in his own book.
   - Audience is now 8+, with dramatic peril allowed and horror and gore still ruled out.
-  - New game-wide attention rules in `CLAUDE.md` §1B: the 10-second rule, juicy feedback, boss name cards, fast-rail set pieces, spark gems, speed rounds and medals.
+  - New game-wide attention rules in `CLAUDE.md` §1B: the 7-second rule (measured at Fast), juicy feedback, boss name cards, fast-rail set pieces, spark gems, speed rounds and medals.
   - `LEVEL1_DESIGN.md` LD-0 rewrites Level 1's slow parts. This is a design change only; it isn't built yet.
 
 ## Spec conflict resolutions

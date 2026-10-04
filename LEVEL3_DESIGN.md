@@ -6,7 +6,7 @@ Game-wide rules live in `CLAUDE.md`: the on-rails format, audience and IP rules,
 
 Section ids use the prefix `L3-` for level design, `M3-` for mobs, `A3-` for the asset bible and `G3-` for general design.
 
-Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 10-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
+Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
 
 ---
 
@@ -128,7 +128,7 @@ Title Screen (START begins Level 3 once Level 2 is complete)
 → Through the Rift            (opening cinematic; the Warden carries the party)
 → Rift Shore                  (path-writing and colour tutorial)
 → Cinderwood                  (the Unfinished; erased-letter words introduced)
-→ Inkfall Cascades            (page-raft descent; ink tides)
+→ Inkfall Cascades            (page-raft descent; fire tides)
 → Margin Library              (Memory Pages: Corvane and Pip; Bright Quill)
 → Gallery of Unfinished Things (mini-boss: the Perfect Warden)
 → Paper Sea                   (paper-ship voyage; Hush fleet)
@@ -139,6 +139,23 @@ Title Screen (START begins Level 3 once Level 2 is complete)
 → Level results and campaign summary
 ```
 
+### Attention pass (CLAUDE.md §1B)
+
+| Area | Set piece or big moment | Spark gems / speed round | Gap-killers |
+| --- | --- | --- | --- |
+| Through the Rift | **Warden surge** through the Rift, then the dive into the Blank (fast rail) | Gems in the turbulence | Counter-words from about 2 s |
+| Rift Shore | Hush burst up out of the ash | Colour words double as gems | Path words between waves |
+| Cinderwood | The restored deer races ahead; tortoise ride | Speed round: restore the flock | Redactors threaten the deer |
+| Inkfall Cascades | **Raft descent** down burning falls (fast rail); fire tide | Gems over the falls | Blotlings on both banks |
+| Margin Library | Meteor books; **burning journal** tornado; Bright Quill power-up | Memory Pages as catch targets | Counter-words on falling books |
+| Gallery | The Perfect Warden smashes out; name card | Speed round: restore sculptures | Sculpture colour words between phases |
+| Paper Sea | Masts crash down in flames; firestorm | A constant stream of colour targets | Correction Moths dive at the sails |
+| Forge of Unwriting | Lines explode as they shut down | Speed round: lever trios | Three lanes live |
+| Cinder Citadel | **Fire race** up the stairwell (fast rail) | Gems on each landing | Path words without a break |
+| Throne of Ash | Throne erupts; name card; beam-struggle finale | — | Boss phases are continuous typing |
+
+Encounter medals (1–3 stars) appear after every encounter. Every dialogue line in this document plays over typing or action unless it is marked as the ending.
+
 ### Checkpoints
 
 ```text
@@ -147,44 +164,40 @@ rift-shore-written
 cinderwood-coloured
 inkfall-descended
 margin-library-remembered
-perfect-warden-calmed
+perfect-warden-defeated
 paper-sea-crossed
-eraser-works-stopped
+forge-stopped
 citadel-summit
 level-3-complete
 ```
 
 Boss-phase autosaves follow LD-6 (before and after each phase).
 
-## L3-6. Opening Cinematic — Through the Rift
+## L3-6. Opening — Through the Rift (interactive)
 
-### Shot 1 — Lantern Lake at dawn (7 s)
+### Beat 1 — Into the Rift (set piece)
 
-The Rift hangs over the lake, its edges held back by the gold Lantern Ward. Keeper Orin stands on the jetty, staff raised, keeping it open.
+- The level opens with the Warden already **surging up into the Rift**: the apprentice and Mira are on its palm and Pip is on its shoulder.
+- Keeper Orin's line plays over the first second:
 
-Keeper Orin:
+  Keeper Orin:
 
-> I'll hold the door. Bring back what was taken — and bring yourselves back too.
+  > Bring back what was taken!
 
-### Shot 2 — The Warden lifts the party (6 s)
+- Burning debris tumbles out of the Rift at them, with counter-words, from about 2 seconds in. Spark gems spin in the turbulence.
 
-The Warden kneels. Mira and the apprentice step onto its palm, and Pip settles on its shoulder. It rises into the Rift.
+  Pip (over the typing):
 
-Pip:
+  > I am not scared. I am... accurately concerned.
 
-> For the record, I am not scared. I am... accurately concerned.
+### Beat 2 — The Blank
 
-### Shot 3 — The Blank (8 s)
+- A white flash, then the first view of the Blank: a vast scorched landscape under a blood-red sky. Ash plains, a burnt forest, rivers of glowing red ink and ash falling like snow. Far away, a black citadel stands wrapped in fire.
+- The Warden **dives** towards the ash shore. Hush Moths rise to meet them, so the player is fighting while taking in the view.
 
-White light, then a vast scorched landscape under a blood-red sky: ash plains, a burnt forest, rivers of glowing red ink, ash falling like snow. Far away, a black citadel stands wrapped in fire.
+  Pip (one line, during the dive):
 
-Mira:
-
-> It's like someone burned the world... and left it like this.
-
-Pip:
-
-> That fortress. That's where he is. I can feel it.
+  > That fortress. That's where he is.
 
 Visual note for this shot: it is the first view of the Blank. It must be breathtaking and ominous: the vast red sky, plains of grey ash, distant fires on the horizon, and, far away, the black Cinder Citadel wrapped in fire.
 
@@ -201,8 +214,8 @@ Checkpoint: `rift-crossed`.
 
   > No path? Then we write one!
 
-- **Colour tutorial:** a shell, a boat and a lantern on the beach, burnt to grey ash and still smouldering. Typing their bonus words repaints them, and the area's colour meter fills.
-- **Encounter S1:** Blotlings and Scribble Imps (familiar from Level 2), one wave. A gentle start.
+- **Colour tutorial:** a shell, a boat and a lantern on the beach, burnt to grey ash and still smouldering. Typing their bonus words blasts the embers out and repaints them, and the area's colour meter fills.
+- **Encounter S1:** Blotlings and Scribble Imps burst up out of the ash, mixed with the colour words. They're familiar from Level 2.
 - **Memory Page 1:** a sketch of a young teacher in an Asterfall robe, laughing with students over a spilled inkpot. It is hidden inside the ash shell, which gives up the page when restored.
 
 Checkpoint: `rift-shore-written`.
@@ -226,7 +239,7 @@ Checkpoint: `cinderwood-coloured`.
 
 ## L3-9. Inkfall Cascades
 
-**Purpose:** a fast-feeling set piece (gentle in practice); ink tides.
+**Purpose:** a fast-feeling set piece (gentle in practice); fire tides.
 
 - The party rides a raft made of a single huge page down a series of waterfalls of glowing red ink, with walls of fire on both banks. Mira kneels at the front steering with a pole.
 - **Segment 1:** Blotlings bob up from the ink on both sides. The raft slows while the player types.
@@ -245,26 +258,24 @@ Checkpoint: `inkfall-descended`.
 **Purpose:** the revelation of Pip's past; unlock Bright Quill.
 
 - **Setting:** an upside-down library hanging from the red sky, its shelves scorched black, full of books whose pages were burned blank. Embers drift upward past the hanging walkways.
-- **Path:** walkways between the hanging shelves are written in one by one. There is no combat on the first crossing.
+- **Path:** walkways between the hanging shelves are written in one by one, while burning books drop from the shelves above like meteors. The falling books carry counter-words; dodging them is part of the crossing.
 - **Encounter M1:** Paper Sprites gone grey and Ink Wisps with erased letters.
-- **Memory scene:** at the library's heart, a lectern holds Corvane's own erased journal. Pip touches it, and three Memory Pages restore on their own, played as a short illustrated sequence:
+- **Memory scene, set piece: the burning journal.** At the library's heart, Corvane's journal bursts into flame and its pages whirl up into a fiery tornado. Three Memory Pages fly out of the fire. Each is a target the player catches by typing its word. Each caught page flashes its picture full-screen for about 1 second:
   1. Corvane building a small brass orb with three rings: Pip.
   2. Corvane frowning at Pip's mistakes and raising the quill.
   3. Pip fleeing through a closing ward.
 
-  Pip (quietly):
-
-  > He made me. And then he tried to unmake me. Because I was... wrong too often.
-
-  Mira:
-
-  > You're wrong ALL the time. It's one of your best features.
+  Then a short exchange plays while Ink Wisps pour out of the tornado:
 
   Pip:
 
-  > ...Thank you. I think.
+  > He made me... then tried to unmake me. For being wrong.
 
-- **Unlock:** the journal's last page teaches **Bright Quill**. Pip learns it can also restore colour by the apprentice's side.
+  Mira:
+
+  > You're wrong ALL the time. It's your best feature.
+
+- **Unlock, a power-up moment:** the journal's last page teaches **Bright Quill**. Slow-motion beat and a big **BRIGHT QUILL** card, then a wave of easy grey Sprites to repaint with it straight away.
 
 Checkpoint: `margin-library-remembered`.
 
@@ -273,11 +284,12 @@ Checkpoint: `margin-library-remembered`.
 **Purpose:** confrontation for the Warden; first full use of erased letters under pressure.
 
 - **Setting:** a vast gallery of things the Unwriter took from the world and froze as grey sculptures: a fountain, a carousel, a constellation, and pieces of Asterfall's lost east tower. Restoring them is optional and lifts the area's colour.
-- **The Perfect Warden:** at the far end stands a copy of the Ward Warden, forged from black iron, with a burning red core and no cracks or repairs. It is bigger, colder and more menacing than the original.
+- **The Perfect Warden:** at the far end, a copy of the Ward Warden **smashes out of a wall of grey sculptures**. It's forged from black iron, with a burning red core and no cracks or repairs, and it's bigger, colder and more menacing than the original.
+- **Name card:** **THE PERFECT WARDEN**, plus a boss health bar.
 
-  The Unwriter (voice, first heard in the Blank):
+  The Unwriter (voice, during the intro; the Blank's first taste of his voice):
 
-  > "Your guardian is cracked. I have made a better one. A perfect one."
+  > "Your guardian is cracked. I made a perfect one."
 
 ### Phase P1 — Mirror Strikes
 
@@ -294,7 +306,7 @@ Checkpoint: `margin-library-remembered`.
 - The real Warden and the apprentice attack together: the Warden pins the copy's arms while the player types a spell of four words: `cracks` `are` `not` `flaws`.
 - Each word splits the copy's iron shell further. On the last word the real Warden drives a fist into the cracked core, and the Perfect Warden shatters into a storm of iron shards and sparks.
 
-Checkpoint: `perfect-warden-calmed`.
+Checkpoint: `perfect-warden-defeated`.
 
 ## L3-12. Paper Sea
 
@@ -302,7 +314,7 @@ Checkpoint: `perfect-warden-calmed`.
 
 - **The sea:** a sea of grey paper waves under the red sky, with burning wrecks and the Cinder Citadel growing on the horizon.
 - **The ship:** Mira folds a huge sheet of paper into a ship with a spell, a story beat with Mira's first big moment of magic. The Warden walks through the shallows, towing it.
-- **Segment 1:** quiet sailing. Optional colour targets drift past (paper islands, a lighthouse, a whale outline) to restore.
+- **Segment 1:** fast sailing through burning wreckage. Colour targets (paper islands, a lighthouse, a whale outline) and spark gems stream past constantly, and Correction Moths dive at the sails.
 - **Hush fleet:** three black-sailed galleons with burning figureheads and Hollow Knight crews. Each galleon has a **mast word**; completing it brings the mast crashing down in flames (two words per mast, three masts). Incoming fireball-cannon counter-words.
 - **Storm:** a firestorm with a fire tide (`steady on`). Then the Citadel looms out of the smoke ahead.
 
@@ -323,7 +335,7 @@ Checkpoint: `paper-sea-crossed`.
 - **Line shutdown:** each stopped line explodes into a cascade of sparks as its furnace blows out.
 - **Freed things:** each stopped line releases the stolen things it was melting down (lanterns, banners, a stolen Asterfall bell). They drift home in colour.
 
-Checkpoint: `eraser-works-stopped`.
+Checkpoint: `forge-stopped`.
 
 ## L3-14. The Cinder Citadel
 
@@ -333,22 +345,18 @@ Checkpoint: `eraser-works-stopped`.
   - A towering black fortress of iron and charred paper, wrapped in fire.
   - Red light pours through every arrow slit, banners of black paper burn on the walls, and fire tides roll down the stairwells.
   - Its stairs have burned away: every flight must be written.
-- **The climb:** four flights of path words, with a slow erasure creeping up from below (L3-4).
+- **The climb, set piece: the fire race.** Four flights of path words, with a **wall of fire racing up the stairwell** from below in place of the slow erasure. It always stops just short, scripted (L3-4). The camera surges up each written flight.
   - Between flights, Correction Moths and Redactors hold landings.
   - Erased-letter words become common.
-- **Pip's glitches peak:** in a cold formal tone Pip says "Correction required. Correction required." Mira steadies it:
+- **Pip's glitches peak:** during the third flight, over the typing, Pip says in a cold formal tone, "Correction required." Mira's fix plays over the fourth flight:
 
   Mira:
 
-  > Pip. Say something wrong.
+  > Pip! Say something wrong!
 
   Pip:
 
-  > ...The moon is made of... soup.
-
-  Mira:
-
-  > Perfect. Stay like that.
+  > The moon is made of... soup!
 
 - **Summit:** great black doors ringed with fire. The Warden smashes them open. Beyond, on a platform of iron above a sea of flame and under the red sky, sits the Throne of Ash.
 
@@ -358,23 +366,24 @@ Checkpoint: `citadel-summit`.
 
 ### Introduction
 
-The Unwriter rises from his throne. The Unwriting Quill turns in the air beside him, its missing shard a dark notch.
+Within the 8 s boss-intro allowance:
 
-The Unwriter:
+- The throne erupts in a column of fire and the Unwriter rises out of it. The burning quill spins up beside him, and the whole arena ignites.
+- Name card: **THE UNWRITER**, plus a boss health bar.
 
-> "Little orb. You came home. You were always so very wrong. I can fix that now."
+The Unwriter (as the card fades):
+
+> "Little orb. You came home. I can fix you now."
+
+The rest of the exchange plays over Phase U1's first Seal Pages:
 
 Pip:
 
-> I'm not broken. I'm... learning.
+> I'm not broken. I'm learning!
 
 The Unwriter:
 
-> "And the apprentice. So many mistakes in every word you type. Let me take them away."
-
-Pip (to the apprentice):
-
-> Don't listen. Mistakes are how you got this far.
+> "So many mistakes in every word you type. Let me take them away."
 
 ### Phase U1 — Erasure
 
@@ -401,7 +410,7 @@ Pip (to the apprentice):
 - Hollow Knights engage Mira and the Warden, who hold them back (ally beats, never a fail state).
 - **Saving Pip:**
   - The player types **restore words** that appear on Pip's rings: `brave`, `curious`, `kind`. These are the values Pip showed across the game.
-  - At the same time, the player counters the quill's strokes towards Pip (counter-words and one ink tide).
+  - At the same time, the player counters the quill's strokes towards Pip (counter-words and one fire tide).
   - Each restored ring lets Pip speak in its own voice again.
 - When all three rings return, Pip breaks free and glows gold-blue.
 
@@ -439,6 +448,8 @@ Pip (to the apprentice):
 - Mira's Shield Song appears more readily (HP below 50%) during the boss on Gentle and Standard.
 
 ## L3-16. Homecoming — Ending Cinematic
+
+This is the campaign's ending, so it is exempt from the 7-second rule. Every line can be skipped, and the celebration includes optional fireworks words for fun.
 
 1. **The fires die.** The flames of the Cinder Citadel gutter out, the red sky breaks, and the Blank washes from ash into full colour from the throne outward: the forest, the falls, the sea, the gallery.
 2. **The lost places go home.** Asterfall's lost east tower, the forgotten bridge and the erased constellations rise and stream back through the Rift towards the academy.
@@ -566,7 +577,7 @@ The Hush rules from `LEVEL2_DESIGN.md` §M2 apply. Constructs made directly by t
 As MD-12 and M2-9, plus:
 
 - **Erased letters:** Gentle lightly faded only; Standard up to two faded; Challenge one blank slot in 6+ letter words.
-- **Ink tide telegraph:** Gentle 1.5 s, Standard 1.0 s, Challenge 0.8 s, never less.
+- **Fire tide telegraph:** Gentle 1.5 s, Standard 1.0 s, Challenge 0.8 s, never less.
 - **Creeping erasure speed:** Gentle 0.6×, Challenge 1.2×. Its effect is never more than one path section of pushback.
 
 ---
