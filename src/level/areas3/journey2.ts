@@ -274,7 +274,7 @@ export const gallery3: AreaScript = {
         {
           id: 'sculptures',
           sequential: true,
-          targets: [colour('sculpt-fountain', Y(-6, 2, -2), 'fountain', 'l3-sculpt-1'), colour('sculpt-carousel', Y(6, 2.4, -4), 'carousel', 'l3-sculpt-2'), colour('sculpt-tower', Y(-2, 4, -10), 'tower', 'l3-sculpt-3')],
+          targets: [colour('sculpt-fountain', Y(-6, 2, -2), 'fountain', 'l3-sculpt-1'), colour('sculpt-carousel', Y(6, 2.4, -4), 'carousel', 'l3-sculpt-2'), colour('sculpt-tower', Y(-9, 4, -12), 'tower', 'l3-sculpt-3')],
         },
       ],
       onComplete: { reward: { starPage: 'memory-7' } },

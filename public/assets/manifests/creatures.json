@@ -300,6 +300,178 @@
     "bytes": 7529692,
     "source": "assets-src/scripts/creatures/grey_herald.py"
   },
+  "correction_moth": {
+    "id": "correction_moth",
+    "file": "/assets/creatures/correction_moth.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "sphere",
+      "radius": 0.5,
+      "height": 1
+    },
+    "wordAnchor": [
+      0,
+      1.4,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/correction_moth.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 24000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.6522697806358337,
+        -0.000609616341535002,
+        -0.3146701455116272
+      ],
+      "max": [
+        0.6487013101577759,
+        1.0989010334014893,
+        0.31423261761665344
+      ]
+    },
+    "bytes": 4102248,
+    "source": "assets-src/scripts/creatures/correction_moth.py"
+  },
+  "foreman": {
+    "id": "foreman",
+    "file": "/assets/creatures/foreman.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.9,
+      "height": 2.7
+    },
+    "wordAnchor": [
+      0,
+      3.1,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/foreman.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 36000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -1.141906499862671,
+        -0.012041016481816769,
+        -0.9041168093681335
+      ],
+      "max": [
+        1.1509180068969727,
+        2.699965238571167,
+        0.9058458805084229
+      ]
+    },
+    "bytes": 5312456,
+    "source": "assets-src/scripts/creatures/foreman.py"
+  },
+  "perfect_warden": {
+    "id": "perfect_warden",
+    "file": "/assets/creatures/perfect_warden.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.8,
+      "height": 4
+    },
+    "wordAnchor": [
+      0,
+      4.4,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/perfect_warden.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 49999,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.8978872895240784,
+        -0.01822436787188053,
+        -0.4073711335659027
+      ],
+      "max": [
+        0.895510196685791,
+        4.003541469573975,
+        0.40466442704200745
+      ]
+    },
+    "bytes": 11250304,
+    "source": "assets-src/scripts/creatures/perfect_warden.py"
+  },
+  "unwriter": {
+    "id": "unwriter",
+    "file": "/assets/creatures/unwriter.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.9,
+      "height": 3.4
+    },
+    "wordAnchor": [
+      0,
+      3.8,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/unwriter.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 59999,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -1.1410588026046753,
+        -0.000005694320407201303,
+        -0.8932328224182129
+      ],
+      "max": [
+        1.1433640718460083,
+        3.3963301181793213,
+        0.892866313457489
+      ]
+    },
+    "bytes": 9605516,
+    "source": "assets-src/scripts/creatures/unwriter.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",

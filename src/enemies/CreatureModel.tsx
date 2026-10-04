@@ -18,9 +18,9 @@ const base = `${import.meta.env.BASE_URL}assets/creatures/`;
  * Level 2/3 mobs whose realistic models have been built (assets-src/scripts/ai). Kinds not listed use
  * their code-built stand-in instead of requesting a file that does not exist yet.
  */
-export const BUILT_AI_MOBS: ReadonlySet<string> = new Set<string>(['hollow-knight', 'eraser-moth']);
+export const BUILT_AI_MOBS: ReadonlySet<string> = new Set<string>(['hollow-knight', 'eraser-moth', 'correction-moth', 'foreman']);
 /** Boss and set-piece model files built so far (scene creatures, not typing targets). */
-export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb']);
+export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb', 'perfect_warden.glb', 'unwriter.glb']);
 const AI_MOB_KINDS = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman']);
 
 export function creatureUrl(kind: string, variant?: string): string | null {

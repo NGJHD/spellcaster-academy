@@ -258,8 +258,8 @@ export function Gallery3Scene() {
           </mesh>
         </group>
       </Restorable>
-      <Restorable flag="l3-sculpt-3" fire={{ position: [-2, 3, -10], size: 1.4, count: 3, spread: 2 }}>
-        <group position={[-2, 0, -10]}>
+      <Restorable flag="l3-sculpt-3" fire={{ position: [-9, 3, -12], size: 1.4, count: 3, spread: 2 }}>
+        <group position={[-9, 0, -12]}>
           <mesh position={[0, 3, 0]} material={MAT.academyStone}>
             <cylinderGeometry args={[1.4, 1.6, 6, 16]} />
           </mesh>
@@ -272,6 +272,7 @@ export function Gallery3Scene() {
       <SceneCreature
         file="perfect_warden.glb"
         position={sub(PERFECT_WARDEN, GALLERY3_ORIGIN)}
+        scale={2}
         fromBeat="l3-perfect-warden"
         goneFlag="l3-perfect-warden-gone"
         fallback={<IronGiant height={7} />}
@@ -506,9 +507,15 @@ function UnwriterFallback() {
 export function ThroneScene() {
   const ring = useRef<Group>(null);
   const book = useRef<Group>(null);
-  useFrame((state) => {
+  const grow = useRef<Group>(null);
+  const size = useRef(1);
+  useFrame((state, delta) => {
     const run = getRun();
     const id = run?.director.currentBeat?.id ?? '';
+    // He grows larger and more fiery as the fight goes on (M3-8): full height for the final clash.
+    const target = id === 'l3-u4' ? 1.7 : id === 'l3-u3' || id === 'l3-pip-seized' || id === 'l3-pip-free' ? 1.35 : 1;
+    size.current += (target - size.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
+    grow.current?.scale.setScalar(size.current);
     const seized = (id === 'l3-pip-seized' || id === 'l3-u3') && !(run?.flags.has('l3-pip-free') ?? false);
     if (ring.current) {
       ring.current.visible = seized;
@@ -544,15 +551,17 @@ export function ThroneScene() {
       {[[-40, -60, -30], [50, -60, -60], [0, -60, -90], [-60, -60, 20]].map((p, i) => (
         <Fire key={i} position={p as unknown as Vec3} size={18} count={4} spread={30} smoke={false} />
       ))}
+      <group ref={grow} position={unwriter}>
       <SceneCreature
         file="unwriter.glb"
-        position={unwriter}
-        scale={1.3}
+        position={[0, 0, 0]}
+        scale={1.6}
         fromBeat="l3-unwriter-rises"
         goneFlag="l3-unwriter-sealed"
         fallback={<UnwriterFallback />}
         rearing={() => (getRun()?.director.currentBeat?.id ?? '') === 'l3-u4'}
       />
+      </group>
       {/* Pip held in a ring of burning red script */}
       <group ref={ring} position={pip}>
         <mesh material={ironSeam}>
@@ -564,7 +573,7 @@ export function ThroneScene() {
         <Box position={[0, 0, 0]} size={[1.6, 0.4, 2.2]} material={MAT.burgundyLeather} />
         <Box position={[0, 0.21, 0]} size={[0.6, 0.02, 0.6]} material={MAT.wardGold} />
       </group>
-      <StaticWarden position={[10, 0, -6]} scale={1.2} rotationY={-1.0} />
+      <StaticWarden position={[13, 0, -10]} scale={1.2} rotationY={-1.0} />
       <Mira position={[4, 0, 3]} rotationY={-0.8} />
     </group>
   );
