@@ -171,6 +171,49 @@
     "bytes": 5739912,
     "source": "assets-src/scripts/creatures/thorn_pod.py"
   },
+  "hollow_knight": {
+    "id": "hollow_knight",
+    "file": "/assets/creatures/hollow_knight.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.45,
+      "height": 2.1
+    },
+    "wordAnchor": [
+      0,
+      2.6,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/hollow_knight.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 34000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.5794409513473511,
+        -0.00099567708093673,
+        -0.27124881744384766
+      ],
+      "max": [
+        0.5867059826850891,
+        2.200300455093384,
+        0.2695097029209137
+      ]
+    },
+    "bytes": 5025584,
+    "source": "assets-src/scripts/creatures/hollow_knight.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",
