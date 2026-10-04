@@ -6,6 +6,8 @@ Game-wide rules live in `CLAUDE.md`: the on-rails format, audience and IP rules,
 
 Section ids use the prefix `L2-` for level design, `M2-` for mobs, `A2-` for the asset bible and `G2-` for general design.
 
+Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 15-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
+
 ---
 
 # LEVEL DESIGN
@@ -15,14 +17,18 @@ Section ids use the prefix `L2-` for level design, `M2-` for mobs, `A2-` for the
 **Level 2:** The Siege of Asterfall
 **Target first-play duration:** 18–25 minutes at the owner's brisk pace
 **Format:** first-person on-rails typing shooter (unchanged)
-**Tone:** exciting night-time defence. The danger is real but never frightening: things are erased, not hurt, and everything erased can be restored.
+**Tone:** a dramatic night siege. The academy is on fire under a blood-red sky, smoke rolls across the courtyards, and menacing creatures pour over the walls. This must look and feel completely different from Level 1's sunny first day, so that an 8–10-year-old knows instantly that this is serious. Dramatic, not horror: nobody is hurt, and everything that burns can be restored.
 **Core objective:** relight the four Lantern Beacons to raise an emergency Lantern Ward over the academy, get the first-years to safety, and stop the Vellum Wyrm before it carries the Whispering Library away.
 
 ## L2-2. Story Premise
 
 A week after the ward was repaired, Asterfall celebrates the **Lantern Festival**. Students float paper lanterns over Lantern Lake to thank the stars. Pip has organised the event and has been insufferable about it.
 
-During the festival, the hairline seam left in the sky by Level 1 tears open above the lake. Through the **Rift** comes **the Hush**: ink, eraser dust and grey paper given shape by someone on the other side. Wherever the Hush touches, the world loses its colour and detail and becomes a flat grey pencil sketch. Lanterns, banners, doors, even sections of wall are "unwritten". Nothing is hurt, but erased things stop working. An erased door won't open, and an erased bridge can't be crossed.
+During the festival, the hairline seam left in the sky by Level 1 tears open above the lake. The **Rift** opens like a wound of red fire across the sky. Through it pours **the Hush**: creatures of ink, ash and smouldering paper, armed with **inkfire**, red-and-black flames that burn without heat. Whatever inkfire touches burns away into grey ash and is "unwritten":
+
+- **What burns:** lanterns, banners, doors, bridges, even whole sections of wall.
+- **The academy:** it is soon ringed with fire. Embers drift through the air, smoke hangs over the courtyards, and the sky glows red.
+- **Burned things stop working.** A burned door won't open, and a burned bridge can't be crossed, until the apprentice's spells quench the fire and write the thing back.
 
 Keeper Orin can't seal the Rift, but he can raise an emergency shield, the **Lantern Ward**, if four old signal beacons are relit around the academy:
 
@@ -31,7 +37,7 @@ Keeper Orin can't seal the Rift, but he can raise an emergency shield, the **Lan
 3. **The Lighthouse Beacon** on Lantern Lake
 4. **The Rampart Beacon** on the east walls
 
-Pip guides the apprentice; Mira leads the first-years to the Great Hall. The Ward Warden, now an ally, defends the walls but is slowly being erased itself.
+Pip guides the apprentice; Mira leads the first-years to the Great Hall. The Ward Warden, now an ally, defends the walls but is slowly being scorched to grey ash itself.
 
 Midway through the night a voice speaks from the Rift for the first time. It is calm, polite and very cold:
 
@@ -56,7 +62,7 @@ Keeper Orin recognises it. It belonged to **Magister Corvane Hale**, an archivis
 - **Prefect Idris Kade:** a calm, steady senior student. Holds the Great Hall doors with a barrier spell and trusts the apprentice to keep the Hush off them.
 - **Oarsby:** the academy's brass ferryman automaton. Polite, slow-speaking and fond of nautical phrases. He rows the apprentice across Lantern Lake.
 - **The Voice in the Rift:** the Unwriter, heard but not seen. Calm and courteous, and absolutely certain that mistakes and mess should be removed. Never shouts, never threatens violence, and only ever speaks of tidying, correcting and erasing.
-- **The Hush:** the Unwriter's army (§M2). They are constructs, not living things. They return to harmless ink, dust and paper when calmed.
+- **The Hush:** the Unwriter's army (§M2). They are constructs, not living things. When beaten they burst into sparks, ink and ash.
 
 ## L2-4. New Mechanics
 
@@ -71,13 +77,14 @@ Each mechanic is introduced once with no danger, then used under light pressure,
 - On Gentle, counter-word attacks also hit for nothing (HP is unlimited), but they are still shown and still reward score.
 - Unlocked during the Festival Lawn tutorial.
 
-### Erasure and restoration
+### Inkfire and restoration
 
-- Erased objects are rendered as grey pencil sketches: line-art outlines over a pale paper fill, with no textures.
-- Some erased objects carry a **restore word**. Typing it repaints the object with a ripple of colour. Erased objects:
-  - **On the rail path** (bridges, doors) must be restored to continue, with no time pressure.
+- **Burning objects** are wreathed in red-and-black inkfire.
+- **Burnt-out objects** become grey ash sculptures: a grey, cracked, charcoal look with glowing ember edges.
+- Burning or burnt objects carry a **restore word**. Typing it blasts the fire out with a burst of gold-blue light, then repaints the object in a wave of colour.
+  - Objects **on the rail path** (bridges, doors) must be restored to continue, with no time pressure.
   - **Optional ones** give score and collectibles.
-- Hush attacks on the environment play as slow, clearly telegraphed grey creeping. They are never a fail state.
+- Hush fire attacks on the environment spread visibly but slowly, with clear telegraphs. They are never a fail state.
 
 ### Lanes
 
@@ -145,7 +152,7 @@ Autosave triggers and save boundaries follow LD-6, including boss-phase saves.
 
 ### Shot 1 — Lantern Festival (8 s)
 
-Night. Hundreds of paper lanterns drift over Lantern Lake. The repaired ward shimmers faintly overhead. Students cheer on the lawn.
+Night. Hundreds of paper lanterns drift over Lantern Lake. The repaired ward shimmers faintly overhead. Students cheer on the lawn. This is the last calm, warm image of the level, and the contrast with what follows should be strong.
 
 Pip:
 
@@ -153,15 +160,15 @@ Pip:
 
 ### Shot 2 — The seam (6 s)
 
-The camera tilts up. A thin crack in the sky that nobody else has noticed. Lanterns near it turn grey and stop glowing.
+The camera tilts up. A thin crack in the sky that nobody else has noticed. It begins to glow red. A lantern drifting near it bursts into red-black flame and falls as grey ash.
 
 Pip:
 
-> That lantern just... lost its colour. That is not a festival effect.
+> That lantern just... burned. Grey. That is NOT a festival effect.
 
 ### Shot 3 — The Rift opens (6 s)
 
-The crack splits into a long, ragged Rift. Grey ink-shapes spill down the sky like dropped ink. Students scatter towards the halls.
+With a deep boom the crack splits into a long, ragged Rift of red fire. The sky turns red. Burning shapes rain down like comets and crash into the lawn, the boathouse and the rooftops, which catch fire. The Hush climb out of the flames. Students scatter towards the halls. The music cuts from festival to siege.
 
 Keeper Orin (projected message):
 
@@ -179,14 +186,14 @@ Keeper Orin (projected message):
 
   > Words can block, too! Type the little word on anything flying at you.
 
-- **Erasure tutorial:** a festival stall turns grey. Its restore word, `stall`, appears. Typing it repaints the stall in a ripple of colour.
+- **Fire tutorial:** a festival stall catches inkfire and starts burning to ash. Its restore word, `stall`, appears. Typing it blasts out the flames and repaints the stall in colour.
 
   Pip:
 
-  > It isn't broken — it's been unwritten. Write it back!
+  > Inkfire! It burns things right out of the world — but your spells can put it out. Write it back!
 
 - **Encounter F2:** two waves of Blotlings and Eraser Moths, mixing targets and counter-words.
-- **Exit:** the camera follows the path to the Dormitory Tower, where students are trapped behind an erased door.
+- **Exit:** the camera follows the path to the Dormitory Tower, where students are trapped behind a burning door.
 
 **Optional:** two Festival Lanterns (collectibles) float near the stalls, each needing a bonus word.
 
@@ -196,9 +203,9 @@ Checkpoint: `festival-lawn-complete`.
 
 **Purpose:** a rescue sequence: restore paths and protect the first-years.
 
-- The tower door is erased. Restore word: `open`.
+- The tower door is burning. Restore word: `open`.
 - Inside, a spiral stair (reusing the stairwell kit, decorated with student life). On each of three landings a first-year is hiding behind a door the Hush is erasing.
-- **At each landing:** calm 2–3 Scribble Imps scratching at the door, then restore the door. The freed student runs downstairs, thanking the apprentice with a short line.
+- **At each landing:** blast 2–3 Scribble Imps setting the door alight, then restore the door before the fire takes it. The freed student runs downstairs, thanking the apprentice with a short line.
 - **Escalation:** a Smudgehound appears on landing 3, the first fast enemy. Its approach is clearly telegraphed by smoke-paw prints on the floor.
 
 Mira (arriving to lead the first-years away):
@@ -212,7 +219,7 @@ Checkpoint: `dormitory-rescued`.
 **Purpose:** first beacon; travel under pressure.
 
 - A long covered bridge between the dormitory and the Great Hall. A huge bronze bell in a central belfry is the Bell Beacon.
-- **Travel:** the camera moves along the bridge. Erased planks ahead must be restored (`plank`, `beam`, `rail`) before the camera can continue. There's no timer; the Hush simply waits on the far side.
+- **Travel:** the bridge is on fire. The camera moves along it through smoke and falling embers. Burning planks ahead must be restored (`plank`, `beam`, `rail`) before the camera can continue. There's no timer; the Hush wait on the far side, howling.
 - **Encounter B1:** Eraser Moths swarm the belfry. Each carries a 4–5 letter word, and some throw dust bursts (counter-words).
 - **Beacon:** three words relight it: `ring`, `bright`, `signal`. Each word swings the bell. On the third, the bell rings and a gold beam rises into the sky.
 
@@ -237,11 +244,11 @@ Checkpoint: `bell-beacon-lit`.
 
 ### Mini-boss: the Grey Herald
 
-A tall, thin herald made of folded grey paper, with a long trumpet. It reads the Unwriter's decree aloud, and every sentence erases something in the hall.
+A tall, thin herald made of charred black paper with glowing red edges, carrying a long trumpet. It reads the Unwriter's decree aloud, and every sentence sets something in the hall ablaze.
 
-- **Phase 1 — The Decree:** the Herald unrolls a scroll. Each of its four lines is a short 4–6 letter word. Completing a word tears that line before it can be read out. Any line the player doesn't tear erases a banner or a table, which is cosmetic only and restorable afterwards.
+- **Phase 1 — The Decree:** the Herald unrolls a scroll. Each of its four lines is a short 4–6 letter word. Completing a word tears that line before it can be read out. Any line the player doesn't tear sets a banner or table on fire, which is cosmetic only and restorable afterwards.
 - **Phase 2 — Trumpet Blasts:** the Herald blows long counter-word blasts (a 3–4 letter word each) between summoning pairs of Scribble Imps.
-- **Phase 3 — Last Word:** the Herald tries to erase Idris's barrier. The player completes the phrase `not on my watch`, word by word. The Herald folds itself into a harmless paper crane and flutters away into the Rift.
+- **Phase 3 — Last Word:** the Herald tries to burn through Idris's barrier. The player completes the phrase `not on my watch`, word by word. Each word punches a blast of light through the Herald. On the last word it bursts into a shower of sparks and ash, and its trumpet clatters to the floor.
 
 Before Phase 1, the Voice in the Rift speaks through the Herald for the first time:
 
@@ -259,7 +266,7 @@ Checkpoint: `great-hall-held`.
 
 **Purpose:** environmental variety; unlock Starfall.
 
-- Workshops lit by copper stills, glass alembics and a great furnace (the Furnace Beacon), which the Hush has smothered with grey ash.
+- Workshops lit by copper stills, glass alembics and a great furnace (the Furnace Beacon). The Hush has choked the furnace with grey ash, and inkfire runs along the pipes.
 - **Encounter W1:** Smudgehounds dart between workbenches along authored paths. Some knock over alembics; the spilled liquid is never harmful, only colourful.
 - **Puzzle beat (typing only):** three valves need restoring (`copper`, `steam`, `spark`) to get air to the furnace.
 - **Beacon:** `ember`, `flame`, `forge`, `blaze`. The furnace roars back to life, and Starfall is unlocked.
@@ -272,9 +279,9 @@ Checkpoint: `furnace-beacon-lit`.
 
 ## L2-12. Lantern Lake — Boat Rail, Beacon 3
 
-**Purpose:** spectacle and pacing contrast: a calm, beautiful ride with light pressure.
+**Purpose:** spectacle and pacing contrast: a dramatic ride across a burning lake with light pressure.
 
-Oarsby's boat glides across the lake. Festival lanterns still float on the water. The Rift's reflection ripples below.
+Oarsby's boat glides across a lake that reflects the red Rift. Burning lanterns float on the water, and the boathouse is on fire on the shore. Fire and its reflection make this the most dramatic view of the level.
 
 Oarsby:
 
@@ -293,8 +300,8 @@ Checkpoint: `lighthouse-beacon-lit`.
 
 **Purpose:** story escalation, and the first sight of the Vellum Wyrm.
 
-- The library from Level 1 at night. Pages are streaming out of the books on the shelves and flying out through a broken window towards the Moon Tower. Whole sections of shelving are erased.
-- **Story beat:** through the window, the Vellum Wyrm is glimpsed coiling around the Moon Tower: a long dragon of streaming pages with a dark glow at its heart.
+- The library from Level 1 at night, half in flames. Pages stream out of the books and fly out through a shattered window towards the Moon Tower. Whole sections of shelving are burnt to grey ash, and embers swirl under the galleries.
+- **Story beat:** through the window, the Vellum Wyrm is glimpsed coiling around the Moon Tower: a long dragon of burning pages, roaring and breathing red fire across the rooftops.
 
   Pip:
 
@@ -302,8 +309,8 @@ Checkpoint: `lighthouse-beacon-lit`.
 
 - **Encounter L1:** Paper Sprites (loose pages folded into tiny fighters) mixed with returning ink wisps. Wisps now carry counter-word shield pulses.
 - **Objective:** Keeper Orin's **Star Atlas**, a huge book of star charts needed to steady the Lantern Ward. It is on the Grimoire's pedestal. The Great Grimoire from Level 1, now friendly, is guarding it and is under attack.
-  - **Protect the Grimoire:** Scribble Imps scratch at its clasps. Calming them saves it, and it hands the Atlas over with a happy flap.
-- **Optional:** restore three erased shelves for score and a cosmetic (Inkwell Blue wand trail).
+  - **Protect the Grimoire:** Scribble Imps scratch at its clasps. Blasting them saves it, and it hands the Atlas over with a happy flap.
+- **Optional:** restore three burnt shelves for score and a cosmetic (Inkwell Blue wand trail).
 
 Checkpoint: `star-atlas-recovered`.
 
@@ -311,9 +318,9 @@ Checkpoint: `star-atlas-recovered`.
 
 **Purpose:** set-piece defence with the Warden at your side.
 
-- Battlements overlooking the lake and the Rift. The Ward Warden stands at the wall, holding off a column of Hush climbing the cliffs. Grey streaks show where it has been erased.
+- Burning battlements overlooking the lake and the red Rift. The Ward Warden stands at the wall, holding off a column of Hush climbing the cliffs with flaming ladders. Scorched grey streaks show where inkfire has burned its stone.
 - **Encounter R1:** three lanes along the wall: left tower, centre gate, right tower. The Warden covers one lane at a time, and Pip shows which. The player covers the other two.
-- **Restore the Warden:** each time the Warden is erased, a restore word appears on it (`stone`, `steady`, `guard`, `return`). Restoring it powers its next Warden Strike.
+- **Restore the Warden:** each time inkfire scorches the Warden, a restore word appears on it (`stone`, `steady`, `guard`, `return`). Restoring it powers its next Warden Strike.
 - **Hollow Knight Captain:** a larger Hollow Knight with three command words and a slow, broad sweep (counter-word: `halt`).
 - **Beacon:** `rampart`, `stand`, `together`, `dawn`. The fourth beam joins the dome and the Lantern Ward closes over the academy.
 
@@ -327,11 +334,11 @@ Checkpoint: `rampart-beacon-lit`.
 
 ### Introduction
 
-The Warden lifts the apprentice to the tower roof on its open palm (an authored ride). The Vellum Wyrm uncoils: thirty metres of fluttering pages, its head a great folded book with glowing ink eyes and a dark crystal heart showing between its "ribs" of book spines.
+The Warden lifts the apprentice to the tower roof on its open palm (an authored ride). The Vellum Wyrm rears up out of the smoke: thirty metres of burning pages, its head a great horned book with blazing red eyes, fire roaring in its throat, and a black crystal heart pulsing red between its "ribs" of book spines. It roars, and the roof shakes.
 
 Pip:
 
-> It's made of every book we love. We don't fight the pages — we call them home.
+> It's made of our books — and it's on FIRE. Hit it with everything!
 
 The Voice in the Rift:
 
@@ -342,8 +349,8 @@ The Voice in the Rift:
 - Five large page-scales glow on the wyrm's body, one at a time, each with a 5–6 letter word.
 - Each completed word peels a scale away. It flies back towards the library as a stream of pages.
 - **Attacks:**
-  - **Page gusts:** telegraphed sweeps that cost HP.
-  - **Ink spits:** counter-words, 3–4 letters.
+  - **Fire breath:** a telegraphed sweep of red flame across one side of the roof that costs HP. The wyrm's throat glows for at least the MD-1 minimum wind-up first.
+  - **Fireballs:** counter-words, 3–4 letters.
 - The Warden blocks one telegraphed gust per round with a stone arm, as a visible, reassuring beat.
 - Autosave before and after the phase.
 
@@ -351,21 +358,22 @@ The Voice in the Rift:
 
 - The wyrm takes off and circles the tower. The camera tracks it in smooth authored orbits, never spinning fast.
 - Three Ink Glands along its flank (unique initials, 6–7 letters) open as it passes. Close all three across two passes.
-- Between passes the wyrm dives. Its incoming **paper storm** is a chain of three counter-words in quick, readable succession. The chain slows to one at a time on Gentle.
+- Between passes the wyrm dives, raining a **firestorm**: a chain of three counter-words in quick, readable succession. Each one deflects a fireball into a burst of sparks. The chain slows to one at a time on Gentle.
 - If the Warden has been restored at least twice this level, it catches the wyrm's tail at the end of the phase. Otherwise the wyrm lands on its own.
 - Autosave before and after the phase.
 
 ### Phase V3 — Calling the Pages Home
 
-- The wyrm crashes onto the roof, its heart exposed: the quill shard, pulsing grey.
-- The player types the library's motto, one word at a time:
+- The wyrm crashes onto the roof in a storm of sparks, its burning heart exposed: the quill shard, pulsing red.
+- The player types the library's motto as a final spell, one word at a time:
 
   ```text
   every page has a place
   ```
 
-- Each word sends a ribbon of light to the shard and calls a wave of pages back to the library. The wyrm unravels gently into a great swirl of pages that pours back through the library windows.
-- The shard drops onto the roof, dark and quiet. The wyrm is not destroyed; it simply stops being a dragon.
+- Each word fires a lance of gold-blue light into the heart, tearing pages free.
+- On the last word the heart cracks. The wyrm's fire goes out with a thunderous blast, and the dragon bursts apart into a storm of pages and ash. The pages that survive flutter back to the library.
+- The shard falls onto the roof, cracked and smoking. The wyrm is beaten, not killed: it was only ever pages.
 
 ### Failure behaviour
 
@@ -386,7 +394,7 @@ The Voice in the Rift:
 
   > "Correction required." ...Sorry. I don't know why I said that.
 
-- **The Rift:** still open above the lake, held back by the Lantern Ward.
+- **The Rift:** still burning red above the lake, held back by the Lantern Ward. Smoke still rises from parts of the academy.
 
   Keeper Orin:
 
@@ -408,7 +416,7 @@ The Voice in the Rift:
 
 - Same metrics and timing rules as LD-19 and LD-20, plus:
   - Beacons lit (4/4)
-  - Erased objects restored (optional count)
+  - Burnt objects restored (optional count)
   - Counter-words blocked
   - Warden Strikes triggered
 - **Collectibles:** 8 **Festival Lanterns** (2 lawn, 4 lake, 1 library, 1 ramparts), shown as `LANTERN FOUND 3 / 8`.
@@ -424,51 +432,54 @@ The Voice in the Rift:
 
 Every Hush construct follows MD-1, with these rules on top:
 
-- **Look:** Hush constructs are grey, ink-black and paper-white, with a single soft colour accent (pale blue) on their counter-word tags. When calmed they become harmless ink puddles, dust or loose paper and visibly drift away.
-- **No faces with teeth or eyes that read as scary:** eyes are simple glowing dots or slits; mouths are absent or line-drawn.
-- **Erasing never hurts living characters:** the Hush only erases objects, scenery and the Warden's stone. Students are only ever frightened, hidden, then safe.
+- **Look:** Hush constructs are ink-black and ash-grey, with **glowing red-orange ember accents**: eyes, cracks and trailing embers. Many carry or breathe inkfire. They should look menacing and dangerous, like real villains' monsters in a children's adventure film, not cute.
+- **Limits:** no gore, no realistic anatomy of injury, and no fanged human faces.
+  - Snarls and glowing eyes are fine.
+  - Teeth may be stylised (ink spikes, flame shapes).
+- **Defeat:** defeated Hush **burst** into sparks, embers and ash with a satisfying punch of light. Big constructs crash, collapse or shatter.
+- **Living characters are never burned or hurt:** inkfire only burns objects, scenery and the Warden's stone. Students are frightened, hidden, then rescued.
 
 ## M2-1. Blotling
 
 - **Role:** basic Hush footsoldier and the counter-word teacher.
-- **Look:** a knee-high blob of ink with stubby legs and two pale dot-eyes. It wobbles like jelly when it moves.
+- **Look:** a knee-high mass of bubbling black ink with stubby legs, two burning ember eyes and a crack of glowing red down its front. It hisses when it moves.
 - **Behaviour:** drips down from the sky, waddles along an authored path, and flicks ink drops (counter-words).
 - **Words:** 3–5 letters; counter-words 2–3.
-- **Defeat:** splashes into a puddle that soaks away.
+- **Defeat:** bursts in a splash of ink and sparks.
 
 ## M2-2. Eraser Moth
 
 - **Role:** fast flyer.
-- **Look:** a large moth with grey felt wings that leave a trail of dust.
+- **Look:** a large moth with charred black wings edged in glowing embers, leaving a trail of sparks.
 - **Behaviour:** swoops in loose arcs. Its target is slowed while locked. Some throw dust bursts (counter-words).
 - **Words:** 4–5 letters.
 - **Attack cue:** wings fold back, dust glows.
-- **Defeat:** dissolves into dust that sparkles and settles.
+- **Defeat:** ignites and bursts into a shower of embers.
 
 ## M2-3. Scribble Imp
 
 - **Role:** erasure agent.
-- **Look:** small creature made of scribbled pencil lines that never quite settle; holds a stubby eraser.
-- **Behaviour:** runs to scenery and scrubs it grey. It doesn't attack the player directly; its threat is erasing objectives, which are always restorable.
+- **Look:** a small, jittery creature of scribbled black lines with ember eyes, holding a burning torch-quill.
+- **Behaviour:** runs to scenery and sets it alight. It doesn't attack the player directly; its threat is burning objectives, which are always restorable.
 - **Words:** 3–4 letters.
-- **Defeat:** the scribble untangles into a single straight line and vanishes.
+- **Defeat:** snaps apart into sparks; its torch-quill drops and gutters out.
 
 ## M2-4. Smudgehound
 
 - **Role:** fast, priority threat.
-- **Look:** a lean hound of smudged charcoal. Paw prints of grey smoke show its path a moment before it runs.
+- **Look:** a lean, snarling hound of smouldering charcoal with burning red eyes and flame running down its spine. Paw prints of fire show its path a moment before it runs.
 - **Behaviour:** dashes between cover along authored paths, pauses, then lunges.
 - **Words:** 4–6 letters.
 - **Attack cue:** crouches, smoke flares from its paws (≥ 700 ms Gentle, 500 ms Standard).
-- **Defeat:** curls up and fades like a drawing being rubbed out, leaving a tiny, harmless puff.
+- **Defeat:** breaks apart into a burst of embers and a cloud of ash.
 
 ## M2-5. Hollow Knight
 
 - **Role:** heavy, multi-stage enemy.
-- **Look:** an empty suit of grey, unpolished armour with no one inside. A faint grey glow shows through the visor slit. Visually distinct from the academy's ceremonial guardians: plainer, greyer, no brass.
+- **Look:** an empty suit of blackened iron armour with no one inside. Red fire burns through the visor slit and the joints. Spiked, heavy and menacing, and visually distinct from the academy's brass-trimmed ceremonial guardians.
 - **Behaviour:** marches slowly, braces, sweeps.
 - **Words:** two command words (5–7 letters). The Captain variant has three.
-- **Defeat:** the armour pieces fold neatly onto the ground in a tidy stack.
+- **Defeat:** the fire inside goes out with a bang and the armour collapses into a smoking heap.
 
 ## M2-6. Paper Sprite
 
@@ -476,21 +487,21 @@ Every Hush construct follows MD-1, with these rules on top:
 - **Look:** a single page folded into a tiny winged figure.
 - **Behaviour:** flits in groups of three. Light threat.
 - **Words:** 3–4 letters.
-- **Defeat:** unfolds and flies back to its book.
+- **Defeat:** flares briefly, then the page flutters back to its book.
 
 ## M2-7. The Grey Herald (mini-boss)
 
 - **Role:** mini-boss and the voice of the decree.
-- **Look:** a three-metre figure of folded grey paper with a long trumpet and a scroll. Formal, faceless and theatrical.
+- **Look:** a three-metre figure of charred black paper with glowing red edges, a flaming trumpet and a burning scroll. Faceless, formal and threatening.
 - **Behaviour:** the three-phase state machine in L2-10.
-- **Defeat:** folds itself into a paper crane and flies away.
+- **Defeat:** bursts into a pillar of sparks and ash.
 
 ## M2-8. The Vellum Wyrm (boss)
 
 - **Role:** level boss.
-- **Look:** a long serpentine dragon made of streaming pages and book spines, with a folded-book head and glowing ink eyes. A dark crystal heart (the quill shard) is visible between spine-ribs.
+- **Look:** a long serpentine dragon of burning pages and book spines. Its horned book head has blazing red eyes and a throat full of fire, and a black crystal heart pulses red between spine-ribs. Fire and embers stream from its whole body.
 - **Behaviour:** the authored three-phase state machine in L2-15. It moves with weight and inertia, and its pages flutter with secondary motion.
-- **Defeat:** unravels into a harmless river of pages that flows home.
+- **Defeat:** the fire goes out in a thunderous blast and it bursts apart into a storm of pages and ash.
 
 ## M2-9. Difficulty Scaling
 
@@ -504,15 +515,27 @@ As MD-12, plus:
 
 # ASSET DESIGN BIBLE (Level 2)
 
-All rules of `CLAUDE.md` §14 apply: Blender `bpy` scripts, kit materials named after the runtime library, metre UVs, previews, manifests and validation. Hush constructs use a shared **"unwritten" look**: an off-white paper base with ink-line edges, plus a runtime **erasure shader state**. The erasure state blends any academy material into a sketch look with a line pass. It must be a simple material swap or uniform blend, with no custom shader framework (§3).
+All rules of `CLAUDE.md` §14 apply: Blender `bpy` scripts, kit materials named after the runtime library, metre UVs, previews, manifests and validation. Hush constructs share an **ink-and-ember look**: black ink and charcoal surfaces with emissive red-orange cracks and eyes. Burnt objects use a runtime **ash state**, a simple material swap or uniform blend with no custom shader framework (§3).
 
-## A2-1. Erasure look (shared)
+## A2-1. Inkfire, ash and restoration (shared)
 
-- Every restorable object needs two states: normal and erased.
-- **Erased state:**
-  - Desaturated paper fill (#e9e5dc) with darker graphite edges, using a fresnel or normal-based rim, plus faint crosshatch from a tiling texture.
-- **Restoration effect:** a ripple of colour spreading from the point the spell hit, over 0.6 s.
-- **Performance:** one shared erased material per kind of surface; never one material per object.
+- Every restorable object needs three states: normal, burning (normal plus inkfire flames on it) and ash (burnt out).
+- **Ash state:**
+  - Grey-charcoal fill with darker cracks, and glowing ember edges using an emissive rim.
+  - A tiling crackle texture.
+- **Restoration effect:** a burst of gold-blue light that blows the flames out, then a wave of colour spreading from the impact point over 0.6 s.
+- **Performance:** one shared ash material per kind of surface; never one material per object.
+
+## A2-1b. Fire and atmosphere VFX (shared, Levels 2 and 3)
+
+- **Flames:** camera-facing flame cards with animated flipbook textures, in two flavours:
+  - **Inkfire:** red and orange with black cores (the enemy's fire).
+  - **Ordinary fire:** warm orange, for beacons and the furnace.
+- **Embers:** pooled particle sprites that rise and drift. Bounded counts per area (`CLAUDE.md` §15: no unbounded emitters).
+- **Smoke:** a few large, slow, soft cards and a low red-tinted fog layer.
+- **Light:** flickering point lights at a handful of hero fires only (budgeted per area); everything else is emissive.
+- **Sky:** the Rift as a red, glowing tear in the night sky, using an emissive mesh and a bloom-free glow card (no post-processing, §3), with a red tint added to the night sky.
+- **Readability:** flames and smoke must never sit between the camera and an active word label. Labels keep their dark backing. Flame cards near combat framing must be placed and tested so they stay behind or beside targets.
 
 ## A2-2. Lantern Festival dressing
 
@@ -525,7 +548,7 @@ All rules of `CLAUDE.md` §14 apply: Blender `bpy` scripts, kit materials named 
 
 ## A2-4. Bell Bridge
 
-- Covered timber bridge modules, a bronze bell in a carved belfry with a swinging rig, and erased-plank variants.
+- Covered timber bridge modules, a bronze bell in a carved belfry with a swinging rig, and burning and burnt plank variants.
 
 ## A2-5. Great Hall
 
@@ -577,19 +600,19 @@ Animation acceptance gates (§14.8) apply to every animated asset.
 
 | Area | Light |
 | --- | --- |
-| Festival | Warm lantern gold under a deep blue night sky |
-| Siege | Cooler, with pale grey wherever the Hush has erased; the Rift casts a faint grey-violet light |
-| Each beacon | Adds warm gold back into the sky dome; the level gets visibly warmer as beacons light |
-| Tower roof | Moonlit blue, with the Lantern Ward dome gold above and the Rift grey-violet |
-| Aftermath | Calm observatory gold |
+| Festival | Warm lantern gold under a deep blue night sky. The last calm image |
+| Siege | **Red and black.** A red-glowing sky from the Rift, burning buildings, smoke and drifting embers. Strong orange rim light from fires, deep shadows, and ash-grey where things have burnt |
+| Each beacon | Throws a pillar of clean gold-white light into the sky. The dome visibly pushes back the red as beacons light |
+| Tower roof | The peak of the drama: the burning wyrm, a red sky, the gold dome above, and fire everywhere |
+| Aftermath | Smouldering embers, a dark red horizon, quiet observatory gold indoors |
 
 ## G2-2. Music states
 
 ```text
 Festival (gentle, celebratory)
-Rift Opens (sudden, mysterious)
-Siege (driving battle theme)
-Calm Rescue (dormitory, workshops between fights)
+Rift Opens (sudden, ominous: deep drums and brass)
+Siege (driving, urgent battle theme)
+Rescue (urgent but lighter: dormitory, workshops between fights)
 Herald (formal, brassy mini-boss theme)
 Lake Crossing (lilting, rowing rhythm)
 Library Stolen (mysterious, urgent)
@@ -610,7 +633,7 @@ Battle themes switch on whenever a damaging encounter starts and revert afterwar
 
 ## G2-4. Audio
 
-- **Effects:** Hush creak and scratch, the erasure "shhh" whisper (soft and never scary), a bright restoration chime, a beacon whoosh, a bell toll, the furnace roar, oar strokes and the lighthouse hum.
+- **Effects:** crackling inkfire, roaring flames, Hush snarls and hisses, the wyrm's roar, ember bursts on defeat, a bright restoration whoosh and chime, a beacon blast, a bell toll, the furnace roar, oar strokes, the lighthouse hum, and distant rumbles and falling debris during the siege.
 
 ## G2-5. Campaign flow additions (built in this level)
 
@@ -625,7 +648,8 @@ Level 2 is complete when:
 - **Campaign:** it starts from the title screen after Level 1 is completed, and Chapters lists it.
 - **Areas and mechanics:**
   - All ten areas exist and connect in the L2-5 order.
-  - Counter-words, erasure and restoration, lanes, the Warden ally, the boat ride and Starfall all work and are introduced as specified.
+  - Counter-words, inkfire and restoration, lanes, the Warden ally, the boat ride and Starfall all work and are introduced as specified.
+  - Fire, embers, smoke and the red sky are present in every siege area and never obscure an active word.
   - All four beacons can be lit, and the dome visibly grows.
 - **Bosses:** the Grey Herald and all three Vellum Wyrm phases work, including phase autosaves.
 - **Story:** the aftermath cinematic plays and Level 3 unlocks.
@@ -638,7 +662,7 @@ Level 2 is complete when:
 ## L2-19. Implementation Milestones
 
 1. **Campaign plumbing:** level registry, per-level saves, Chapters, spells carried over, and the Level 2 route skeleton with placeholder areas.
-2. **Counter-words and erasure:** typing-engine support for counter-words (unit-tested); erased material state and restoration effect; Festival Lawn complete.
+2. **Counter-words and inkfire:** typing-engine support for counter-words (unit-tested); fire VFX, ash material state and restoration effect; red sky and Rift; Festival Lawn complete.
 3. **Dormitory, Bell Bridge and Great Hall:** lanes, Hollow Knights, and the Grey Herald.
 4. **Workshops and lake:** Starfall, the boat rail and the lighthouse.
 5. **Library and ramparts:** Paper Sprites, the Grimoire cameo, Warden ally and Warden Strike.

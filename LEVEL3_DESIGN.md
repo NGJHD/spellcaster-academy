@@ -6,6 +6,8 @@ Game-wide rules live in `CLAUDE.md`: the on-rails format, audience and IP rules,
 
 Section ids use the prefix `L3-` for level design, `M3-` for mobs, `A3-` for the asset bible and `G3-` for general design.
 
+Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 15-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
+
 ---
 
 # LEVEL DESIGN
@@ -15,22 +17,24 @@ Section ids use the prefix `L3-` for level design, `M3-` for mobs, `A3-` for the
 **Level 3:** Into the Unwritten
 **Target first-play duration:** 20–28 minutes at the owner's brisk pace (the longest level, and the finale)
 **Format:** first-person on-rails typing shooter (unchanged)
-**Tone:** a strange, beautiful journey through a world made of erased things. The level should feel brave and hopeful rather than dark. The colour the player brings back is the visual reward of the whole game.
+**Tone:** the climax. A journey through a scorched world of ash under a red sky to the villain's stronghold, a black fortress of iron, molten ink and roaring fire, ending in an all-out battle with the Unwriter. It is darker and more dramatic than Level 2, and the most epic part of the game. Dramatic, not horror (`CLAUDE.md` §2). The colour and light the player blasts back into the world is the visual reward of the whole game.
 **Core objective:** cross the Blank, reach the Throne of Blank Pages, and stop the Unwriter from erasing Asterfall, without destroying him.
 
 ## L3-2. Story Premise
 
-The Rift above Lantern Lake leads to **the Blank**: the realm where everything Magister Corvane Hale ever erased ended up. It is a world drawn in grey pencil on white paper:
+The Rift above Lantern Lake leads to **the Blank**: the realm where everything Magister Corvane Hale ever burned away with his quill ended up. It is a world of grey ash and charred paper under a **red sky that never darkens**. Fires that never go out burn on the horizon, ash falls like snow, and rivers of molten red ink cut through the land. It contains:
 
 - half-finished forests
 - waterfalls of ink
 - libraries of books with no words
 - statues of creatures someone gave up on before finishing them
-- pieces of Asterfall itself that Corvane erased centuries ago, including a tower and a bridge the academy has forgotten it ever had
+- pieces of Asterfall itself that Corvane burned away centuries ago, including a tower and a bridge the academy has forgotten it ever had
+
+At the heart of the Blank stands the Unwriter's stronghold, **the Cinder Citadel**: a towering black fortress of iron and folded paper wrapped in fire, where the Hush are forged.
 
 The apprentice, Pip, Mira and the Ward Warden cross through. Keeper Orin stays behind to hold the Rift open and the Lantern Ward up.
 
-Everything the apprentice's spells touch regains its colour. The route through the Blank is often unfinished: the path ahead is missing until the apprentice **writes it in**.
+Everything the apprentice's spells hit is quenched of fire and regains its colour. The route through the Blank is often burned away: the path ahead is missing until the apprentice **writes it in**.
 
 Along the way, **Memory Pages** (collectibles and story beats) reveal the truth:
 
@@ -38,15 +42,15 @@ Along the way, **Memory Pages** (collectibles and story beats) reveal the truth:
 - He made the **Unwriting Quill** to undo that one mistake. Then he couldn't stop. He erased every error, then every imperfect thing, until the founders had to seal him away.
 - **Pip was Corvane's guide orb.** Corvane built Pip, found that Pip "was wrong too often", and tried to unwrite it. Pip fled through the ward as it was being sealed, and its memory was wiped by the crossing. That is why Pip glitched at the quill shard.
 
-At the Throne of Blank Pages the Unwriter tries to "correct" Pip, then all of Asterfall. In the final phase the apprentice doesn't attack. Word by word, they write the sentence Corvane himself once taught his students:
+At the summit, the **Throne of Ash**, the Unwriter tries to burn Pip out of existence, then all of Asterfall. The battle is all-out. In the final phase the apprentice turns the sentence Corvane once taught his students into a spell of six words:
 
 ```text
 every mistake teaches us something new
 ```
 
-The quill breaks. The paper robes fall away, and Corvane is an old, tired, astonished man again. The Blank floods with colour. Its lost places, including Asterfall's east tower, sail home through the Rift, which closes behind them.
+Each word is a blast of light that cracks the Unwriting Quill. On the last word the quill explodes. The Unwriter's fire is torn out of him, and he is pulled, still raging, into the pages of his own blank book. Pip slams it shut and seals it.
 
-Back at the academy at sunrise, Corvane apologises to Pip. Keeper Orin names the apprentice the first **Wardkeeper** in a hundred years, and the game ends with a celebration and credits.
+The citadel's fires die. Ash turns back into colour across the whole Blank. Its lost places, including Asterfall's east tower, sail home through the Rift, which closes behind them. Back at the academy at sunrise, Keeper Orin locks the sealed book in the deepest vault. He names the apprentice the first **Wardkeeper** in a hundred years, and the game ends with a celebration and credits.
 
 ## L3-3. Characters
 
@@ -60,12 +64,17 @@ Back at the academy at sunrise, Corvane apologises to Pip. Keeper Orin names the
 
 ### New
 
-- **The Unwriter (Magister Corvane Hale):**
-  - **Look:** a tall, serene figure in long robes of white paper that rustle like turning pages. A smooth white porcelain mask with a single straight ink line where a face would be, and hands of flowing ink. The **Unwriting Quill**, a long feather of black crystal (now missing one shard), floats beside him.
-  - **Manner:** calm, courteous and never cruel in words. He genuinely believes he is helping. He never threatens anyone with harm, only with "correction" and "tidying".
-  - **Must not** look evil, monstrous or frightening. He should look cold and sad. When unmasked he is a frail old man with ink-stained fingers and kind, tired eyes.
+- **The Unwriter (Magister Corvane Hale):** the big bad of the game.
+  - **Look:**
+    - A towering figure in long robes of charred black paper whose edges smoulder with red embers.
+    - A cracked white porcelain mask with a single burning red line where a face would be, and hands of flowing ink that drip fire.
+    - The **Unwriting Quill**, a long feather of black crystal burning with red flame (now missing one shard), floats beside him.
+    - As the fight goes on, he grows larger and more fiery.
+  - **Manner:** cold, commanding and utterly certain. His voice stays quiet even as everything around him burns, which makes him more imposing. He speaks of "correcting", "burning away errors" and "a perfect, silent world".
+  - **Limits:** he may be frightening in a villain-in-a-family-film way. Never use gore, a skull or rotting imagery, or threats of hurting anyone's body; his threat is unwriting things.
+  - **Defeat:** sealed inside his own blank book, not killed.
 - **The Unfinished:** half-drawn creatures of the Blank (deer, birds, a great tortoise) that Corvane abandoned. When restored they become colourful allies for a moment; they are never enemies.
-- **The Perfect Warden:** the Unwriter's grey, flawless copy of the Ward Warden. Mini-boss (L3-11).
+- **The Perfect Warden:** the Unwriter's copy of the Ward Warden in black iron, with a burning red core and no cracks. Mini-boss (L3-11).
 
 ## L3-4. New Mechanics
 
@@ -81,7 +90,7 @@ Back at the academy at sunrise, Corvane apologises to Pip. Keeper Orin names the
 
 ### Restoring colour
 
-- Every area starts almost colourless. Restoring optional objects adds colour to the area (a soft wash spreading over the sketch), and each area tracks **Colour restored %**.
+- Every area starts as ash and fire under the red sky. Restoring optional objects puts their fires out and adds colour to the area: a wave of light and colour spreading over the ash. Each area tracks **Colour restored %**.
 - Finishing an area above 70% opens a bonus path or a Memory Page.
 - It is a reward, never a requirement.
 
@@ -106,9 +115,9 @@ Back at the academy at sunrise, Corvane apologises to Pip. Keeper Orin names the
 - **Perfect** words cast with Bright Quill repaint a splash of colour around the target. A perfect word also calms any weak Unfinished-corruption nearby.
 - Bright Quill fills the Colour meter faster.
 
-### Ink tides
+### Fire tides
 
-- The Unwriter's large area attacks, used in a few set pieces: long sweeping waves of ink that cross the view slowly.
+- The Unwriter's large area attacks, used in a few set pieces: walls of red-black inkfire that roll across the view slowly.
 - Each is countered by a **two-word counter-phrase** (for example `hold fast`). Both words are typed in order on a single tag.
 - Telegraph time is at least 1.5 s on Gentle and 1.0 s on Standard.
 
@@ -118,14 +127,14 @@ Back at the academy at sunrise, Corvane apologises to Pip. Keeper Orin names the
 Title Screen (START begins Level 3 once Level 2 is complete)
 → Through the Rift            (opening cinematic; the Warden carries the party)
 → Rift Shore                  (path-writing and colour tutorial)
-→ Sketchwood                  (the Unfinished; erased-letter words introduced)
+→ Cinderwood                  (the Unfinished; erased-letter words introduced)
 → Inkfall Cascades            (page-raft descent; ink tides)
 → Margin Library              (Memory Pages: Corvane and Pip; Bright Quill)
 → Gallery of Unfinished Things (mini-boss: the Perfect Warden)
 → Paper Sea                   (paper-ship voyage; Hush fleet)
-→ Eraser Works                (sabotage the Hush assembly lines)
-→ Citadel of Clean Pages      (climb; the Unwriter's voice and Pip's glitches peak)
-→ Throne of Blank Pages       (final boss: the Unwriter, four phases)
+→ The Forge of Unwriting      (the burning foundry where the Hush are made)
+→ The Cinder Citadel          (the villain's stronghold; climb through fire)
+→ Throne of Ash               (final boss: the Unwriter, four phases)
 → Homecoming                  (colour returns; the Rift closes; ceremony; credits)
 → Level results and campaign summary
 ```
@@ -135,7 +144,7 @@ Title Screen (START begins Level 3 once Level 2 is complete)
 ```text
 rift-crossed
 rift-shore-written
-sketchwood-coloured
+cinderwood-coloured
 inkfall-descended
 margin-library-remembered
 perfect-warden-calmed
@@ -167,11 +176,17 @@ Pip:
 
 ### Shot 3 — The Blank (8 s)
 
-White light, then a vast landscape drawn in grey pencil on paper: hills, a forest of outline trees, a distant citadel of perfect white. The sky is a blank page ruled with faint lines.
+White light, then a vast scorched landscape under a blood-red sky: ash plains, a burnt forest, rivers of glowing red ink, ash falling like snow. Far away, a black citadel stands wrapped in fire.
 
 Mira:
 
-> It's like someone started drawing the world... and stopped.
+> It's like someone burned the world... and left it like this.
+
+Pip:
+
+> That fortress. That's where he is. I can feel it.
+
+Visual note for this shot: it is the first view of the Blank. It must be breathtaking and ominous: the vast red sky, plains of grey ash, distant fires on the horizon, and, far away, the black Cinder Citadel wrapped in fire.
 
 Checkpoint: `rift-crossed`.
 
@@ -179,24 +194,24 @@ Checkpoint: `rift-crossed`.
 
 **Purpose:** teach path-writing and colour restoration safely.
 
-- The Warden sets the party down on a paper beach. The path ahead is blank.
+- The Warden sets the party down on a beach of grey ash beside a glowing river of red ink. The path ahead has burned away.
 - **Path tutorial:** three path words, `step`, `stone`, `shore`, draw stepping stones across a stream of ink.
 
   Pip:
 
   > No path? Then we write one!
 
-- **Colour tutorial:** a grey sketch of a seashell, a boat and a lantern on the beach. Typing their bonus words repaints them, and the area's colour meter fills.
+- **Colour tutorial:** a shell, a boat and a lantern on the beach, burnt to grey ash and still smouldering. Typing their bonus words repaints them, and the area's colour meter fills.
 - **Encounter S1:** Blotlings and Scribble Imps (familiar from Level 2), one wave. A gentle start.
-- **Memory Page 1:** a sketch of a young teacher in an Asterfall robe, laughing with students over a spilled inkpot. It is hidden inside a grey shell that gives up the page when restored.
+- **Memory Page 1:** a sketch of a young teacher in an Asterfall robe, laughing with students over a spilled inkpot. It is hidden inside the ash shell, which gives up the page when restored.
 
 Checkpoint: `rift-shore-written`.
 
-## L3-8. Sketchwood
+## L3-8. Cinderwood
 
 **Purpose:** wonder; the Unfinished; erased-letter words introduced.
 
-- **Setting:** a forest of outline trees whose leaves are scribbled loops. Some branches end in mid-air where the drawing stopped.
+- **Setting:** a burnt forest of black trees, with embers glowing in the bark and patches of inkfire still flickering. Some trees were burned away mid-trunk and end in mid-air.
 - **The Unfinished:** a half-drawn deer stands frozen beside the path. Restoring it (`gentle`, then `graceful`) gives it colour. It bounds ahead and its hoofprints become path. A restored flock of birds later carries a star page-like Memory Page down.
 - **Encounter K1:** Unwriter-made **Correction Moths**, Eraser Moths with erased-letter words. This is where the erased-letter mechanic is introduced.
 
@@ -207,15 +222,15 @@ Checkpoint: `rift-shore-written`.
 - **Encounter K2:** **Redactors** (M3-2) try to strike out the restored deer. The player shields it by calming them first: a priority lesson without a fail state.
 - **Exit:** a great outline tortoise carries the party to the ink falls once restored with `ancient`.
 
-Checkpoint: `sketchwood-coloured`.
+Checkpoint: `cinderwood-coloured`.
 
 ## L3-9. Inkfall Cascades
 
 **Purpose:** a fast-feeling set piece (gentle in practice); ink tides.
 
-- The party rides a raft made of a single huge page, down a series of ink waterfalls. Mira kneels at the front steering with a pole.
+- The party rides a raft made of a single huge page down a series of waterfalls of glowing red ink, with walls of fire on both banks. Mira kneels at the front steering with a pole.
 - **Segment 1:** Blotlings bob up from the ink on both sides. The raft slows while the player types.
-- **First ink tide:** a great wave rolls across a basin. Counter-phrase: `hold fast`. The Warden plunges an arm into the ink beside the raft to steady it, the first time.
+- **First fire tide:** a wall of inkfire rolls across a basin. Counter-phrase: `hold fast`. The Warden plunges an arm into the ink beside the raft to steady it, the first time.
 - **Segment 2:** a broken drop ahead. Path words write a slide of coloured ink down to the next pool. A slow erasure creeps behind the party (L3-4).
 - **Bottom pool:** Hollow Knights wade out. Two words each, with counter-sweeps.
 
@@ -229,7 +244,7 @@ Checkpoint: `inkfall-descended`.
 
 **Purpose:** the revelation of Pip's past; unlock Bright Quill.
 
-- **Setting:** an upside-down library hanging from a paper sky, full of books whose pages are blank. Erased books sigh softly when touched.
+- **Setting:** an upside-down library hanging from the red sky, its shelves scorched black, full of books whose pages were burned blank. Embers drift upward past the hanging walkways.
 - **Path:** walkways between the hanging shelves are written in one by one. There is no combat on the first crossing.
 - **Encounter M1:** Paper Sprites gone grey and Ink Wisps with erased letters.
 - **Memory scene:** at the library's heart, a lectern holds Corvane's own erased journal. Pip touches it, and three Memory Pages restore on their own, played as a short illustrated sequence:
@@ -258,7 +273,7 @@ Checkpoint: `margin-library-remembered`.
 **Purpose:** confrontation for the Warden; first full use of erased letters under pressure.
 
 - **Setting:** a vast gallery of things the Unwriter took from the world and froze as grey sculptures: a fountain, a carousel, a constellation, and pieces of Asterfall's lost east tower. Restoring them is optional and lifts the area's colour.
-- **The Perfect Warden:** at the far end stands a copy of the Ward Warden: identical but flawless and grey, with no cracks, no repairs and no warmth.
+- **The Perfect Warden:** at the far end stands a copy of the Ward Warden, forged from black iron, with a burning red core and no cracks or repairs. It is bigger, colder and more menacing than the original.
 
   The Unwriter (voice, first heard in the Blank):
 
@@ -276,39 +291,48 @@ Checkpoint: `margin-library-remembered`.
 
 ### Phase P3 — Crack of Kindness
 
-- The real Warden holds out its own cracked, repaired hand to its copy. The player types: `cracks` `are` `not` `flaws`.
-- The copy hesitates, gains one crack, then colour floods into it. It kneels and becomes a statue of the real Warden, which the real Warden touches gently before moving on.
+- The real Warden and the apprentice attack together: the Warden pins the copy's arms while the player types a spell of four words: `cracks` `are` `not` `flaws`.
+- Each word splits the copy's iron shell further. On the last word the real Warden drives a fist into the cracked core, and the Perfect Warden shatters into a storm of iron shards and sparks.
 
 Checkpoint: `perfect-warden-calmed`.
 
 ## L3-12. Paper Sea
 
-**Purpose:** spectacle and calm voyage pacing, with one naval fight.
+**Purpose:** spectacle: a voyage across a burning sea, with one big naval battle.
 
+- **The sea:** a sea of grey paper waves under the red sky, with burning wrecks and the Cinder Citadel growing on the horizon.
 - **The ship:** Mira folds a huge sheet of paper into a ship with a spell, a story beat with Mira's first big moment of magic. The Warden walks through the shallows, towing it.
 - **Segment 1:** quiet sailing. Optional colour targets drift past (paper islands, a lighthouse, a whale outline) to restore.
-- **Hush fleet:** three paper galleons with Hollow Knight crews. Each galleon has a **mast word** that furls its sails (two words per mast, three masts), plus incoming ink-cannon counter-words.
-- **Storm:** a paper storm with an ink tide (`steady on`). Then calm water, and the Citadel rises on the horizon.
+- **Hush fleet:** three black-sailed galleons with burning figureheads and Hollow Knight crews. Each galleon has a **mast word**; completing it brings the mast crashing down in flames (two words per mast, three masts). Incoming fireball-cannon counter-words.
+- **Storm:** a firestorm with a fire tide (`steady on`). Then the Citadel looms out of the smoke ahead.
 
 Checkpoint: `paper-sea-crossed`.
 
-## L3-13. Eraser Works
+## L3-13. The Forge of Unwriting
 
-**Purpose:** take the fight to the enemy's machinery; a lane and sabotage set piece.
+**Purpose:** take the fight into the enemy's stronghold; a lane and sabotage set piece.
 
-- **Setting:** a great grey workshop where the Hush are made. Assembly lines carry empty Hollow Knight shells; vats of ink are poured into Blotling moulds; giant erasers scrub fresh paper blank.
+- **Setting:** a vast, roaring foundry in the roots of the Cinder Citadel, where the Hush are forged:
+  - Rivers of molten red ink pour from huge cauldrons into Blotling moulds.
+  - Chains drag black iron Hollow Knight shells through furnaces.
+  - Hammers the size of houses pound; sparks fly everywhere.
+  - It should look like the villain's lair in an adventure film: red, black, fire and iron.
 - **Sabotage:** the player shuts down three **lines** by typing the control words on each line's three levers. Each completed line stops Hush production in that lane.
 - **Lanes:** while a line is running, it sends constructs down its lane, so shutting lines eases pressure. This teaches choice without fail states.
 - **Foreman:** a **Hollow Knight Foreman** (three command words; counter-word sweeps) guards the final lever.
-- **Freed things:** every stopped line releases the erased objects it was holding (lanterns, banners, a stolen Asterfall bell). They drift home in colour, a quiet echo of Level 2.
+- **Line shutdown:** each stopped line explodes into a cascade of sparks as its furnace blows out.
+- **Freed things:** each stopped line releases the stolen things it was melting down (lanterns, banners, a stolen Asterfall bell). They drift home in colour.
 
 Checkpoint: `eraser-works-stopped`.
 
-## L3-14. Citadel of Clean Pages
+## L3-14. The Cinder Citadel
 
-**Purpose:** climb to the finale; maximum tension, kept child-friendly.
+**Purpose:** climb the villain's stronghold to the finale. Maximum tension and spectacle.
 
-- **Setting:** a tall white citadel of perfectly folded paper, perfectly tidy, perfectly silent. Its stairs are blank: every flight must be written.
+- **Setting:**
+  - A towering black fortress of iron and charred paper, wrapped in fire.
+  - Red light pours through every arrow slit, banners of black paper burn on the walls, and fire tides roll down the stairwells.
+  - Its stairs have burned away: every flight must be written.
 - **The climb:** four flights of path words, with a slow erasure creeping up from below (L3-4).
   - Between flights, Correction Moths and Redactors hold landings.
   - Erased-letter words become common.
@@ -326,7 +350,7 @@ Checkpoint: `eraser-works-stopped`.
 
   > Perfect. Stay like that.
 
-- **Summit:** great doors with no handles. The Warden opens them. Beyond, under an empty white sky, sits the Throne of Blank Pages.
+- **Summit:** great black doors ringed with fire. The Warden smashes them open. Beyond, on a platform of iron above a sea of flame and under the red sky, sits the Throne of Ash.
 
 Checkpoint: `citadel-summit`.
 
@@ -354,7 +378,7 @@ Pip (to the apprentice):
 
 ### Phase U1 — Erasure
 
-- **Arena:** a circle of pages on a white void. The Unwriter's quill strokes cross the arena one at a time, each erasing a section of floor.
+- **Arena:** a circular iron platform at the top of the Citadel above a sea of fire, ringed by burning braziers under the red sky. The Unwriter's quill strokes cross the arena one at a time, each burning a section of floor away into the flames.
 - **Strokes:**
   - Each stroke is telegraphed by a ruled line, with a counter-word (or a counter-phrase for the larger strokes).
   - Erased floor sections are redrawn with path words, so the camera keeps its footing at the four safe positions.
@@ -364,16 +388,16 @@ Pip (to the apprentice):
 
 ### Phase U2 — Perfect Copies
 
-- The Unwriter writes grey "perfect" copies of the player's past opponents, one after another: a Training Dummy, the Great Grimoire, the Grey Herald and finally the Vellum Wyrm's head.
+- The Unwriter forges burning black-iron "perfect" copies of the player's past opponents from the flames, one after another: a Training Dummy, the Great Grimoire, the Grey Herald and finally the Vellum Wyrm's head.
 - **Each copy:**
   - Is a short burst of 2–4 erased-letter words.
   - Shows a ghostly reminder of how it was beaten before. For example, the Grimoire copy shows a single clasp word, and the Wyrm head a short phrase.
-- This is a celebration of the player's own journey: each defeated copy bursts into the colours of the level it came from.
+- This is a celebration of the player's own journey: each defeated copy shatters into sparks, then a burst of the colours of the level it came from.
 - Autosave before and after.
 
 ### Phase U3 — Correcting Pip
 
-- The Unwriter catches Pip in a ring of grey script and begins to unwrite it. Pip's rings fade to grey one by one.
+- The Unwriter seizes Pip in a ring of burning red script and begins to burn it out of existence. Pip's rings blacken one by one.
 - Hollow Knights engage Mira and the Warden, who hold them back (ally beats, never a fail state).
 - **Saving Pip:**
   - The player types **restore words** that appear on Pip's rings: `brave`, `curious`, `kind`. These are the values Pip showed across the game.
@@ -389,24 +413,25 @@ Pip (to the apprentice):
 
 ### Phase U4 — The First Lesson
 
-- **Constructive finale, as in Level 1.** The Unwriter stops attacking and raises the quill high to erase everything: the Blank, the Rift and Asterfall beyond it. Six words appear one at a time, each written on a page Corvane once wrote for his students:
+- **The final clash.** The Unwriter grows to full height, wreathed in fire. He raises the burning quill to unwrite everything: the Blank, the Rift and Asterfall beyond it. The apprentice answers with the final spell. Six words appear one at a time, each written on a page Corvane once wrote for his students:
 
   ```text
   every mistake teaches us something new
   ```
 
 - **Each word:**
-  - Sends a beam of colour from the wand.
-  - Shows a Memory Page of the young Corvane teaching.
+  - Fires a beam of gold-blue light from the wand that slams into the quill's red fire and pushes it back. This is a visible beam struggle, with the Unwriter straining against it.
   - Puts a crack in the quill.
+  - Flashes a Memory Page of the young Corvane teaching.
 - **Timing:** each word's timer starts with its first typed character. The Unwriter cannot damage the player in this phase.
 - **Resolution:**
-  - On the last word the quill shatters into harmless sparkles of ink.
-  - The paper robes fall away like autumn leaves. The mask slips, and an old man kneels where the Unwriter stood, looking at his ink-stained hands.
+  - On the last word the beam breaks through and the quill explodes in a blast of light.
+  - The Unwriter's fire is torn out of him in a roaring whirlwind of embers. His blank book opens beneath him and pulls him, still raging, into its pages.
+  - Pip flies down and slams the book shut. The sealing rune burns gold across its cover.
 
-  Corvane:
+  Pip:
 
-  > "I taught that. I... taught that."
+  > Correction: you're done.
 
 ### Failure behaviour
 
@@ -415,19 +440,19 @@ Pip (to the apprentice):
 
 ## L3-16. Homecoming — Ending Cinematic
 
-1. **The Blank fills with colour.** The forest, the falls, the sea, the gallery: everything the party restored, and everything else, washes into full colour from the throne outward.
+1. **The fires die.** The flames of the Cinder Citadel gutter out, the red sky breaks, and the Blank washes from ash into full colour from the throne outward: the forest, the falls, the sea, the gallery.
 2. **The lost places go home.** Asterfall's lost east tower, the forgotten bridge and the erased constellations rise and stream back through the Rift towards the academy.
-3. **Through the Rift.** The party returns on the Warden's shoulders with Corvane walking beside them. Keeper Orin lowers his staff, and the Rift closes behind them like a book.
+3. **Through the Rift.** The party returns on the Warden's shoulders, Pip carrying the sealed book. Keeper Orin lowers his staff, and the Rift closes behind them like a book.
 4. **Dawn at Asterfall.** The academy now has a tower it hasn't seen in centuries. Students cheer from the battlements.
-5. **Corvane and Pip.**
+5. **The vault.** Keeper Orin locks the sealed book away in the deepest vault of the library, behind the Grimoire.
 
-   Corvane:
+   Keeper Orin:
 
-   > "You were never wrong too often. You were simply learning. I am sorry, Pip."
+   > He wanted a world without mistakes. He forgot that's how every one of us learned.
 
    Pip:
 
-   > Apology accepted. Mostly. ...Entirely.
+   > I am keeping all of mine. Every single one.
 
 6. **The ceremony.** In the Celebration Courtyard (Level 1's space, now with the east tower restored), Keeper Orin names the apprentice:
 
@@ -472,23 +497,23 @@ Checkpoint: `level-3-complete` (status `complete`). The campaign is marked compl
 
 # MOB DESIGN (Level 3)
 
-The Hush rules from `LEVEL2_DESIGN.md` §M2 apply. Constructs made directly by the Unwriter are cleaner and whiter than the Hush (paper white, ink black, with a faint silver line) and often carry erased-letter words.
+The Hush rules from `LEVEL2_DESIGN.md` §M2 apply. Constructs made directly by the Unwriter are bigger and more menacing than the Hush: burning paper, black iron and red fire. They often carry erased-letter words.
 
 ## M3-1. Correction Moth
 
 - **Role:** erased-letter flyer.
-- **Look:** a white paper moth with ink-line veins.
+- **Look:** a moth with wings of burning paper, black ink veins and ember edges.
 - **Behaviour:** as the Eraser Moth, but its words use erased letters.
 - **Words:** 4–6 letters.
-- **Defeat:** its wings fill with colour and it flies away as a bright butterfly.
+- **Defeat:** bursts into embers, leaving a bright, coloured butterfly behind.
 
 ## M3-2. Redactor
 
 - **Role:** priority threat to allies and objectives.
-- **Look:** a tall, thin figure like a black bar of redaction ink, with a white line for a face.
+- **Look:** a tall, thin figure like a black bar of redaction ink, with a burning red slit for a face and fire dripping from its edges.
 - **Behaviour:** glides to restored objects or the Unfinished and slowly strikes them out (a long, visible telegraph). Rarely attacks the player.
 - **Words:** 5–7 letters.
-- **Defeat:** the black bar fades from the middle outward, revealing a line of handwriting that drifts away.
+- **Defeat:** splits down the middle with a crack of light and bursts apart into embers.
 
 ## M3-3. Unfinished (ally creatures)
 
@@ -499,28 +524,28 @@ The Hush rules from `LEVEL2_DESIGN.md` §M2 apply. Constructs made directly by t
 ## M3-4. Hollow Knight Foreman
 
 - **Role:** heavy Eraser Works guard.
-- **Look:** a larger Hollow Knight with a lantern-eye visor and a clipboard (a nice comic touch).
+- **Look:** a hulking Hollow Knight forge-master: black iron, a furnace burning in its chest, and a huge forge hammer of ink-iron (a tool, not a weapon; it slams the floor in telegraphed shockwaves).
 - **Behaviour:** three command words; broad counter-word sweeps.
-- **Defeat:** folds neatly and stacks itself into a crate.
+- **Defeat:** its furnace blows out with a bang and it crashes to the forge floor.
 
 ## M3-5. The Perfect Warden (mini-boss)
 
 - **Role:** mini-boss.
-- **Look:** the Ward Warden rig in flawless grey stone, with no cracks, no repairs and no glow.
+- **Look:** the Ward Warden rig rebuilt in black iron with red fire burning through its seams and core. No cracks, no repairs and no warmth.
 - **Behaviour:** the authored three-phase machine in L3-11.
-- **Defeat:** gains colour and kneels as a statue.
+- **Defeat:** shatters into iron shards and sparks.
 
 ## M3-6. Paper Galleon
 
 - **Role:** naval set piece.
-- **Look:** a folded-paper ship with grey sails.
+- **Look:** a black-hulled ship with burning figureheads and torn black sails.
 - **Behaviour:** sails in, fires ink cannon (counter-words), carries a Hollow Knight crew.
 - **Words:** mast words (two per mast).
-- **Defeat:** sails furl and the ship drifts away in colour.
+- **Defeat:** masts crash down in flames and the ship drifts away burning.
 
 ## M3-7. Perfect Copies (U2)
 
-- Grey re-skins of earlier assets (training dummy, Grimoire, Grey Herald, Vellum Wyrm head) using the erased material.
+- Black-iron re-skins of earlier assets (training dummy, Grimoire, Grey Herald, Vellum Wyrm head) with burning red seams.
 - Short word bursts with erased letters.
 - Each bursts into its home level's colours when defeated.
 
@@ -528,12 +553,13 @@ The Hush rules from `LEVEL2_DESIGN.md` §M2 apply. Constructs made directly by t
 
 - **Role:** the game's final boss and villain.
 - **Look:**
-  - About 3.4 m tall in robes of overlapping paper sheets that rustle and lift like turning pages.
-  - A porcelain mask with a single ink line, flowing ink hands, and the Unwriting Quill orbiting.
-  - Calm, upright, graceful movement with long, deliberate gestures and clear anticipation before every stroke.
-- **Must not** look evil, monstrous or frightening.
+  - 3.4 m tall, growing to about 6 m in phase U4, in robes of charred black paper with ember edges that lift in the heat.
+  - A cracked porcelain mask with a burning red line, and ink hands dripping fire.
+  - The burning Unwriting Quill orbits him.
+  - Commanding, deliberate movement with clear anticipation before every stroke.
+- **He is the villain and should look like one:** imposing and menacing. Never gory, skeletal or rotting.
 - **Behaviour:** authored four-phase state machine (L3-15).
-- **Defeat:** robes fall away, the quill shatters, and Corvane remains as an old man. He is never destroyed or harmed.
+- **Defeat:** the quill explodes, his fire is torn out, and he is sealed inside his own blank book. He is never killed or shown harmed.
 
 ## M3-9. Difficulty Scaling
 
@@ -552,26 +578,30 @@ All rules of `CLAUDE.md` §14 apply.
 ## A3-1. The Blank look (shared)
 
 - **Base world:**
-  - A white paper surface with faint ruled lines and a subtle fibre texture.
-  - Objects drawn with graphite outline shading over off-white fills.
-  - Crosshatched shadows (a tiling texture, not a shader framework).
-- **Colour restoration:** areas blend from the sketch material to full PBR materials using one simple material-blend parameter per object group or per area. Shared materials only; no per-object materials.
-- **Lighting:** soft, shadowless-looking ambient light with a single gentle key. It turns warm and golden as an area's colour fills.
-- **Readability:** word labels must stay high-contrast against white paper. Use the darker label backing (navy) with a soft drop shadow, and check every Blank area for readability.
+  - Grey ash and charred paper surfaces with ember-lit cracks.
+  - Black burnt silhouettes, and rivers and falls of glowing molten red ink (emissive scrolling textures).
+  - Falling ash, and distant fires on every horizon.
+  - Fire VFX as specified in `LEVEL2_DESIGN.md` A2-1b.
+- **Sky:** a red sky that never darkens: a red gradient skydome with slow-moving smoke clouds.
+- **Colour restoration:** areas blend from the ash material to full PBR materials using one simple material-blend parameter per object group or per area. Fires in the area go out as it fills. Shared materials only; no per-object materials.
+- **Lighting:**
+  - **Before restoration:** low, red, high-contrast light, with orange rim light from fires and deep shadows.
+  - **After restoration:** warm golden daylight breaks through.
+- **Readability:** word labels must stay high-contrast against red and fire. Use the darker label backing with a soft drop shadow, and check every Blank area for readability.
 
 ## A3-2. Environments
 
 | Area | Key assets |
 | --- | --- |
-| Rift Shore | Paper beach, ink stream, stepping stones (path-writing kit), sketch shell, boat and lantern |
-| Sketchwood | Outline tree kit (scribble-loop leaf cards, LOD), unfinished branches, deer, birds, great tortoise |
+| Rift Shore | Ash beach, glowing red ink river, stepping stones (path-writing kit), ash shell, boat and lantern |
+| Cinderwood | Burnt tree kit (charred trunks with ember cracks, ash leaf cards, LOD), trees burned off mid-trunk, deer, birds, great tortoise |
 | Inkfall Cascades | Page raft, ink waterfall (animated scrolling textures, no fluid sim), basins, slide path |
 | Margin Library | Inverted shelf kit (reuses library shelves with blank books), hanging walkways, Corvane's lectern and journal |
-| Gallery of Unfinished Things | Gallery hall, grey sculptures of fountain, carousel, constellation and east-tower fragments (reusing earlier assets in the erased material) |
+| Gallery of Unfinished Things | Scorched gallery hall, ash sculptures of fountain, carousel, constellation and east-tower fragments (reusing earlier assets in the ash material) |
 | Paper Sea | Paper ocean surface (folded-crease normal map, scrolling waves), paper ship, galleons, islands, whale outline |
-| Eraser Works | Assembly lines (conveyor with authored motion), moulds, ink vats, giant erasers, levers |
-| Citadel of Clean Pages | Folded-paper architecture kit (crisp crease normals), blank stair modules, handle-less doors |
-| Throne of Blank Pages | Circular page arena, orbiting seal pages, throne of stacked blank paper, white void sky with ruled lines |
+| Forge of Unwriting | Molten-ink cauldrons and pour streams (emissive and scrolling), chain conveyors, giant hammers, furnaces, moulds, levers |
+| Cinder Citadel | Black iron and charred-paper fortress kit, burning banners, arrow slits pouring red light, burnt-out stair modules, fire-ringed doors |
+| Throne of Ash | Iron platform arena above a sea of fire, burning braziers, orbiting seal pages, a throne of black iron and scorched pages, the red sky |
 | Homecoming | Asterfall at dawn with the restored east tower (new hero building), the Rift closing effect, ceremony dressing reused from Level 1 |
 
 ## A3-3. Characters and creatures
@@ -582,7 +612,7 @@ All rules of `CLAUDE.md` §14 apply.
 | Corvane (unmasked) | 1.75 m | Humanoid pipeline; elderly, kind, tired; ink-stained hands; simple robe |
 | Correction Moth | 1.2 m wingspan | Variant of the Eraser Moth; colour-reveal defeat |
 | Redactor | 2.2 m | Thin ink-bar body, glide, strike-out gesture |
-| Unfinished deer, birds, tortoise | Various | Sketch-outline versions plus coloured restored states; short ally animations |
+| Unfinished deer, birds, tortoise | Various | Ash-grey frozen versions plus coloured restored states; short ally animations |
 | Perfect Warden | 3.6 m | Ward Warden rig in the flawless grey material |
 | Paper ship and galleons | 8–14 m | Folded-crease geometry; furl animation |
 | Hollow Knight Foreman | 2.3 m | Hollow Knight variant |
@@ -596,26 +626,26 @@ All rules of `CLAUDE.md` §14 apply.
 
 | Stage | Look |
 | --- | --- |
-| Arrival | White and graphite with no colour at all, except the party, their spells and the Warden's gold-blue energy |
-| Each area | Warms as it is restored; the player should feel the world changing because of them |
-| Citadel | The coldest, whitest and most silent space |
-| Throne | Pure white, until phase U4 floods it with every colour of the game |
-| Homecoming | The warmest dawn of the game |
+| Arrival | **Red sky, grey ash, black silhouettes, orange fire.** Almost no other colour, except the party, their spells and the Warden's gold-blue energy, which stand out sharply |
+| Each area | Its fires go out and gold light and colour break through as it is restored. The player should feel they are beating the darkness back |
+| Forge and Citadel | The reddest, darkest, most dramatic spaces in the game: black iron, molten red ink, roaring fire |
+| Throne | Red and black, until phase U4's gold-blue beam struggle and the explosion of light and colour at the end |
+| Homecoming | The warmest, brightest dawn of the game: a deliberate total contrast with the Citadel |
 
 ## G3-2. Music states
 
 ```text
 Rift Crossing (awe)
-The Blank (sparse, music-box quiet)
-Sketchwood (gentle wonder)
+The Blank (ominous, low drums and distant choir)
+Cinderwood (eerie and tense)
 Inkfall (adventurous)
 Margin Library (melancholy, Pip's theme introduced)
 Perfect Warden (mini-boss)
 Paper Sea (sweeping voyage)
-Eraser Works (mechanical, rhythmic battle)
-Citadel (tense, sparse)
-The Unwriter (final boss, built on a slowed, cold version of the academy theme)
-The First Lesson (the academy theme returns in full)
+Forge of Unwriting (pounding, metallic battle theme)
+Cinder Citadel (relentless, rising tension)
+The Unwriter (epic final boss: choir, brass, drums; a dark version of the academy theme)
+The Final Spell (the academy theme returns triumphantly over the beam struggle)
 Homecoming (triumphant, warm)
 Credits (all themes reprised)
 Results / Campaign summary
@@ -633,8 +663,9 @@ Owner decisions apply: battle themes on damaging encounters, softening under dia
 
 ## G3-4. Audio
 
-- **Blank ambience:** soft paper rustle and distant pencil scratching.
-- **Spells:** the colour-restoration swell; the quill stroke as a low, clean "shff".
+- **Blank ambience:** crackling distant fires, wind over ash, low rumbles.
+- **The Forge:** roaring furnaces, pouring molten ink and pounding hammers.
+- **Spells and boss:** the restoration whoosh that blows fires out; the quill stroke as a searing roar of flame; the beam struggle; the quill's explosion.
 - **Pip:** the glitch voice as a filtered, colder Pip voice (the TTS voice with a different pitch and rate).
 - **Ending:** the Rift closing like a great book shutting, and the ceremony bells.
 
@@ -647,7 +678,8 @@ Level 3 is complete, and the game is finished, when:
 - **Campaign:** it starts from the title screen after Level 2 is completed, and Chapters lists all three levels.
 - **Areas and mechanics:**
   - All eleven stages exist and connect in the L3-5 order.
-  - Path writing, colour restoration, erased letters, Mira's Shield Song, ink tides and Bright Quill all work as specified.
+  - The red sky, ash and fire are present throughout the Blank, and the Forge and Citadel read clearly as the villain's stronghold. Fire never obscures an active word.
+  - Path writing, colour restoration, erased letters, Mira's Shield Song, fire tides and Bright Quill all work as specified.
   - Erased letters never make words unreadable on Gentle or Standard.
 - **Bosses:** the Perfect Warden and all four Unwriter phases work, including phase autosaves.
 - **Story:** the Homecoming cinematic and credits play.
@@ -662,11 +694,11 @@ Level 3 is complete, and the game is finished, when:
 
 ## L3-19. Implementation Milestones
 
-1. **Blank look:** sketch material, colour-blend system and Rift Shore with path writing and the colour meter.
-2. **Sketchwood and Inkfall:** erased-letter typing support (unit-tested), the Unfinished, the page raft and ink tides.
+1. **Blank look:** ash material, red sky, fire VFX reuse, colour-blend system, and Rift Shore with path writing and the colour meter.
+2. **Cinderwood and Inkfall:** erased-letter typing support (unit-tested), the Unfinished, the page raft and fire tides.
 3. **Margin Library and Gallery:** Memory Pages and the Memory Book, Bright Quill, and the Perfect Warden.
-4. **Paper Sea and Eraser Works:** paper ship, galleons, sabotage lanes and the Foreman.
-5. **Citadel:** the climb, creeping erasure and Pip's glitch dialogue.
+4. **Paper Sea and the Forge of Unwriting:** paper ship, galleons, the foundry, sabotage lanes and the Foreman.
+5. **Cinder Citadel:** the stronghold kit, the climb, fire tides, creeping erasure and Pip's glitch dialogue.
 6. **The Unwriter:** model, robe rig and quill; four phases; the Perfect Copies reusing earlier assets.
 7. **Homecoming:** restored east tower, ending cinematic, credits, campaign summary and Wardkeeper crest.
 8. **Polish:** music states, balancing all difficulties across the campaign, Playwright paths and performance.

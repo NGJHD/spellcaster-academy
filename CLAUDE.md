@@ -93,6 +93,60 @@ Do not implement:
 
 A separate non-story asset viewer or optional celebration diorama may allow orbit-camera inspection, but every playable level remains on rails.
 
+## 1B. Keeping It Exciting (attention rules)
+
+Owner feedback (2026-10-04): playtesters found Level 1 boring. The audience is 8–10-year-olds with short attention spans. These rules apply to every level and override any calmer pacing elsewhere in the specification.
+
+### The 15-second rule
+
+The player should never go more than about **15 seconds** without at least one of:
+
+- something to type
+- something exploding, crashing, bursting or transforming on screen
+- a new enemy entrance
+- a reveal (a creature, a boss or a dramatic view)
+
+The exceptions are boss introductions and the ending, and even those use big visuals. Story dialogue between fights is **at most two short lines** and plays over camera travel.
+
+### Every word should feel powerful
+
+- **Hit-stop:** a 40–60 ms freeze on the target when a word completes.
+- **Impact:** a punchy impact sound, a burst of sparks, and a small camera kick. The kick is kept small and never moves the active label.
+- **Size:** spells grow visibly bigger with the streak — a thin bolt at 0, a thick bolt at 3, a blazing comet at 5+.
+- **Defeats:** enemies are knocked back, spin, crash, burst or shatter. Nothing just fades out.
+- **Popups:** "PERFECT!", "x3 COMBO!", "SUPER!" and "UNSTOPPABLE!" pop near the target with a bounce, for streaks of 3, 5, 8 and 12. They are short, bright, and never cover the next word.
+- **Score:** the score counts up visibly, with a combo multiplier that grows with the streak and resets kindly (a mistake halves it rather than zeroing it).
+
+### Big moments
+
+- **Boss intros:**
+  - A dramatic camera move to the boss, then a full-width name card (for example "THE GREAT GRIMOIRE"), a music sting, and the boss roaring or rearing up.
+  - Bosses show a **boss health bar** at the top of the screen that drops chunkily with each word.
+- **Set pieces:** every level has at least three set pieces where the camera **moves fast on rails** while the player types slow-paced targets. Speed comes from the camera and scenery; the typing load stays light. Examples: a chase, a slide, a fall, a ride, a collapsing floor. The camera still pauses or slows for long words (§1A comfort rules still apply).
+- **Surprise entrances:** enemies burst through windows, drop from ceilings, smash through doors or erupt from the ground, always revealed by the camera before they can attack (MD-1).
+- **Destruction:** spells and boss attacks visibly smash scenery — crates, vases, statues, glass, shelves. Debris is cosmetic and cleared between encounters.
+
+### Rewards every minute
+
+- **Bonus pickups:** floating **spark gems** appear often along the rail. Each has a 2–4 letter word and gives score and a satisfying chime. Several per minute of travel.
+- **Optional speed rounds:**
+  - Short bonus challenges with a visible countdown, for example "SPEED ROUND: 5 words in 10 seconds!". They give big score and a medal.
+  - Never required, and never a fail state.
+  - On Gentle the countdown is generous.
+- **Encounter medals:** every encounter ends with a quick **star rating** (1–3 stars) based on accuracy and speed, with a fanfare. There are no letter grades. Even 1 star is celebrated, and 3 stars gets a bigger fanfare.
+- **Unlock moments:** new spells are announced like power-ups: a slow-motion beat, a big title card, and a first use against a wave of easy enemies so the player feels the power.
+
+### Keep the story short and funny
+
+- Pip gets most lines, and most of them are jokes or excitement. Lore goes into collectibles (star pages, Memory Pages) rather than dialogue.
+- **The two-line rule:** no conversation beat has more than two lines without the player typing something.
+- Characters should be in danger and need rescuing — Pip grabbed by a creature, Mira cornered. Rescues are quick, exciting typing moments.
+
+### Music and sound
+
+- Music is always present and usually energetic. Calm music is used only for short breathers of 20 seconds or less.
+- Every attack has a clear wind-up sound, and every defeat a satisfying burst sound.
+
 ## 2. Intellectual Property and Audience Rules
 
 This is an **original fantasy game**. Do not use or imitate protected characters, locations, terminology, insignia, music, dialogue, or visual designs from Harry Potter, One Piece, Roblox, Dragon Ball, Naruto, or other franchises.
@@ -109,8 +163,14 @@ Allowed broad inspirations include:
 
 The tone must be:
 
-- Appropriate for children aged 10+
-- Adventurous rather than frightening
+- Appropriate for children aged 8+
+- Adventurous and exciting. Level 1 is bright and gentle. Levels 2 and 3 deliberately escalate into dramatic peril so that an 8–10-year-old can tell at once the stakes have changed:
+  - fire and red-lit skies
+  - burning buildings and smoke
+  - menacing enemies
+  - explosive spell effects
+- Dramatic is welcome; horror is not. Never show gore, blood, realistic weapons, injury to people, or death.
+- Defeated enemies may burst into embers, shatter, crash or be sealed away, but they never bleed or suffer.
 - Free of gore, realistic violence, gambling, loot boxes, advertisements, and manipulative monetisation
 - Encouraging when the player makes mistakes
 
@@ -190,20 +250,29 @@ Use `localStorage` for settings, checkpoints, unlocked content, and best scores.
 | Level | Title | Setting | Finale |
 | --- | --- | --- | --- |
 | 1 | First Day, First Spell | Asterfall Academy on the apprentice's first day; the celestial ward cracks | The Ward Warden (misunderstood protector) |
-| 2 | The Siege of Asterfall | The academy at night, under attack by the Hush, an army that erases what it touches | The Vellum Wyrm, a dragon of stolen library pages |
-| 3 | Into the Unwritten | The Blank, a realm built from everything that was ever erased | The Unwriter, the game's final villain |
+| 2 | The Siege of Asterfall | The academy at night, burning under a red sky, under attack by the Hush and their inkfire | The Vellum Wyrm, a fire-breathing dragon of stolen library pages |
+| 3 | Into the Unwritten | The Blank, a scorched realm of ash under a red sky, leading to the Unwriter's burning stronghold | The Unwriter, the game's final villain |
+
+### Visual tone across the campaign
+
+- **Level 1:** bright and peaceful (gold, blue and green).
+- **Level 2:** a night siege lit by fire. Red and orange inkfire against the dark is the dominant colour, with the gold of the beacons pushing it back.
+- **Level 3:** a red sky over scorched grey lands, and the villain's stronghold of black iron, molten red ink and roaring fire.
+
+Fire, embers, smoke and red light are the visual signal that the game has turned serious. They must be dramatic, but must never cover the active word (word labels keep their dark backing, §9).
 
 ### Overall story
 
-Centuries ago Magister Corvane Hale, Asterfall's greatest archivist, came to believe that mistakes should not exist. He made the Unwriting Quill, which erases whatever it strikes out. First he erased his own errors, then anything he judged imperfect. The founders sealed him and everything he had erased beyond the celestial ward, in a realm of blank paper and grey pencil lines called the Blank. They built the Ward Warden to guard the seal. Over the centuries he became the Unwriter.
+Centuries ago Magister Corvane Hale, Asterfall's greatest archivist, came to believe that mistakes should not exist. He made the Unwriting Quill, which writes in fire: whatever it strikes out burns away to grey ash and is unwritten. First he erased his own errors, then anything he judged imperfect. The founders sealed him and everything he had erased beyond the celestial ward, in a realm of blank paper and grey pencil lines called the Blank. They built the Ward Warden to guard the seal. Over the centuries he became the Unwriter.
 
 - **Level 1:** the Unwriter tests the seal and the ward fractures. The apprentice, Pip and the Warden repair it, but a hairline seam remains.
-- **Level 2:** on the night of the Lantern Festival the seam tears open over Lantern Lake. The Unwriter's Hush army pours in and begins erasing the academy into grey outlines. The apprentice relights the four beacons that raise an emergency Lantern Ward, rescues students, and defeats the Vellum Wyrm on the Moon Tower roof. At its heart lies a shard of the Unwriting Quill. Keeper Orin recognises Corvane's work, and Pip glitches at the sight of it. The rift cannot be closed from this side.
-- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank. Typing restores colour to an erased world as they travel. On the way they learn that Pip was Corvane's own guide orb, which he tried to erase for "being wrong too often". At the Throne of Blank Pages they face the Unwriter.
-  - The finale is constructive. The apprentice types a sentence about mistakes being how we learn, and the Unwriter remembers he was once a teacher.
-  - The Blank fills with colour and the erased places return home. Corvane, now an old man, apologises to Pip. The apprentice is welcomed as a true Asterfall apprentice, and the credits roll.
+- **Level 2:** on the night of the Lantern Festival the seam tears open over Lantern Lake into a blazing red Rift. The Unwriter's Hush army pours in and sets the academy alight with inkfire, which burns whatever it touches to grey ash. The apprentice relights the four beacons that raise an emergency Lantern Ward, rescues students, and defeats the Vellum Wyrm on the Moon Tower roof. At its heart lies a shard of the Unwriting Quill. Keeper Orin recognises Corvane's work, and Pip glitches at the sight of it. The rift cannot be closed from this side.
+- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank: a scorched land of ash under a red sky, with fires that never go out. Typing quenches the fires and restores colour to the world as they travel. Their goal is the Unwriter's stronghold, the **Cinder Citadel**. On the way they learn that Pip was Corvane's own guide orb, which he tried to erase for "being wrong too often". At the Throne of Blank Pages they face the Unwriter.
+  - In an all-out battle the apprentice breaks the Unwriting Quill with a final spell of six words about mistakes being how we learn.
+  - The Unwriter is defeated and sealed inside his own blank book, which Pip slams shut.
+  - The fires of the Blank die and its stolen colours and places return home. The apprentice is named Asterfall's first Wardkeeper in a hundred years, and the credits roll.
 
-No one is destroyed: defeated enemies are calmed, freed or restored, as the audience rules require (§2).
+Victories in Levels 2 and 3 are decisive and dramatic. Enemies are beaten, shattered, sent crashing or sealed away, but never killed or harmed on screen (§2).
 
 ### Campaign rules
 

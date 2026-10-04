@@ -77,6 +77,13 @@ Running log of decisions, environment facts, architecture and milestone status. 
   - Level 1 content moved to `LEVEL1_DESIGN.md`, with section numbers kept so code comments stay valid.
   - New `LEVEL2_DESIGN.md` (The Siege of Asterfall) and `LEVEL3_DESIGN.md` (Into the Unwritten; the finale against the Unwriter).
 
+- 2026-10-04: **tone and excitement.**
+  - Levels 2 and 3 now use fire and a red palette: inkfire siege in Level 2; scorched Blank and the Cinder Citadel stronghold in Level 3.
+  - Boss defeats are decisive; the Unwriter is sealed in his own book.
+  - Audience is now 8+, with dramatic peril allowed and horror and gore still ruled out.
+  - New game-wide attention rules in `CLAUDE.md` §1B: the 15-second rule, juicy feedback, boss name cards, fast-rail set pieces, spark gems, speed rounds and medals.
+  - `LEVEL1_DESIGN.md` LD-0 rewrites Level 1's slow parts. This is a design change only; it isn't built yet.
+
 ## Spec conflict resolutions
 
 The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:

@@ -8,6 +8,144 @@ Section numbers are kept from the original single-file specification so that ref
 
 ---
 
+## LD-0. Excitement Revision (2026-10-04)
+
+Owner feedback: **Level 1 is quite boring.** This section rewrites the slow parts of Level 1 to meet the attention rules in `CLAUDE.md` §1B. Where it conflicts with LD-7 to LD-18 or with §7, **this section wins**.
+
+Level 1 keeps its bright, sunny look; the drama comes from action, comedy, speed and spectacle, not fire (fire starts in Level 2). The story beats, anchors, bosses and checkpoints stay the same, so saves and the route structure keep working.
+
+### What was boring, and the fix
+
+| Problem in the current Level 1 | Fix |
+| --- | --- |
+| Long opening before the first typing | The first word appears within 15 seconds of START |
+| Stationary training dummies | Dummies leap off their stands and charge |
+| East Hall and Hall of Portraits are calm walks | Both become action sequences |
+| Long dialogue stops | Two lines at most, played over travel |
+| Enemies appear and wait politely | Surprise entrances, smash-throughs and chases |
+| Little feedback per word | Hit-stop, combo popups, growing spells, score and medals (§1B) |
+| Bosses start quietly | Name cards, health bars and dramatic entrances |
+
+### Rewritten sequences
+
+#### Opening (replaces LD-7)
+
+1. **Fly-over:** a fast swoop over the treetops towards the academy (8 s), with the title card.
+2. **Cold open:** halfway through the swoop, a **mischief sprite snatches Pip right out of the air**. Pip squeals, and the camera dives after them.
+3. **First words:** the sprite drops Pip and flees. Three bonus spark gems float along the dive (`go`, `fly`, `zap`), taught by Pip mid-air: "Type it! Quick!"
+4. **The gate:** the camera lands at the Arrival Gate. The three crystal words (`star`, `moon`, `open`) now **blast the gate doors open** with an explosion of light and flying leaves.
+
+The first typed word arrives within about 12 seconds.
+
+#### Arrival Gate fracture (shortens LD-8)
+
+- The ward fracture plays at full drama during the gate passage:
+  - The sky cracks with a thunderclap.
+  - Pieces of the gold dome fall like shooting stars, crashing into the hills.
+  - The Warden appears for one second on the tower, silhouetted against lightning.
+- Orin's warning is one line. Pip's reaction is one line.
+
+#### Courtyard (revises LD-9)
+
+- **C1:** the three dummies **leap off their stands** and hop towards the player. They are still harmless, but now each one has a word and a charge.
+- **Rooftop chase:** after C2, the sprite carrying the star page runs across the rooftops. The camera chases it along the arcade roof in a fast rail move while the player types two quick words. Catching it gives the star page.
+- **Warden sighting:** the Warden **lands in the courtyard with a crash** for two seconds, scattering dust and pigeons, raises its arm at the anchor, then leaps away. Pip's "I think" gag stays.
+- **Anchor:** each anchor word fires a beam. The final word makes the anchor blast a pillar of light into the sky, with the camera looking up and a power-up card for Spark Bolt.
+
+#### East Hall (replaces LD-10): the Book Stampede
+
+- No calm walk. Mira bursts through a door at a run, chased by **a stampede of runaway books**.
+- **The chase:** the camera **runs backwards down the corridor** beside her (a fast rail move) while books swoop in. Each book gets a 3–4 letter word.
+- **Dialogue:** short lines shouted mid-chase: "You're the new apprentice?!" / "Terrible first day, though!" The Pip and Mira banter is two lines, played while running.
+- **The chest:** an optional **speed round**: "Open the chest: 3 words in 8 seconds!" Success bursts it open with a fanfare (the Starlight trail).
+- **End:** the chase ends by slamming the library doors on the last books. Mira gives her "the Warden looked worried" line in one breath.
+
+#### Library (revises LD-11)
+
+- **L1:** books dive-bomb from the galleries. A whole shelf topples in slow motion after wave 2 (cosmetic) and spills a swarm of books.
+- **L2:** ink wisps **burst up out of an overturned inkwell** like a geyser.
+- **Clue scene:** the mosaic beat is cut to one line ("The Warden protects the ward... it's asking for help!"). The rest of the lore moves to the lore card.
+- **Grimoire intro:**
+  - The chains snap one by one with sparks.
+  - The Grimoire rises, roars a gust of pages that blows out the lamps, and the name card appears: **THE GREAT GRIMOIRE**.
+  - Boss health bar.
+- **G2:** paper gusts now **smash furniture** across the room (cosmetic), with clear telegraphs.
+- **G3:** the final sentence becomes a **beam struggle**. Each word pushes a beam of light against the Grimoire's storm of pages, and on the last word the Grimoire is blasted back onto its pedestal.
+
+#### Hall of Portraits (replaces LD-12): the Paint Ambush
+
+- No longer a rest stop. The portraits **come alive and leap out of their frames** as cheeky **paint imps**: harmless splashy creatures with 3–4 letter words that throw paint splats at the screen.
+  - The splats are telegraphed and cost a little HP on Standard.
+  - The screen-edge paint they leave never covers a word.
+- **Portrait gags:** the "ceiling became a whale" lines stay as quick shouted gags from the frames mid-fight.
+- **Fountain:** the healing fountain arrives **after** the ambush as a 10-second breather, with Mira's mirror call (one line).
+- **Constellations:** the challenge becomes a **speed round** for the score multiplier.
+
+#### Greenhouse (revises LD-13)
+
+- **Vine bridge, the Snapvine Chase:** typing the bridge words grows the bridge **while a giant snapping vine-plant lunges behind the player**. Each word moves the camera forward, out of reach, just in time. It is scripted and never a fail: it always just misses.
+- **H1 and H2:** thorn pods **burst up out of the soil** with a shower of dirt, and mosslings **charge in a stampede**.
+- **Warden scene:** the glass roof panel **shatters**. The Warden smashes through the glass above, catches the falling sheet in one hand, sets it down and leaps away, all in four seconds.
+
+#### Lower Stairwell (replaces LD-14): the Banister Slide
+
+- The apprentice and Pip **ride a tea tray down the spiral stair banister**. It is fast and fun, and the camera spirals down smoothly with no full spins per §1A.
+- The three armour guardians step out onto the landings ahead. Each command word (`stand`, `honour`, `yield`) must be typed before the tray reaches them, as an authored slowdown with a generous window that never fails: the guardian simply leaps aside at the last moment if the word isn't finished.
+- **Landing 3:** the malfunctioning guardian **falls apart and re-assembles** in front of the player, then the short three-word fight.
+
+#### Practice Gallery (revises LD-15): the Arcade
+
+- The gallery becomes a **target-range arcade**:
+  - targets pop up and spin
+  - a score board in an HTML frame
+  - medal fanfares per zone
+  - an optional final **speed round** with a local best score to beat on replay
+- Mira's lines are cut to the minimum. Pip commentates like a sports announcer: "And the apprentice goes for the COMBO!"
+
+#### Moon Tower (revises LD-16)
+
+- The climb becomes a **runaway lift ride**. A brass lift rockets up the tower shaft while mosslings and ink wisps leap at it from passing floors. The lift pauses at each floor for its fight, then rockets on.
+- **Floor 3:** the armour guardian **smashes through the floor** of the lift landing.
+
+#### Observatory (revises LD-17)
+
+- **Intro:**
+  - The dome **splits open with a boom**, the ward energy storms overhead, and the Warden rises with a roar of light.
+  - Name card **THE WARD WARDEN** and boss health bar.
+- **W1 and W2:** plates **blast off** the Warden and orbit; light arcs **scorch** clear floor telegraphs. Pip's lines stay at one each.
+- **W3:** the six value words become a **beam struggle against the fracture**. The ward cracks spread across the dome while the player's beams push them back word by word. On the last word, the ward re-seals with a huge flash and a shock wave.
+- The Warden still bows: it was never the villain. That twist stays, because it sets up Levels 2 and 3.
+
+#### Ending (shortens LD-18)
+
+- The celebration starts with **fireworks** over the courtyard. The dialogue is four lines at most, then straight to results with the medal summary.
+
+### Pacing budget
+
+The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 15-second rule in §1B. Measure this in the Playwright bot run: log the longest gap between typing prompts per area. Any gap over 15 s outside boss intros and the ending is a bug.
+
+### Implementation notes
+
+- **Routes:** route changes live in `src/level/areas/*.ts`. Beat ids should be preserved where possible so existing saves resume sensibly. New beats get new ids.
+- **New shared systems** (also used by Levels 2 and 3):
+  - hit-stop and impact feedback
+  - combo popups and the score counter
+  - encounter medals
+  - spark-gem pickups
+  - optional speed rounds
+  - boss name cards and health bars
+  - fast-rail set-piece support (camera speed curves with typing slowdowns)
+- **New assets:**
+  - paint imps
+  - the giant snapvine
+  - the tea tray (first-person hands holding the rim)
+  - the runaway lift
+  - the fireworks VFX
+  - cosmetic debris pieces (crates, vases, shelf books, glass shards)
+- **Tests:** unit-test speed-round timing and medal thresholds, combo multiplier rules (a mistake halves it), and the 15-second gap metric helper.
+
+---
+
 ## 5. Level 1 Definition
 
 ### Level 1 title
