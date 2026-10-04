@@ -15,7 +15,7 @@ Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-
 ## L3-1. Level Identity
 
 **Level 3:** Into the Unwritten
-**Target first-play duration:** 20–28 minutes at the owner's brisk pace (the longest level, and the finale)
+**Target first-play duration:** 12–17 minutes at the Fast travel speed (the longest level, and the finale; the whole game is 30–45 minutes at Fast, CLAUDE.md §1)
 **Format:** first-person on-rails typing shooter (unchanged)
 **Tone:** the climax. A journey through a scorched world of ash under a red sky to the villain's stronghold, a black fortress of iron, molten ink and roaring fire, ending in an all-out battle with the Unwriter. It is darker and more dramatic than Level 2, and the most epic part of the game. Dramatic, not horror (`CLAUDE.md` §2). The colour and light the player blasts back into the world is the visual reward of the whole game.
 **Core objective:** cross the Blank, reach the Throne of Blank Pages, and stop the Unwriter from erasing Asterfall, without destroying him.

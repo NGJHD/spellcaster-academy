@@ -121,7 +121,7 @@ The first typeable word appears within about 2 seconds of the level starting.
 
 ### Pacing budget
 
-The rewrite aims at about **14–18 minutes** for a first play. Every area must follow the 7-second rule in §1B. Measure this in the Playwright bot run with travel speed set to **Fast**: log the longest gap between typing prompts per area. Any gap over 7 s at Fast is a bug, except boss intros (up to 8 s) and the ending.
+The rewrite aims at about **10–13 minutes at Fast** for a first play (the whole game is 30–45 minutes at Fast, CLAUDE.md §1). Every area must follow the 7-second rule in §1B. Measure this in the Playwright bot run with travel speed set to **Fast**: log the longest gap between typing prompts per area. Any gap over 7 s at Fast is a bug, except boss intros (up to 8 s) and the ending.
 
 ### Implementation notes
 
@@ -1383,7 +1383,7 @@ This section is the authoritative content specification for Level 1. If any earl
 
 **Game:** Spellcaster Academy: The Broken Ward  
 **Level 1:** First Day, First Spell  
-**Target first-play duration:** 20–30 minutes, excluding pauses  
+**Target first-play duration:** 10–13 minutes at Fast (superseded by LD-0 and CLAUDE.md §1), excluding pauses  
 **Format:** Story-driven first-person on-rails typing shooter  
 **Tone:** Bright fantasy adventure, mild peril, humour, discovery, and accomplishment  
 **Core objective:** Restore three ward anchors and help the Ward Warden repair the academy's damaged protective ward.

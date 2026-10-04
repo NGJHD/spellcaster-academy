@@ -15,7 +15,7 @@ Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-
 ## L2-1. Level Identity
 
 **Level 2:** The Siege of Asterfall
-**Target first-play duration:** 18–25 minutes at the owner's brisk pace
+**Target first-play duration:** 10–15 minutes at the Fast travel speed (the whole game is 30–45 minutes at Fast, CLAUDE.md §1)
 **Format:** first-person on-rails typing shooter (unchanged)
 **Tone:** a dramatic night siege. The academy is on fire under a blood-red sky, smoke rolls across the courtyards, and menacing creatures pour over the walls. This must look and feel completely different from Level 1's sunny first day, so that an 8–10-year-old knows instantly that this is serious. Dramatic, not horror: nobody is hurt, and everything that burns can be restored.
 **Core objective:** relight the four Lantern Beacons to raise an emergency Lantern Ward over the academy, get the first-years to safety, and stop the Vellum Wyrm before it carries the Whispering Library away.

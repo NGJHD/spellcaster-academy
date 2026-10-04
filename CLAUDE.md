@@ -18,7 +18,7 @@ Build a polished, child-friendly, browser-based **first-person 3D typing adventu
 
 The player follows a directed, cinematic route through an original magical academy, encounters fantasy creatures, and casts spells by typing words accurately. The game is a **first-person on-rails typing shooter**: camera movement, travel, staging, and target presentation are authored by the game, while **typing—not aiming or navigation—is the primary player skill**.
 
-The game is a campaign of three levels (§5). Each level must be a complete playable on-rails level, not a single-room prototype. Each takes roughly **15–25 minutes** on a first playthrough, at the brisk pace the owner asked for (§5). Each includes cinematic travel, new mechanics introduced gently, multiple encounters, short story pauses, optional targets, checkpoints, collectibles, a mid-level set piece and a boss finale. No level may become an open world, a free-roaming hub, a maze or a walking simulator.
+The game is a campaign of three levels (§5). Each level must be a complete playable on-rails level, not a single-room prototype. The **whole game takes 30–45 minutes** on a first playthrough at the **Fast** travel speed (owner decision, §5): about 10–13 minutes for Level 1, 10–15 for Level 2 and 12–17 for Level 3. Each includes cinematic travel, new mechanics introduced gently, multiple encounters, short story pauses, optional targets, checkpoints, collectibles, a mid-level set piece and a boss finale. No level may become an open world, a free-roaming hub, a maze or a walking simulator.
 
 ### Non-negotiable design principle
 
@@ -177,7 +177,7 @@ The tone must be:
   - burning buildings and smoke
   - menacing enemies
   - explosive spell effects
-- Dramatic is welcome; horror is not. Never show gore, blood, realistic weapons, injury to people, or death.
+- Scary is fine (owner decision, §5): creatures may snarl, bare fangs, have glowing eyes and loom large, in every level. Never show gore, blood, realistic weapons, injury to people, or death.
 - Defeated enemies may burst into embers, shatter, crash or be sealed away, but they never bleed or suffer.
 - Free of gore, realistic violence, gambling, loot boxes, advertisements, and manipulative monetisation
 - Encouraging when the player makes mistakes
@@ -303,6 +303,8 @@ These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to ev
 - **Platforms:** low-end laptops and Firefox are out of scope; the target is Edge/Chrome on a capable GPU.
 - **Word presentation:** new words fly in from the centre of the screen. The locked target shows a TARGET tag, other targets show a Tab hint, and Tab works mid-word.
 - **HUD:** a level progress bar with chapter marks. Pip is labelled "Guide Orb".
+- **Length:** the whole game takes 30–45 minutes at Fast (2026-10-04).
+- **Scary mobs:** mobs may look scary (fangs, snarls, glowing eyes, menacing poses), in Level 1 too; kids "can handle a lot" (2026-10-04). No gore, blood or injury.
 
 ---
 
