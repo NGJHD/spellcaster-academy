@@ -250,6 +250,34 @@ Rebuilt so far: mischief sprite, mossling, ink wisp, armour guardian, paint imp,
 height-band rig gives believable rearing, lunging, breathing, waddling and recoil, but no separate limb
 animation; textures carry some baked lighting from the AI.
 
+## Levels 2 and 3 (2026-10-04)
+
+Owner: keep Level 1's pacing; Level 1's story is now a mystery solved at the end (the Unwriter tore the
+ward from outside); Level 2 focuses on the evacuation; mobs may be scary; "polish up the graphics".
+
+- **Engine:** `src/level/levels.ts` registry (route, encounters, bosses, collectibles, starting spells,
+  beat aliases). Saves carry `levelId`; the profile keeps `completedLevels` and `bestByLevel` (old
+  profiles migrate). START plays the next unbeaten level; a Chapters icon picks any unlocked level;
+  results offer CONTINUE TO LEVEL N. `src/level/levels.test.ts` checks every level's content.
+- **Level 2** (`src/level/areas2`, `src/scene/areas2`): counter-words (TypingEngine `interrupt`
+  candidates take the lock mid-word and hand it back), inkfire and `Restorable` ash objects, Starfall,
+  Festival Lanterns, the Grey Herald and the Vellum Wyrm (beam struggles).
+- **Level 3** (`src/level/areas3`, `src/scene/areas3`): path words (`Written` sections), colour
+  restoration, erased letters (`erasedLetters`, never the first letter), fire tides (two-word counter
+  phrases), Mira's Shield Song (heal 25 + block one hit), Bright Quill, Memory Pages, the Perfect Warden
+  and the Unwriter (four phases), homecoming in the Level 1 courtyard.
+- **Look:** `RedSky.tsx` (inferno and Blank skies, the Rift, the horizon Citadel, embers/ash),
+  `Fire.tsx` (flipbook flame sprites, smoke, lights), `surfaceTextures.ts` (procedural colour and
+  roughness maps).
+- **Models:** Level 2/3 mobs and bosses come from the AI pipeline (`concepts_level23.py`,
+  `batch_l23.sh`). Until a model is checked and added to `BUILT_AI_MOBS` / `BUILT_AI_FILES`
+  (`CreatureModel.tsx`) the game shows a code-built stand-in, so nothing breaks while they build.
+  Remesh choice matters: octree for armour and thin/smoky shapes (the hound shreds under voxel), voxel
+  for smooth blobs (the blotling faceted under octree).
+- **Known limits:** Perfect Warden phase 2 does not yet enforce perfect-only words; the Prism trail
+  (all Memory Pages) and the campaign summary/Memory Book screens are not built; set-piece props in
+  Levels 2-3 are kit-built placeholders.
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.
