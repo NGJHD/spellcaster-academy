@@ -28,7 +28,6 @@ const redInk = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emi
 const blackIron = () => metreSurface('iron', 3, { metalness: 0.45 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 const paper = new MeshStandardMaterial({ color: '#d8d2c4', roughness: 0.9 });
-const greyPaper = () => metreSurface('paper', 6);
 const inkBlue = new MeshStandardMaterial({ color: '#2a5cff', roughness: 0.3, emissive: '#2a5cff', emissiveIntensity: 0.4 });
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
