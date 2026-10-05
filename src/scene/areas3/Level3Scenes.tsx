@@ -19,6 +19,7 @@ import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
 import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
+import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 
 const ash = () => metreSurface('ash', 7);
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
@@ -199,6 +200,7 @@ export function MarginScene() {
   const journal = sub(JOURNAL, MARGIN_ORIGIN);
   return (
     <group position={MARGIN_ORIGIN}>
+      <MarginDressing />
       {/* Upside-down shelves hanging from the red sky */}
       {Array.from({ length: 12 }, (_, i) => {
         const side = i % 2 ? 1 : -1;
@@ -234,12 +236,13 @@ export function MarginScene() {
 export function Gallery3Scene() {
   return (
     <group position={GALLERY3_ORIGIN}>
+      <GalleryDressing />
       <Slab x={[-16, 16]} y={[-0.3, 0]} z={[-26, 22]} material={MAT.marble} />
-      <Slab x={[-16, 16]} y={[0, 14]} z={[-27, -26]} material={greyPaper()} />
+      <Slab x={[-16, 16]} y={[0, 14]} z={[-27, -26]} material={metreSurface('stone', 3)} />
       {[-12, -4, 4, 12].map((z) => (
         <group key={z}>
-          <Box position={[-15.5, 7, z]} size={[1, 14, 6]} material={greyPaper()} />
-          <Box position={[15.5, 7, z]} size={[1, 14, 6]} material={greyPaper()} />
+          <Box position={[-15.5, 7, z]} size={[1, 14, 6]} material={metreSurface('stone', 3)} />
+          <Box position={[15.5, 7, z]} size={[1, 14, 6]} material={metreSurface('stone', 3)} />
         </group>
       ))}
       <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.2, -2], size: 1, count: 2, spread: 1.6, smoke: false }}>

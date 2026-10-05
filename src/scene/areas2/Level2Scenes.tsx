@@ -22,6 +22,7 @@ import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { metreSurface } from '../surfaceTextures';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
+import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -35,6 +36,7 @@ const stoneFloor = () => metreSurface('stone', 3);
 export function LawnScene() {
   return (
     <group position={LAWN_ORIGIN}>
+      <LawnDressing />
       <Slab x={[-120, 120]} y={[-0.2, 0]} z={[-24, 120]} material={lawnGrass()} />
       {/* Lantern Lake beyond the lawn, reflecting the red sky */}
       <mesh position={[0, -0.3, -140]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
@@ -200,11 +202,12 @@ export function HallScene() {
   const herald = sub(HERALD_POSITION, HALL_ORIGIN);
   return (
     <group position={HALL_ORIGIN}>
+      <HallDressing />
       <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={stoneFloor()} />
-      <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStone} />
-      <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStone} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={MAT.academyStone} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[8, 9]} material={MAT.academyStone} />
+      <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={stoneFloor()} />
+      <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={stoneFloor()} />
+      <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={stoneFloor()} />
+      <Slab x={[-10, 10]} y={[0, 12]} z={[8, 9]} material={stoneFloor()} />
       {/* Vaulted ceiling ribs */}
       {[-40, -32, -24, -16, -8, 0].map((z) => (
         <mesh key={z} position={[0, 12, z]} rotation={[0, 0, 0]} material={MAT.academyStoneDark}>
@@ -269,9 +272,10 @@ export function WorkshopScene() {
   const furnace = sub(FURNACE_POSITION, WORKSHOP_ORIGIN);
   return (
     <group position={WORKSHOP_ORIGIN}>
+      <WorkshopDressing />
       <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={stoneFloor()} />
-      <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
-      <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
+      <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={stoneFloor()} />
+      <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={stoneFloor()} />
       <Slab x={[-12, 12]} y={[9, 9.4]} z={[-32, 8]} material={MAT.darkOak} />
       {/* Benches in two rows with glassware and instruments */}
       {[-14, -20].map((z) =>
@@ -349,6 +353,7 @@ export function LakeScene() {
   return (
     <>
       <group position={LAKE_ORIGIN}>
+        <LakeDressing />
         <mesh position={[0, 0, -80]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
           <planeGeometry args={[500, 400]} />
         </mesh>
@@ -421,9 +426,10 @@ export function RampartScene() {
   const warden = sub(RAMPART_WARDEN, RAMPART_ORIGIN);
   return (
     <group position={RAMPART_ORIGIN}>
+      <RampartDressing />
       <Slab x={[-20, 20]} y={[-1, 0]} z={[-2.6, 6]} material={stoneFloor()} />
       {/* Parapet with crenellations along the cliff edge */}
-      <Slab x={[-20, 20]} y={[0, 1]} z={[-3.2, -2.6]} material={MAT.academyStone} />
+      <Slab x={[-20, 20]} y={[0, 1]} z={[-3.2, -2.6]} material={stoneFloor()} />
       {Array.from({ length: 20 }, (_, i) => -19 + i * 2).map((x) => (
         <Box key={x} position={[x, 1.4, -2.9]} size={[1, 0.8, 0.6]} material={MAT.academyStone} />
       ))}
@@ -439,15 +445,8 @@ export function RampartScene() {
       {/* The cliff, the ladders of the Hush, and the lake far below */}
       <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={scorched()} />
       {LADDERS.map((l, i) => {
-        const p = sub(l, RAMPART_ORIGIN);
-        return (
-          <group key={i} position={[p[0], p[1], p[2] + 3]} rotation={[-0.35, 0, 0]}>
-            {[-0.35, 0.35].map((x) => (
-              <Box key={x} position={[x, 3, 0]} size={[0.1, 7, 0.1]} material={MAT.darkOak} />
-            ))}
-            <Fire position={[0, 2, 0]} size={1.4} count={3} spread={0.6} smoke={false} />
-          </group>
-        );
+        const q = sub(l, RAMPART_ORIGIN);
+        return <Fire key={i} position={[q[0], q[1] + 2, q[2] + 2.4]} size={1.4} count={3} spread={0.6} smoke={false} />;
       })}
       <mesh position={[0, -30, -120]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 220]} />
@@ -522,6 +521,7 @@ export function AftermathScene() {
   });
   return (
     <group position={AFTERMATH_ORIGIN}>
+      <AftermathDressing />
       <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.paving}>
         <circleGeometry args={[12, 48]} />
       </mesh>
