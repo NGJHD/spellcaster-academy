@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { AdditiveBlending, DoubleSide, MeshStandardMaterial, type Group } from 'three';
+import { AdditiveBlending, DoubleSide, MeshStandardMaterial, type Group, type PointLight } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT } from '../../level/areas2/lake';
@@ -159,10 +159,12 @@ function CollapsingDeck() {
 
 export function BridgeScene() {
   const bellLit = useMemo(() => MAT.agedBrass.clone() as MeshStandardMaterial, []);
+  const bellGlow = useRef<PointLight>(null);
   useFrame(() => {
     const lit = getRun()?.flags.has('l2-beacon-bell') ?? false;
     bellLit.emissive.set(lit ? '#ffb640' : '#000000');
     bellLit.emissiveIntensity = lit ? 1.4 : 0;
+    if (bellGlow.current) bellGlow.current.intensity = lit ? 40 : 0;
   });
   const bell = sub(BELL_POSITION, BRIDGE_ORIGIN);
   return (
@@ -186,12 +188,13 @@ export function BridgeScene() {
         <mesh position={[0, 12.6, 0]} material={MAT.slate}>
           <coneGeometry args={[4.4, 4, 4]} />
         </mesh>
-        <mesh position={[0, bell[1], 0]} material={bellLit} castShadow>
-          <cylinderGeometry args={[0.9, 1.6, 2.2, 32, 1, true]} />
-        </mesh>
-        <mesh position={[0, bell[1] + 1.2, 0]} material={bellLit}>
-          <sphereGeometry args={[0.95, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        </mesh>
+        {/* The great bronze bell in its oak yoke (AI-pipeline prop); glows gold once the beacon is lit */}
+        <ModelBoundary fallback={<BellShape y={bell[1]} material={bellLit} />}>
+          <Suspense fallback={<BellShape y={bell[1]} material={bellLit} />}>
+            <Prop id="bronze_bell" position={[0, bell[1] - 2.3, 0]} height={3.6} />
+          </Suspense>
+        </ModelBoundary>
+        <pointLight ref={bellGlow} position={[0, bell[1], 1.6]} color="#ffb640" intensity={0} distance={14} decay={2} />
       </group>
       {/* Fires along the roof and in the gorge below */}
       {[2, -8, -20, -30, -44, -58].map((z, i) => (
@@ -200,6 +203,20 @@ export function BridgeScene() {
       <Fire position={[-10, -30, -30]} size={8} count={4} spread={8} smoke={false} />
       <BurningSkyline position={[0, -10, -110]} seed={3} />
     </group>
+  );
+}
+
+/** PLACEHOLDER bell shape until the bell model loads. */
+function BellShape({ y, material }: { y: number; material: MeshStandardMaterial }) {
+  return (
+    <>
+      <mesh position={[0, y, 0]} material={material} castShadow>
+        <cylinderGeometry args={[0.9, 1.6, 2.2, 32, 1, true]} />
+      </mesh>
+      <mesh position={[0, y + 1.2, 0]} material={material}>
+        <sphereGeometry args={[0.95, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+    </>
   );
 }
 
@@ -398,16 +415,14 @@ export function LakeScene() {
           <cylinderGeometry args={[12, 16, 2, 32]} />
         </mesh>
         <group position={[0, 0, -128]}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <mesh key={i} position={[0, 2 + i * 4, 0]} material={i % 2 ? MAT.burgundyLeather : MAT.plaster} castShadow>
-              <cylinderGeometry args={[3.6 - i * 0.18, 3.8 - i * 0.18, 4, 32, 1, true]} />
-            </mesh>
-          ))}
+          {/* Red-and-white lighthouse (AI-pipeline prop; striped cylinders until it loads) */}
+          <ModelBoundary fallback={<LighthouseStripes />}>
+            <Suspense fallback={<LighthouseStripes />}>
+              <Prop id="lighthouse" position={[0, -0.4, 0]} height={LIGHTHOUSE_HEIGHT + 5} />
+            </Suspense>
+          </ModelBoundary>
           <mesh position={[0, LIGHTHOUSE_HEIGHT + 2.6, 0]} material={lamp}>
             <sphereGeometry args={[0.8, 24, 16]} />
-          </mesh>
-          <mesh position={[0, LIGHTHOUSE_HEIGHT + 5, 0]} material={MAT.slate}>
-            <coneGeometry args={[2.6, 3, 24]} />
           </mesh>
         </group>
         <BurningSkyline position={[0, 0, 60]} rotationY={Math.PI} seed={4} />
@@ -420,6 +435,21 @@ export function LakeScene() {
       <Carried beats={LIFT_BEATS_L2} drop={1.6}>
         <Prop id="lift_platform" position={[0, 0, -0.4]} height={2.4} />
       </Carried>
+    </>
+  );
+}
+
+function LighthouseStripes() {
+  return (
+    <>
+      {Array.from({ length: 7 }, (_, i) => (
+        <mesh key={i} position={[0, 2 + i * 4, 0]} material={i % 2 ? MAT.burgundyLeather : MAT.plaster} castShadow>
+          <cylinderGeometry args={[3.6 - i * 0.18, 3.8 - i * 0.18, 4, 32, 1, true]} />
+        </mesh>
+      ))}
+      <mesh position={[0, LIGHTHOUSE_HEIGHT + 5, 0]} material={MAT.slate}>
+        <coneGeometry args={[2.6, 3, 24]} />
+      </mesh>
     </>
   );
 }

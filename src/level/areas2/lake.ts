@@ -35,10 +35,10 @@ export const lake: AreaScript = {
     LAKE_MID: { position: L(2, 1.4, -34), lookAt: L(12, 2, -46) },
     LAKE_JETTY: { position: L(6, 1.4, -44), lookAt: L(14, 1.6, -47) },
     LAKE_BEYOND: { position: L(1, 1.4, -78), lookAt: L(0, 6, -128) },
-    LAKE_ISLAND: { position: L(4, 1.6, -114), lookAt: L(0, 4, -128) },
+    LAKE_ISLAND: { position: L(6, 1.6, -110), lookAt: L(0, 6, -128) },
     // The brass lift climbs the outside of the tower, looking out over the burning lake.
-    LH_BASE: { position: L(7.5, 1.6, -124), lookAt: L(24, 3, -150) },
-    LH_TOP: { position: L(7.5, LIGHTHOUSE_HEIGHT + 1.6, -124), lookAt: L(0, LIGHTHOUSE_HEIGHT + 2.4, -130) },
+    LH_BASE: { position: L(11, 1.6, -121), lookAt: L(28, 3, -150) },
+    LH_TOP: { position: L(11, LIGHTHOUSE_HEIGHT + 1.6, -121), lookAt: L(0, LIGHTHOUSE_HEIGHT + 1.4, -129) },
   },
   lookPoints: {
     LAKE_BOATHOUSE: L(16, 3, -50),
