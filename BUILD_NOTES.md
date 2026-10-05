@@ -278,6 +278,26 @@ ward from outside); Level 2 focuses on the evacuation; mobs may be scary; "polis
   (all Memory Pages) and the Memory Book screen are not built; set-piece props in
   Levels 2-3 are kit-built placeholders.
 
+## Levels 2-3: realistic models and environments (2026-10-05)
+
+- **Mobs and bosses (all live):** Hollow Knight, Eraser Moth, Correction Moth, Foreman, Blotling,
+  Smudgehound, Redactor, Scribble Imp; the Grey Herald, Vellum Wyrm, Perfect Warden and Unwriter.
+- **Environment set pieces** (`concepts_env23.py`, `batch_env23.sh`, static props with `rig="none"`):
+  festival stalls, bronze bell, alchemy furnace, copper stills, lighthouse, rowing boat, dead trees, ash
+  rocks, black galleons, the Unwriter's book-page throne (redesigned to avoid franchise likeness), ink
+  cauldrons, forge hammers, citadel towers, journal lectern. Each sits in a `ModelBoundary` with its old
+  kit shape as the fallback. Set dressing with the CC0 props (`src/scene/areas2/dressing.tsx`).
+- **Rejected:** the AI boathouse (texturing invented pastel swirls on flat walls; a denser mesh did not
+  help). The boathouse is kit-built with stone, oak and slate instead.
+- **Pipeline lessons** (also in `assets-src/scripts/ai`):
+  - Octree remesh for armour, thin or smoky shapes; voxel for smooth blobs.
+  - Texturing OOM on the 3080 scales with surface area, not triangles: texture big subjects on the
+    16 GB 5060 Ti (`texture(name, base=TRELLIS)`).
+  - Never chain jobs with a "wait until no process matches X" loop (it matches itself); wait on a log
+    line. `healthcheck.sh` reports liveness and flags stalls after 45 minutes; run it every 15 minutes
+    during long batches.
+  - AI props are made for mid-distance; frame them from about 10 m, not up close.
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.

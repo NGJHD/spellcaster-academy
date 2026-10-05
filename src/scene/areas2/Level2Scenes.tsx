@@ -17,7 +17,7 @@ import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { Fire, Restorable } from '../Fire';
-import { Banner, Box, KitModel, Slab } from '../kit';
+import { Banner, Box, GableRoof, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
@@ -73,13 +73,7 @@ export function LawnScene() {
         <FloatingLantern key={i} position={p as unknown as Vec3} seed={i + 3} />
       ))}
       {/* Boathouse on the shore, burning */}
-      <group position={[18, 0, -28]}>
-        <Box position={[0, 2, 0]} size={[8, 4, 6]} material={MAT.darkOak} />
-        <mesh position={[0, 5, 0]} rotation={[0, 0, 0]} material={MAT.slate}>
-          <coneGeometry args={[5.6, 2.4, 4]} />
-        </mesh>
-        <Fire position={[0, 4.5, 0]} size={4} count={5} spread={5} light />
-      </group>
+      <Boathouse position={[18, 0, -28]} rotationY={-0.5} />
       {/* Dormitory tower to the east, its door burning */}
       <group position={sub(DORM_DOOR, LAWN_ORIGIN)}>
         <mesh position={[4.6, 12, 0]} material={MAT.academyStone} castShadow>
@@ -99,6 +93,32 @@ export function LawnScene() {
         <Student key={i} position={p as unknown as Vec3} rotationY={-2.2} />
       ))}
       <Mira position={[-7, 0, 8]} rotationY={-2.4} waving />
+    </group>
+  );
+}
+
+/**
+ * The boathouse: stone walls, oak corner posts, a slate gable roof and a dark arched water door, on
+ * fire. (The AI-pipeline boathouse was rejected: its texturing invented pastel swirls on the walls.)
+ */
+function Boathouse({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <Box position={[0, 2.2, 0]} size={[8, 4.4, 6.4]} material={stoneFloor()} />
+      {[-1, 1].map((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} position={[sx * 4, 2.2, sz * 3.2]} size={[0.35, 4.6, 0.35]} material={MAT.darkOak} />))}
+      <Box position={[0, 4.5, 3.25]} size={[8.4, 0.3, 0.3]} material={MAT.darkOak} />
+      <Box position={[0, 4.5, -3.25]} size={[8.4, 0.3, 0.3]} material={MAT.darkOak} />
+      {/* Arched water door facing the lake, and a small window */}
+      <Box position={[0, 1.4, 3.22]} size={[3, 2.8, 0.1]} material={MAT.ink} />
+      <mesh position={[0, 2.8, 3.24]} material={MAT.darkOak}>
+        <torusGeometry args={[1.55, 0.14, 8, 20, Math.PI]} />
+      </mesh>
+      <Box position={[-2.6, 2.6, 3.22]} size={[0.9, 1.1, 0.08]} material={MAT.windowGlow} />
+      <GableRoof position={[0, 4.4, 0]} length={8.6} span={7} rise={3} />
+      {/* A short jetty */}
+      <Box position={[0, 0.3, 6]} size={[2.4, 0.2, 5.6]} material={MAT.lightOak} />
+      <Fire position={[0, 5.6, 0]} size={4.5} count={5} spread={6} light />
+      <Fire position={[-2.5, 0.6, 3.6]} size={1.4} count={2} spread={1} smoke={false} />
     </group>
   );
 }
@@ -400,13 +420,7 @@ export function LakeScene() {
           </group>
         ))}
         {/* The boathouse and jetty, on fire */}
-        <group position={[18, 0, -50]}>
-          <Box position={[0, 2.5, 0]} size={[8, 5, 7]} material={MAT.darkOak} />
-          <mesh position={[0, 6.2, 0]} material={MAT.slate}>
-            <coneGeometry args={[6, 2.6, 4]} />
-          </mesh>
-          <Fire position={[0, 5.6, 0]} size={5} count={5} spread={6} light />
-        </group>
+        <Boathouse position={[18, 0, -50]} rotationY={-Math.PI / 2} />
         <Box position={[12, 0.3, -46]} size={[7, 0.3, 2.4]} material={MAT.lightOak} />
         {/* Lighthouse island */}
         <mesh position={[0, -0.5, -128]} material={scorched()}>
@@ -429,7 +443,7 @@ export function LakeScene() {
         {/* Oarsby's rowing boat (AI-pipeline prop; long axis turned to the camera's forward) */}
         <ModelBoundary fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
           <Suspense fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
-            <Prop id="rowing_boat" position={[0, -0.75, -1.3]} height={2.9} rotationY={Math.PI / 2} />
+            <Prop id="rowing_boat" position={[0, -1.15, -1.6]} height={2.9} rotationY={Math.PI / 2} />
           </Suspense>
         </ModelBoundary>
         <Student position={[0, 0.25, -2.2]} rotationY={Math.PI} robe={MAT.darkOak} height={1.6} />
