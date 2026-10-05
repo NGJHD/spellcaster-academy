@@ -472,6 +472,92 @@
     "bytes": 9605516,
     "source": "assets-src/scripts/creatures/unwriter.py"
   },
+  "blotling": {
+    "id": "blotling",
+    "file": "/assets/creatures/blotling.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.3,
+      "height": 0.7
+    },
+    "wordAnchor": [
+      0,
+      1,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/blotling.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 23999,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.3330182731151581,
+        -0.004587654024362564,
+        -0.21925321221351624
+      ],
+      "max": [
+        0.3298489451408386,
+        0.700505256652832,
+        0.2198008894920349
+      ]
+    },
+    "bytes": 2850920,
+    "source": "assets-src/scripts/creatures/blotling.py"
+  },
+  "smudgehound": {
+    "id": "smudgehound",
+    "file": "/assets/creatures/smudgehound.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.4,
+      "height": 1.1
+    },
+    "wordAnchor": [
+      0,
+      1.4,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/smudgehound.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 28000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.6783560514450073,
+        -0.007853561080992222,
+        -0.2341230809688568
+      ],
+      "max": [
+        0.6780943274497986,
+        1.0985515117645264,
+        0.2337992936372757
+      ]
+    },
+    "bytes": 3393236,
+    "source": "assets-src/scripts/creatures/smudgehound.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",
