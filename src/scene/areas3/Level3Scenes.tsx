@@ -52,6 +52,19 @@ function Written({ flag, children }: { flag: string; children: ReactNode }) {
   return <group ref={group}>{children}</group>;
 }
 
+/** Scorched volcanic rocks with glowing cracks (AI-pipeline prop), scattered in varied sizes. */
+function AshRocks({ spots }: { spots: readonly (readonly [number, number, number])[] }) {
+  return (
+    <ModelBoundary fallback={null}>
+      <Suspense fallback={null}>
+        {spots.map(([x, z, h], i) => (
+          <Prop key={i} id="ash_rock" position={[x, -0.3, z]} height={h} rotationY={i * 1.7} />
+        ))}
+      </Suspense>
+    </ModelBoundary>
+  );
+}
+
 /** A charred dead tree (AI-pipeline prop), varied by rotation and height; procedural until it loads. */
 function BurntTree(props: { position: Vec3; height?: number; seed?: number }) {
   const fallback = <ProceduralTree {...props} />;
@@ -125,6 +138,7 @@ export function ShoreScene() {
       {[[-20, -40], [14, -50], [-34, -30], [30, -36], [-12, -60]].map(([x, z], i) => (
         <BurntTree key={i} position={[x ?? 0, 0, z ?? 0]} height={7 + i} seed={i + 1} />
       ))}
+      <AshRocks spots={[[-9, -20, 2.2], [11, -24, 3], [-16, -36, 4], [18, -44, 2.6], [-4, -52, 1.8], [24, -20, 5], [-28, -12, 4.5], [6, 14, 1.6], [-14, 12, 2.4]]} />
       <StaticWarden position={[6, 0, 2]} scale={1.1} rotationY={-0.5} />
       <Mira position={[-2, 0, 3]} rotationY={0.3} />
       {[[-40, -70], [36, -76], [0, -90]].map(([x, z], i) => (
@@ -146,6 +160,7 @@ export function CinderwoodScene() {
         const side = i % 2 ? 1 : -1;
         return <BurntTree key={i} position={[side * (5 + ((i * 7) % 14)), 0, 10 - i * 4.5]} height={8 + ((i * 5) % 6)} seed={i + 2} />;
       })}
+      <AshRocks spots={[[-7, -8, 1.6], [8, -22, 2.4], [-9, -44, 3], [10, -58, 2], [-6, -74, 2.8], [7, -92, 3.4]]} />
       {/* The half-drawn deer: grey outline until restored */}
       <Restorable flag="l3-deer-free" burning={false}>
         <group position={deer}>
@@ -190,6 +205,7 @@ export function InkfallScene() {
             ))}
           </group>
         ))}
+        <AshRocks spots={[[-7.5, -12, 2.4], [7.5, -24, 2], [-7.8, -46, 2.8], [7.6, -70, 2.2], [-7.4, -100, 3], [7.8, -128, 2.6]]} />
         {/* The broken drop: written into a slide of blue ink */}
         {SLIDE_SECTIONS.map((p, i) => (
           <Written key={i} flag={`l3-slide-${i + 1}`}>
@@ -442,6 +458,7 @@ export function ForgeScene() {
           ))}
         </group>
       ))}
+      <AshRocks spots={[[-17, 8, 1.6], [16, 10, 1.4], [-18, -20, 2], [17, -24, 2.2]]} />
       <Hammer position={[-12, 0, -38]} phase={0} />
       <Hammer position={[12, 0, -40]} phase={0.5} />
       {[-30, -10, 10].map((z) => (
