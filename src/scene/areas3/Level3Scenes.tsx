@@ -251,7 +251,12 @@ export function MarginScene() {
       <Slab x={[-6, 6]} y={[-0.3, 0]} z={[-46, -26]} material={MAT.darkOak} />
       {/* Corvane's journal on its lectern, burning into a tornado of pages */}
       <group position={journal}>
-        <Box position={[0, -1, 0]} size={[0.8, 2, 0.8]} material={MAT.darkOak} />
+        {/* Corvane's journal on its carved lectern (AI-pipeline prop) */}
+        <ModelBoundary fallback={<Box position={[0, -1, 0]} size={[0.8, 2, 0.8]} material={MAT.darkOak} />}>
+          <Suspense fallback={<Box position={[0, -1, 0]} size={[0.8, 2, 0.8]} material={MAT.darkOak} />}>
+            <Prop id="journal_lectern" position={[0, -2, 0]} height={2.2} />
+          </Suspense>
+        </ModelBoundary>
         <group ref={tornado}>
           {[0, 1, 2, 3].map((i) => (
             <Fire key={i} position={[Math.cos(i * 1.6) * (0.6 + i * 0.4), i * 2, Math.sin(i * 1.6) * (0.6 + i * 0.4)]} size={2 + i * 0.5} count={3} spread={1} light={i === 0} />

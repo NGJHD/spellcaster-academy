@@ -170,8 +170,8 @@ export function MarginDressing() {
   return (
     <Props
       items={[
-        { id: 'wooden_bookshelf_worn', at: [-5, 0, -32], h: 2.6, r: Math.PI / 2 },
-        { id: 'wooden_bookshelf_worn', at: [5, 0, -36], h: 2.6, r: -Math.PI / 2 },
+        { id: 'wooden_bookshelf_worn', at: [-5.6, 0, -44], h: 2.6, r: Math.PI / 4 },
+        { id: 'wooden_bookshelf_worn', at: [5.6, 0, -44], h: 2.6, r: -Math.PI / 4 },
         { id: 'book_encyclopedia_set_01', at: [-2, 0, -44], h: 0.4, r: 0.4 },
         { id: 'book_encyclopedia_set_01', at: [3, 0, -43], h: 0.4, r: 2 },
         { id: 'vintage_oil_lamp', at: [1.2, 0, -28], h: 0.5 },
