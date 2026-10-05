@@ -498,8 +498,8 @@ export function RoofScene() {
       <group ref={wyrm}>
         <SceneCreature
           file="vellum_wyrm.glb"
-          position={[head[0], head[1] - 4, head[2] - 8]}
-          scale={1.8}
+          position={[head[0], head[1] - 7, head[2] - 12]}
+          scale={3}
           fromBeat="l2-wyrm-rises"
           goneFlag="l2-wyrm-defeated"
           fallback={<WyrmFallback />}

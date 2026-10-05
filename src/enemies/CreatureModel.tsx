@@ -20,7 +20,7 @@ const base = `${import.meta.env.BASE_URL}assets/creatures/`;
  */
 export const BUILT_AI_MOBS: ReadonlySet<string> = new Set<string>(['hollow-knight', 'eraser-moth', 'correction-moth', 'foreman', 'blotling', 'smudgehound', 'redactor', 'scribble-imp']);
 /** Boss and set-piece model files built so far (scene creatures, not typing targets). */
-export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb', 'perfect_warden.glb', 'unwriter.glb']);
+export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb', 'perfect_warden.glb', 'unwriter.glb', 'vellum_wyrm.glb']);
 const AI_MOB_KINDS = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman']);
 
 export function creatureUrl(kind: string, variant?: string): string | null {

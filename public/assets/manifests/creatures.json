@@ -644,6 +644,49 @@
     "bytes": 4150164,
     "source": "assets-src/scripts/creatures/scribble_imp.py"
   },
+  "vellum_wyrm": {
+    "id": "vellum_wyrm",
+    "file": "/assets/creatures/vellum_wyrm.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 2.6,
+      "height": 6
+    },
+    "wordAnchor": [
+      0,
+      6.6,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/vellum_wyrm.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 60000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -2.664572238922119,
+        -0.012632010504603386,
+        -2.7171247005462646
+      ],
+      "max": [
+        2.6632304191589355,
+        6.000346660614014,
+        2.708273410797119
+      ]
+    },
+    "bytes": 12742744,
+    "source": "assets-src/scripts/creatures/vellum_wyrm.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",
