@@ -338,26 +338,38 @@ function IronGiant({ height }: { height: number }) {
 // ---------- Paper Sea ----------
 
 function Galleon({ position, index }: { position: Vec3; index: number }) {
-  const mast = useRef<Group>(null);
+  const ship = useRef<Group>(null);
   const tilt = useRef(0);
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const down = getRun()?.flags.has(`l3-mast-${index}-down`) ?? false;
-    tilt.current += ((down ? 1 : 0) - tilt.current) * (1 - Math.exp(-1.5 * Math.min(delta, 0.1)));
-    if (mast.current) mast.current.rotation.z = tilt.current * 1.3;
+    tilt.current += ((down ? 1 : 0) - tilt.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
+    const g = ship.current;
+    if (!g) return;
+    // Rides the swell; once its masts are brought down it lists hard and settles, burning.
+    const t = state.clock.elapsedTime + index;
+    g.rotation.z = Math.sin(t * 0.6) * 0.04 + tilt.current * 0.5 * (index % 2 ? 1 : -1);
+    g.rotation.x = Math.sin(t * 0.45) * 0.03;
+    g.position.y = Math.sin(t * 0.7) * 0.25 - tilt.current * 2.2;
   });
+  const fallback = (
+    <>
+      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={blackIron()} />
+      <mesh position={[0, 8.2, 0]} material={MAT.darkOak}>
+        <cylinderGeometry args={[0.2, 0.3, 12, 10]} />
+      </mesh>
+    </>
+  );
   return (
     <group position={position}>
-      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={blackIron()} />
-      <Box position={[0, 2.6, -5]} size={[4, 1.2, 3]} material={blackIron()} />
-      <Fire position={[0, 2.4, 7.4]} size={2} count={3} spread={1} light={index === 2} />
-      <group ref={mast} position={[0, 2.2, 0]}>
-        <mesh position={[0, 6, 0]} material={MAT.darkOak}>
-          <cylinderGeometry args={[0.2, 0.3, 12, 10]} />
-        </mesh>
-        <mesh position={[0, 7, 0.3]} material={ashDarkFlat}>
-          <planeGeometry args={[6, 7]} />
-        </mesh>
-        <Fire position={[0, 9, 0]} size={2.4} count={3} spread={3} smoke={false} fromFlag={`l3-mast-${index}-down`} />
+      <group ref={ship}>
+        {/* Black galleon with torn sails (AI-pipeline prop) */}
+        <ModelBoundary fallback={fallback}>
+          <Suspense fallback={fallback}>
+            <Prop id="black_galleon" position={[0, -1.2, 0]} height={16} rotationY={index === 2 ? Math.PI : 0} />
+          </Suspense>
+        </ModelBoundary>
+        <Fire position={[0, 3, 8]} size={2} count={3} spread={1} light={index === 2} />
+        <Fire position={[0, 9, 0]} size={3} count={4} spread={5} smoke fromFlag={`l3-mast-${index}-down`} />
       </group>
     </group>
   );
