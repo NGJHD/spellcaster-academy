@@ -326,14 +326,12 @@ export function WorkshopScene() {
       {/* Copper stills along the walls, inkfire running along the pipes */}
       {[-24, -10, 2].map((z) =>
         [-10.5, 10.5].map((x) => (
-          <group key={`s${x}${z}`} position={[x, 0, z]}>
-            <mesh position={[0, 1.4, 0]} material={MAT.agedBrass} castShadow>
-              <sphereGeometry args={[1, 24, 16]} />
-            </mesh>
-            <mesh position={[0, 3, 0]} material={MAT.agedBrass}>
-              <cylinderGeometry args={[0.12, 0.3, 2.2, 12]} />
-            </mesh>
-          </group>
+          <ModelBoundary key={`s${x}${z}`} fallback={null}>
+            <Suspense fallback={null}>
+              {/* Copper alchemy still (AI-pipeline prop) */}
+              <Prop id="copper_still" position={[x, 0, z]} height={2.8} rotationY={x < 0 ? Math.PI / 2 : -Math.PI / 2} />
+            </Suspense>
+          </ModelBoundary>
         )),
       )}
       <Restorable flag="l2-beacon-furnace" burning={false}>
@@ -428,7 +426,12 @@ export function LakeScene() {
         <BurningSkyline position={[0, 0, 60]} rotationY={Math.PI} seed={4} />
       </group>
       <Carried beats={BOAT_BEATS} drop={1.0}>
-        <Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />
+        {/* Oarsby's rowing boat (AI-pipeline prop; long axis turned to the camera's forward) */}
+        <ModelBoundary fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
+          <Suspense fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
+            <Prop id="rowing_boat" position={[0, -0.75, -1.3]} height={2.9} rotationY={Math.PI / 2} />
+          </Suspense>
+        </ModelBoundary>
         <Student position={[0, 0.25, -2.2]} rotationY={Math.PI} robe={MAT.darkOak} height={1.6} />
         <Prop id="wooden_lantern_01" position={[0.7, 0.25, -2.6]} height={0.5} />
       </Carried>
