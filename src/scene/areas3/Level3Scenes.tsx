@@ -4,7 +4,7 @@
  * their fire and regain colour. PLACEHOLDER geometry is kit-built; mobs and bosses are AI-pipeline models.
  */
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef, type ReactNode } from 'react';
+import { Suspense, useMemo, useRef, type ReactNode } from 'react';
 import { MeshStandardMaterial, PlaneGeometry, type Group } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
@@ -17,6 +17,8 @@ import { Bookshelf, Box, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
+import { ModelBoundary } from '../../enemies/ModelBoundary';
+import { Prop } from '../Prop';
 import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
@@ -477,6 +479,15 @@ export function CitadelScene() {
 
 // ---------- Throne of Ash ----------
 
+function ThroneBoxes() {
+  return (
+    <>
+      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={blackIron()} />
+      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={blackIron()} />
+    </>
+  );
+}
+
 /** PLACEHOLDER Unwriter: a towering figure in charred paper robes, a cracked white mask with a burning line. */
 function UnwriterFallback() {
   const quill = useRef<Group>(null);
@@ -544,9 +555,13 @@ export function ThroneScene() {
           <Fire position={[0, 1.2, 0]} size={1.4} count={2} spread={0.4} smoke={false} light={i % 4 === 0} />
         </group>
       ))}
-      {/* The throne and the sea of fire far below */}
-      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={blackIron()} />
-      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={blackIron()} />
+      {/* The Unwriter's throne of charred book pages (AI-pipeline prop; boxes until it loads) */}
+      <ModelBoundary fallback={<ThroneBoxes />}>
+        <Suspense fallback={<ThroneBoxes />}>
+          <Prop id="iron_throne" position={[0, 0, -16.5]} height={8} />
+        </Suspense>
+      </ModelBoundary>
+      {/* The sea of fire far below */}
       <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
         <planeGeometry args={[600, 600]} />
       </mesh>

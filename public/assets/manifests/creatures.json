@@ -558,6 +558,92 @@
     "bytes": 3393236,
     "source": "assets-src/scripts/creatures/smudgehound.py"
   },
+  "redactor": {
+    "id": "redactor",
+    "file": "/assets/creatures/redactor.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.4,
+      "height": 2.4
+    },
+    "wordAnchor": [
+      0,
+      2.8,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/redactor.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 23999,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.4695013761520386,
+        -0.0005503692082129419,
+        -0.27744123339653015
+      ],
+      "max": [
+        0.46973976492881775,
+        2.403714418411255,
+        0.2803163528442383
+      ]
+    },
+    "bytes": 2547008,
+    "source": "assets-src/scripts/creatures/redactor.py"
+  },
+  "scribble_imp": {
+    "id": "scribble_imp",
+    "file": "/assets/creatures/scribble_imp.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 0.25,
+      "height": 0.8
+    },
+    "wordAnchor": [
+      0,
+      1.2,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/scribble_imp.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 24000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -0.2995052635669708,
+        0.000014836678019491956,
+        -0.17983117699623108
+      ],
+      "max": [
+        0.2985506057739258,
+        0.8011471033096313,
+        0.18469125032424927
+      ]
+    },
+    "bytes": 4150164,
+    "source": "assets-src/scripts/creatures/scribble_imp.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",
