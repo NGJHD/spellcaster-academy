@@ -454,14 +454,19 @@ export function ForgeScene() {
       {FORGE_LINES.map((x, i) => (
         <group key={x} position={[x, 0, 0]}>
           {/* The line: a conveyor of moulds running towards the player, its furnace at the back */}
-          <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={MAT.darkSteel} />
+          <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={blackIron()} />
           <Box position={[0, 4, -28]} size={[5, 8, 4]} material={blackIron()} />
           <Box position={[0, 3, -25.9]} size={[2.4, 2.6, 0.1]} material={ironSeam} />
           <Fire position={[0, 1.6, -25.6]} size={3} count={4} spread={2} light untilFlag={`l3-line-${i + 1}`} />
           {/* Cauldron pouring molten red ink */}
-          <mesh position={[0, 9, -22]} material={blackIron()}>
-            <cylinderGeometry args={[1.6, 1.2, 2, 16]} />
-          </mesh>
+          {/* Black iron cauldron of molten red ink (AI-pipeline prop) on a gantry */}
+          <ModelBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <Prop id="ink_cauldron" position={[0, 7.6, -22]} height={3.2} rotationY={i * 1.1} />
+            </Suspense>
+          </ModelBoundary>
+          <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={blackIron()} />
+          <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} smoke={false} />
           <mesh position={[0, 5, -22]} material={redInk}>
             <cylinderGeometry args={[0.2, 0.25, 6, 8]} />
           </mesh>
