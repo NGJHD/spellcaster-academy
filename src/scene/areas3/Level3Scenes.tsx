@@ -52,6 +52,19 @@ function Written({ flag, children }: { flag: string; children: ReactNode }) {
   return <group ref={group}>{children}</group>;
 }
 
+/** Towers of the Cinder Citadel (AI-pipeline prop): black iron and charred stone with red windows. */
+function CitadelTowers({ spots }: { spots: readonly (readonly [number, number, number, number])[] }) {
+  return (
+    <ModelBoundary fallback={null}>
+      <Suspense fallback={null}>
+        {spots.map(([x, y, z, h], i) => (
+          <Prop key={i} id="citadel_tower" position={[x, y, z]} height={h} rotationY={i * 1.3} shadows={false} />
+        ))}
+      </Suspense>
+    </ModelBoundary>
+  );
+}
+
 /** Scorched volcanic rocks with glowing cracks (AI-pipeline prop), scattered in varied sizes. */
 function AshRocks({ spots }: { spots: readonly (readonly [number, number, number])[] }) {
   return (
@@ -411,6 +424,7 @@ export function SeaScene() {
         {GALLEONS.map((g, i) => (
           <Galleon key={i} position={sub(g, SEA_ORIGIN)} index={i + 1} />
         ))}
+        <CitadelTowers spots={[[0, -2, -330, 110], [-34, -2, -310, 80], [38, -2, -318, 90], [-14, -2, -350, 130], [18, -2, -346, 100]]} />
         {[[-20, -30], [24, -60], [-30, -140], [18, -190], [-10, -240]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0, z ?? 0]}>
             <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, i, 0.3]} material={ashDarkFlat} />
@@ -623,6 +637,7 @@ export function ThroneScene() {
           <Prop id="iron_throne" position={[0, 0, -16.5]} height={8} />
         </Suspense>
       </ModelBoundary>
+      <CitadelTowers spots={[[-46, -40, -52, 80], [48, -44, -48, 74], [-60, -48, 8, 70], [62, -46, 16, 76], [0, -52, -80, 96]]} />
       {/* The sea of fire far below */}
       <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
         <planeGeometry args={[600, 600]} />
