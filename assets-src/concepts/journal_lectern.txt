@@ -1,0 +1,2 @@
+seed: 58
+prompt: An ornate carved dark wood lectern holding a large old open leather journal with burning edges, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

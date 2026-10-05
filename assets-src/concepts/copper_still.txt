@@ -1,0 +1,2 @@
+seed: 45
+prompt: An antique copper alchemy still with a round pot, coiled copper pipes and brass valves on an iron stand, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

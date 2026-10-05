@@ -1,0 +1,2 @@
+seed: 52
+prompt: A large jagged scorched dark grey volcanic rock with glowing red molten cracks, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

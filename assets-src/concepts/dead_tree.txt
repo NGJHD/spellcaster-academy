@@ -1,0 +1,2 @@
+seed: 51
+prompt: A tall dead charred black tree with twisted bare branches, cracks in the bark glowing with orange embers, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

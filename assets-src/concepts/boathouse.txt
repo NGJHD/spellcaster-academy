@@ -1,0 +1,2 @@
+seed: 42
+prompt: A small old stone and timber boathouse with a steep slate roof, a wide arched water door and a little wooden jetty, partly burnt and charred, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

@@ -1,0 +1,2 @@
+seed: 57
+prompt: A tall sinister fortress tower of black iron and charred stone with sharp spires and red glowing windows, flames at the top, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

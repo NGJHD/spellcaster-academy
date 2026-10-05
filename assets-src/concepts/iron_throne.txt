@@ -1,0 +1,2 @@
+seed: 59
+prompt: A tall sinister throne whose high back is a giant open book with charred black pages fanning upward, a smooth black iron seat and armrests shaped like quill feathers, thin glowing red lines on the pages, on round black stone steps, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

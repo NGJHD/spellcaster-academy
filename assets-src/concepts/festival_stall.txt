@@ -1,0 +1,2 @@
+seed: 41
+prompt: A wooden fantasy festival market stall with a striped red and gold fabric awning, carved posts, a counter with paper lanterns and small jars, slightly scorched, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

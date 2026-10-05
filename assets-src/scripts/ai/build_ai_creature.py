@@ -55,6 +55,22 @@ CONFIG = {
     "foreman": dict(out="foreman", height=2.7, tris=36000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
     "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45),
     "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish"),
+    # Level 2/3 environment set pieces (static props).
+    "festival_stall": dict(out="festival_stall", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=3.2, tris=16000, tex=1024),
+    "boathouse": dict(out="boathouse", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=10, tris=24000, tex=2048),
+    "bronze_bell": dict(out="bronze_bell", folder="props", rig="none", defeat="vanish", height=3.4, tris=14000, tex=1024, metallic=0.85, roughness=0.35),
+    "alchemy_furnace": dict(out="alchemy_furnace", folder="props", rig="none", defeat="vanish", height=9, tris=20000, tex=2048),
+    "copper_still": dict(out="copper_still", folder="props", rig="none", defeat="vanish", height=2.4, tris=10000, tex=1024, metallic=0.8, roughness=0.35),
+    "lighthouse": dict(out="lighthouse", folder="props", rig="none", defeat="vanish", height=30, tris=20000, tex=2048),
+    "rowing_boat": dict(out="rowing_boat", folder="props", rig="none", defeat="vanish", height=1.6, fit="width", width=4.4, tris=12000, tex=1024),
+    "dead_tree": dict(out="dead_tree", folder="props", rig="none", defeat="vanish", height=10, tris=16000, tex=1024),
+    "ash_rock": dict(out="ash_rock", folder="props", rig="none", defeat="vanish", height=3.2, tris=8000, tex=1024),
+    "black_galleon": dict(out="black_galleon", folder="props", rig="none", defeat="vanish", height=14, fit="width", width=18, tris=30000, tex=2048),
+    "iron_throne": dict(out="iron_throne", folder="props", rig="none", defeat="vanish", height=5.5, tris=24000, tex=2048),
+    "ink_cauldron": dict(out="ink_cauldron", folder="props", rig="none", defeat="vanish", height=3, tris=12000, tex=1024),
+    "forge_hammer": dict(out="forge_hammer", folder="props", rig="none", defeat="vanish", height=14, tris=20000, tex=1024),
+    "citadel_tower": dict(out="citadel_tower", folder="props", rig="none", defeat="vanish", height=60, tris=16000, tex=1024),
+    "journal_lectern": dict(out="journal_lectern", folder="props", rig="none", defeat="vanish", height=1.6, tris=10000, tex=1024),
     "snapvine": dict(out="snapvine_head", height=1.6, tris=30000, tex=1024, rig="rigid", defeat="vanish"),
 }
 cfg = CONFIG[NAME]

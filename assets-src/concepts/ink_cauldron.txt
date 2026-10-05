@@ -1,0 +1,2 @@
+seed: 55
+prompt: A huge black iron cauldron on a stand, overflowing with glowing molten red ink, heavy chains on its handles, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

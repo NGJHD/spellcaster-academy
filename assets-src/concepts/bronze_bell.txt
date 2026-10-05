@@ -1,0 +1,2 @@
+seed: 43
+prompt: A huge ornate bronze bell hanging from a heavy carved oak yoke frame, engraved with stars, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

@@ -1,0 +1,2 @@
+seed: 46
+prompt: A tall old stone lighthouse tower painted in red and white bands with a glass lantern room and an iron balcony at the top, on a rocky base, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

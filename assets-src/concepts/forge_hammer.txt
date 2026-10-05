@@ -1,0 +1,2 @@
+seed: 56
+prompt: A gigantic black iron industrial forge hammer machine with a heavy hammer head on a frame of riveted beams and chains, glowing hot anvil, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

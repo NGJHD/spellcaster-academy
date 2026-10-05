@@ -1,0 +1,2 @@
+seed: 44
+prompt: A massive old brick and iron alchemy furnace with a round arched fire door, copper pipes, a tall chimney and riveted iron bands, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text
