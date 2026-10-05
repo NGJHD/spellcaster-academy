@@ -4,7 +4,7 @@
  * PLACEHOLDER geometry is kit-built; mobs and bosses are realistic AI-pipeline models.
  */
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { AdditiveBlending, DoubleSide, MeshStandardMaterial, type Group } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
@@ -20,6 +20,7 @@ import { Fire, Restorable } from '../Fire';
 import { Banner, Box, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
+import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { metreSurface } from '../surfaceTextures';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
@@ -45,13 +46,20 @@ export function LawnScene() {
       {/* Festival stalls: striped awnings on timber frames; the left one burns until restored */}
       {STALL_POSITIONS.map((p, i) => {
         const local = sub(p, LAWN_ORIGIN);
-        const stall = (
+        const boxes = (
           <group position={local}>
             {[-1, 1].map((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} position={[sx * 1.3, 1.2, sz * 0.8]} size={[0.12, 2.4, 0.12]} material={MAT.darkOak} />))}
             <Box position={[0, 1.0, 0.7]} size={[2.8, 0.9, 0.3]} material={MAT.lightOak} />
             <Box position={[0, 2.5, 0]} size={[3, 0.12, 2]} material={MAT.burgundyLeather} />
-            <Prop id="wooden_lantern_01" position={[0.8, 1.45, 0.7]} height={0.4} />
           </group>
+        );
+        // Realistic festival stall (AI-pipeline prop; its wide front faces the model's +X, turned to the lawn).
+        const stall = (
+          <ModelBoundary fallback={boxes}>
+            <Suspense fallback={boxes}>
+              <Prop id="festival_stall" position={local} height={3.2} rotationY={-Math.PI / 2 + (i - 1) * 0.25} />
+            </Suspense>
+          </ModelBoundary>
         );
         if (i === 2) return <group key={i}>{stall}<Fire position={[local[0], 2.4, local[2]]} size={1.6} count={3} spread={2} /></group>;
         return (
