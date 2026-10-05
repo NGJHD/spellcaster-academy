@@ -52,8 +52,22 @@ function Written({ flag, children }: { flag: string; children: ReactNode }) {
   return <group ref={group}>{children}</group>;
 }
 
-/** A burnt black tree: trunk, a few broken branches, embers in the bark. */
-function BurntTree({ position, height = 9, seed = 1 }: { position: Vec3; height?: number; seed?: number }) {
+/** A charred dead tree (AI-pipeline prop), varied by rotation and height; procedural until it loads. */
+function BurntTree(props: { position: Vec3; height?: number; seed?: number }) {
+  const fallback = <ProceduralTree {...props} />;
+  const h = props.height ?? 9;
+  return (
+    <ModelBoundary fallback={fallback}>
+      <Suspense fallback={fallback}>
+        <Prop id="dead_tree" position={props.position} height={h} rotationY={(props.seed ?? 1) * 2.39} />
+        {(props.seed ?? 1) % 3 === 0 && <Fire position={[props.position[0], props.position[1] + h * 0.55, props.position[2]]} size={1.4} count={2} spread={0.8} smoke={false} />}
+      </Suspense>
+    </ModelBoundary>
+  );
+}
+
+/** PLACEHOLDER burnt tree: trunk, a few broken branches, embers in the bark. */
+function ProceduralTree({ position, height = 9, seed = 1 }: { position: Vec3; height?: number; seed?: number }) {
   const branches = useMemo(() => [0, 1, 2].map((i) => ({ y: height * (0.45 + i * 0.15), a: seed * 2.1 + i * 2.3, l: 1.6 + ((seed + i) % 3) * 0.7 })), [height, seed]);
   return (
     <group position={position}>
