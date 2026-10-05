@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
-import { MeshStandardMaterial, PlaneGeometry, type Group } from 'three';
+import { MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, SLIDE_SECTIONS, WALKWAYS } from '../../level/areas3/journey2';
@@ -426,21 +426,30 @@ export function SeaScene() {
 
 // ---------- Forge of Unwriting ----------
 
+/** A giant forge hammer machine (AI-pipeline prop); each slam flares the anvil (light pulse and sparks). */
 function Hammer({ position, phase }: { position: Vec3; phase: number }) {
-  const head = useRef<Group>(null);
+  const glow = useRef<PointLight>(null);
   useFrame((state) => {
     const t = (state.clock.elapsedTime * 0.5 + phase) % 1;
-    // Slow lift, fast slam.
-    const y = t < 0.8 ? (t / 0.8) * 8 : 8 * (1 - (t - 0.8) / 0.2);
-    if (head.current) head.current.position.y = 4 + y;
+    // Slow lift, fast slam: the anvil flares right after each strike.
+    const flare = t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.2) : 0;
+    if (glow.current) glow.current.intensity = 30 + flare * 260;
   });
+  const fallback = (
+    <>
+      <Box position={[0, 8, 0]} size={[6, 4, 6]} material={blackIron()} />
+      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={blackIron()} />
+    </>
+  );
   return (
     <group position={position}>
-      <group ref={head}>
-        <Box position={[0, 0, 0]} size={[6, 4, 6]} material={blackIron()} />
-        <Box position={[0, 10, 0]} size={[0.6, 16, 0.6]} material={MAT.darkSteel} />
-      </group>
-      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={blackIron()} />
+      <ModelBoundary fallback={fallback}>
+        <Suspense fallback={fallback}>
+          <Prop id="forge_hammer" position={[0, 0, 0]} height={16} rotationY={phase * 3} />
+        </Suspense>
+      </ModelBoundary>
+      <pointLight ref={glow} position={[0, 6, 2]} color="#ff7a2a" intensity={30} distance={22} decay={2} />
+      <Fire position={[0, 5.6, 0]} size={2} count={3} spread={2} kind="warm" smoke={false} />
     </group>
   );
 }
