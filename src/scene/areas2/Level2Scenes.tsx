@@ -276,6 +276,17 @@ export function HallScene() {
 
 // ---------- Alchemy Workshops ----------
 
+function FurnaceBoxes() {
+  return (
+    <>
+      <Box position={[0, 3, 0]} size={[6, 6, 4]} material={MAT.academyStoneDark} />
+      <mesh position={[0, 8.5, 0]} material={MAT.academyStoneDark}>
+        <cylinderGeometry args={[1.2, 1.8, 5, 16]} />
+      </mesh>
+    </>
+  );
+}
+
 export function WorkshopScene() {
   const furnace = sub(FURNACE_POSITION, WORKSHOP_ORIGIN);
   return (
@@ -318,12 +329,13 @@ export function WorkshopScene() {
       ))}
       {/* The great furnace: ash-choked until the beacon roars back */}
       <group position={furnace}>
-        <Box position={[0, 3, 0]} size={[6, 6, 4]} material={MAT.academyStoneDark} />
-        <mesh position={[0, 8.5, 0]} material={MAT.academyStoneDark}>
-          <cylinderGeometry args={[1.2, 1.8, 5, 16]} />
-        </mesh>
-        <Box position={[0, 2, 2.05]} size={[2.6, 2.2, 0.1]} material={scorched()} />
-        <Fire position={[0, 1, 2]} size={2.6} count={5} spread={2} kind="warm" light fromFlag="l2-beacon-furnace" />
+        {/* The great alchemy furnace (AI-pipeline prop; boxes until it loads) */}
+        <ModelBoundary fallback={<FurnaceBoxes />}>
+          <Suspense fallback={<FurnaceBoxes />}>
+            <Prop id="alchemy_furnace" position={[0, 0, 0]} height={10} />
+          </Suspense>
+        </ModelBoundary>
+        <Fire position={[0, 1.2, 2.9]} size={2} count={4} spread={1.4} kind="warm" light fromFlag="l2-beacon-furnace" />
         <Fire position={[0, 11, 0]} size={3} count={3} spread={1.6} kind="warm" fromFlag="l2-beacon-furnace" />
       </group>
     </group>
