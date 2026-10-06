@@ -6,7 +6,7 @@
  * z ∈ [−30, 6]; benches in two rows; the furnace at (0, 0, −27).
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, marker, origin, powerWave, reveal, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, marker, origin, powerWave, reveal, travel, type AreaScript } from '../areas/builders';
 import { fireball, hound } from './hush';
 
 const A = 'l2-workshops';
@@ -35,6 +35,7 @@ export const workshops: AreaScript = {
     reveal('l2-furnace-roar', A, 'WS_FURNACE', ['WS_FURNACE_TOP'], 0.8, 0.8, { attention: 'spectacle' }),
     fight('l2-starfall-wave', A, { barks: ['l2-starfall-try'] }),
     checkpoint('l2-ws-checkpoint', A, 'furnace-beacon-lit', { objective: 'l2-lake' }),
+    hold('l2-ws-exit', A, 'WS_FURNACE', 2.5, { barks: ['l2-to-lake'], journey: 'l2-lighthouse' }),
   ],
   encounters: [
     {

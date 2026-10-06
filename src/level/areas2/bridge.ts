@@ -57,7 +57,7 @@ export const bridge: AreaScript = {
     fight('l2-belfry', A, { barks: ['l2-belfry'] }),
     fight('l2-bell-beacon', A, { barks: ['l2-bell-intro'] }),
     checkpoint('l2-bridge-checkpoint', A, 'bell-beacon-lit', { barks: ['l2-bell-lit'], objective: 'l2-hall' }),
-    travel('l2-bridge-exit', A, ['BR_BELFRY', 'BR_END'], 4),
+    travel('l2-bridge-exit', A, ['BR_BELFRY', 'BR_END'], 4, { barks: ['l2-to-hall'], journey: 'l2-hall' }),
   ],
   encounters: [
     plank(1, 'plank'),

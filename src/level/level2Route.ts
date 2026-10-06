@@ -1,6 +1,7 @@
 /**
  * Level 2 route: The Siege of Asterfall (LEVEL2_DESIGN.md), assembled from its area scripts in story order.
  */
+import { bedroom } from './areas2/bedroom';
 import type { AreaScript } from './areas/builders';
 import { bridge } from './areas2/bridge';
 import { dormitory } from './areas2/dormitory';
@@ -13,7 +14,8 @@ import { towerRoof } from './areas2/towerRoof';
 import { workshops } from './areas2/workshops';
 import type { BossDef } from './bosses';
 
-export const LEVEL2_AREAS: readonly AreaScript[] = [lawn, dormitory, bridge, greatHall, workshops, lake, library2, ramparts, towerRoof];
+// The night begins in the apprentice's bedroom, then down the burning Dormitory Tower and out onto the lawn.
+export const LEVEL2_AREAS: readonly AreaScript[] = [bedroom, dormitory, lawn, bridge, greatHall, workshops, lake, library2, ramparts, towerRoof];
 
 export const LEVEL2_BOSSES: readonly BossDef[] = [
   { id: 'grey-herald', introBeat: 'l2-herald-enters', phases: ['l2-herald-1', 'l2-herald-2', 'l2-herald-3'] },

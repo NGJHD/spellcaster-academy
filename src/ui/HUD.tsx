@@ -5,6 +5,7 @@ import type { LevelRoute } from '../level/levelTypes';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import { useSettingsStore } from '../state/settingsStore';
+import { JourneyMap } from './JourneyMap';
 import { BossBar, BossCard, FlashOverlay, MedalCard, PaintSplats, Popups, PowerUpCard, ScoreMeter, SpeedRoundBanner } from './Juice';
 
 /** Chapter marks on the progress bar: where each area begins along the level's route. */
@@ -131,6 +132,7 @@ export function HUD() {
       <SpeedRoundBanner />
       <BossBar />
       <BossCard />
+      <JourneyMap />
       <MedalCard />
       <PowerUpCard />
       <FlashOverlay />

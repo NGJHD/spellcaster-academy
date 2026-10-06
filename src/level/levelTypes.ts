@@ -109,6 +109,11 @@ export interface BeatExtras {
    * damage; untyped ones fly away. The camera slows while the player is mid-word on one.
    */
   readonly chase?: readonly ChaseSpawn[];
+  /**
+   * Shows the journey map card as this beat starts (owner, 2026-10-07: the player must always know
+   * where they are going next and why). The value is the next stop (see strings.journey.stops).
+   */
+  readonly journey?: string;
 }
 
 export type LevelCameraBeat = CameraBeat & BeatExtras;

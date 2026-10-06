@@ -7,7 +7,7 @@
  * so the Herald comes in from the east doors at x = 9, z = −22).
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, fireball, knight, scribbleImp } from './hush';
 
 const A = 'l2-great-hall';
@@ -59,6 +59,7 @@ export const greatHall: AreaScript = {
     fight('l2-herald-2', A, { barks: ['l2-herald-trumpet'] }),
     fight('l2-herald-3', A, { barks: ['l2-herald-last'] }),
     checkpoint('l2-hall-checkpoint', A, 'great-hall-held', { barks: ['l2-idris-2'], objective: 'l2-furnace' }),
+    hold('l2-hall-exit', A, 'HALL_HERALD', 2.5, { barks: ['l2-to-workshops'], journey: 'l2-workshops' }),
   ],
   encounters: [
     {

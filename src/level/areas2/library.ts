@@ -5,7 +5,7 @@
  * at the friendly Grimoire guarding the Star Atlas. Reuses the Level 1 library (origin LIBRARY_ORIGIN).
  */
 import { LIBRARY_ORIGIN } from '../areas/library';
-import { checkpoint, fade, fight, len, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, len, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
 import { fireball, lantern, restore, scribbleImp } from './hush';
@@ -62,6 +62,7 @@ export const library2: AreaScript = {
     fight('l2-lib-grimoire', A),
     fight('l2-lib-shelves', A, { barks: ['l2-shelves'] }),
     checkpoint('l2-lib-checkpoint', A, 'star-atlas-recovered', { barks: ['l2-atlas'], objective: 'l2-ramparts' }),
+    hold('l2-lib-exit', A, 'L2LIB_PEDESTAL', 2.5, { barks: ['l2-to-ramparts'], journey: 'l2-ramparts' }),
   ],
   encounters: [
     {

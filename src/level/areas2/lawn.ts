@@ -1,12 +1,12 @@
 /**
- * LEVEL2_DESIGN L2-6 / L2-7: the Lantern Festival opening and the lawn. Night by Lantern Lake: the
- * player launches festival lanterns, the seam tears open into the burning red Rift, fireballs teach
- * counter-words, and the Hush climb out of the flames. Local layout (origin LAWN_ORIGIN): lawn
+ * LEVEL2_DESIGN L2-7: the lawn. Night by Lantern Lake after the Lantern Festival: the apprentice runs
+ * out of the Dormitory Tower (see bedroom.ts) into the siege; fireballs teach counter-words, the Hush
+ * climb out of the flames, and Keeper Orin sends the apprentice to light the four beacons. Local layout (origin LAWN_ORIGIN): lawn
  * x ∈ [-22, 22], z ∈ [-24, 22]; the lake beyond z < -24; the Rift high over the lake; the dormitory
  * tower east at (26, 0, -6).
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, origin, reveal, travel, type AreaScript } from '../areas/builders';
 import { blotling, fireball, lantern, moth, restore } from './hush';
 
 const A = 'l2-festival-lawn';
@@ -16,24 +16,12 @@ const W = origin(LAWN_ORIGIN);
 export const STALL_POSITIONS: readonly Vec3[] = [W(-7, 0, -6), W(6, 0, -9), W(-2, 0, -14)];
 export const DORM_DOOR: Vec3 = W(24.6, 0, -6);
 
-/** A festival lantern launched in the opening: a fixed word that sends a lantern soaring. */
-const launch = (id: string, word: string, side: number) =>
-  target(id, 'gem', W(0, 0, 0), [word], {
-    follow: { ahead: 4.6, side, up: 0.4 },
-    variant: 'lantern',
-    leaveAfterSec: 9,
-    labelHeight: 0.35,
-    defeatFx: { kind: 'pillar', scale: 0.25, color: '#ffd27a' },
-  });
-
 export const lawn: AreaScript = {
   nodes: {
-    LAWN_SKY: { position: W(0, 14, 26), lookAt: W(0, 6, -30) },
-    LAWN_GLIDE: { position: W(-2, 4.5, 12), lookAt: W(0, 8, -40) },
+    LAWN_DORM_OUT: { position: W(21.5, 1.6, -5.5), lookAt: W(4, 3, -22) },
+    LAWN_WEST: { position: W(-12, 1.6, 0), lookAt: W(-40, 4, -6) },
     LAWN_CENTRE: { position: W(0, 1.6, 4), lookAt: W(0, 3, -24) },
     LAWN_STALLS: { position: W(-1, 1.6, 2), lookAt: W(-3, 1.2, -9) },
-    LAWN_EAST: { position: W(10, 1.6, -2), lookAt: W(24, 2.5, -6) },
-    LAWN_DORM_DOOR: { position: W(20, 1.6, -5.5), lookAt: W(24.6, 2.2, -6) },
   },
   lookPoints: {
     LAWN_RIFT: W(0, 46, -120),
@@ -44,32 +32,11 @@ export const lawn: AreaScript = {
     LAWN_SKY_DROP: W(-4, 8, -14),
   },
   beats: [
-    fade('l2-open-fade', A, 'LAWN_SKY', { fadeOutSec: 0, holdSec: 0.2, fadeInSec: 0.8, music: 'evacuation-hope', objective: 'l2-festival' }),
-    // Beat 1: the last calm, warm image. Launch three lanterns (typed within about 2 s).
-    travel('l2-festival-launch', A, ['LAWN_SKY', 'LAWN_GLIDE', 'LAWN_CENTRE'], 9, {
-      barks: ['l2-open-1'],
-      chase: [
-        { at: 0.04, target: launch('lantern-glow', 'glow', -1.2) },
-        { at: 0.32, target: launch('lantern-lift', 'lift', 1.2) },
-        { at: 0.6, target: launch('lantern-wish', 'wish', -1.0) },
-      ],
-    }),
-    // Beat 2-3: the seam glows red, then tears open into the burning Rift.
-    reveal('l2-rift-opens', A, 'LAWN_CENTRE', ['LAWN_RIFT'], 1.2, 8, {
-      music: 'siege-dread',
-      attention: 'spectacle',
-      barks: ['l2-seam', 'l2-voice-1'],
-      fx: [
-        { kind: 'flash', atBeat: 0.2 },
-        { kind: 'lightning', at: 'LAWN_RIFT', atBeat: 0.2 },
-        { kind: 'shake', atBeat: 0.2, scale: 1.8 },
-        { kind: 'meteors', at: 'LAWN_LAKE', atBeat: 0.35, scale: 1.4, color: '#ff4a12' },
-        { kind: 'lightning', at: 'LAWN_RIFT', atBeat: 0.55 },
-        { kind: 'meteors', at: 'LAWN_ROOFTOPS', atBeat: 0.6, scale: 1.2, color: '#ff4a12' },
-      ],
-    }),
+    // Out of the Dormitory Tower door onto the burning lawn (after the bedroom and the stair rescue).
+    fade('l2-lawn-enter', A, 'LAWN_DORM_OUT', { fadeOutSec: 0.3, holdSec: 0.2, fadeInSec: 0.6, music: 'siege-battle', objective: 'l2-lawn' }),
+    travel('l2-lawn-run', A, ['LAWN_DORM_OUT', 'LAWN_CENTRE'], 3, { barks: ['l2-orin-run'], easing: 'easeOutCubic' }),
     // Counter-word tutorial: fireballs streak straight at the camera.
-    fight('l2-fireballs', A, { barks: ['l2-counter-tip', 'l2-orin-1'], objective: 'l2-beacons' }),
+    fight('l2-fireballs', A, { barks: ['l2-counter-tip'] }),
     reveal('l2-lawn-burning', A, 'LAWN_CENTRE', ['LAWN_BOATHOUSE', 'LAWN_STALL_LEFT'], 0.9, 1.2, {
       attention: 'spectacle',
       fx: [
@@ -82,8 +49,9 @@ export const lawn: AreaScript = {
     travel('l2-to-stalls', A, ['LAWN_CENTRE', 'LAWN_STALLS'], 2.5),
     fight('l2-lawn-stall', A, { barks: ['l2-inkfire'] }),
     fight('l2-lawn-f2', A, { barks: ['l2-evacuate'] }),
-    checkpoint('l2-lawn-checkpoint', A, 'festival-lawn-complete', { objective: 'l2-dormitory' }),
-    travel('l2-to-dormitory', A, ['LAWN_STALLS', 'LAWN_EAST', 'LAWN_DORM_DOOR'], 6, { barks: ['l2-trapped'] }),
+    checkpoint('l2-lawn-checkpoint', A, 'festival-lawn-complete', { objective: 'l2-beacons', barks: ['l2-orin-1', 'l2-orin-beacons'] }),
+    // Off to the first beacon: the Bell Bridge, past the burning stalls.
+    travel('l2-to-bridge', A, ['LAWN_STALLS', 'LAWN_WEST'], 4, { barks: ['l2-to-bell'], journey: 'l2-bell' }),
   ],
   encounters: [
     {

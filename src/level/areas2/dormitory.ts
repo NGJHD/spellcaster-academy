@@ -63,7 +63,8 @@ export const dormitory: AreaScript = {
     DORM_DOOR_3: look(-220),
   },
   beats: [
-    fade('l2-dorm-enter', A, 'DORM_TOP', { music: 'siege-dread', objective: 'l2-dormitory' }),
+    // Through the bedroom door straight onto the burning stairs.
+    fade('l2-dorm-enter', A, 'DORM_TOP', { fadeOutSec: 0.3, holdSec: 0.1, fadeInSec: 0.5, objective: 'l2-dormitory' }),
     travel('l2-dorm-to-1', A, ['DORM_TOP', 'DORM_L1'], 4, { barks: ['l2-dorm-1'] }),
     fight('l2-dorm-1', A, { music: 'siege-battle' }),
     travel('l2-dorm-to-2', A, ['DORM_L1', 'DORM_L2'], 4),
@@ -78,7 +79,7 @@ export const dormitory: AreaScript = {
     }),
     fight('l2-dorm-3', A),
     checkpoint('l2-dorm-checkpoint', A, 'dormitory-rescued', { barks: ['l2-mira-dorm'], objective: 'l2-bell' }),
-    travel('l2-dorm-exit', A, ['DORM_L3', 'DORM_BOTTOM'], 4),
+    travel('l2-dorm-exit', A, ['DORM_L3', 'DORM_BOTTOM'], 4, { barks: ['l2-dorm-out'] }),
   ],
   encounters: [landing(1, false), landing(2, false), landing(3, true)],
 };

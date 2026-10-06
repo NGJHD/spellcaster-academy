@@ -127,6 +127,8 @@ export interface RunUiState {
   medal: MedalInfo | null;
   /** Bumps when a boss name card should play. */
   bossCard: { key: number; id: string } | null;
+  /** The journey map card: the next stop on the way (Level 2 beacons, Level 3 road to the Citadel). */
+  journey: { key: number; to: string } | null;
   boss: BossBarInfo | null;
   speedRound: SpeedRoundInfo | null;
   /** New-spell power-up card (§1B "Unlock moments"). */
@@ -169,6 +171,7 @@ export const initialRunUi = (): RunUiState => ({
   popups: [],
   medal: null,
   bossCard: null,
+  journey: null,
   boss: null,
   speedRound: null,
   powerUp: null,

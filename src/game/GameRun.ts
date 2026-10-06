@@ -1187,6 +1187,7 @@ export class GameRun {
     patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, this.level.route.beats.length - 1) });
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
+    if (beat.journey) patchRunUi({ journey: { key: nextKey(), to: beat.journey } });
     for (const id of beat.barks ?? []) this.queueBark(getLine(id), beatIndex);
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);

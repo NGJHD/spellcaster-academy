@@ -12,6 +12,8 @@ import { blotling, fireball, hound, knight, restore } from './hush';
 const A = 'l2-ramparts';
 export const RAMPART_ORIGIN: Vec3 = [1500, 30, 0];
 const R = origin(RAMPART_ORIGIN);
+/** The last beacon: an iron brazier on the wall walk, in front of the post. */
+export const RAMPART_BEACON: Vec3 = R(-1.2, 0, -1.6);
 export const RAMPART_WARDEN: Vec3 = R(10, 0, -1.5);
 export const LADDERS: readonly Vec3[] = [R(-8, -6, -6), R(0, -6, -7), R(8, -6, -6)];
 
@@ -28,6 +30,7 @@ export const ramparts: AreaScript = {
   },
   lookPoints: {
     RP_WARDEN: R(10, 3, -1.5),
+    RP_BEACON: R(-1.2, 2.6, -1.6),
     RP_LAKE: R(0, -20, -80),
     RP_DOME: R(0, 70, -60),
   },
@@ -38,7 +41,7 @@ export const ramparts: AreaScript = {
     fight('l2-rp-warden', A, { barks: ['l2-rp-warden'] }),
     fight('l2-rp-captain', A, { barks: ['l2-rp-captain'] }),
     fight('l2-rampart-beacon', A, { barks: ['l2-rp-beacon'] }),
-    checkpoint('l2-rp-checkpoint', A, 'rampart-beacon-lit', { barks: ['l2-orin-ward', 'l2-orin-dragon'], objective: 'l2-wyrm' }),
+    checkpoint('l2-rp-checkpoint', A, 'rampart-beacon-lit', { barks: ['l2-orin-ward', 'l2-orin-dragon'], objective: 'l2-wyrm', journey: 'l2-tower' }),
   ],
   encounters: [
     {
@@ -98,13 +101,15 @@ export const ramparts: AreaScript = {
           id: 'beacon',
           sequential: true,
           targets: ['rampart', 'stand', 'together', 'dawn'].map((word, i) =>
-            marker(`rampart-word-${i + 1}`, R(-2 + i * 1.3, 2.2, -3), word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 0.9, color: '#ffd27a' } }),
+            // The words float over the beacon brazier; each one sends a burst of gold into its bowl.
+            marker(`rampart-word-${i + 1}`, [RAMPART_BEACON[0] - 1.6 + i * 1.1, RAMPART_BEACON[1] + 3.0 + (i % 2) * 0.35, RAMPART_BEACON[2]], word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 0.9, color: '#ffd27a' } }),
           ),
         },
       ],
       onComplete: { flags: ['l2-beacon-rampart', 'l2-ward-closed'] },
       completeFx: [
         { kind: 'flash' },
+        { kind: 'pillar', at: 'RP_BEACON', scale: 1.6, color: '#ffd27a' },
         { kind: 'pillar', at: 'RP_WARDEN', scale: 2, color: '#ffd27a' },
         { kind: 'shockwave', at: 'RP_DOME', scale: 6, color: '#ffd27a' },
         { kind: 'shake', scale: 1.4 },

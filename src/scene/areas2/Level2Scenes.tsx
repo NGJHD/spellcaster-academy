@@ -8,9 +8,9 @@ import { Suspense, useMemo, useRef } from 'react';
 import { AdditiveBlending, DoubleSide, MeshStandardMaterial, type Group, type PointLight } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
-import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT } from '../../level/areas2/lake';
+import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
 import { DORM_DOOR, LAWN_ORIGIN, STALL_POSITIONS } from '../../level/areas2/lawn';
-import { LADDERS, RAMPART_ORIGIN, RAMPART_WARDEN } from '../../level/areas2/ramparts';
+import { LADDERS, RAMPART_BEACON, RAMPART_ORIGIN, RAMPART_WARDEN } from '../../level/areas2/ramparts';
 import { AFTERMATH_ORIGIN, ROOF_ORIGIN, WYRM_HEAD } from '../../level/areas2/towerRoof';
 import { FURNACE_POSITION, WORKSHOP_ORIGIN } from '../../level/areas2/workshops';
 import { LIBRARY_ORIGIN } from '../../level/areas/library';
@@ -24,7 +24,7 @@ import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { metreSurface } from '../surfaceTextures';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
-import { BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
+import { BeaconBrazier, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const nightWater = new MeshStandardMaterial({ color: '#0a0606', roughness: 0.35, metalness: 0.1, emissive: '#4a0c04', emissiveIntensity: 0.35, envMapIntensity: 0.15 });
@@ -409,6 +409,7 @@ export function LakeScene() {
     <>
       <group position={LAKE_ORIGIN}>
         <LakeDressing />
+        <LakeShore />
         <mesh position={[0, 0, -80]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
           <planeGeometry args={[500, 400]} />
         </mesh>
@@ -439,19 +440,62 @@ export function LakeScene() {
         </group>
         <BurningSkyline position={[0, 0, 60]} rotationY={Math.PI} seed={4} />
       </group>
+      {/* Oarsby's boat moored at the end of the jetty, then carried with the camera. The camera sits
+          at the stern, so the bow and Oarsby are in view ahead (owner: "I can't tell we are on a boat"). */}
+      <OnBeats beats={MOORED_BEATS}>
+        <group position={[LAKE_ORIGIN[0], 0.4, LAKE_ORIGIN[2] + 20]}>
+          <OarsbyBoat />
+        </group>
+      </OnBeats>
       <Carried beats={BOAT_BEATS} drop={1.0}>
-        {/* Oarsby's rowing boat (AI-pipeline prop; long axis turned to the camera's forward) */}
-        <ModelBoundary fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
-          <Suspense fallback={<Box position={[0, 0, -0.6]} size={[1.8, 0.5, 4.2]} material={MAT.darkOak} />}>
-            <Prop id="rowing_boat" position={[0, -1.15, -1.6]} height={2.9} rotationY={Math.PI / 2} />
-          </Suspense>
-        </ModelBoundary>
-        <Student position={[0, 0.25, -2.2]} rotationY={Math.PI} robe={MAT.darkOak} height={1.6} />
-        <Prop id="wooden_lantern_01" position={[0.7, 0.25, -2.6]} height={0.5} />
+        <OarsbyBoat />
       </Carried>
       <Carried beats={LIFT_BEATS_L2} drop={1.6}>
         <Prop id="lift_platform" position={[0, 0, -0.4]} height={2.4} />
       </Carried>
+    </>
+  );
+}
+
+/** Oarsby's rowing boat with Oarsby at the oars and a lantern on the bow; origin at the stern seat. */
+function OarsbyBoat() {
+  const hull = <Box position={[0, -0.6, -1.8]} size={[1.6, 0.6, 4.4]} material={MAT.darkOak} />;
+  return (
+    <>
+      {/* AI-pipeline prop; long axis turned to the camera's forward, centred ahead of the stern seat */}
+      <ModelBoundary fallback={hull}>
+        <Suspense fallback={hull}>
+          <Prop id="rowing_boat" position={[0, -1.0, -2.0]} height={2.9} rotationY={Math.PI / 2} />
+        </Suspense>
+      </ModelBoundary>
+      <Student position={[0, -0.55, -1.7]} rotationY={Math.PI} robe={MAT.darkOak} height={1.6} />
+      <Prop id="wooden_lantern_01" position={[0, -0.35, -3.9]} height={0.5} />
+      <pointLight position={[0, 0.1, -3.9]} color="#ffc070" intensity={3} distance={6} decay={2} />
+    </>
+  );
+}
+
+/** Children visible only during the given beats. */
+function OnBeats({ beats, children }: { beats: readonly string[]; children: React.ReactNode }) {
+  const group = useRef<Group>(null);
+  useFrame(() => {
+    const id = getRun()?.director.currentBeat?.id ?? '';
+    if (group.current) group.current.visible = beats.includes(id);
+  });
+  return <group ref={group}>{children}</group>;
+}
+
+/** The lakeshore where the lake crossing begins: a scorched bank and a jetty out to Oarsby's boat. */
+function LakeShore() {
+  return (
+    <>
+      <Slab x={[-80, 80]} y={[-0.6, 0.35]} z={[32, 110]} material={scorched()} />
+      <Box position={[-2.2, 0.3, 26.5]} size={[2.2, 0.18, 12]} material={MAT.lightOak} />
+      {[21, 24.5, 28, 31.5].map((z) => [-3.3, -1.1].map((x) => <Box key={`${x}${z}`} position={[x, -0.4, z]} size={[0.2, 1.6, 0.2]} material={MAT.darkOak} />))}
+      <Prop id="wooden_lantern_01" position={[-3.2, 0.4, 21.4]} height={0.5} />
+      <Prop id="wooden_barrels_01" position={[-5, 0.35, 34]} height={1.1} />
+      <Fire position={[14, 0.4, 40]} size={2.4} count={4} spread={3} light />
+      <Fire position={[-16, 0.4, 44]} size={2} count={3} spread={2} />
     </>
   );
 }
@@ -519,6 +563,7 @@ export function RampartScene() {
         <planeGeometry args={[400, 220]} />
       </mesh>
       <StaticWarden position={warden} scale={1.1} rotationY={Math.PI} />
+      <BeaconBrazier position={sub(RAMPART_BEACON, RAMPART_ORIGIN)} flag="l2-beacon-rampart" />
       {[1, 2, 3].map((n) => (
         <Fire key={n} position={[warden[0] + (n - 2) * 0.5, 2 + n * 0.6, warden[2] + 0.3]} size={0.9} count={2} spread={0.4} smoke={false} untilFlag={`l2-warden-${n}`} />
       ))}

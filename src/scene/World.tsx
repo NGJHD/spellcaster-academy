@@ -13,6 +13,7 @@ import { StairwellScene } from './areas/StairwellScene';
 import { TowerScene } from './areas/TowerScene';
 import { Atmosphere } from './Atmosphere';
 import { CinderwoodScene, CitadelScene, ForgeScene, Gallery3Scene, InkfallScene, MarginScene, SeaScene, ShoreScene, ThroneScene } from './areas3/Level3Scenes';
+import { DormBedroom } from './areas2/bedroom';
 import { AftermathScene, BridgeScene, DormitoryFires, HallScene, LakeScene, LawnScene, LibraryFires, RampartScene, RoofScene, WorkshopScene } from './areas2/Level2Scenes';
 
 type SceneKey =
@@ -125,7 +126,12 @@ export function World() {
     gallery: <GalleryScene />,
     tower: <TowerScene />,
     observatory: <ObservatoryScene />,
-    'l2-lawn': <LawnScene />,
+    'l2-lawn': (
+      <>
+        <LawnScene />
+        <DormBedroom />
+      </>
+    ),
     'l2-dormitory': (
       <>
         <StairwellScene dormitory />

@@ -13,6 +13,7 @@ import { getRun } from '../../state/gameStore';
 import { Box } from '../kit';
 import { Fire } from '../Fire';
 import { MAT } from '../materials';
+import { Prop } from '../Prop';
 import { metreSurface } from '../surfaceTextures';
 import { useBeatIndex } from '../props';
 
@@ -200,6 +201,33 @@ export function BurningSkyline({ position, rotationY = 0, seed = 1 }: { position
           </group>
         );
       })}
+    </group>
+  );
+}
+
+/**
+ * A beacon brazier (Level 2): an iron fire bowl on a stone pedestal. Dark until its flag is set, then
+ * it roars with golden fire. The AI-pipeline model loads over a simple stone-and-iron fallback.
+ */
+export function BeaconBrazier({ position, flag, height = 2.6 }: { position: Vec3; flag: string; height?: number }) {
+  const fallback = (
+    <group>
+      <mesh position={[0, height * 0.35, 0]} material={MAT.academyStoneDark} castShadow>
+        <cylinderGeometry args={[0.35, 0.5, height * 0.7, 20]} />
+      </mesh>
+      <mesh position={[0, height * 0.82, 0]} material={MAT.darkSteel} castShadow>
+        <cylinderGeometry args={[0.8, 0.4, height * 0.25, 24, 1, true]} />
+      </mesh>
+    </group>
+  );
+  return (
+    <group position={position}>
+      <ModelBoundary fallback={fallback}>
+        <Suspense fallback={fallback}>
+          <Prop id="beacon_brazier" position={[0, 0, 0]} height={height} />
+        </Suspense>
+      </ModelBoundary>
+      <Fire position={[0, height * 0.92, 0]} kind="warm" size={2.2} count={5} spread={0.7} light fromFlag={flag} />
     </group>
   );
 }

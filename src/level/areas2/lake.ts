@@ -7,7 +7,7 @@
  * the lighthouse at (0, 0, −128), 28 m tall.
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { fireball, knight, lantern, moth } from './hush';
 
 const A = 'l2-lantern-lake';
@@ -15,7 +15,9 @@ export const LAKE_ORIGIN: Vec3 = [1400, 0, 0];
 const L = origin(LAKE_ORIGIN);
 export const LIGHTHOUSE: Vec3 = L(0, 0, -128);
 export const LIGHTHOUSE_HEIGHT = 28;
-export const BOAT_BEATS = ['l2-lake-push-off', 'l2-lake-seg-1', 'l2-lake-jetty-move', 'l2-lake-jetty', 'l2-lake-seg-2'] as const;
+/** Beats with the boat moored at the jetty (before the camera steps in). */
+export const MOORED_BEATS = ['l2-lake-enter', 'l2-lake-jetty-walk', 'l2-lake-board'] as const;
+export const BOAT_BEATS = ['l2-lake-step-in', 'l2-lake-push-off', 'l2-lake-seg-1', 'l2-lake-jetty-move', 'l2-lake-jetty', 'l2-lake-seg-2'] as const;
 export const LIFT_BEATS_L2 = ['l2-lighthouse-lift'] as const;
 
 /** A moth smashing through a lighthouse window as the lift rockets past. */
@@ -30,11 +32,15 @@ const windowMoth = (id: string, side: number) =>
 
 export const lake: AreaScript = {
   nodes: {
-    LAKE_DOCK: { position: L(0, 1.4, 20), lookAt: L(0, 2, -20) },
-    LAKE_OPEN: { position: L(-2, 1.4, -6), lookAt: L(0, 2.5, -40) },
+    // Owner (2026-10-07): start on the shore, not in the middle of the lake. A jetty runs out from the
+    // shore (z > 32) to Oarsby's boat moored at z = 20.
+    LAKE_SHORE: { position: L(-2.2, 1.95, 31), lookAt: L(0, 0.7, 19) },
+    LAKE_JETTY_END: { position: L(-2.0, 1.95, 23), lookAt: L(0, 0.6, 18) },
+    LAKE_DOCK: { position: L(0, 1.4, 20), lookAt: L(0, 1.2, -20) },
+    LAKE_OPEN: { position: L(-2, 1.4, -6), lookAt: L(0, 1.4, -40) },
     LAKE_MID: { position: L(2, 1.4, -34), lookAt: L(12, 2, -46) },
     LAKE_JETTY: { position: L(6, 1.4, -44), lookAt: L(14, 1.6, -47) },
-    LAKE_BEYOND: { position: L(1, 1.4, -78), lookAt: L(0, 6, -128) },
+    LAKE_BEYOND: { position: L(1, 1.4, -78), lookAt: L(0, 4, -128) },
     LAKE_ISLAND: { position: L(6, 1.6, -110), lookAt: L(0, 6, -128) },
     // The brass lift climbs the outside of the tower, looking out over the burning lake.
     LH_BASE: { position: L(11, 1.6, -121), lookAt: L(28, 3, -150) },
@@ -46,7 +52,14 @@ export const lake: AreaScript = {
     LAKE_RIFT: L(-40, 60, -200),
   },
   beats: [
-    fade('l2-lake-enter', A, 'LAKE_DOCK', { music: 'evacuation-hope', objective: 'l2-lake', barks: ['l2-oarsby-1'] }),
+    fade('l2-lake-enter', A, 'LAKE_SHORE', { music: 'evacuation-hope', objective: 'l2-lake' }),
+    travel('l2-lake-jetty-walk', A, ['LAKE_SHORE', 'LAKE_JETTY_END'], 2.5, { barks: ['l2-oarsby-1'] }),
+    // Type "row" and Oarsby pushes off; the camera steps down into the boat.
+    hold('l2-lake-board', A, 'LAKE_JETTY_END', 1, {
+      barks: ['l2-oarsby-row'],
+      chase: [{ at: 0.05, target: marker('boat-row', L(0, 1.3, 18.6), 'row', { labelHeight: 0.2, defeatFx: { kind: 'sparks', scale: 0.8, color: '#ffd27a' } }) }],
+    }),
+    travel('l2-lake-step-in', A, ['LAKE_JETTY_END', 'LAKE_DOCK'], 1.5, { easing: 'easeInOutCubic' }),
     travel('l2-lake-push-off', A, ['LAKE_DOCK', 'LAKE_OPEN'], 6, {
       chase: [
         { at: 0.2, target: lantern('lantern-lake-1', L(-3, 0.6, -8), 'drift', 'lantern-lake-1', { follow: { ahead: 4.4, side: -1.3, up: -0.8 } }) },
@@ -77,6 +90,7 @@ export const lake: AreaScript = {
     fight('l2-lighthouse-beacon', A, { barks: ['l2-lighthouse-intro'] }),
     reveal('l2-lighthouse-sweep', A, 'LH_TOP', ['LAKE_RIFT'], 1, 0.8, { attention: 'spectacle', barks: ['l2-lighthouse-lit'] }),
     checkpoint('l2-lake-checkpoint', A, 'lighthouse-beacon-lit', { objective: 'l2-library' }),
+    hold('l2-lake-exit', A, 'LH_TOP', 2.5, { barks: ['l2-to-library'], journey: 'l2-library' }),
   ],
   encounters: [
     {
