@@ -104,7 +104,9 @@ export const stairwell: AreaScript = {
     }),
     fight('stair-3-guard', A),
     checkpoint('stairwell-checkpoint', A, 'lower-stairwell-complete', { barks: ['st-done'] }),
-    travel('stairwell-to-bottom', A, ['ST_SLIDE_3_END', 'ST_SLIDE_D', 'ST_BOTTOM'], 6),
+    travel('stairwell-to-bottom', A, ['ST_SLIDE_3_END', 'ST_SLIDE_D', 'ST_BOTTOM'], 6, {
+      chase: [{ at: 0.15, target: target('stair-exit-gem', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
+    }),
   ],
   encounters: [
     {

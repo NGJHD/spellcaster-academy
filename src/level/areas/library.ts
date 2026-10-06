@@ -73,7 +73,11 @@ export const library: AreaScript = {
   },
   beats: [
     fade('library-doors', A, 'LIB_ENTRY', { music: 'library-mystery', objective: 'library-anchor' }),
-    travel('library-follow-book', A, ['LIB_ENTRY', 'LIB_REVEAL'], 5, { barks: ['lib-1'] }),
+    travel('library-follow-book', A, ['LIB_ENTRY', 'LIB_REVEAL'], 5, {
+      barks: ['lib-1'],
+      // A spark gem along the entrance glide keeps the long walk-in lively (§1B travel rule).
+      chase: [{ at: 0.35, target: target('lib-entry-gem', 'gem', L(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
+    }),
     reveal('library-grimoire-reveal', A, 'LIB_REVEAL', ['LIB_FLYING_BOOKS', 'LIB_GRIMOIRE'], 1.6, 1.0),
     travel('library-to-combat', A, ['LIB_REVEAL', 'LIB_COMBAT'], 3, { reducedMotion: 'glide' }),
     fight('library-l1', A),

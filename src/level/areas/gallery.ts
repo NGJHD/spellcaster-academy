@@ -44,7 +44,13 @@ export const gallery: AreaScript = {
     // Optional bonus round: six pop-up targets against the clock, with a best score to beat.
     fight('gallery-bonus', A, { barks: ['gal-bonus'] }),
     checkpoint('gallery-checkpoint', A, 'practice-gallery-complete', { objective: 'reach-observatory', restoreFocus: true }),
-    travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5, { barks: ['gal-5', 'gal-6', 'gal-7'] }),
+    travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5, {
+      barks: ['gal-5', 'gal-6', 'gal-7'],
+      chase: [
+        { at: 0.2, target: target('gallery-exit-gem-1', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
+        { at: 0.7, target: target('gallery-exit-gem-2', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
+      ],
+    }),
   ],
   encounters: [
     {

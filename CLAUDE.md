@@ -298,7 +298,7 @@ These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to ev
 
 - **Pace:** brisk, with no dead pauses. The old "fast" travel speed is now "normal". Camera pans are quick, and dialogue overlaps travel. Enter or Space skips a line.
 - **Never skip a word (2026-10-06):** no word ever disappears on a timer. Chase, bonus and gem words hold the camera at the end of its move until they are typed, and a wave waits for every word it has shown.
-- **Speech (2026-10-06):** typing never cuts a spoken line; a line stops only when it ends naturally or when the next scene's line is due. Lines belong to their scene: older queued lines are dropped when a new scene speaks, and a line that cannot start within 4 seconds is dropped rather than said late. Every character has their own voice.
+- **Speech (2026-10-06):** a spoken line is never cut short — not by typing, and not by the story moving on. Each scene waits at the end of its camera move (fights and checkpoints wait to finish) until its own lines have been said; a new scene's lines queue behind the line being spoken. Spectacles and boss intros stay short: their lines carry on, uncut, into the next moment. Enter or Space skips a line on purpose. Long lines are kept short so the 7-second rule still holds. Every character has their own voice.
 - **Off-screen mobs (2026-10-06):** a mob that is off screen hurries in (3.5× speed) so it appears within about 1–2 seconds.
 - **Speed rounds (2026-10-06):** the countdown runs only while its words are on screen, and its prompt goes as soon as the round ends.
 - **Voice and music:** lines are spoken aloud by the browser's text-to-speech, and the music softens under dialogue. The music switches to battle themes whenever something can cause damage.

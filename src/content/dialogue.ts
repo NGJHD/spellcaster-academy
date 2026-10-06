@@ -72,10 +72,10 @@ export const LINES = {
   'east-8': line('mira', 'That one did.'),
 
   // Whispering Library
-  'lib-1': line('pip', 'Listen… the books are whispering. They keep saying "the crack".'),
+  'lib-1': line('pip', 'Listen… the books are whispering about a crack!'),
   'lib-books': line('pip', "Runaway books! Type their words and they'll settle back on the shelves."),
   'lib-wisps': line('pip', 'Spilled ink, come alive! Shield word first, then the binding word.'),
-  'lib-mosaic': line('pip', 'This mosaic shows the Warden locking a man with a pen behind the sky. Who is he?'),
+  'lib-mosaic': line('pip', 'Look! The Warden is locking a man with a pen behind the sky!'),
   'lib-grim-1': line('pip', "The Grimoire is awake — the oldest book in the school. And it's terrified!"),
   'lib-grim-clasps': line('pip', 'Its clasps! Type each word to loosen one.'),
   'lib-grim-pages': line('pip', 'Flying pages! Watch for the gusts — they glow before they blow.'),
@@ -90,8 +90,8 @@ export const LINES = {
   'por-2': line('portrait-2', "Hush, you old fool! We don't say his name!"),
   'por-3': line('pip', "Whose name? Why won't anyone tell us?"),
   'por-fountain': line('pip', 'A healing fountain! HP full. Catch the droplets!'),
-  'por-4': line('mira', "There's an empty frame down here. The name on it is scratched out — right next to the Warden's."),
-  'por-5': line('pip', 'Scratched-out names. Grey pages. Someone is rubbing things out of our world.'),
+  'por-4': line('mira', "An empty frame, right next to the Warden's — and its name is scratched out!"),
+  'por-5': line('pip', "Someone is rubbing things out of our world!"),
   'por-const': line('pip', 'Constellation plaques! Name all three, fast, for a big bonus!'),
   'por-const-done': line('pip', 'Star-reader! Your next spells will shine extra bright.'),
 
@@ -110,7 +110,7 @@ export const LINES = {
   'st-1': line('pip', 'No time for stairs — hop on the tea tray! WHEEEE!'),
   'st-2': line('pip', 'Guards ahead! Command them out of the way!'),
   'st-3': line('pip', 'Uh-oh. This one needs a little more convincing.'),
-  'st-done': line('pip', 'Even the guards are nervous. Whatever is outside the ward, they can feel it.'),
+  'st-done': line('pip', 'Even the guards feel it. Something is out there!'),
 
   // Practice Gallery
   'gal-1': line('mira', 'Every strange thing points to the observatory. Tune your wand here first!'),
@@ -121,8 +121,8 @@ export const LINES = {
   'gal-bonus': line('pip', 'BONUS ROUND! Six targets, one clock — can you beat your best?'),
   'gal-bonus-done': line('pip', 'What a finish! Somebody frame that score!'),
   'gal-assist': line('pip', "Let's try some shorter words. Same magic, smaller spells."),
-  'gal-5': line('mira', "The crack is right above the tower. Whatever's pushing on it — we stop it tonight."),
-  'gal-6': line('pip', 'Ready enough. Fully ready would require six more forms and a signed—'),
+  'gal-5': line('mira', "The crack is right above the tower. We stop it tonight!"),
+  'gal-6': line('pip', 'Ready enough!'),
   'gal-7': line('mira', 'Go.'),
 
   // Moon Tower
@@ -151,7 +151,7 @@ export const LINES = {
   'power-frost': line('pip', 'Perfect words freeze the rest! Show them Frost Thread!'),
   'power-chain': line('pip', 'Five perfect in a row and the sparks LEAP! Go, go, go!'),
 
-  'lib-mosaic-2': line('pip', "I… don't know. That part of my memory is blank. That's never happened before."),
+  'lib-mosaic-2': line('pip', 'Who is he? My memory of him is… blank!'),
   'seam-1': line('unwriter', 'Clever little apprentice. But one crack is all I need.'),
   'seam-2': line('pip', 'That voice… I know that voice. But how?'),
   // Level 2: The Siege of Asterfall

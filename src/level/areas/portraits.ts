@@ -83,12 +83,18 @@ export const portraits: AreaScript = {
       ],
     }),
     travel('portraits-to-mirror', A, ['POR_FOUNTAIN', 'POR_MIRROR'], 4.5),
-    reveal('portraits-mirror', A, 'POR_MIRROR', [], 0, 5, { barks: ['por-4', 'por-5'] }),
+    reveal('portraits-mirror', A, 'POR_MIRROR', [], 0, 3, {
+      barks: ['por-4', 'por-5'],
+      // Something to type while the clue is discussed (§1B: talk plays over typing).
+      chase: [{ at: 0.8, target: target('mirror-gem', 'gem', P(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.2, side: 1.3, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
+    }),
     travel('portraits-to-plaques', A, ['POR_MIRROR', 'POR_PLAQUES'], 4, { barks: ['por-const'] }),
     // Optional speed round for the greenhouse score multiplier.
     fight('portraits-constellations', A),
     checkpoint('portraits-checkpoint', A, 'portrait-hall-complete'),
-    travel('portraits-to-end', A, ['POR_PLAQUES', 'POR_END'], 4.5),
+    travel('portraits-to-end', A, ['POR_PLAQUES', 'POR_END'], 4.5, {
+      chase: [{ at: 0.2, target: target('portraits-exit-gem', 'gem', P(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
+    }),
   ],
   encounters: [
     {

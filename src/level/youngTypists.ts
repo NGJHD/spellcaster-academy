@@ -77,6 +77,8 @@ function simplifyFight(def: EncounterDef): EncounterDef {
   const limit = isPowerWave(def.id) ? POWER_WAVE_MOBS : MOBS_PER_FIGHT;
   const fight: Wave = {
     id: def.waves[0]?.id ?? 'fight',
+    // A one-at-a-time teaching wave stays one-at-a-time.
+    ...(def.waves[0]?.sequential ? { sequential: true } : {}),
     targets: [...pickMobs(mobs, limit).map((t) => capWords(t, ARMOUR_WORDS)), ...keepOptional],
   };
   // Story steps that are not monsters (restore a door, ring the bell…) keep their own waves, trimmed.

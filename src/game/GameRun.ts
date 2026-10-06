@@ -321,6 +321,8 @@ export class GameRun {
   private currentBarkBeat = -1;
   /** Seconds of play, for line freshness. */
   private speechClock = 0;
+  /** A gated beat waiting for its lines to finish before the story moves on. */
+  private quietCompletion: string | null = null;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
   private pendingStartWave = 0;
@@ -514,6 +516,11 @@ export class GameRun {
     }
 
     if (this.dialogue) this.updateDialogue(dt);
+    if (this.quietCompletion !== null && !this.speechPending(this.director.currentIndex)) {
+      const id = this.quietCompletion;
+      this.quietCompletion = null;
+      this.director.completeGatedBeat(id);
+    }
     this.updatePendingFx(dt);
 
     // Never carry the camera away from a bonus word too soon or once the player has started it
@@ -522,7 +529,9 @@ export class GameRun {
     let railDt = dt;
     // Fast-rail set pieces ease off while a chase word is being typed (§1A comfort, §1B speed).
     if (this.chaseTyping()) railDt *= CHASE_TYPING_RAIL;
-    if (this.wordsPending()) railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
+    if (this.wordsPending() || this.holdForSpeech()) {
+      railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
+    }
     this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
@@ -1158,7 +1167,6 @@ export class GameRun {
     patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, this.level.route.beats.length - 1) });
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
-    if ((beat.barks?.length ?? 0) > 0 || beat.kind === 'dialogue') this.supersedeOlderSpeech(beatIndex);
     for (const id of beat.barks ?? []) this.queueBark(getLine(id), beatIndex);
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
@@ -1194,7 +1202,7 @@ export class GameRun {
         break;
       case 'checkpoint':
         this.commitCheckpoint(beat);
-        this.director.completeGatedBeat(beat.id);
+        this.completeWhenQuiet(beat.id);
         break;
       case 'choice':
         this.choice = { beatId: beat.id, index: 0, panel: 'none', difficultyIndex: DIFFICULTY_ORDER.indexOf(this.difficulty) };
@@ -1440,7 +1448,7 @@ export class GameRun {
       this.progress.resumeWaveIndex = 0;
     }
     this.saveNow();
-    if (beatId) this.director.completeGatedBeat(beatId);
+    if (beatId) this.completeWhenQuiet(beatId);
   }
 
   private skipOptionalEncounter(): void {
@@ -1455,7 +1463,7 @@ export class GameRun {
     patchRunUi({ prompt: null });
     this.refreshTargets();
     audio.playSfx('ui-select');
-    if (beatId) this.director.completeGatedBeat(beatId);
+    if (beatId) this.completeWhenQuiet(beatId);
   }
 
   private unlockSpell(spell: SpellId): void {
@@ -1759,29 +1767,44 @@ export class GameRun {
 
   private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex): void {
     if (!line) return;
-    // Keep remarks timely: never let a backlog build up behind the action.
-    if (this.barkQueue.length >= 3) this.barkQueue.shift();
+    // Keep remarks timely: a long backlog of reactions (not story lines) is trimmed from the front.
+    if (this.barkQueue.length >= 6) this.barkQueue.shift();
     this.barkQueue.push({ line, beat, at: this.speechClock });
   }
 
   /**
-   * A new scene's lines are due: drop lines queued for earlier scenes, and cut a line still being said
-   * from an earlier scene ("the next speech is due"), so what is said always matches what is shown.
+   * True while lines belonging to `beatIndex` are still waiting or being said. Owner (2026-10-06): a
+   * spoken line is never cut short by the story moving on — the story waits for the speech instead.
    */
-  private supersedeOlderSpeech(beatIndex: number): void {
-    this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex);
-    if (this.currentBark && this.currentBarkBeat < beatIndex && !this.dialogue?.started) {
-      voice.cancel();
-      this.currentBark = null;
-      patchRunUi({ subtitle: null });
-    }
+  private speechPending(beatIndex: number): boolean {
+    if (this.currentBark && this.currentBarkBeat === beatIndex) return true;
+    return this.barkQueue.some((q) => q.beat === beatIndex);
   }
 
-  /** The next queued line that is still fresh (stale lines are dropped, never said late). */
+  /**
+   * Camera beats wait at their end pose for their own lines. Spectacles and boss intros stay short
+   * instead: their lines simply carry on (never cut) into the next moment.
+   */
+  private holdForSpeech(): boolean {
+    const beat = this.director.currentBeat;
+    if (!beat || ('attention' in beat && (beat.attention === 'spectacle' || beat.attention === 'boss-intro'))) return false;
+    return this.speechPending(this.director.currentIndex);
+  }
+
+  /** Finishes a gated beat once its lines have been said (checked every frame in update). */
+  private completeWhenQuiet(beatId: string): void {
+    this.quietCompletion = beatId;
+  }
+
+  /**
+   * The next queued line that still belongs on screen: lines of the current scene always play; a line
+   * left over from an earlier scene plays only if it is fresh (never said late, out of place).
+   */
   private nextFreshLine(): QueuedLine | undefined {
     while (this.barkQueue.length > 0) {
       const q = this.barkQueue.shift();
-      if (q && this.speechClock - q.at <= LINE_FRESH_SEC) return q;
+      if (!q) continue;
+      if (q.beat >= this.director.currentIndex || this.speechClock - q.at <= LINE_FRESH_SEC) return q;
     }
     return undefined;
   }
