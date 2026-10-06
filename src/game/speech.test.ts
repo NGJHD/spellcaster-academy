@@ -52,14 +52,14 @@ describe('speech timing', () => {
     step(2.5);
     const first = useRunStore.getState().subtitle?.text;
     expect(first).toBe(getLine('court-1')?.text);
-    // Type through the fight like a child until the next scene starts.
-    for (let i = 0; i < 2000 && useRunStore.getState().beatId === 'courtyard-c1'; i++) {
+    // Type through the fight like a child until the next scene with its own line (courtyard-c2) starts.
+    for (let i = 0; i < 4000 && useRunStore.getState().beatId !== 'courtyard-c2'; i++) {
       const s = useRunStore.getState();
       const label = s.labels.find((l) => l.locked) ?? s.labels[0];
       if (label) run.handleIntent({ kind: 'letter', char: label.word[label.correctLength] ?? 'a' });
       step(0.1);
     }
-    expect(useRunStore.getState().beatId).not.toBe('courtyard-c1');
+    expect(useRunStore.getState().beatId).toBe('courtyard-c2');
     for (let i = 0; i < 60; i++) {
       step(0.1);
       expect(useRunStore.getState().subtitle?.text).not.toBe(first);

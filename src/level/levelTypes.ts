@@ -281,6 +281,8 @@ export interface TargetSpawn {
    * counts half, so the fight never stalls; on Gentle every word counts.
    */
   readonly perfectOnly?: boolean;
+  /** More story flags set on defeat (scenery of words trimmed for young typists still appears). */
+  readonly alsoFlags?: readonly string[];
   /** Line spoken when this target is beaten. */
   readonly defeatBark?: LineId;
   /** Story flag set when this target is beaten (scene props react, e.g. a guardian stepping aside). */

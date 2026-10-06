@@ -177,7 +177,9 @@ export function DormantTarget({ encounterId, targetId, kind, position, rotationY
     if (!g || !run) return;
     const done = run.progress.completedEncounterIds.includes(encounterId);
     const live = run.findTarget(targetId) !== undefined || run.isRetired(targetId);
-    g.visible = !done && !live;
+    // A target trimmed from the encounter (young-typist word budget) has no dormant stand-in.
+    const inFight = run.level.encounters.get(encounterId)?.waves.some((w) => w.targets.some((t) => t.id === targetId)) ?? false;
+    g.visible = inFight && !done && !live;
   });
   const model: ReactNode =
     kind === 'dummy' ? (

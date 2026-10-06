@@ -194,7 +194,8 @@ const HIT_STOP_SEC = 0.05;
 export const KICK_SEC = 0.12;
 
 /** A spark gem swoops in after this long with nothing to type (CLAUDE.md §1B 7-second rule, at Fast). */
-const GEM_AFTER_IDLE_SEC = 1.8;
+/** Owner (2026-10-06): fewer words for young typists; a gem now holds the camera until typed. */
+const GEM_AFTER_IDLE_SEC = 6;
 /** An ignored gem flies off after this long. */
 /** A queued line must start within this many seconds, or it is dropped rather than said late. */
 const LINE_FRESH_SEC = 4;
@@ -1060,6 +1061,7 @@ export class GameRun {
       if (spawn.defeatFx) this.emitFx(spawn.defeatFx, target.position);
       if (spawn.defeatBark) this.queueBark(getLine(spawn.defeatBark));
       if (spawn.defeatFlag) this.flags.add(spawn.defeatFlag);
+      for (const f of spawn.alsoFlags ?? []) this.flags.add(f);
       if (spawn.optional) m.optionalTargetsCompleted++;
       const qualifies =
         spawn.rewardIf === undefined ||

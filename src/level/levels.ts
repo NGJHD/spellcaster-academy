@@ -10,6 +10,7 @@ import { BEAT_ALIASES, LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from './level1Route';
 import { LEVEL2_AREAS, LEVEL2_BOSSES, LEVEL2_COLLECTIBLES } from './level2Route';
 import { LEVEL3_AREAS, LEVEL3_BOSSES, LEVEL3_COLLECTIBLES } from './level3Route';
 import type { EncounterDef, LevelRoute } from './levelTypes';
+import { forYoungTypists, trimChase } from './youngTypists';
 
 export interface LevelDef {
   readonly id: LevelId;
@@ -35,6 +36,9 @@ function define(
   startingSpells: readonly SpellId[],
   aliases: Readonly<Record<string, string>> = {},
 ): LevelDef {
+  // Word budget for young typists (owner, 2026-10-06): see youngTypists.ts.
+  route = { ...route, beats: route.beats.map(trimChase) };
+  encounters = new Map([...encounters].map(([k, e]) => [k, forYoungTypists(e)]));
   const index = new Map(route.beats.map((b, i) => [b.id, i]));
   const beatIndexOf = (beatId: string) => index.get(beatId) ?? -1;
   const resolveBeatId = (beatId: string) => {

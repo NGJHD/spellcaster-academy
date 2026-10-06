@@ -314,6 +314,17 @@ scene, off-screen mobs took too long to appear, everyone sounded alike. Rules no
   objective; the "empty frame" clue is now actually on the wall; lines that described things not on
   screen were rewritten; speed-round countdowns wait for their words and their prompt clears on end.
 
+## Young-typist word budget (2026-10-06)
+
+Owner: "My son types at 12 words per minute… I still want to complete the game under an hour."
+- `src/level/youngTypists.ts` trims every level when it is assembled: ordinary fights one wave of at
+  most two monsters (mixed kinds), boss phases at most two rounds of two targets (finishing sentences
+  whole), sequences 2 words (anchors/beacons 3), armour 2 words, power-up waves 3, chase words 2 per
+  stretch. Collectibles are never trimmed; trimmed words' scenery flags move to the last kept word.
+- Required words: Level 1 139 → 87, Level 2 140 → 89, Level 3 155 → 98. Gems after 6 s idle (was 1.8).
+- `pacing.report.test.ts`: a 12 WPM bot (1.5 s to read a word, 1 letter/s, Gentle, Normal travel)
+  finishes the campaign in about 35 minutes; the test fails above 45.
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.

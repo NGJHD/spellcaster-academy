@@ -56,6 +56,17 @@ describe.each(LEVEL_ORDER.filter((id) => LEVELS[id].route.beats.length > 0))('%s
     expect(level.route.beats.at(-1)?.kind).toBe('results');
   });
 
+  it('young-typist word budget: ordinary fights are one wave of at most two monsters', () => {
+    const mob = (k: string) => k !== 'marker' && k !== 'gem' && k !== 'star-page';
+    for (const e of level.encounters.values()) {
+      if (e.bossPhase || e.id === 'l2-fireballs' || e.waves.some((w) => w.rule)) continue;
+      const mobWaves = e.waves.filter((w) => w.targets.some((t) => mob(t.kind) && !t.optional));
+      const mobs = e.waves.flatMap((w) => w.targets).filter((t) => mob(t.kind) && !t.optional).length;
+      expect(mobWaves.length, e.id).toBeLessThanOrEqual(1);
+      expect(mobs, e.id).toBeLessThanOrEqual(/power|starfall-wave|quill-wave/.test(e.id) ? 3 : 2);
+    }
+  });
+
   it('bosses point at real beats and encounters', () => {
     for (const boss of level.bosses) {
       expect(level.beatIndexOf(boss.introBeat), boss.introBeat).toBeGreaterThanOrEqual(0);

@@ -308,6 +308,7 @@ These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to ev
 - **Word presentation:** new words fly in from the centre of the screen. The locked target shows a TARGET tag, other targets show a Tab hint, and Tab works mid-word.
 - **HUD:** a level progress bar with chapter marks. Pip is labelled "Guide Orb".
 - **Length:** the whole game takes 30–45 minutes at Fast (2026-10-04).
+- **Young typists (2026-10-06):** a child typing at **12 WPM** must finish the whole game in **under an hour**. Ordinary fights are one wave of at most two monsters; sequences are short (`src/level/youngTypists.ts`). `src/game/pacing.report.test.ts` plays all three levels as a 12 WPM child and fails above 45 simulated minutes (margin for real mistakes).
 - **Scary mobs:** mobs may look scary (fangs, snarls, glowing eyes, menacing poses), in Level 1 too; kids "can handle a lot" (2026-10-04). No gore, blood or injury.
 
 ---
