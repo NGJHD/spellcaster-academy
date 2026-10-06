@@ -296,7 +296,11 @@ Victories in Levels 2 and 3 are decisive and dramatic. Enemies are beaten, shatt
 
 These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to every level:
 
-- **Pace:** brisk, with no dead pauses. The old "fast" travel speed is now "normal". Camera pans are quick, and dialogue overlaps travel; typing a letter (or pressing Enter) skips a line.
+- **Pace:** brisk, with no dead pauses. The old "fast" travel speed is now "normal". Camera pans are quick, and dialogue overlaps travel. Enter or Space skips a line.
+- **Never skip a word (2026-10-06):** no word ever disappears on a timer. Chase, bonus and gem words hold the camera at the end of its move until they are typed, and a wave waits for every word it has shown.
+- **Speech (2026-10-06):** typing never cuts a spoken line; a line stops only when it ends naturally or when the next scene's line is due. Lines belong to their scene: older queued lines are dropped when a new scene speaks, and a line that cannot start within 4 seconds is dropped rather than said late. Every character has their own voice.
+- **Off-screen mobs (2026-10-06):** a mob that is off screen hurries in (3.5× speed) so it appears within about 1–2 seconds.
+- **Speed rounds (2026-10-06):** the countdown runs only while its words are on screen, and its prompt goes as soon as the round ends.
 - **Voice and music:** lines are spoken aloud by the browser's text-to-speech, and the music softens under dialogue. The music switches to battle themes whenever something can cause damage.
 - **HP:** Focus is shown to players as **HP**. On Gentle, HP is unlimited and the HP bar is hidden.
 - **Removed settings:** reduced motion, reduced shake, reduced particle effects, high-contrast word panels and the dyslexia font. Do not reintroduce them unless the owner asks.

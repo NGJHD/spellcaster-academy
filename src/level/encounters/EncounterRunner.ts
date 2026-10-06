@@ -158,13 +158,7 @@ export class EncounterRunner {
         this.assignWord(t);
         events.push({ type: 'words-changed' });
       }
-      if (t.spawn.optional && t.phase === 'active' && !t.defeated && t.spawn.leaveAfterSec !== undefined) {
-        if (t.activeTime >= t.spawn.leaveAfterSec && t.id !== lockedId) {
-          setPhase(t, 'leaving');
-          events.push({ type: 'target-left', target: t });
-          events.push({ type: 'words-changed' });
-        }
-      }
+      // Owner (2026-10-06): a word never disappears on a timer; the game waits for the child.
       if (t.phase === 'gone' && before !== 'gone') {
         events.push({ type: 'target-gone', target: t });
       }
@@ -341,11 +335,8 @@ export class EncounterRunner {
     const wave = this.wave;
     if (!wave) return;
     if (this.pendingSpawns.length > 0 || this.sequentialQueue.length > 0) return;
-    const required = [...this.targets.values()].some((t) => !t.spawn.optional && !t.defeated);
-    if (required) return;
-    // A wave of only optional targets (bonus windows) lasts until they are caught or leave.
-    const onlyOptional = wave.targets.every((t) => t.optional);
-    if (onlyOptional && [...this.targets.values()].some((t) => !t.defeated && t.phase !== 'leaving' && t.phase !== 'gone')) return;
+    // Every word that was shown, optional or not, is waited for (owner: "don't skip anything").
+    if ([...this.targets.values()].some((t) => !t.defeated && t.phase !== 'leaving' && t.phase !== 'gone')) return;
 
     const rule = wave.rule;
     if (rule?.kind === 'qualify' && this.qualifying < rule.needed) {

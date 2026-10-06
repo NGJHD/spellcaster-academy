@@ -196,7 +196,17 @@ export const KICK_SEC = 0.12;
 /** A spark gem swoops in after this long with nothing to type (CLAUDE.md §1B 7-second rule, at Fast). */
 const GEM_AFTER_IDLE_SEC = 1.8;
 /** An ignored gem flies off after this long. */
-const GEM_LIFETIME_SEC = 5;
+/** A queued line must start within this many seconds, or it is dropped rather than said late. */
+const LINE_FRESH_SEC = 4;
+
+interface QueuedLine {
+  readonly line: DialogueLine;
+  readonly beat: number;
+  readonly at: number;
+}
+
+/** Off-screen mobs move this much faster until they are in view. */
+const RUSH_SPEED = 3.5;
 /** Score for catching a gem (before the combo multiplier). */
 const GEM_SCORE = 40;
 
@@ -303,8 +313,13 @@ export class GameRun {
   private areaId: AreaId;
   private dialogue: DialogueState | null = null;
   private choice: ChoiceState | null = null;
-  private barkQueue: DialogueLine[] = [];
+  /** Lines waiting to be said, tagged with the beat they belong to and when they were queued. */
+  private barkQueue: QueuedLine[] = [];
   private currentBark: DialogueLine | null = null;
+  /** Beat index the line being said belongs to. */
+  private currentBarkBeat = -1;
+  /** Seconds of play, for line freshness. */
+  private speechClock = 0;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
   private pendingStartWave = 0;
@@ -506,7 +521,7 @@ export class GameRun {
     let railDt = dt;
     // Fast-rail set pieces ease off while a chase word is being typed (§1A comfort, §1B speed).
     if (this.chaseTyping()) railDt *= CHASE_TYPING_RAIL;
-    if (this.bonusNeedsTime()) railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
+    if (this.wordsPending()) railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
     this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
@@ -537,6 +552,7 @@ export class GameRun {
     if (this.updateGems(simDt, timeScale, locked)) changed = true;
     if (this.updateSong(simDt, timeScale, locked)) changed = true;
     this.applyFollow(dt);
+    this.updateRush(simDt);
     this.updateSpeedRound(dt);
     if (changed) this.refreshTargets();
   }
@@ -745,10 +761,15 @@ export class GameRun {
     }
     const r = this.speed;
     if (!r || r.state !== 'running' || !this.encounter || this.encounter.state === 'intro') return;
+    // The clock only runs while one of its words is on screen and typeable (never while they fly in).
+    const showing = [...this.encounter.targets.values()].some((t) => t.phase === 'active' && t.wordDelay === 0 && !t.defeated);
+    if (!showing) return;
     const before = Math.ceil(r.remainingSec * 10);
     if (r.tick(dt)) {
       audio.playSfx('enemy-telegraph', { volume: 0.5 });
       this.speedClearIn = SPEED_RESULT_SEC;
+      // Time is up: the "Speed round!" prompt goes, so nothing on screen talks about a finished round.
+      patchRunUi({ prompt: null });
     }
     if (Math.ceil(r.remainingSec * 10) !== before || r.state !== 'running') this.publishSpeedRound();
   }
@@ -770,6 +791,7 @@ export class GameRun {
     }
     this.popup(this.speedNewBest ? 'NEW BEST!' : `SPEED BONUS +${r.bonus}`, 'cheer', at, height);
     this.speedClearIn = SPEED_RESULT_SEC;
+    patchRunUi({ prompt: null });
     this.publishSpeedRound();
     patchRunUi({ score: m.score });
   }
@@ -839,7 +861,6 @@ export class GameRun {
       follow: { ahead: 4.2, side: side * 1.25, up: 0.15 },
       words: [{ min: 3, max: 4 }],
       optional: true,
-      leaveAfterSec: GEM_LIFETIME_SEC,
       labelHeight: 0.28,
       variant: String(side),
     };
@@ -872,22 +893,21 @@ export class GameRun {
       return;
     }
     if (this.dialogue) {
-      const skip = intent.kind === 'enter' || intent.kind === 'space' || intent.kind === 'letter';
+      // Owner (2026-10-06): speech keeps playing while the child types; only Enter/Space skip a line.
+      const skip = intent.kind === 'enter' || intent.kind === 'space';
       if (skip && !this.dialogue.started) {
         // Skip the remark still finishing and go straight to the conversation.
         voice.cancel();
         this.currentBark = null;
         this.startDialogue();
       } else if (skip) {
-        // Enter/Space always skip at once; a letter is guarded briefly in case it was held over.
-        this.advanceDialogue(true, intent.kind === 'letter');
+        this.advanceDialogue(true);
       }
       // Letters, Backspace and Tab also reach typing: gems fly in during conversations, so there is
       // always something to do, and a typo on one must be fixable mid-line.
       const typingKey = intent.kind === 'letter' || intent.kind === 'backspace' || intent.kind === 'tab';
       if (!typingKey || (this.typing.lockedId === null && this.candidateCount() === 0)) return;
     }
-    if (intent.kind === 'letter') this.dismissBarks();
     // Enter or Space while a line is still being said skips to the next line (owner feedback).
     if ((intent.kind === 'enter' || intent.kind === 'space') && this.currentBark) {
       this.skipBark();
@@ -1136,7 +1156,8 @@ export class GameRun {
     patchRunUi({ beatId: beat.id, progress: Math.max(0, beatIndex) / Math.max(1, this.level.route.beats.length - 1) });
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
-    for (const id of beat.barks ?? []) this.queueBark(getLine(id));
+    if ((beat.barks?.length ?? 0) > 0 || beat.kind === 'dialogue') this.supersedeOlderSpeech(beatIndex);
+    for (const id of beat.barks ?? []) this.queueBark(getLine(id), beatIndex);
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
     if (isCameraBeat(beat) && beat.chase) this.startChase(beat);
@@ -1159,8 +1180,8 @@ export class GameRun {
 
     switch (beat.kind) {
       case 'dialogue': {
-        // Lines still waiting from the previous moment come first, so no story line is lost.
-        const lines = [...this.barkQueue, ...beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l)];
+        // Only this scene's lines: older ones were superseded so speech always matches the scene.
+        const lines = beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l);
         this.barkQueue = [];
         this.dialogue = { beatId: beat.id, lines, index: 0, elapsed: 0, started: false, releaseAt: this.releaseIndex(lines.length) };
         if (!this.currentBark) this.startDialogue();
@@ -1207,6 +1228,31 @@ export class GameRun {
     this.metrics.setArea(areaId);
     this.retired.length = 0;
     patchRunUi({ areaId, areaCardKey: nextKey(), retiredKey: nextKey() });
+  }
+
+  /**
+   * True while any word on this stretch of rail is still waiting: chase and bonus words (spawned or
+   * still to come) and a spark gem. The camera finishes its move, then holds there (owner: "hold the
+   * animation and wait for the child to finish typing").
+   */
+  /** Mobs waiting off screen hurry in (owner: they should appear within 1–2 seconds). */
+  private updateRush(dt: number): void {
+    const runner = this.encounter;
+    if (!runner) return;
+    for (const t of runner.targets.values()) {
+      const m = t.spawn.movement;
+      const moving = m !== undefined && m.kind !== 'static' && !t.atPathEnd && !t.defeated && (t.phase === 'active' || t.phase === 'appearing');
+      const off = moving && this.centralityOf(t.id) > 1.02;
+      t.offscreenSec = off ? t.offscreenSec + dt : 0;
+      t.rush = t.offscreenSec > 0.4 ? RUSH_SPEED : 1;
+    }
+  }
+
+  private wordsPending(): boolean {
+    if (this.chase && this.chase.state !== 'complete') return true;
+    if (this.bonus && this.bonus.state !== 'complete') return true;
+    if (this.gem) return true;
+    return this.bonusNeedsTime();
   }
 
   /** True while a bonus word must stay reachable: locked mid-word, or not yet shown long enough. */
@@ -1498,7 +1544,6 @@ export class GameRun {
         follow: { ahead: 3.6, side: -1.4, up: -0.35 },
         words: [{ min: 4, max: 5 }],
         optional: true,
-        leaveAfterSec: 10,
         labelHeight: 0.28,
         variant: 'song',
         reward: { heal: 25 },
@@ -1617,8 +1662,8 @@ export class GameRun {
   }
 
   // ---------- Dialogue and barks ----------
-  // Every line plays by itself (spoken when voice is on) and advances when finished; typing a letter
-  // skips it. Story dialogue holds its beat only until its lines have played — never waits for Enter.
+  // Every line plays by itself (spoken when voice is on) and advances when it finishes; typing never
+  // cuts it (Enter/Space skip). Lines are tagged with their beat and dropped if stale or superseded. Story dialogue holds its beat only until its lines have played — never waits for Enter.
 
   private lineElapsed = 0;
   private lineSpeaking = false;
@@ -1658,8 +1703,10 @@ export class GameRun {
   /** Let the director carry on; the current and remaining lines continue as subtitles. */
   private releaseDialogue(d: DialogueState): void {
     this.dialogue = null;
+    const beat = this.level.beatIndexOf(d.beatId);
     this.currentBark = d.lines[d.index] ?? null;
-    this.barkQueue = d.lines.slice(d.index + 1);
+    this.currentBarkBeat = beat;
+    this.barkQueue = d.lines.slice(d.index + 1).map((line) => ({ line, beat, at: this.speechClock }));
     const sub = useRunStore.getState().subtitle;
     if (sub) patchRunUi({ subtitle: { ...sub, blocking: false } });
     this.director.completeGatedBeat(d.beatId);
@@ -1708,11 +1755,33 @@ export class GameRun {
     if (d) this.director.completeGatedBeat(d.beatId);
   }
 
-  private queueBark(line: DialogueLine | undefined): void {
+  private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex): void {
     if (!line) return;
     // Keep remarks timely: never let a backlog build up behind the action.
     if (this.barkQueue.length >= 3) this.barkQueue.shift();
-    this.barkQueue.push(line);
+    this.barkQueue.push({ line, beat, at: this.speechClock });
+  }
+
+  /**
+   * A new scene's lines are due: drop lines queued for earlier scenes, and cut a line still being said
+   * from an earlier scene ("the next speech is due"), so what is said always matches what is shown.
+   */
+  private supersedeOlderSpeech(beatIndex: number): void {
+    this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex);
+    if (this.currentBark && this.currentBarkBeat < beatIndex && !this.dialogue?.started) {
+      voice.cancel();
+      this.currentBark = null;
+      patchRunUi({ subtitle: null });
+    }
+  }
+
+  /** The next queued line that is still fresh (stale lines are dropped, never said late). */
+  private nextFreshLine(): QueuedLine | undefined {
+    while (this.barkQueue.length > 0) {
+      const q = this.barkQueue.shift();
+      if (q && this.speechClock - q.at <= LINE_FRESH_SEC) return q;
+    }
+    return undefined;
   }
 
   /** Stop the line being said and move straight on to the next queued one. */
@@ -1723,25 +1792,18 @@ export class GameRun {
       this.startDialogue();
       return;
     }
-    const next = this.barkQueue.shift();
+    const next = this.nextFreshLine();
     if (!next) {
       patchRunUi({ subtitle: null });
       return;
     }
-    this.currentBark = next;
-    this.present(next, false);
-  }
-
-  /** The player started typing: stop the remark on screen and drop stale ones. */
-  private dismissBarks(): void {
-    if (!this.currentBark && this.barkQueue.length === 0) return;
-    if (this.currentBark) voice.cancel();
-    this.currentBark = null;
-    this.barkQueue = [];
-    patchRunUi({ subtitle: null });
+    this.currentBark = next.line;
+    this.currentBarkBeat = next.beat;
+    this.present(next.line, false);
   }
 
   private updateBarks(dt: number): void {
+    this.speechClock += dt;
     if (this.dialogue?.started) return;
     if (this.currentBark) {
       this.lineElapsed += dt;
@@ -1753,10 +1815,11 @@ export class GameRun {
       }
       if (this.barkQueue.length === 0) patchRunUi({ subtitle: null });
     }
-    const next = this.barkQueue.shift();
+    const next = this.nextFreshLine();
     if (!next) return;
-    this.currentBark = next;
-    this.present(next, false);
+    this.currentBark = next.line;
+    this.currentBarkBeat = next.beat;
+    this.present(next.line, false);
   }
 
   private fireBarks(trigger: BarkTrigger): void {

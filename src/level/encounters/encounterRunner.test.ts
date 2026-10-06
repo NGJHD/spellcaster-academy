@@ -43,13 +43,16 @@ describe('EncounterRunner fairness (owner bug reports)', () => {
     expect(r.hazardTelegraph).toBeNull();
   });
 
-  it('an optional target never leaves while the player is locked on it', () => {
+  it('a word never disappears on a timer, and the wave waits for it (owner, 2026-10-06)', () => {
     const r = runner([{ id: 'page', kind: 'star-page', position: [0, 0, -5], words: ['glint'], optional: true, leaveAfterSec: 1 }]);
     step(r, 0.8);
     step(r, 2, 'page');
+    step(r, 5, null);
     expect(r.targets.get('page')?.phase).toBe('active');
-    step(r, 0.5, null);
-    expect(r.targets.get('page')?.phase).not.toBe('active');
+    expect(r.state).not.toBe('complete');
+    r.completeWord('page', 0);
+    step(r, 2);
+    expect(r.state).toBe('complete');
   });
 });
 

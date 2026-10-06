@@ -115,7 +115,7 @@ export const library: AreaScript = {
     fight('library-anchor', A),
     reveal('library-anchor-pillar', A, 'LIB_ANCHOR', ['LIB_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('library-power', A, { barks: ['power-frost'] }),
-    checkpoint('library-checkpoint', A, 'library-restored', { objective: 'greenhouse-anchor' }),
+    checkpoint('library-checkpoint', A, 'library-restored', { objective: 'portraits' }),
   ],
   encounters: [
     // First use of Frost Thread: perfect words freeze the rest of this flock of books.

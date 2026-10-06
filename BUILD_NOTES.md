@@ -298,6 +298,22 @@ ward from outside); Level 2 focuses on the evacuation; mobs may be scary; "polis
     during long batches.
   - AI props are made for mid-distance; frame them from about 10 m, not up close.
 
+## Playtest fixes (2026-10-06)
+
+Owner playtest: words skipped and vanished, speech was cut by typing and drifted out of step with the
+scene, off-screen mobs took too long to appear, everyone sounded alike. Rules now in CLAUDE.md §5.
+
+- No timed word removal anywhere (EncounterRunner); waves wait for every word shown; chase, bonus and
+  gem words hold the camera at the end of its move (`GameRun.wordsPending`).
+- Speech: letters never skip or silence a line (Enter/Space still skip). Queued lines carry their beat
+  and queue time: a new scene's lines supersede older ones, stale lines (> 4 s) are dropped
+  (`speech.test.ts`).
+- Off-screen moving mobs rush in at 3.5x (`GameRun.updateRush`, `TargetRuntime.rush`).
+- Voices: `castVoices` gives each character a distinct English voice (Edge natural voices preferred).
+- Scene/speech audit across all three levels: the Hall of Portraits no longer shows the greenhouse
+  objective; the "empty frame" clue is now actually on the wall; lines that described things not on
+  screen were rewritten; speed-round countdowns wait for their words and their prompt clears on end.
+
 ## Milestone status
 
 - [x] **M1 Foundation** — Vite/R3F/strict TS, rail system, pause menu, authored route.

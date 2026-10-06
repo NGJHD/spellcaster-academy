@@ -3,11 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import type { Mesh } from 'three';
 import { PLAQUE_POSITIONS, PORTRAITS_ORIGIN } from '../../level/areas/portraits';
-import { getRun } from '../../state/gameStore';
 import { Arch, Box, KitModel, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
-import { Mira } from '../props';
+import { StaticWarden } from '../props';
 import { Prop } from '../Prop';
 
 const W = 3;
@@ -100,21 +99,36 @@ function FocusFountain() {
   );
 }
 
+/**
+ * The clue Mira finds (por-4): the Warden's portrait, and beside it an empty frame whose brass
+ * nameplate has been scratched out. The camera looks here while the line plays.
+ */
 function CommunicationMirror() {
-  const surface = useRef<Mesh>(null);
-  useFrame(() => {
-    const beat = getRun()?.director.currentBeat?.id;
-    if (surface.current) surface.current.visible = beat === 'portraits-mirror' || beat === 'portraits-to-plaques';
-  });
   return (
     <group position={[-W + 0.06, 1.9, -22]} rotation={[0, Math.PI / 2, 0]}>
-      <KitModel id="frame_1x1_3" scale={[1.1, 1.38, 1]} position={[0, 0, 0.0]} />
-      <mesh position={[0, 0, 0.025]}>
-        <planeGeometry args={[1.1, 1.8]} />
-        <meshStandardMaterial color="#9fb6c8" roughness={0.05} metalness={0.9} />
-      </mesh>
-      <group ref={surface} position={[0, -0.85, 0.12]} scale={0.75} visible={false}>
-        <Mira position={[0, 0, 0]} rotationY={0} />
+      {/* The Warden's portrait */}
+      <group position={[0.9, 0, 0]}>
+        <KitModel id="frame_1x1_3" scale={[1.0, 1.25, 1]} />
+        <mesh position={[0, 0, 0.02]}>
+          <planeGeometry args={[1.0, 1.6]} />
+          <meshStandardMaterial color="#3a4a5e" roughness={0.9} />
+        </mesh>
+        <group position={[0, -0.62, 0.05]} scale={0.27}>
+          <StaticWarden position={[0, 0, 0]} />
+        </group>
+        <Box position={[0, -1.05, 0.06]} size={[0.6, 0.12, 0.02]} material={MAT.agedBrass} />
+      </group>
+      {/* The empty frame: no painting, and its name scratched away */}
+      <group position={[-0.9, 0, 0]}>
+        <KitModel id="frame_1x1_3" scale={[1.0, 1.25, 1]} />
+        <mesh position={[0, 0, 0.02]}>
+          <planeGeometry args={[1.0, 1.6]} />
+          <meshStandardMaterial color="#1a1612" roughness={1} />
+        </mesh>
+        <Box position={[0, -1.05, 0.06]} size={[0.6, 0.12, 0.02]} material={MAT.agedBrass} />
+        {[-0.18, -0.05, 0.08, 0.2].map((x, i) => (
+          <Box key={x} position={[x, -1.05, 0.075]} size={[0.16, 0.012, 0.01]} rotation={[0, 0, 0.5 - i * 0.3]} material={MAT.ink} />
+        ))}
       </group>
     </group>
   );

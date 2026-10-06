@@ -127,6 +127,7 @@ export const strings = {
     'courtyard-anchor': 'Restore the Courtyard Anchor',
     'library-anchor': 'Restore the Library Anchor',
     'calm-grimoire': 'Calm the Great Grimoire',
+    portraits: 'Cross the Hall of Portraits',
     'greenhouse-anchor': 'Restore the Greenhouse Anchor',
     'reach-observatory': 'Reach the Moon Tower observatory',
     practice: 'Tune your wand in the Practice Gallery',

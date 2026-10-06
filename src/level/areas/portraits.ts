@@ -70,7 +70,7 @@ export const portraits: AreaScript = {
   beats: [
     fade('portraits-enter', A, 'POR_ENTRY', { music: 'portrait-rest' }),
     // The ambush: imps leap out of the paintings the moment the apprentice walks in.
-    fight('portraits-ambush', A, { barks: ['por-ambush'], objective: 'greenhouse-anchor' }),
+    fight('portraits-ambush', A, { barks: ['por-ambush'], objective: 'portraits' }),
     travel('portraits-to-fountain', A, ['POR_ENTRY', 'POR_FOUNTAIN'], 4.5),
     // A short breather: the fountain heals, and healing droplets float up to catch.
     reveal('portraits-fountain', A, 'POR_FOUNTAIN', ['POR_FOUNTAIN_POINT'], 0.6, 5, {

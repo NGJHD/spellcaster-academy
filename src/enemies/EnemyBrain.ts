@@ -45,6 +45,10 @@ export interface TargetRuntime {
   frostTimer: number;
   /** Seconds since the last spell hit (for hit reactions); large when idle. */
   sinceHit: number;
+  /** Movement multiplier: >1 while the target is off screen, so it arrives quickly (owner, 2026-10-06). */
+  rush: number;
+  /** Seconds spent off screen while able to move. */
+  offscreenSec: number;
   /** Imperfect completions on a perfect-only target (two count as one). */
   halfCredit: number;
   /** Time spent active (optional targets leave after a while). */
@@ -77,6 +81,8 @@ export function createTarget(spawn: TargetSpawn): TargetRuntime {
     atPathEnd: !spawn.movement || spawn.movement.kind !== 'approach',
     frostTimer: 0,
     sinceHit: 99,
+    rush: 1,
+    offscreenSec: 0,
     halfCredit: 0,
     activeTime: 0,
     defeated: false,
@@ -187,7 +193,7 @@ function move(t: TargetRuntime, simDt: number, profile: DifficultyProfile): void
   if (length <= 0) return;
   // Hold position during wind-up and recovery so attacks read clearly.
   if (t.attackPhase !== 'idle') return;
-  const step = m.speed * profile.speed * simDt;
+  const step = m.speed * profile.speed * simDt * t.rush;
   if (m.kind === 'approach') {
     if (t.atPathEnd) return;
     t.pathDistance = Math.min(length, t.pathDistance + step);
