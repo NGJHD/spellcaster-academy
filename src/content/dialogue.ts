@@ -31,8 +31,8 @@ export const LINES = {
   // Opening and Arrival Gate
   'open-1': line('pip', 'Asterfall Academy! Quick — type the sparks as we fly!'),
   'open-snatch': line('pip', 'HEY! Put me DOWN! Type its word — quick!'),
-  'open-rescued': line('pip', 'Thank you! That sprite looked scared, not naughty. Strange.'),
-  'open-2': line('pip', "I'm Pip, your guide orb. Odd — the gate should already be open for you."),
+  'open-rescued': line('pip', "Thanks! That sprite looked scared, not naughty."),
+  'open-2': line('pip', "I'm Pip, your guide orb. Hmm, the gate should be open!"),
   'open-3': line('pip', 'The gate crystals have gone dim. Type their words to wake them!'),
   'gate-first-correct': line('pip', 'Good! Each correct letter gathers magic.'),
   'gate-first-word': line('pip', 'And the final letter casts it. Very neat.'),
@@ -51,7 +51,7 @@ export const LINES = {
   'court-breathe': line('pip', 'Breathe. Read the whole word, then begin.'),
   'court-warden': line('pip', 'The Warden! Is it breaking the ward… or trying to fix it?'),
   'court-chase': line('pip', 'That sprite stole a star page! After it — along the roof!'),
-  'court-chase-caught': line('pip', 'Got it! Look — half the page has gone grey, like the ink was rubbed out.'),
+  'court-chase-caught': line('pip', 'Got it! Half the page is rubbed out to grey!'),
   'court-anchor-intro': line('pip', "The anchor's runes are scratched out. Someone did this on purpose!"),
   'court-anchor-done': line('pip', "Fixed! But runes don't scratch themselves. Who did this?"),
   'page-hint': line('pip', 'A star page! Type its word to catch it — only if you want to.'),
@@ -121,7 +121,7 @@ export const LINES = {
   'gal-bonus': line('pip', 'BONUS ROUND! Six targets, one clock — can you beat your best?'),
   'gal-bonus-done': line('pip', 'What a finish! Somebody frame that score!'),
   'gal-assist': line('pip', "Let's try some shorter words. Same magic, smaller spells."),
-  'gal-5': line('mira', "The crack is right above the tower. We stop it tonight!"),
+  'gal-5': line('mira', "The crack is above the tower. Let's go!"),
   'gal-6': line('pip', 'Ready enough!'),
   'gal-7': line('mira', 'Go.'),
 

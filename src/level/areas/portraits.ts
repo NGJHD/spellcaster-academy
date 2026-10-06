@@ -88,9 +88,9 @@ export const portraits: AreaScript = {
       // Something to type while the clue is discussed (§1B: talk plays over typing).
       chase: [{ at: 0.8, target: target('mirror-gem', 'gem', P(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.2, side: 1.3, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
     }),
-    travel('portraits-to-plaques', A, ['POR_MIRROR', 'POR_PLAQUES'], 4, { barks: ['por-const'] }),
-    // Optional speed round for the greenhouse score multiplier.
-    fight('portraits-constellations', A),
+    travel('portraits-to-plaques', A, ['POR_MIRROR', 'POR_PLAQUES'], 4),
+    // Optional speed round for the greenhouse score multiplier; its instructions play over its words.
+    fight('portraits-constellations', A, { barks: ['por-const'] }),
     checkpoint('portraits-checkpoint', A, 'portrait-hall-complete'),
     travel('portraits-to-end', A, ['POR_PLAQUES', 'POR_END'], 4.5, {
       chase: [{ at: 0.2, target: target('portraits-exit-gem', 'gem', P(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],

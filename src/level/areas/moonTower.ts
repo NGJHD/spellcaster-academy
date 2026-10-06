@@ -61,8 +61,8 @@ export const moonTower: AreaScript = {
     TOW_GUARD_BREACH: T(0, 20.2, -4.5),
   },
   beats: [
-    fade('tower-enter', A, 'TOW_F1', { music: 'tower-battle', barks: ['tw-1'] }),
-    fight('tower-t1', A),
+    fade('tower-enter', A, 'TOW_F1', { music: 'tower-battle' }),
+    fight('tower-t1', A, { barks: ['tw-1'] }),
     // Fast-rail set piece: the lift rockets up the shaft; creatures leap at it from passing floors.
     travel('tower-lift-1', A, ['TOW_F1', 'TOW_LIFT_1', 'TOW_F2'], 7, {
       easing: 'easeInOutCubic',

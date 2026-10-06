@@ -321,8 +321,6 @@ export class GameRun {
   private currentBarkBeat = -1;
   /** Seconds of play, for line freshness. */
   private speechClock = 0;
-  /** A gated beat waiting for its lines to finish before the story moves on. */
-  private quietCompletion: string | null = null;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
   private pendingStartWave = 0;
@@ -516,11 +514,6 @@ export class GameRun {
     }
 
     if (this.dialogue) this.updateDialogue(dt);
-    if (this.quietCompletion !== null && !this.speechPending(this.director.currentIndex)) {
-      const id = this.quietCompletion;
-      this.quietCompletion = null;
-      this.director.completeGatedBeat(id);
-    }
     this.updatePendingFx(dt);
 
     // Never carry the camera away from a bonus word too soon or once the player has started it
@@ -855,6 +848,8 @@ export class GameRun {
     if (!beat || beat.kind === 'results' || beat.attention) return false;
     // Chase set pieces have their own authored words.
     if (isCameraBeat(beat) && beat.chase && beat.chase.length > 0) return false;
+    // Never while the camera waits for a story line: a gem there feels random (owner, 2026-10-06).
+    if (this.holdForSpeech()) return false;
     if (this.encounter && this.encounter.state !== 'complete' && this.encounter.def.kind === 'combat') return false;
     return this.director.pose.fade < 0.2;
   }
@@ -1202,7 +1197,7 @@ export class GameRun {
         break;
       case 'checkpoint':
         this.commitCheckpoint(beat);
-        this.completeWhenQuiet(beat.id);
+        this.director.completeGatedBeat(beat.id);
         break;
       case 'choice':
         this.choice = { beatId: beat.id, index: 0, panel: 'none', difficultyIndex: DIFFICULTY_ORDER.indexOf(this.difficulty) };
@@ -1448,7 +1443,7 @@ export class GameRun {
       this.progress.resumeWaveIndex = 0;
     }
     this.saveNow();
-    if (beatId) this.completeWhenQuiet(beatId);
+    if (beatId) this.director.completeGatedBeat(beatId);
   }
 
   private skipOptionalEncounter(): void {
@@ -1463,7 +1458,7 @@ export class GameRun {
     patchRunUi({ prompt: null });
     this.refreshTargets();
     audio.playSfx('ui-select');
-    if (beatId) this.completeWhenQuiet(beatId);
+    if (beatId) this.director.completeGatedBeat(beatId);
   }
 
   private unlockSpell(spell: SpellId): void {
@@ -1788,12 +1783,14 @@ export class GameRun {
   private holdForSpeech(): boolean {
     const beat = this.director.currentBeat;
     if (!beat || ('attention' in beat && (beat.attention === 'spectacle' || beat.attention === 'boss-intro'))) return false;
-    return this.speechPending(this.director.currentIndex);
-  }
-
-  /** Finishes a gated beat once its lines have been said (checked every frame in update). */
-  private completeWhenQuiet(beatId: string): void {
-    this.quietCompletion = beatId;
+    if (!this.speechPending(this.director.currentIndex)) return false;
+    // Only hold when the next moment brings lines of its own; otherwise the line simply carries on
+    // (uncut) over the next walk, reveal or fight, and nobody waits in silence.
+    const next = this.level.route.beats[this.director.currentIndex + 1];
+    if (!next || ('attention' in next && (next.attention === 'spectacle' || next.attention === 'boss-intro'))) return false;
+    // A fight's lines play over its typing, so a slightly late start still matches its scene.
+    if (next.kind === 'encounter') return false;
+    return (next.barks?.length ?? 0) > 0 || next.kind === 'dialogue';
   }
 
   /**

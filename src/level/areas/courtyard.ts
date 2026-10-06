@@ -108,7 +108,7 @@ export const courtyard: AreaScript = {
       'courtyard-rooftop-chase',
       A,
       ['COURTYARD_COMBAT_C1', 'COURTYARD_ROOF_LEAP', 'COURTYARD_ROOF_RUN_A', 'COURTYARD_ROOF_RUN_B', 'COURTYARD_ROOF_END'],
-      11,
+      9,
       {
         barks: ['court-chase'],
         easing: 'easeInOutSine',

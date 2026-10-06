@@ -112,11 +112,12 @@ export const library: AreaScript = {
     fight('grimoire-g2', A, { barks: ['lib-grim-pages'] }),
     fight('grimoire-g3', A, { barks: ['lib-grim-sentence'] }),
     travel('library-to-anchor', A, ['LIB_GRIMOIRE_ARENA', 'LIB_ANCHOR'], 4, {
-      barks: ['lib-grim-done', 'lib-anchor-intro'],
+      barks: ['lib-grim-done'],
       music: 'library-mystery',
       objective: 'library-anchor',
     }),
-    fight('library-anchor', A),
+    // The anchor's instructions play over its words (§1B: dialogue plays over typing).
+    fight('library-anchor', A, { barks: ['lib-anchor-intro'] }),
     reveal('library-anchor-pillar', A, 'LIB_ANCHOR', ['LIB_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('library-power', A, { barks: ['power-frost'] }),
     checkpoint('library-checkpoint', A, 'library-restored', { objective: 'portraits' }),

@@ -76,17 +76,16 @@ export const arrivalGate: AreaScript = {
             defeatBark: 'open-rescued',
           }),
         },
-        { at: 0.55, target: skyGem('sky-gem-zap', 'zap', -1.4) },
       ],
     }),
-    travel('arrival-gate-approach', A, ['ARRIVAL_GATE_APPROACH', 'ARRIVAL_GATE_PIP'], 3.5, {
-      barks: ['open-2'],
+    travel('arrival-gate-approach', A, ['ARRIVAL_GATE_APPROACH', 'ARRIVAL_GATE_PIP'], 2.5, {
       easing: 'easeOutCubic',
       reducedMotion: 'glide',
     }),
     reveal('arrival-crystals-reveal', A, 'ARRIVAL_GATE_PIP', ['ARRIVAL_CRYSTAL_LEFT', 'ARRIVAL_CRYSTAL_CENTRE', 'ARRIVAL_CRYSTAL_RIGHT'], 1.0, 0.3),
     // 3. The crystal words blast the gate open.
-    fight('arrival-crystals', A, { barks: ['open-3'], objective: 'wake-crystals' }),
+    // Pip introduces himself over the crystal words (§1B: dialogue plays over typing).
+    fight('arrival-crystals', A, { barks: ['open-2', 'open-3'], objective: 'wake-crystals' }),
     travel('arrival-gate-passage', A, ['ARRIVAL_GATE_PIP', 'ARRIVAL_GATE_THRESHOLD', 'ARRIVAL_WARD_FRACTURE'], 5, {
       reducedMotion: 'glide',
     }),

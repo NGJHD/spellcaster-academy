@@ -34,9 +34,10 @@ export const gallery: AreaScript = {
   lookPoints: {},
   beats: [
     fade('gallery-enter', A, 'GAL_ENTRY', { music: 'courtyard-action', objective: 'practice' }),
-    travel('gallery-to-mira', A, ['GAL_ENTRY', 'GAL_MIRA'], 4, { barks: ['gal-1', 'gal-2'] }),
+    travel('gallery-to-mira', A, ['GAL_ENTRY', 'GAL_MIRA'], 4, { barks: ['gal-1'] }),
     travel('gallery-to-zone1', A, ['GAL_MIRA', 'GAL_ZONE1'], 3, { reducedMotion: 'glide' }),
-    fight('gallery-p1', A, { barks: ['gal-p1'] }),
+    // The announcer lines play over the first targets (§1B: dialogue plays over typing).
+    fight('gallery-p1', A, { barks: ['gal-2', 'gal-p1'] }),
     travel('gallery-to-zone2', A, ['GAL_ZONE1', 'GAL_ZONE2'], 6),
     fight('gallery-p2', A, { barks: ['gal-p2'] }),
     travel('gallery-to-zone3', A, ['GAL_ZONE2', 'GAL_ZONE3'], 6),
@@ -45,10 +46,10 @@ export const gallery: AreaScript = {
     fight('gallery-bonus', A, { barks: ['gal-bonus'] }),
     checkpoint('gallery-checkpoint', A, 'practice-gallery-complete', { objective: 'reach-observatory', restoreFocus: true }),
     travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5, {
-      barks: ['gal-5', 'gal-6', 'gal-7'],
+      barks: ['gal-5', 'gal-6'],
       chase: [
         { at: 0.2, target: target('gallery-exit-gem-1', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
-        { at: 0.7, target: target('gallery-exit-gem-2', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
+        { at: 0.95, target: target('gallery-exit-gem-2', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
       ],
     }),
   ],
