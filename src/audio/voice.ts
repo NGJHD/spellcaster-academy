@@ -76,6 +76,15 @@ export function castVoices<V extends { name: string; lang: string }>(voices: rea
   return cast;
 }
 
+/**
+ * Text as it should be spoken. Words in CAPITALS (subtitle emphasis like "A SNAPVINE!") are read by
+ * speech engines as abbreviations, letter by letter (owner bug), so they are spoken in lower case.
+ * Dashes and ellipses become short pauses.
+ */
+export function spokenText(text: string): string {
+  return text.replace(/\b[A-Z]{2,}\b/g, (w) => w.toLowerCase()).replace(/[—…]/g, ', ');
+}
+
 /** Installs browser speech synthesis (Web Speech API). `settings()` supplies on/off and volume. */
 export function installBrowserVoice(settings: () => { enabled: boolean; volume: number }): void {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -92,7 +101,7 @@ export function installBrowserVoice(settings: () => { enabled: boolean; volume: 
       const s = settings();
       if (!s.enabled || s.volume <= 0) return false;
       synth.cancel();
-      const u = new SpeechSynthesisUtterance(text.replace(/[—…]/g, ', '));
+      const u = new SpeechSynthesisUtterance(spokenText(text));
       const c = CASTING[speaker];
       const v = cast[speaker];
       if (v) u.voice = v;

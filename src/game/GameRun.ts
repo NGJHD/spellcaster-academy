@@ -7,7 +7,7 @@ import { audio } from '../audio/AudioManager';
 import { voice } from '../audio/voice';
 import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue';
 import { strings } from '../content/strings';
-import { FROST_SEC, isShielded, setPhase, type TargetRuntime } from '../enemies/EnemyBrain';
+import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
@@ -206,8 +206,16 @@ interface QueuedLine {
   readonly at: number;
 }
 
+/** Screen distance from centre (1 = edge) beyond which the camera turns to bring words into view. */
+const FRAME_EDGE = 0.62;
+/** Strongest lean towards off-centre words (fraction of the way from the rail's look point). */
+const FRAME_MAX = 0.75;
+const LOCKED_FRAMING = 0.14;
+
 /** Off-screen mobs move this much faster until they are in view. */
 const RUSH_SPEED = 3.5;
+/** Off-screen mobs move at least this fast (metres per second) until they are in view. */
+const RUSH_MIN_MPS = 7;
 /** Score for catching a gem (before the combo multiplier). */
 const GEM_SCORE = 40;
 
@@ -419,14 +427,32 @@ export class GameRun {
   }
 
   /** Target the camera should gently frame (the locked target), if any. */
-  framingTarget(out: Vector3): boolean {
+  /**
+   * Where the camera should lean, and how strongly (0 = not at all). Owner (2026-10-07): every word
+   * must be on screen, never stuck in a corner. A locked word is framed gently; when any word sits near
+   * the edge or off screen, the camera turns towards the middle of all the words in view, harder the
+   * further out it is.
+   */
+  framingTarget(out: Vector3): number {
+    const words = [...this.allTargets()].filter((t) => t.phase === 'active' && !t.defeated && !t.spawn.follow);
+    let worst = 0;
+    for (const t of words) worst = Math.max(worst, Math.min(this.centralityOf(t.id), 2));
+    if (worst > FRAME_EDGE && words.length > 0) {
+      out.set(0, 0, 0);
+      for (const t of words) {
+        out.x += t.position.x;
+        out.y += t.position.y + (t.spawn.labelHeight ?? 1) * 0.5;
+        out.z += t.position.z;
+      }
+      out.multiplyScalar(1 / words.length);
+      return Math.min(FRAME_MAX, 0.25 + (worst - FRAME_EDGE) * 0.8);
+    }
     const id = this.typing.lockedId;
-    if (!id) return false;
-    const t = this.findTarget(id);
-    if (!t) return false;
+    const t = id ? this.findTarget(id) : undefined;
+    if (!t) return 0;
     out.copy(t.position);
     out.y += (t.spawn.labelHeight ?? 1) * 0.5;
-    return true;
+    return LOCKED_FRAMING;
   }
 
   /** Every live target runner: the encounter, a bonus window, a chase and a spark gem. */
@@ -1096,6 +1122,8 @@ export class GameRun {
       if (runner.dispel(v.id)) {
         this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 25;
+        // Make it obvious the spell took this word (owner: "the 3rd disappeared on its own").
+        this.popup('CHAIN SPARK!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
       }
     }
     if (!this.flags.has('seen-chain')) {
@@ -1116,6 +1144,7 @@ export class GameRun {
       if (runner.dispel(v.id)) {
         this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 40;
+        this.popup('STARFALL!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
       }
     }
     if (!this.flags.has('seen-starfall')) {
@@ -1249,7 +1278,9 @@ export class GameRun {
       const moving = m !== undefined && m.kind !== 'static' && !t.atPathEnd && !t.defeated && (t.phase === 'active' || t.phase === 'appearing');
       const off = moving && this.centralityOf(t.id) > 1.02;
       t.offscreenSec = off ? t.offscreenSec + dt : 0;
-      t.rush = t.offscreenSec > 0.4 ? RUSH_SPEED : 1;
+      // Fast enough that even slow armour climbing a long path is in view within about 2 seconds.
+      const speed = m && m.kind !== 'static' ? m.speed : 1;
+      t.rush = t.offscreenSec > 0.4 ? Math.max(RUSH_SPEED, RUSH_MIN_MPS / Math.max(0.1, speed)) : 1;
     }
   }
 
@@ -1317,11 +1348,7 @@ export class GameRun {
     const boss = bossForEncounter(def.id, this.level.bosses);
     if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
     this.startSpeedRound(def);
-    // A spark gem left over from travel flies off: encounters have their own words.
-    const gem = this.gem;
-    if (gem && !(this.typing.lockedId !== null && gem.targets.has(this.typing.lockedId))) {
-      for (const t of gem.targets.values()) if (!t.defeated && t.phase !== 'gone') setPhase(t, 'leaving');
-    }
+    // A spark gem left over from travel stays until typed (owner: a word never disappears).
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.resetEncounterTyping();
   }

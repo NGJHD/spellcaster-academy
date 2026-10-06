@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { castVoices } from './voice';
+import { castVoices, spokenText } from './voice';
 
 const v = (name: string, lang = 'en-US') => ({ name, lang });
 
@@ -28,5 +28,13 @@ describe('voice casting', () => {
     const cast = castVoices([v('Microsoft Hedda', 'de-DE'), v('Microsoft Ryan', 'en-GB')]);
     expect(cast.orin?.name).toContain('Ryan');
     expect(Object.values(cast).every((x) => x?.lang.startsWith('en'))).toBe(true);
+  });
+});
+
+describe('spoken text', () => {
+  it('speaks capitalised emphasis as a word, not letter by letter (owner: S-N-A-P-V-I-N-E)', () => {
+    expect(spokenText('A SNAPVINE! Grow the bridge')).toBe('A snapvine! Grow the bridge');
+    expect(spokenText("It's on FIRE.")).toBe("It's on fire.");
+    expect(spokenText('Wait… then go — now')).toBe('Wait,  then go ,  now');
   });
 });

@@ -7,7 +7,6 @@ import { labelElements } from '../ui/EnemyWordLabel';
 import { popupElements } from '../ui/Juice';
 
 /** How far the camera eases its gaze toward the locked target (subtle combat framing). */
-const FRAMING_WEIGHT = 0.14;
 const FRAMING_RATE = 3;
 const SHAKE_AMPLITUDE = 0.045;
 const KICK_DISTANCE = 0.06;
@@ -65,8 +64,8 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
 
     const pose = run.director.pose;
     camera.position.copy(pose.position);
-    const hasTarget = run.framingTarget(framing);
-    const goal = hasTarget ? FRAMING_WEIGHT : 0;
+    const goal = run.framingTarget(framing);
+    const hasTarget = goal > 0;
     blend.current += (goal - blend.current) * (1 - Math.exp(-FRAMING_RATE * Math.min(delta, 0.1)));
     look.copy(pose.lookAt);
     if (blend.current > 0.001 && hasTarget) look.lerp(framing, blend.current);
