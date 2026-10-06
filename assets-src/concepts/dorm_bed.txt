@@ -1,0 +1,2 @@
+seed: 63
+prompt: A cosy wooden four-poster student bed with a patchwork quilt, two pillows and a small wooden chest at its foot, fantasy academy dormitory style, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

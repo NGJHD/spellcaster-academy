@@ -1,0 +1,2 @@
+seed: 62
+prompt: A large sailing ship folded entirely from white paper like origami, crisp folded hull, tall folded paper sails, a small lantern at the bow, three-quarter view, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

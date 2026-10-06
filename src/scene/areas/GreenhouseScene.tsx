@@ -1,7 +1,8 @@
 /** PLACEHOLDER Enchanted Greenhouse (§14A.21). Local coordinates; see src/level/areas/greenhouse.ts. */
+import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { AdditiveBlending, CatmullRomCurve3, Quaternion, TubeGeometry, Vector3, type Group, type Mesh } from 'three';
+import { useEffect, useMemo, useRef } from 'react';
+import { AdditiveBlending, CatmullRomCurve3, Quaternion, Mesh, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
 import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } from '../../level/areas/greenhouse';
 import { beatIndexOf } from '../../level/level1Route';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -264,24 +265,38 @@ const SNAPVINE_ROOT: [number, number, number] = [5, -1, -23.5];
 const aim = new Vector3();
 const SNAPVINE_COIL: [number, number, number] = [3.4, 3.1, -24.5];
 
+const SNAPVINE_URL = `${import.meta.env.BASE_URL}assets/creatures/snapvine_head.glb`;
+/** The model is 1.6 m tall with its jaws at the top; this scale makes the jaws about 2 m across. */
+const SNAPVINE_SCALE = 2.2;
+/** Height of the jaws above the model's own base, after scaling. */
+const SNAPVINE_JAW = 1.15 * SNAPVINE_SCALE;
+const toCamera = new Vector3();
+
 /**
- * PLACEHOLDER giant snapvine (LD-0 Snapvine Chase): a thick stem rising out of the channel with a
- * snapping flower-jaw head. It sways in a coil, then lunges at the spot the camera has just left and
- * snaps shut on empty air (scripted, never a hit). Replaceable with a rigged GLB.
+ * The giant snapvine (LD-0 Snapvine Chase): the AI-built snapvine (Flux2 → TRELLIS.2 → Blender, rigged
+ * with Idle and Attack clips) on a long stem rising out of the channel. It sways in a coil, then
+ * lunges at the spot the camera has just left and snaps shut on empty air (scripted, never a hit).
  */
 function Snapvine() {
   const root = useRef<Group>(null);
   const head = useRef<Group>(null);
-  const upper = useRef<Group>(null);
-  const lower = useRef<Group>(null);
   const stem = useRef<Mesh>(null);
   const time = useRef(0);
+  const striking = useRef(false);
+  const { scene, animations } = useGLTF(SNAPVINE_URL);
+  const { actions } = useAnimations(animations, head);
   const headPos = useMemo(() => new Vector3(...SNAPVINE_COIL), []);
   const goal = useMemo(() => new Vector3(), []);
   const curve = useMemo(
     () => new CatmullRomCurve3([new Vector3(...SNAPVINE_ROOT), new Vector3(5.2, 1.2, -24), new Vector3(4.2, 2.6, -24.5), headPos.clone()]),
     [headPos],
   );
+  useEffect(() => {
+    scene.traverse((o: Object3D) => {
+      if (o instanceof Mesh) o.castShadow = true;
+    });
+    actions.Idle?.reset().play();
+  }, [scene, actions]);
   useFrame((_, delta) => {
     const g = root.current;
     const run = getRun();
@@ -295,71 +310,50 @@ function Snapvine() {
     const lunge = SNAPVINE_LUNGES[id];
     const p = lunge ? run.beatProgress() : 0;
     // Wind up (0–0.25), strike (0.25–0.55), snap and recoil (0.55–1).
-    let bite: number;
+    const strike = !!lunge && p > 0.2 && p < 0.9;
     if (lunge && p > 0.25 && p < 0.9) {
       const u = Math.min(1, (p - 0.25) / 0.3);
       goal.set(SNAPVINE_COIL[0] + (lunge[0] - SNAPVINE_COIL[0]) * u, SNAPVINE_COIL[1] + (lunge[1] - SNAPVINE_COIL[1]) * u, SNAPVINE_COIL[2] + (lunge[2] - SNAPVINE_COIL[2]) * u);
-      bite = p < 0.55 ? 1 : Math.max(0, 1 - (p - 0.55) * 8);
     } else {
       const coil = lunge && p <= 0.25 ? 1 + p * 2 : 1;
       goal.set(SNAPVINE_COIL[0] + Math.sin(t * 1.3) * 0.4 * coil, SNAPVINE_COIL[1] + Math.sin(t * 2.1) * 0.25, SNAPVINE_COIL[2] - (lunge ? p * 1.2 : 0));
-      bite = 0.6 + Math.sin(t * 3.2) * 0.3;
+    }
+    if (strike !== striking.current) {
+      striking.current = strike;
+      const to = strike ? actions.Attack : actions.Idle;
+      const from = strike ? actions.Idle : actions.Attack;
+      if (to) to.reset().fadeIn(0.15).play();
+      from?.fadeOut(0.15);
     }
     headPos.lerp(goal, 1 - Math.exp(-(lunge && p > 0.25 ? 14 : 4) * dt));
-    if (head.current) {
-      head.current.position.copy(headPos);
-      head.current.lookAt(lunge ? aim.set(lunge[0] - 2, lunge[1], lunge[2] + 2) : run.director.pose.position);
+    const h = head.current;
+    if (h) {
+      // The model stands on its base; the jaws sit at headPos. It turns (never tilts) to face its prey.
+      h.position.set(headPos.x, headPos.y - SNAPVINE_JAW, headPos.z);
+      const look = lunge ? aim.set(lunge[0] - 2, lunge[1], lunge[2] + 2) : toCamera.copy(run.director.pose.position);
+      h.rotation.y = Math.atan2(look.x - headPos.x, look.z - headPos.z);
     }
-    if (upper.current) upper.current.rotation.x = -0.15 - bite * 0.55;
-    if (lower.current) lower.current.rotation.x = 0.15 + bite * 0.45;
-    // Rebuild the stem along a curve from the roots to the head.
+    // Rebuild the stem along a curve from the roots to the model's base.
     const pts = curve.points;
-    pts[3]?.copy(headPos);
-    pts[2]?.set((SNAPVINE_ROOT[0] + headPos.x) * 0.5 + 0.8, (SNAPVINE_ROOT[1] + headPos.y) * 0.6 + 0.8, (SNAPVINE_ROOT[2] + headPos.z) * 0.5);
+    pts[3]?.set(headPos.x, headPos.y - SNAPVINE_JAW + 0.2, headPos.z);
+    pts[2]?.set((SNAPVINE_ROOT[0] + headPos.x) * 0.5 + 0.8, (SNAPVINE_ROOT[1] + headPos.y) * 0.5, (SNAPVINE_ROOT[2] + headPos.z) * 0.5);
     if (stem.current) {
       stem.current.geometry.dispose();
-      stem.current.geometry = new TubeGeometry(curve, 24, 0.32, 10, false);
+      stem.current.geometry = new TubeGeometry(curve, 24, 0.3, 12, false);
     }
   });
   return (
     <group ref={root} visible={false}>
       <mesh ref={stem} material={MAT.stem} castShadow>
-        <tubeGeometry args={[curve, 24, 0.32, 10, false]} />
+        <tubeGeometry args={[curve, 24, 0.3, 12, false]} />
       </mesh>
-      <group ref={head} scale={1.4}>
-        {/* Two jaws of thick burgundy petals with a glowing throat. */}
-        <group ref={upper}>
-          <mesh position={[0, 0.12, 0.45]} scale={[1, 0.45, 1.2]} material={MAT.petal}>
-            <sphereGeometry args={[0.55, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          </mesh>
-          {[-0.3, 0, 0.3].map((x) => (
-            <mesh key={x} position={[x, 0.08, 0.95]} rotation={[Math.PI, 0, 0]} material={MAT.thorn}>
-              <coneGeometry args={[0.06, 0.22, 8]} />
-            </mesh>
-          ))}
-        </group>
-        <group ref={lower}>
-          <mesh position={[0, -0.12, 0.45]} rotation={[Math.PI, 0, 0]} scale={[1, 0.4, 1.2]} material={MAT.petal}>
-            <sphereGeometry args={[0.55, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          </mesh>
-          {[-0.22, 0.22].map((x) => (
-            <mesh key={x} position={[x, -0.06, 0.95]} material={MAT.thorn}>
-              <coneGeometry args={[0.06, 0.2, 8]} />
-            </mesh>
-          ))}
-        </group>
-        <mesh position={[0, 0, 0.2]} material={MAT.amberGlow}>
-          <sphereGeometry args={[0.25, 16, 12]} />
-        </mesh>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <mesh key={i} position={[Math.cos(i * 1.26) * 0.5, Math.sin(i * 1.26) * 0.5, -0.2]} rotation={[0, 0, i * 1.26]} scale={[1, 0.35, 0.12]} material={MAT.leaf}>
-            <sphereGeometry args={[0.45, 12, 8]} />
-          </mesh>
-        ))}
+      <group ref={head} scale={SNAPVINE_SCALE}>
+        <primitive object={scene} />
       </group>
     </group>
   );
 }
+useGLTF.preload(SNAPVINE_URL);
 
 const PILLAR_BEAT = beatIndexOf('greenhouse-anchor-pillar');
 /** Where the three anchor beams meet: high over the Moon Tower, seen through the glass roof. */

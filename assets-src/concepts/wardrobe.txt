@@ -1,0 +1,2 @@
+seed: 64
+prompt: A tall old carved wooden wardrobe with two doors and brass handles, a wizard robe hanging on the side, fantasy academy style, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

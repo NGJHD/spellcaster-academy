@@ -11,7 +11,7 @@ import { Mira, Student } from '../props';
 
 const W = 6;
 const H = 9;
-const ZONE_ENCOUNTERS = ['gallery-p1', 'gallery-p2', 'gallery-p3'] as const;
+const ZONE_ENCOUNTERS = ['gallery-p1', 'gallery-p2'] as const;
 
 export function GalleryScene() {
   const mira: [number, number, number] = [

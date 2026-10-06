@@ -1,7 +1,7 @@
 /**
  * LD-15 as revised by LEVEL1_DESIGN LD-0: the Practice Gallery is a target-range arcade. Targets pop
- * up spinning, Pip commentates like a sports announcer, every zone ends with a medal fanfare, and an
- * optional bonus speed round keeps a local best score to beat on replay.
+ * up spinning, Pip commentates like a sports announcer, and every zone ends with a medal fanfare.
+ * Two short zones only (owner, 2026-10-07: the gallery felt draggy).
  * Practice Gallery. Local layout (origin GALLERY_ORIGIN): long hall along −Z,
  * x ∈ [−6, 6], z ∈ [−62, 2]; encounter zones at z = −14, −32, −50.
  */
@@ -13,7 +13,7 @@ const A = 'practice-gallery';
 export const GALLERY_ORIGIN: Vec3 = [680, 0, 0];
 const P = origin(GALLERY_ORIGIN);
 
-export const GALLERY_ZONES = [-14, -32, -50] as const;
+export const GALLERY_ZONES = [-14, -32] as const;
 export const MIRA_GALLERY_POSITION = P(-4.2, 0, -6.5);
 
 /** Arcade targets pop up spinning in a burst of sparks. */
@@ -40,12 +40,9 @@ export const gallery: AreaScript = {
     fight('gallery-p1', A, { barks: ['gal-2', 'gal-p1'] }),
     travel('gallery-to-zone2', A, ['GAL_ZONE1', 'GAL_ZONE2'], 6),
     fight('gallery-p2', A, { barks: ['gal-p2'] }),
-    travel('gallery-to-zone3', A, ['GAL_ZONE2', 'GAL_ZONE3'], 6),
-    fight('gallery-p3', A, { barks: ['gal-p3'] }),
-    // Optional bonus round: six pop-up targets against the clock, with a best score to beat.
-    fight('gallery-bonus', A, { barks: ['gal-bonus'] }),
+    // Owner (2026-10-07): the gallery felt draggy, so two short zones and straight on to the tower.
     checkpoint('gallery-checkpoint', A, 'practice-gallery-complete', { objective: 'reach-observatory', restoreFocus: true }),
-    travel('gallery-to-tower-doors', A, ['GAL_ZONE3', 'GAL_EXIT'], 5, {
+    travel('gallery-to-tower-doors', A, ['GAL_ZONE2', 'GAL_ZONE3', 'GAL_EXIT'], 6, {
       barks: ['gal-5', 'gal-6'],
       chase: [
         { at: 0.2, target: target('gallery-exit-gem-1', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
@@ -62,8 +59,8 @@ export const gallery: AreaScript = {
         {
           id: 'accuracy',
           sequential: true,
-          rule: { kind: 'qualify', needed: 4, minAccuracy: 0.9, extra: practiceDummy('p1-extra', 0, -14.5) },
-          targets: [-4, -2, 0, 2, 4].map((x, i) => practiceDummy(`p1-dummy-${i + 1}`, x, i % 2 === 0 ? -14 : -15)),
+          rule: { kind: 'qualify', needed: 3, minAccuracy: 0.9, extra: practiceDummy('p1-extra', 0, -14.5) },
+          targets: [-3, 0, 3].map((x, i) => practiceDummy(`p1-dummy-${i + 1}`, x, i % 2 === 0 ? -14 : -15)),
         },
       ],
     },
@@ -97,45 +94,6 @@ export const gallery: AreaScript = {
               variant: 'practice',
             }),
           ],
-        },
-      ],
-    },
-    {
-      id: 'gallery-bonus',
-      areaId: A,
-      kind: 'interaction',
-      optionalPrompt: 'gallery-bonus',
-      speedRound: { sec: 12 },
-      waves: [
-        {
-          id: 'bonus-1',
-          targets: [
-            { ...practiceDummy('bonus-target-1', -4, -49, [len(3, 5)]) },
-            { ...practiceDummy('bonus-target-2', 3.5, -51, [len(3, 5)]), delaySec: 0.3 },
-            { ...practiceDummy('bonus-target-3', -1.5, -52, [len(3, 5)]), delaySec: 0.9 },
-          ],
-        },
-        {
-          id: 'bonus-2',
-          targets: [
-            { ...practiceDummy('bonus-target-4', 1.5, -48.5, [len(3, 5)]) },
-            { ...practiceDummy('bonus-target-5', -3, -51.5, [len(3, 5)]), delaySec: 0.3 },
-            { ...practiceDummy('bonus-target-6', 4, -50, [len(3, 5)]), delaySec: 0.9 },
-          ],
-        },
-      ],
-      barks: [{ when: { on: 'complete' }, line: 'gal-bonus-done' }],
-    },
-    {
-      id: 'gallery-p3',
-      areaId: A,
-      kind: 'combat',
-      waves: [
-        {
-          id: 'streak',
-          sequential: true,
-          rule: { kind: 'streak', needed: 5, assistAfterBreaks: 3, extra: practiceDummy('p3-extra', 0, -50.5) },
-          targets: [-3, -1.5, 0, 1.5, 3].map((x, i) => practiceDummy(`p3-dummy-${i + 1}`, x, -50 - (i % 2))),
         },
       ],
     },

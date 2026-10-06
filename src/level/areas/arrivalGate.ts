@@ -5,9 +5,12 @@
  * World layout: the arrival path runs along +Z to the gate wall at z = 20.
  */
 import type { TargetSpawn } from '../levelTypes';
-import { checkpoint, fade, fight, marker, reveal, target, travel, type AreaScript } from './builders';
+import { checkpoint, fade, fight, hold, marker, reveal, target, travel, type AreaScript } from './builders';
 
 const A = 'arrival-gate';
+
+/** Where the Warden hovers to greet the apprentice just inside the gate (in view of ARRIVAL_WARD_FRACTURE). */
+export const WARDEN_HELLO_POSITION = [0, 2.4, 6] as const;
 
 export const CRYSTAL_POSITIONS = {
   left: [-3.6, 2.2, 21.3],
@@ -88,6 +91,21 @@ export const arrivalGate: AreaScript = {
     fight('arrival-crystals', A, { barks: ['open-2', 'open-3'], objective: 'wake-crystals' }),
     travel('arrival-gate-passage', A, ['ARRIVAL_GATE_PIP', 'ARRIVAL_GATE_THRESHOLD', 'ARRIVAL_WARD_FRACTURE'], 5, {
       reducedMotion: 'glide',
+    }),
+    // Owner (2026-10-07): meet the Warden before the crack. It floats down, says hello, the player
+    // types "hi" back, and it waves, then dashes to the tower as the ward cracks.
+    hold('arrival-warden-hello', A, 'ARRIVAL_WARD_FRACTURE', 2.5, {
+      barks: ['warden-hello', 'pip-warden'],
+      chase: [
+        {
+          at: 0.1,
+          target: marker('warden-hi', WARDEN_HELLO_POSITION, 'hi', {
+            labelHeight: 0.4,
+            defeatFx: { kind: 'burst', scale: 0.8, color: '#ffe08a' },
+            defeatBark: 'warden-wave',
+          }),
+        },
+      ],
     }),
     // The ward fractures: thunder, falling dome pieces, the Warden silhouetted on the tower.
     reveal('arrival-ward-fracture', A, 'ARRIVAL_WARD_FRACTURE', ['ACADEMY_TOWER_TOP'], 1.6, 6, {

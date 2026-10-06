@@ -230,12 +230,6 @@ export class EncounterRunner {
     this.stateTime = 0;
   }
 
-  /** Optional interaction skipped with Enter. */
-  skip(): void {
-    for (const t of this.targets.values()) setPhase(t, 'leaving');
-    this.state = 'complete';
-  }
-
   private beginWave(events: EncounterEvent[]): void {
     const wave = this.wave;
     if (!wave) {

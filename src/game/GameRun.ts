@@ -944,10 +944,6 @@ export class GameRun {
       this.skipBark();
       return;
     }
-    if (intent.kind === 'enter' && this.encounter?.def.optionalPrompt && this.encounter.state !== 'complete') {
-      this.skipOptionalEncounter();
-      return;
-    }
 
     const hasTargets = this.typing.lockedId !== null || this.candidateCount() > 0;
     if (!hasTargets) return;
@@ -1470,21 +1466,6 @@ export class GameRun {
       this.progress.resumeWaveIndex = 0;
     }
     this.saveNow();
-    if (beatId) this.director.completeGatedBeat(beatId);
-  }
-
-  private skipOptionalEncounter(): void {
-    const runner = this.encounter;
-    if (!runner) return;
-    runner.skip();
-    if (this.speed) this.clearSpeedRound();
-    const beatId = this.encounterBeatId;
-    this.encounter = null;
-    this.encounterBeatId = null;
-    this.resetEncounterTyping();
-    patchRunUi({ prompt: null });
-    this.refreshTargets();
-    audio.playSfx('ui-select');
     if (beatId) this.director.completeGatedBeat(beatId);
   }
 

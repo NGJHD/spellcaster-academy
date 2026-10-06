@@ -5,7 +5,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { BackSide, type Group, type MeshBasicMaterial } from 'three';
-import { CRYSTAL_POSITIONS } from '../../level/areas/arrivalGate';
+import { CRYSTAL_POSITIONS, WARDEN_HELLO_POSITION } from '../../level/areas/arrivalGate';
 import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../level/areas/courtyard';
 import { CHEST_POSITION, MIRA_EAST_HALL_END, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
 import { beatIndexOf } from '../../level/level1Route';
@@ -47,12 +47,23 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
       <WardDome celebration={celebration} />
       {/* The seam lingers faintly over the celebration (LD-21). */}
       {celebration && <Seam points={[[-60, 95, -150], [-25, 108, -160], [0, 100, -165], [30, 112, -158], [65, 102, -148]]} radius={0.5} strength={0.55} />}
-      {/* LD-0: the Warden silhouetted on the tower against the lightning as the ward fractures. */}
+      {/* The Warden floats down to greet the apprentice, then waits for the "hi". */}
+      <WardenCameo
+        beatId="arrival-warden-hello"
+        scale={1.1}
+        keys={[
+          { t: 0, position: [0, 9, -2] },
+          { t: 0.35, position: [...WARDEN_HELLO_POSITION] },
+          { t: 1, position: [...WARDEN_HELLO_POSITION], arm: 0.6 },
+        ]}
+      />
+      {/* LD-0: the Warden dashes up and holds the cracking ward from the tower top. */}
       <WardenCameo
         beatId="arrival-ward-fracture"
         scale={1.5}
         keys={[
-          { t: 0, position: [0, 38, -57] },
+          { t: 0, position: [0, 4, 6] },
+          { t: 0.12, position: [0, 38, -57] },
           { t: 0.3, position: [0, 44, -57], arm: 1 },
           { t: 0.7, position: [0, 44, -57], arm: 1 },
           { t: 1, position: [0, 52, -62] },

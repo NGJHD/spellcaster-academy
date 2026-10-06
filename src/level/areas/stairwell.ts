@@ -104,8 +104,9 @@ export const stairwell: AreaScript = {
     }),
     fight('stair-3-guard', A),
     checkpoint('stairwell-checkpoint', A, 'lower-stairwell-complete', { barks: ['st-done'] }),
+    // The stairwell is narrow: the gem flies close, so it is never inside the wall (owner: "ivy" on a bare wall).
     travel('stairwell-to-bottom', A, ['ST_SLIDE_3_END', 'ST_SLIDE_D', 'ST_BOTTOM'], 6, {
-      chase: [{ at: 0.15, target: target('stair-exit-gem', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
+      chase: [{ at: 0.15, target: target('stair-exit-gem', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 2.2, side: 0.35, up: 0.15 }, optional: true, labelHeight: 0.28 }) }],
     }),
   ],
   encounters: [

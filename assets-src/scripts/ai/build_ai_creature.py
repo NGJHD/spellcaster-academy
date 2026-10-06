@@ -71,6 +71,12 @@ CONFIG = {
     "forge_hammer": dict(out="forge_hammer", folder="props", rig="none", defeat="vanish", height=14, tris=20000, tex=1024),
     "citadel_tower": dict(out="citadel_tower", folder="props", rig="none", defeat="vanish", height=60, tris=16000, tex=1024),
     "journal_lectern": dict(out="journal_lectern", folder="props", rig="none", defeat="vanish", height=1.6, tris=10000, tex=1024),
+    # 2026-10-07 playtest fixes (static props).
+    "giant_tortoise": dict(out="giant_tortoise", folder="props", rig="none", defeat="vanish", height=4.5, fit="width", width=9, tris=30000, tex=2048),
+    "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
+    "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),
+    "wardrobe": dict(out="wardrobe", folder="props", rig="none", defeat="vanish", height=2.2, tris=10000, tex=1024),
+    "beacon_brazier": dict(out="beacon_brazier", folder="props", rig="none", defeat="vanish", height=2.6, tris=12000, tex=1024, metallic=0.5, roughness=0.5),
     "snapvine": dict(out="snapvine_head", height=1.6, tris=30000, tex=1024, rig="rigid", defeat="vanish"),
 }
 cfg = CONFIG[NAME]
