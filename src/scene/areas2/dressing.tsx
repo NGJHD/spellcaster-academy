@@ -158,7 +158,6 @@ export function GalleryDressing() {
           { id: 'marble_bust_01', at: [-6, 0, 8], h: 1.4 },
           { id: 'ornate_mirror_01', at: [13, 1, -8], h: 2.4, r: -Math.PI / 2 },
           { id: 'fancy_picture_frame_02', at: [-15.3, 3, -8], h: 2, r: Math.PI / 2 },
-          { id: 'vintage_grandfather_clock_01', at: [6, 0, 10], h: 2.4, r: -2.6 },
         ]}
       />
     </Restorable>

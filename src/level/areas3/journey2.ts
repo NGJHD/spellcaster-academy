@@ -279,7 +279,13 @@ export const gallery3: AreaScript = {
         {
           id: 'sculptures',
           sequential: true,
-          targets: [colour('sculpt-fountain', Y(-6, 2, -2), 'fountain', 'l3-sculpt-1'), colour('sculpt-carousel', Y(6, 2.4, -4), 'carousel', 'l3-sculpt-2'), colour('sculpt-tower', Y(-9, 4, -12), 'tower', 'l3-sculpt-3')],
+          // Required words that never leave (they were optional and left on their own, so the speed
+          // round asked for 0 words). Each restores one stolen treasure of Asterfall.
+          targets: [
+            colour('sculpt-fountain', Y(-6, 2, -2), 'fountain', 'l3-sculpt-1', { optional: false, leaveAfterSec: undefined }),
+            colour('sculpt-bell', Y(6, 3.4, -4), 'bell', 'l3-sculpt-2', { optional: false, leaveAfterSec: undefined }),
+            colour('sculpt-clock', Y(-9, 3, -12), 'clock', 'l3-sculpt-3', { optional: false, leaveAfterSec: undefined }),
+          ],
         },
       ],
       onComplete: { reward: { starPage: 'memory-7' } },

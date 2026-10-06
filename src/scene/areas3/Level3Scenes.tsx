@@ -19,14 +19,17 @@ import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop } from '../Prop';
+import { moltenInk, useMoltenFlow } from '../molten';
+import { worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
-const scorchedRock = () => metreSurface('scorched', 5);
-const redInk = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.2 });
+/** Molten ink: cooled plates with glowing seams, flowing (see molten.ts). The ink stream in the forge stays a plain glow. */
+const redInk = moltenInk();
+const inkStream = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.6 });
 const blackIron = () => metreSurface('iron', 3, { metalness: 0.45 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 const paper = new MeshStandardMaterial({ color: '#d8d2c4', roughness: 0.9 });
@@ -121,14 +124,13 @@ function AshGround({ x, z, y = 0 }: { x: readonly [number, number]; z: readonly 
 // ---------- Rift Shore ----------
 
 export function ShoreScene() {
+  useMoltenFlow();
   return (
     <group position={SHORE_ORIGIN}>
       <AshGround x={[-220, 220]} z={[-4, 260]} />
       <AshGround x={[-220, 220]} z={[-260, -16]} />
       {/* The river of molten red ink */}
-      <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
-        <planeGeometry args={[440, 12]} />
-      </mesh>
+      <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(440, 12)} />
       {/* Stepping stones written across the ink */}
       {STONES.map((s, i) => (
         <Written key={i} flag={`l3-stone-${i + 1}`}>
@@ -164,6 +166,19 @@ export function ShoreScene() {
 
 // ---------- Cinderwood ----------
 
+function DeerFallback() {
+  return (
+    <>
+      <Box position={[0, 1.1, 0]} size={[0.5, 0.6, 1.4]} material={MAT.fur} />
+      <Box position={[0, 1.6, 0.75]} size={[0.3, 0.6, 0.3]} material={MAT.fur} />
+      <Box position={[0, 1.9, 0.95]} size={[0.25, 0.25, 0.45]} material={MAT.fur} />
+      {[[-0.18, 0.5], [0.18, 0.5], [-0.18, -0.5], [0.18, -0.5]].map(([x, z], i) => (
+        <Box key={i} position={[x ?? 0, 0.45, z ?? 0]} size={[0.1, 0.9, 0.1]} material={MAT.fur} />
+      ))}
+    </>
+  );
+}
+
 export function CinderwoodScene() {
   const deer = sub(DEER, WOOD_ORIGIN);
   const tortoise = sub(TORTOISE, WOOD_ORIGIN);
@@ -183,15 +198,14 @@ export function CinderwoodScene() {
         return <BurntTree key={i} position={[side * (5 + ((i * 7) % 14)), 0, 10 - i * 4.5]} height={8 + ((i * 5) % 6)} seed={i + 2} />;
       })}
       <AshRocks spots={[[-7, -8, 1.6], [8, -22, 2.4], [-9, -44, 3], [10, -58, 2], [-6, -74, 2.8], [7, -92, 3.4]]} />
-      {/* The half-drawn deer: grey outline until restored */}
+      {/* The half-drawn deer: grey until its words restore it (AI-pipeline model; boxes until it loads) */}
       <Restorable flag="l3-deer-free" burning={false}>
         <group position={deer}>
-          <Box position={[0, 1.1, 0]} size={[0.5, 0.6, 1.4]} material={MAT.fur} />
-          <Box position={[0, 1.6, 0.75]} size={[0.3, 0.6, 0.3]} material={MAT.fur} />
-          <Box position={[0, 1.9, 0.95]} size={[0.25, 0.25, 0.45]} material={MAT.fur} />
-          {[[-0.18, 0.5], [0.18, 0.5], [-0.18, -0.5], [0.18, -0.5]].map(([x, z], i) => (
-            <Box key={i} position={[x ?? 0, 0.45, z ?? 0]} size={[0.1, 0.9, 0.1]} material={MAT.fur} />
-          ))}
+          <ModelBoundary fallback={<DeerFallback />}>
+            <Suspense fallback={<DeerFallback />}>
+              <Prop id="erased_deer" position={[0, 0, 0]} height={2.1} rotationY={Math.PI / 2} />
+            </Suspense>
+          </ModelBoundary>
         </group>
       </Restorable>
       {/* The great tortoise, half rubbed out until its words restore it; it then carries the party */}
@@ -280,6 +294,7 @@ function FrostBubble({ flag }: { flag: string }) {
 }
 
 export function InkfallScene() {
+  useMoltenFlow();
   return (
     <>
       <group position={FALLS_ORIGIN}>
@@ -287,8 +302,8 @@ export function InkfallScene() {
         {[[40, 0, -30], [30, -30, -60], [20, -60, -88], [0, -120, -150]].map(([y, z0, z1], i) => (
           <group key={i}>
             <Slab x={[-6, 6]} y={[(y ?? 0) - 0.4, (y ?? 0) - 0.2]} z={[z1 ?? 0, z0 ?? 0]} material={redInk} />
-            <Slab x={[-14, -6]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={scorchedRock()} />
-            <Slab x={[6, 14]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={scorchedRock()} />
+            <Slab x={[-14, -6]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={MAT.rockGround} />
+            <Slab x={[6, 14]} y={[-5, (y ?? 0) + 2]} z={[z1 ?? 0, z0 ?? 0]} material={MAT.rockGround} />
             {[-1, 1].map((s) => (
               <Fire key={s} position={[s * 7, (y ?? 0) + 2, ((z0 ?? 0) + (z1 ?? 0)) / 2]} size={3} count={4} spread={14} light={i === 1 && s < 0} />
             ))}
@@ -322,23 +337,73 @@ export function MarginScene() {
   return (
     <group position={MARGIN_ORIGIN}>
       <MarginDressing />
-      {/* Upside-down shelves hanging from the red sky */}
-      {Array.from({ length: 12 }, (_, i) => {
+      {/* Owner (2026-10-07): "why is there a library in the Unwriter's world? … needs a serious dose of
+          realistic rendering". This is Asterfall's own library, erased: a roofless ruined hall of
+          marble and stone under the fire sky, its bookcases full of blank books, broken by a chasm
+          over burning ink that the apprentice writes walkways across. */}
+      {/* Marble floors: the entrance (z 2…14) and the heart of the hall (z −24…−48) */}
+      <Slab x={[-9, 9]} y={[-0.4, 0]} z={[2, 16]} material={MAT.marble} />
+      <Slab x={[-9, 9]} y={[-0.4, 0]} z={[-48, -24]} material={MAT.marble} />
+      {/* Broken edges of the floor at the chasm, and the burning ink far below */}
+      <Slab x={[-9, 9]} y={[-3, -0.4]} z={[1.4, 2]} material={MAT.rockGround} />
+      <Slab x={[-9, 9]} y={[-3, -0.4]} z={[-24, -23.4]} material={MAT.rockGround} />
+      <mesh position={[0, -26, -11]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(120, 80)} />
+      {/* Stone side walls lined with tall bookcases (only where there is floor) */}
+      {([[2, 16], [-48, -24]] as const).map(([z0, z1], k) => (
+        <group key={k}>
+          {[-1, 1].map((side) => (
+            <group key={side}>
+              <Slab x={side < 0 ? [-10.4, -9.4] : [9.4, 10.4]} y={[0, 11]} z={[z0, z1]} material={MAT.academyStoneDark} />
+              {Array.from({ length: Math.floor((z1 - z0) / 3.2) }, (_, i) => (
+                <Bookshelf key={i} position={[side * 8.9, 0, z0 + 1.8 + i * 3.2]} rotationY={side < 0 ? Math.PI / 2 : -Math.PI / 2} width={3} height={6.5} shelves={7} seed={k * 40 + i + (side > 0 ? 20 : 0) + 60} />
+              ))}
+            </group>
+          ))}
+        </group>
+      ))}
+      {/* Columns down the hall, some broken off */}
+      {[14, 8, -28, -36, -44].flatMap((z, i) =>
+        [-1, 1].map((side) => {
+          const h = (i + side) % 3 === 0 ? 4.5 : 10;
+          return (
+            <group key={`${z}${side}`} position={[side * 7, 0, z]}>
+              <mesh position={[0, h / 2, 0]} material={MAT.academyStone} castShadow>
+                <cylinderGeometry args={[0.55, 0.65, h, 20]} />
+              </mesh>
+              <Box position={[0, 0.25, 0]} size={[1.6, 0.5, 1.6]} material={MAT.academyStone} />
+              {h > 5 && <Box position={[0, h + 0.25, 0]} size={[1.6, 0.5, 1.6]} material={MAT.academyStone} />}
+            </group>
+          );
+        }),
+      )}
+      {/* Fallen columns and burning heaps of blank books */}
+      <mesh position={[-4.5, 0.55, 10]} rotation={[0, 0.5, Math.PI / 2]} material={MAT.academyStone} castShadow>
+        <cylinderGeometry args={[0.55, 0.55, 6, 18]} />
+      </mesh>
+      <Fire position={[5, 0, 11]} size={1.6} count={3} spread={1.2} light />
+      <Fire position={[-6, 0, -33]} size={1.8} count={3} spread={1.4} />
+      {/* Chandeliers still hanging from broken beams, lit */}
+      {[[0, 9, 9], [0, 9, -34]].map(([x, y, z], i) => (
+        <group key={i} position={[x ?? 0, y ?? 0, z ?? 0]}>
+          <Box position={[0, 2.4, 0]} size={[18, 0.5, 0.6]} material={MAT.darkOak} />
+          <Prop id="lantern_chandelier_01" position={[0, -0.4, 0]} height={2.2} />
+          <pointLight color="#ffc070" intensity={14} distance={20} decay={1.6} />
+        </group>
+      ))}
+      {/* Bookcases torn loose, floating upside down above the chasm */}
+      {Array.from({ length: 6 }, (_, i) => {
         const side = i % 2 ? 1 : -1;
         return (
-          <group key={i} position={[side * 6, 14, 6 - Math.floor(i / 2) * 8]} rotation={[0, 0, Math.PI]}>
-            <Bookshelf position={[0, 0, 0]} rotationY={side * Math.PI / 2} width={5} height={8} shelves={6} seed={i + 60} />
+          <group key={i} position={[side * (5 + (i % 3)), 9 + (i % 3) * 3, -2 - Math.floor(i / 2) * 7]} rotation={[0.3 * side, i, Math.PI + 0.2]}>
+            <Bookshelf position={[0, 0, 0]} rotationY={0} width={3} height={5} shelves={5} seed={i + 90} />
           </group>
         );
       })}
-      <Slab x={[-1.5, 1.5]} y={[-0.3, 0]} z={[2, 12]} material={MAT.darkOak} />
       {WALKWAYS.map((p, i) => (
         <Written key={i} flag={`l3-walk-${i + 1}`}>
           <Box position={sub(p, MARGIN_ORIGIN)} size={[3, 0.3, 8]} material={inkBlue} />
         </Written>
       ))}
-      <Slab x={[-1.5, 1.5]} y={[-0.3, 0]} z={[-26, -24]} material={MAT.darkOak} />
-      <Slab x={[-6, 6]} y={[-0.3, 0]} z={[-46, -26]} material={MAT.darkOak} />
       {/* Corvane's journal on its lectern, burning into a tornado of pages */}
       <group position={journal}>
         {/* Corvane's journal on its carved lectern (AI-pipeline prop) */}
@@ -359,43 +424,64 @@ export function MarginScene() {
 
 // ---------- Gallery of Unfinished Things ----------
 
+/** A marble plinth for a stolen exhibit. */
+function Plinth({ position, size = [3.4, 0.6, 3.4] }: { position: Vec3; size?: [number, number, number] }) {
+  return (
+    <>
+      <Box position={[position[0], 0.3, position[2]]} size={size} material={MAT.marble} />
+      <Box position={[position[0], 0.66, position[2]]} size={[size[0] - 0.3, 0.12, size[2] - 0.3]} material={MAT.marble} />
+    </>
+  );
+}
+
+/**
+ * The Gallery of Unfinished Things (owner, 2026-10-07: Level 3 visuals): a roofless museum hall of
+ * black volcanic stone under the fire sky, where the Unwriter keeps the treasures he stole from
+ * Asterfall on marble plinths, smouldering until the apprentice restores them.
+ */
 export function Gallery3Scene() {
   return (
     <group position={GALLERY3_ORIGIN}>
       <GalleryDressing />
       <Slab x={[-16, 16]} y={[-0.3, 0]} z={[-26, 22]} material={MAT.marble} />
-      <Slab x={[-16, 16]} y={[0, 14]} z={[-27, -26]} material={metreSurface('stone', 3)} />
-      {[-12, -4, 4, 12].map((z) => (
-        <group key={z}>
-          <Box position={[-15.5, 7, z]} size={[1, 14, 6]} material={metreSurface('stone', 3)} />
-          <Box position={[15.5, 7, z]} size={[1, 14, 6]} material={metreSurface('stone', 3)} />
+      {/* Back wall and buttressed side walls of volcanic stone, with columns between the bays */}
+      <Slab x={[-16, 16]} y={[0, 14]} z={[-28, -26]} material={MAT.volcanicStone} />
+      <Box position={[0, 14.5, -27]} size={[32.6, 1, 2.6]} material={MAT.volcanicStone} />
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Slab x={side < 0 ? [-17.5, -16] : [16, 17.5]} y={[0, 12]} z={[-26, 22]} material={MAT.volcanicStone} />
+          {[-20, -12, -4, 4, 12, 20].map((z) => (
+            <group key={z} position={[side * 15.2, 0, z]}>
+              <mesh position={[0, 6.5, 0]} material={MAT.academyStoneDark} castShadow>
+                <cylinderGeometry args={[0.7, 0.8, 13, 20]} />
+              </mesh>
+              <Box position={[0, 0.3, 0]} size={[2, 0.6, 2]} material={MAT.volcanicStone} />
+              <Box position={[0, 13.2, 0]} size={[2, 0.6, 2]} material={MAT.volcanicStone} />
+              {z % 8 === 4 && <Fire position={[side * -0.9, 4, 0]} size={0.7} count={2} spread={0.2} smoke={false} kind="warm" light={z === 4} />}
+            </group>
+          ))}
         </group>
       ))}
-      <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.2, -2], size: 1, count: 2, spread: 1.6, smoke: false }}>
-        <KitModel id="fountain_basin" position={[-6, 0, -2]} />
+      {/* A long red runner down the hall */}
+      <Box position={[0, 0.02, -2]} size={[3, 0.04, 40]} material={MAT.burgundyLeather} />
+      {/* Stolen treasures: the courtyard fountain, the Bell Bridge bell, the Great Hall clock */}
+      <Plinth position={[-6, 0, -2]} size={[4.4, 0.6, 4.4]} />
+      <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.6, -2], size: 1, count: 2, spread: 1.6, smoke: false }}>
+        <KitModel id="fountain_basin" position={[-6, 0.72, -2]} />
       </Restorable>
-      <Restorable flag="l3-sculpt-2" fire={{ position: [6, 1, -4], size: 1, count: 2, spread: 1.6, smoke: false }}>
-        <group position={[6, 0, -4]}>
-          <mesh position={[0, 0.2, 0]} material={MAT.burgundyLeather}>
-            <cylinderGeometry args={[2, 2, 0.4, 24]} />
-          </mesh>
-          <mesh position={[0, 3, 0]} material={MAT.wardGold}>
-            <coneGeometry args={[2.2, 1.2, 24]} />
-          </mesh>
-          <mesh position={[0, 1.4, 0]} material={MAT.agedBrass}>
-            <cylinderGeometry args={[0.1, 0.1, 2.6, 8]} />
-          </mesh>
+      <Plinth position={[6, 0, -4]} />
+      <Restorable flag="l3-sculpt-2" fire={{ position: [6, 1.6, -4], size: 1, count: 2, spread: 1.6, smoke: false }}>
+        <group position={[6, 0.72, -4]}>
+          {[-1.2, 1.2].map((x) => (
+            <Box key={x} position={[x, 2, 0]} size={[0.25, 4, 0.25]} material={MAT.darkOak} />
+          ))}
+          <Box position={[0, 4, 0]} size={[2.9, 0.3, 0.35]} material={MAT.darkOak} />
+          <Prop id="bronze_bell" position={[0, 1.3, 0]} height={2.4} />
         </group>
       </Restorable>
-      <Restorable flag="l3-sculpt-3" fire={{ position: [-9, 3, -12], size: 1.4, count: 3, spread: 2 }}>
-        <group position={[-9, 0, -12]}>
-          <mesh position={[0, 3, 0]} material={MAT.academyStone}>
-            <cylinderGeometry args={[1.4, 1.6, 6, 16]} />
-          </mesh>
-          <mesh position={[0, 7, 0]} material={MAT.slate}>
-            <coneGeometry args={[1.8, 2.4, 16]} />
-          </mesh>
-        </group>
+      <Plinth position={[-9, 0, -12]} size={[2.4, 0.6, 2.4]} />
+      <Restorable flag="l3-sculpt-3" fire={{ position: [-9, 2.4, -12], size: 1.2, count: 3, spread: 1 }}>
+        <Prop id="vintage_grandfather_clock_01" position={[-9, 0.72, -12]} height={3.2} rotationY={0.3} />
       </Restorable>
       <StaticWarden position={[5, 0, 6]} scale={1.1} rotationY={-2.6} />
       <SceneCreature
@@ -473,9 +559,14 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
 /** The Paper Sea: creased paper rolling in slow swells (vertex waves, updated each frame). */
 function PaperWaves() {
   const { geometry, material } = useMemo(() => {
-    const g = new PlaneGeometry(500, 500, 120, 120);
+    const g = new PlaneGeometry(500, 500, 180, 180);
     g.rotateX(-Math.PI / 2);
-    return { geometry: g, material: surface('paper', [500, 500], 10) };
+    // Matte cream paper: no sky reflections (they turned it lavender), so the creases read by shading.
+    const m = surface('paper', [500, 500], 10);
+    m.color.set('#f0e2c8');
+    m.roughness = 1;
+    m.envMapIntensity = 0.1;
+    return { geometry: g, material: m };
   }, []);
   const base = useMemo(() => Float32Array.from(geometry.getAttribute('position').array), [geometry]);
   useFrame((state) => {
@@ -485,7 +576,11 @@ function PaperWaves() {
     for (let i = 0; i < arr.length; i += 3) {
       const x = base[i] ?? 0;
       const z = base[i + 2] ?? 0;
-      arr[i + 1] = Math.sin(x * 0.08 + t * 0.9) * 0.6 + Math.sin(z * 0.11 - t * 1.2) * 0.5 + Math.sin((x + z) * 0.03 + t * 0.4) * 0.8;
+      // Folded-paper waves: sharp crease ridges (1 − |sin|) rolling towards the ship, plus a slow swell,
+      // so the creases catch the red light like real folded paper.
+      const crease = 1 - Math.abs(Math.sin(z * 0.09 - t * 0.9 + Math.sin(x * 0.04) * 0.8));
+      const cross = 1 - Math.abs(Math.sin(x * 0.07 + z * 0.02 + t * 0.5));
+      arr[i + 1] = crease * crease * 1.6 + cross * 0.45 + Math.sin((x + z) * 0.025 + t * 0.4) * 0.7;
     }
     pos.needsUpdate = true;
     geometry.computeVertexNormals();
@@ -592,7 +687,7 @@ export function ForgeScene() {
           </ModelBoundary>
           <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={blackIron()} />
           <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} smoke={false} />
-          <mesh position={[0, 5, -22]} material={redInk}>
+          <mesh position={[0, 5, -22]} material={inkStream}>
             <cylinderGeometry args={[0.2, 0.25, 6, 8]} />
           </mesh>
           {[-1, 0, 1].map((k) => (
@@ -612,6 +707,28 @@ export function ForgeScene() {
 
 // ---------- Cinder Citadel ----------
 
+const goldInk = new MeshStandardMaterial({ color: '#ffd27a', emissive: '#ffb030', emissiveIntensity: 2.4, roughness: 0.4 });
+
+/** One written chunk of stairs: four volcanic stone steps, their front edges glowing with gold ink. */
+function WrittenSteps({ position }: { position: Vec3 }) {
+  return (
+    <group position={position}>
+      {[0, 1, 2, 3].map((k) => (
+        <group key={k} position={[0, -0.6 + k * 0.6, 1.2 - k * 0.8]}>
+          <Box position={[0, 0, 0]} size={[4.4, 0.6, 0.85]} material={MAT.volcanicStone} />
+          <Box position={[0, 0.27, 0.44]} size={[4.4, 0.07, 0.05]} material={goldInk} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * The Cinder Citadel stairwell (owner, 2026-10-07: Level 3 visuals): a towering hall of black volcanic
+ * stone open to the fire sky, with buttresses, glowing window slits and braziers on each landing. The
+ * stairs were burned away; each word writes the next flight back in stone edged with gold ink, while a
+ * wall of fire races up from below.
+ */
 export function CitadelScene() {
   const rising = useRef<Group>(null);
   useFrame((state) => {
@@ -620,28 +737,39 @@ export function CitadelScene() {
   });
   return (
     <group position={CITADEL_ORIGIN}>
-      <Slab x={[-8, 8]} y={[-0.3, 0]} z={[-4, 8]} material={blackIron()} />
-      <Slab x={[-9, -8]} y={[-10, 44]} z={[-60, 8]} material={blackIron()} />
-      <Slab x={[8, 9]} y={[-10, 44]} z={[-60, 8]} material={blackIron()} />
-      {/* Arrow slits glowing red */}
-      {[4, 12, 20, 28, 36].map((y) => (
-        <group key={y}>
-          <Box position={[-7.95, y, -(y * 1.5)]} size={[0.1, 2, 0.4]} material={ironSeam} />
-          <Box position={[7.95, y, -(y * 1.5) - 4]} size={[0.1, 2, 0.4]} material={ironSeam} />
+      <Slab x={[-8, 8]} y={[-0.6, 0]} z={[-4, 8]} material={MAT.volcanicStone} />
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Slab x={side < 0 ? [-9.5, -8] : [8, 9.5]} y={[-10, 46]} z={[-62, 8]} material={MAT.volcanicStone} />
+          {/* Buttresses and glowing window slits between them */}
+          {[4, -6, -16, -26, -36, -46, -56].map((z, i) => (
+            <group key={z}>
+              <Box position={[side * 7.5, 18, z]} size={[1.2, 56, 1.6]} material={MAT.academyStoneDark} />
+              <Box position={[side * 7.95, 4 + i * 6, z - 5]} size={[0.12, 3, 0.7]} material={ironSeam} />
+            </group>
+          ))}
         </group>
       ))}
       {FLIGHTS.map((f, n) =>
         [0, 1, 2].map((i) => (
           <Written key={`${n}-${i}`} flag={`l3-flight-${n + 1}-${i + 1}`}>
-            <Box position={[0, f[1] - CITADEL_ORIGIN[1] + 1 + i * 2.4, f[2] - CITADEL_ORIGIN[2] - 3 - i * 3]} size={[4, 0.4, 3.2]} material={inkBlue} />
+            <WrittenSteps position={[0, f[1] - CITADEL_ORIGIN[1] + 1 + i * 2.4, f[2] - CITADEL_ORIGIN[2] - 3 - i * 3]} />
           </Written>
         )),
       )}
-      {/* Landings at the top of each flight */}
+      {/* Landings at the top of each flight, each with a brazier */}
       {[1, 2, 3].map((n) => (
-        <Box key={n} position={[0, n * 8 - 0.2, -n * 12 + 2]} size={[10, 0.4, 6]} material={blackIron()} />
+        <group key={n}>
+          <Box position={[0, n * 8 - 0.3, -n * 12 + 2]} size={[10, 0.6, 6]} material={MAT.volcanicStone} />
+          <mesh position={[-4, n * 8 + 0.6, -n * 12 + 2]} material={blackIron()}>
+            <cylinderGeometry args={[0.6, 0.3, 1.2, 12]} />
+          </mesh>
+          <Fire position={[-4, n * 8 + 1.2, -n * 12 + 2]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} light={n === 2} />
+        </group>
       ))}
-      <Box position={[0, 36, -56]} size={[8, 10, 0.6]} material={blackIron()} />
+      {/* The great doors to the Throne of Blank Pages */}
+      <Box position={[0, 36, -56.4]} size={[9, 11, 0.8]} material={MAT.volcanicStone} />
+      <Prop id="large_castle_door" position={[0, 31.4, -55.9]} height={8} />
       <Fire position={[0, 33, -55]} size={3} count={4} spread={8} light />
       <group ref={rising}>
         <Fire position={[0, 0, -20]} size={6} count={6} spread={14} light smoke={false} />
@@ -691,6 +819,7 @@ function UnwriterFallback() {
 }
 
 export function ThroneScene() {
+  useMoltenFlow();
   const ring = useRef<Group>(null);
   const book = useRef<Group>(null);
   const grow = useRef<Group>(null);
@@ -736,9 +865,7 @@ export function ThroneScene() {
       </ModelBoundary>
       <CitadelTowers spots={[[-46, -40, -52, 80], [48, -44, -48, 74], [-60, -48, 8, 70], [62, -46, 16, 76], [0, -52, -80, 96]]} />
       {/* The sea of fire far below */}
-      <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk}>
-        <planeGeometry args={[600, 600]} />
-      </mesh>
+      <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(600, 600)} />
       {[[-40, -60, -30], [50, -60, -60], [0, -60, -90], [-60, -60, 20]].map((p, i) => (
         <Fire key={i} position={p as unknown as Vec3} size={18} count={4} spread={30} smoke={false} />
       ))}

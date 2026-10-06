@@ -246,7 +246,7 @@ export const LINES = {
   'l3-mira-wrong': line('mira', 'You\'re wrong ALL the time, Pip. It\'s your best feature.'),
   'l3-quill-page': line('pip', 'The last page is glowing. A spell! Type it!'),
   'l3-quill-try': line('pip', 'BRIGHT QUILL! Perfect words paint the world back! Try it!'),
-  'l3-g3-1': line('mira', 'A gallery of stolen things. Even a piece of our tower.'),
+  'l3-g3-1': line('mira', "A gallery of stolen things. That's OUR fountain! And the bell from our bridge!"),
   'l3-voice-pw': line('unwriter', 'You will never reach my Citadel, little orb. Meet my PERFECT guardian.'),
   'l3-pw-mirror': line('pip', 'It copies our Warden! Block its arcs!'),
   'l3-pw-perfect': line('pip', 'Perfect words crack a perfect shell! Careful and clean!'),

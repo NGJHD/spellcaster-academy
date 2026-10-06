@@ -23,6 +23,8 @@ CONCEPTS = {
                  "its foot, fantasy academy dormitory style", 63),
     "wardrobe": ("A tall old carved wooden wardrobe with two doors and brass handles, a wizard robe hanging on the "
                  "side, fantasy academy style", 64),
+    "erased_deer": ("A graceful red deer stag with large antlers standing calmly, realistic fur, gentle eyes, full body "
+                    "side view", 66),
     "beacon_brazier": ("A large iron beacon brazier on a stone pedestal with a wide iron fire bowl full of logs, "
                        "ornate gold star decorations, castle rampart style", 65),
 }
