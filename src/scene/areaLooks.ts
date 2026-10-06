@@ -137,7 +137,8 @@ const SIEGE_INDOOR: AreaLook = { ...SIEGE, sky: 'interior', background: '#160806
 const BLANK: AreaLook = {
   sky: 'blank',
   background: '#5a1410',
-  fog: ['#6a2a20', 40, 320],
+  // Fog matches the fire sky's horizon glow, so distant ground fades into the sky.
+  fog: ['#8a3018', 30, 230],
   sun: { position: [-30, 40, -80], color: '#ff7a4a', intensity: 2.0 },
   hemi: ['#ff9a7a', '#2a2422', 0.42],
   exposure: 1.0,
@@ -177,15 +178,16 @@ export const LEVEL_LOOKS: Record<Exclude<AreaId, keyof typeof AREA_LOOKS_L1>, Ar
   'l3-forge': CITADEL,
   'l3-citadel': CITADEL,
   'l3-throne': CITADEL,
+  // Home at night (owner, 2026-10-07): a starry sky so the fireworks blaze over the courtyard.
   'l3-homecoming': {
-    sky: 'dawn',
-    background: '#f2c9a0',
-    fog: ['#f3d8be', 60, 360],
-    sun: { position: [80, 18, 60], color: '#ffc58a', intensity: 2.4 },
-    hemi: ['#ffe0c2', '#5c4a3a', 0.8],
-    exposure: 1.0,
-    envIntensity: 0.9,
-    hdri: 'belfast_sunset_puresky',
+    sky: 'night',
+    background: '#070b18',
+    fog: ['#0b1124', 70, 300],
+    sun: { position: [-40, 70, 30], color: '#c4d6ff', intensity: 1.2 },
+    hemi: ['#b0c0ff', '#3a2a20', 0.75],
+    exposure: 1.25,
+    envIntensity: 0.6,
+    hdri: NIGHT,
   },
 };
 

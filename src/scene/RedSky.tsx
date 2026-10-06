@@ -3,17 +3,44 @@
  * around the camera. 'inferno' is the burning siege night (black overhead, a red-orange fire glow along
  * the horizon); 'blank' is the red sky over the scorched Blank that never darkens.
  */
+import { useTexture } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { getRun } from '../state/gameStore';
-import { AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, Color, CurvePath, LineCurve3, NormalBlending, SphereGeometry, TubeGeometry, Vector3, type Group, type MeshBasicMaterial, type Points } from 'three';
+import { CinderCitadel } from './CinderCitadel';
+import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, Color, CurvePath, LineCurve3, NormalBlending, SphereGeometry, TubeGeometry, Vector3, type Group, type MeshBasicMaterial, type Points } from 'three';
 
 const PALETTES = {
   inferno: { zenith: '#050204', mid: '#2a0806', horizon: '#ff4a12', glow: 0.55 },
   blank: { zenith: '#3a0806', mid: '#9a2210', horizon: '#ff7a3a', glow: 0.75 },
 } as const;
 
+const FIRE_SKY_URL = `${import.meta.env.BASE_URL}assets/sky/fire_sky.jpg`;
+
+/**
+ * The Blank's sky (owner, 2026-10-07: "the sky is bland"): real cloud shapes recoloured into smoke lit
+ * from below by fire (baked by assets-src/scripts/sky/fire_sky.py), on a sphere around the camera.
+ */
+function FireSky() {
+  const texture = useTexture(FIRE_SKY_URL);
+  useMemo(() => {
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 4;
+  }, [texture]);
+  return (
+    <mesh renderOrder={-10} rotation={[0, Math.PI * 0.35, 0]}>
+      <sphereGeometry args={[600, 64, 32]} />
+      <meshBasicMaterial map={texture} side={BackSide} depthWrite={false} fog={false} toneMapped={false} />
+    </mesh>
+  );
+}
+
 export function RedSky({ kind }: { kind: 'inferno' | 'blank' }) {
+  if (kind === 'blank') return <FireSky />;
+  return <GradientSky kind={kind} />;
+}
+
+function GradientSky({ kind }: { kind: 'inferno' | 'blank' }) {
   const geometry = useMemo(() => {
     const g = new SphereGeometry(600, 48, 24);
     const p = PALETTES[kind];
@@ -101,31 +128,15 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
   );
 }
 
-/** The Cinder Citadel on the Blank's horizon: a black fortress of spires wrapped in fire (L3-6). */
+/**
+ * The Cinder Citadel on the Blank's horizon (owner, 2026-10-07: "it looks like it was created in power
+ * point"): the full fortress (see CinderCitadel), far away and huge, so every view of the Blank shows
+ * where the journey ends.
+ */
 export function CitadelOnHorizon() {
-  const spires = useMemo(() => [0, 1, 2, 3, 4, 5, 6].map((i) => ({ x: (i - 3) * 12 + (rand(i, 3) - 0.5) * 6, h: 50 + rand(i, 4) * 70, w: 7 + rand(i, 5) * 7 })), []);
   return (
-    <group position={[220, -30, -620]}>
-      {spires.map((s, i) => (
-        <group key={i} position={[s.x, 0, (rand(i, 6) - 0.5) * 30]}>
-          <mesh position={[0, s.h / 2, 0]}>
-            <boxGeometry args={[s.w, s.h, s.w]} />
-            <meshBasicMaterial color="#0a0406" fog={false} />
-          </mesh>
-          <mesh position={[0, s.h + s.w, 0]}>
-            <coneGeometry args={[s.w * 0.8, s.w * 2.4, 4]} />
-            <meshBasicMaterial color="#0a0406" fog={false} />
-          </mesh>
-          <mesh position={[0, s.h * 0.6, s.w / 2 + 0.5]}>
-            <planeGeometry args={[s.w * 0.4, s.h * 0.5]} />
-            <meshBasicMaterial color="#ff4a12" transparent opacity={0.5} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
-          </mesh>
-        </group>
-      ))}
-      <mesh position={[0, 70, 10]}>
-        <sphereGeometry args={[70, 24, 16]} />
-        <meshBasicMaterial color="#ff3a10" transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
-      </mesh>
+    <group position={[200, -95, -520]} scale={1.6}>
+      <CinderCitadel distant />
     </group>
   );
 }

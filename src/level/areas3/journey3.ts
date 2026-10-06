@@ -8,7 +8,7 @@
  *   8 m up and 12 m along −Z each; a wall of fire races up behind; the great doors at the top.
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, hound, knight } from '../areas2/hush';
 import type { EncounterDef } from '../levelTypes';
 import { colour, correctionMoth, fireTide, fireball, foreman, memoryPage, pathWord, redactor } from './blank';
@@ -149,6 +149,14 @@ export const forge: AreaScript = {
     fight('l3-forge-line-2', K, { barks: ['l3-forge-2'] }),
     fight('l3-forge-line-3', K, { barks: ['l3-forge-foreman'] }),
     checkpoint('l3-forge-checkpoint', K, 'forge-stopped', { barks: ['l3-forge-done'], objective: 'l3-citadel' }),
+    // Owner: "lead with the fire is coming, let's climb the stairs" — never just appear at the stairs.
+    hold('l3-forge-escape', K, 'FG_POST', 2.2, {
+      barks: ['l3-forge-run'],
+      fx: [
+        { kind: 'shake', scale: 1.2 },
+        { kind: 'geyser', at: 'FG_HAMMERS', atBeat: 0.3, scale: 1.6, color: '#ff3a1a' },
+      ],
+    }),
   ],
   encounters: [line(1, ['stop', 'halt', 'cease'], 'blots'), line(2, ['brake', 'still', 'quiet'], 'hounds'), line(3, ['freeze', 'close', 'done'], 'foreman')],
 };

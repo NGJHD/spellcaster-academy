@@ -56,6 +56,10 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   panelWood: { texture: 'dark_paneled_wood', tileMetres: 2, tint: '#d8c0a8' },
   linen: { texture: 'rough_linen', tileMetres: 0.6, tint: '#f2e8d8' },
   navyCloth: { texture: 'rough_linen', tileMetres: 0.6, tint: '#4a5f90' },
+  burntGround: { texture: 'burned_ground_01', tileMetres: 4, tint: '#c8b0a4' },
+  crackedRedGround: { texture: 'cracked_red_ground', tileMetres: 3, tint: '#e0b0a0' },
+  rockGround: { texture: 'rock_ground_02', tileMetres: 3, tint: '#b8aca8' },
+  volcanicStone: { texture: 'volcanic_rock_tiles', tileMetres: 2.5, tint: '#8a8088', normalScale: 1.2 },
 };
 
 const loader = new TextureLoader();

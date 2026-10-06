@@ -87,4 +87,12 @@ export const MAT = {
   windowGlassDay: std('#4f5862', 0.12, 0.6, { vertexColors: true }),
   /** The same glass at night: moonlight through the panes. */
   windowGlassNight: new MeshBasicMaterial({ color: '#7f9ee0', vertexColors: true }),
+  /** Level 3 (owner 2026-10-07: "the ground looks untextured"): burnt earth of the Blank. */
+  burntGround: std('#6a5a52', 1),
+  /** Cracked red earth near the fire rivers. */
+  crackedRedGround: std('#9a5a48', 1),
+  /** Rocky ground and cliffs. */
+  rockGround: std('#6a6260', 1),
+  /** The Cinder Citadel's black volcanic stone. */
+  volcanicStone: std('#3a3436', 0.9),
 };

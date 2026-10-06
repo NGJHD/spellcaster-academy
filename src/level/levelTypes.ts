@@ -8,6 +8,7 @@ import type { CameraBeat, CameraNode, Vec3 } from './rail/railTypes';
 
 export type MusicId =
   | 'title'
+  | 'victory'
   | 'arrival-wonder'
   | 'ward-fracture'
   | 'courtyard-action'

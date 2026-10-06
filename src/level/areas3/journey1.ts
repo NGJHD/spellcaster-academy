@@ -118,7 +118,9 @@ export const cinderwood: AreaScript = {
     CW_START: { position: C(0, 1.6, 6), lookAt: C(-2, 1.4, -14) },
     CW_MID: { position: C(0, 1.6, -18), lookAt: C(0, 2, -34) },
     CW_END: { position: C(1, 2.6, -36), lookAt: C(3, 1.5, -40) },
-    CW_RIDE: { position: C(3, 3.2, -70), lookAt: C(3, 2, -100) },
+    // On the tortoise's back (its shell top is about 4.5 m up; the camera sits just above it).
+    CW_MOUNT: { position: C(3, 5.4, -40.6), lookAt: C(3, 3, -70) },
+    CW_RIDE: { position: C(3, 5.4, -86), lookAt: C(3, 3.5, -120) },
   },
   lookPoints: {
     CW_DEER: C(-3, 1, -14),
@@ -132,7 +134,8 @@ export const cinderwood: AreaScript = {
     fight('l3-flock', W),
     travel('l3-cw-to-tortoise', W, ['CW_MID', 'CW_END'], 4),
     fight('l3-tortoise', W, { barks: ['l3-tortoise'] }),
-    travel('l3-tortoise-ride', W, ['CW_END', 'CW_RIDE'], 8, {
+    travel('l3-climb-on', W, ['CW_END', 'CW_MOUNT'], 1.8, { easing: 'easeInOutCubic', barks: ['l3-tortoise-fireproof'] }),
+    travel('l3-tortoise-ride', W, ['CW_MOUNT', 'CW_RIDE'], 8, {
       barks: ['l3-tortoise-ride'],
       chase: [
         { at: 0.3, target: colour('ride-colour-1', C(0, 0, 0), len(3, 4), 'l3-ride-1', { follow: { ahead: 4.4, side: -1.3, up: 0.2 } }) },

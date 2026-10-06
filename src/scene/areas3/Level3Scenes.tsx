@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
-import { MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
+import { DoubleSide, MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, SLIDE_SECTIONS, WALKWAYS } from '../../level/areas3/journey2';
@@ -19,11 +19,11 @@ import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop } from '../Prop';
+import { CinderCitadel } from '../CinderCitadel';
 import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 
-const ash = () => metreSurface('ash', 7);
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
 const scorchedRock = () => metreSurface('scorched', 5);
 const redInk = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.2 });
@@ -114,7 +114,8 @@ function ProceduralTree({ position, height = 9, seed = 1 }: { position: Vec3; he
 }
 
 function AshGround({ x, z, y = 0 }: { x: readonly [number, number]; z: readonly [number, number]; y?: number }) {
-  return <Slab x={x} y={[y - 0.3, y]} z={z} material={ash()} />;
+  // Photo-scanned burnt earth (owner: "the ground looks untextured").
+  return <Slab x={x} y={[y - 0.3, y]} z={z} material={MAT.burntGround} />;
 }
 
 // ---------- Rift Shore ----------
@@ -167,6 +168,14 @@ export function CinderwoodScene() {
   const deer = sub(DEER, WOOD_ORIGIN);
   const tortoise = sub(TORTOISE, WOOD_ORIGIN);
   return (
+    <>
+    {/* Riding on the tortoise's shell: it sits below the camera, head ahead (owner: "why did we wake
+        the tortoise just to run?" — it carries us through the fire). */}
+    <Carried beats={TORTOISE_RIDE_BEATS} drop={5.4}>
+      <group position={[0, 0, 0.6]}>
+        <GiantTortoise />
+      </group>
+    </Carried>
     <group position={WOOD_ORIGIN}>
       <AshGround x={[-160, 160]} z={[-200, 80]} />
       {Array.from({ length: 26 }, (_, i) => {
@@ -185,23 +194,90 @@ export function CinderwoodScene() {
           ))}
         </group>
       </Restorable>
-      {/* The great outline tortoise */}
-      <Restorable flag="l3-tortoise-free" burning={false}>
-        <group position={tortoise}>
-          <mesh position={[0, 1.4, 0]} scale={[1, 0.6, 1.2]} material={MAT.moss}>
-            <sphereGeometry args={[2.6, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          </mesh>
-          <Box position={[0, 1.2, 3.2]} size={[0.9, 0.8, 1.2]} material={MAT.bark} />
-        </group>
-      </Restorable>
+      {/* The great tortoise, half rubbed out until its words restore it; it then carries the party */}
+      <OnBeatsL3 hide={TORTOISE_RIDE_BEATS}>
+        <Restorable flag="l3-tortoise-free" burning={false}>
+          <group position={tortoise}>
+            <GiantTortoise />
+          </group>
+        </Restorable>
+      </OnBeatsL3>
+      {/* The wall of fire the fireproof tortoise walks straight through */}
+      {[-52, -58].map((z) => (
+        <Fire key={z} position={[3, 0, z]} size={3.4} count={6} spread={12} light={z === -52} />
+      ))}
       {[[-6, -30], [8, -60], [-10, -80]].map(([x, z], i) => (
         <Fire key={i} position={[x ?? 0, 0, z ?? 0]} size={2} count={3} spread={2.4} light={i === 0} />
       ))}
     </group>
+    </>
   );
 }
 
+const TORTOISE_RIDE_BEATS = ['l3-tortoise-ride'] as const;
+
+/** The giant tortoise (AI-pipeline prop, 4.5 m tall, head along −Z); a mossy dome until it loads. */
+function GiantTortoise() {
+  const fallback = (
+    <group>
+      <mesh position={[0, 1.4, 0]} scale={[1, 0.6, 1.2]} material={MAT.moss}>
+        <sphereGeometry args={[2.6, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+      <Box position={[0, 1.2, -3.2]} size={[0.9, 0.8, 1.2]} material={MAT.bark} />
+    </group>
+  );
+  return (
+    <ModelBoundary fallback={fallback}>
+      <Suspense fallback={fallback}>
+        <Prop id="giant_tortoise" position={[0, 0, 0]} height={4.5} rotationY={TORTOISE_YAW} />
+      </Suspense>
+    </ModelBoundary>
+  );
+}
+/** Turns the tortoise model so its head points along −Z. */
+const TORTOISE_YAW = Math.PI / 2;
+
+/** Hides its children during the given beats. */
+function OnBeatsL3({ hide, children }: { hide: readonly string[]; children: ReactNode }) {
+  const group = useRef<Group>(null);
+  useFrame(() => {
+    const id = getRun()?.director.currentBeat?.id ?? '';
+    if (group.current) group.current.visible = !hide.includes(id);
+  });
+  return <group ref={group}>{children}</group>;
+}
+
 // ---------- Inkfall Cascades ----------
+
+/**
+ * The frost bubble around the raft (owner: "won't we burn to death?"): once the apprentice types
+ * "shield", a shimmering icy dome grows over the raft and keeps the burning ink off it.
+ */
+function FrostBubble({ flag }: { flag: string }) {
+  const group = useRef<Group>(null);
+  const grow = useRef(0);
+  const shell = useMemo(() => new MeshStandardMaterial({ color: '#bfe8ff', emissive: '#4aa8ff', emissiveIntensity: 0.6, transparent: true, opacity: 0.16, roughness: 0.1, side: DoubleSide, depthWrite: false }), []);
+  const rim = useMemo(() => new MeshStandardMaterial({ color: '#dff4ff', emissive: '#7ac8ff', emissiveIntensity: 1.6, transparent: true, opacity: 0.55, depthWrite: false }), []);
+  useFrame((state, delta) => {
+    const on = getRun()?.flags.has(flag) ?? false;
+    grow.current += ((on ? 1 : 0) - grow.current) * (1 - Math.exp(-4 * Math.min(delta, 0.1)));
+    const g = group.current;
+    if (!g) return;
+    g.visible = grow.current > 0.02;
+    g.scale.setScalar(Math.max(0.001, grow.current));
+    shell.opacity = 0.13 + Math.sin(state.clock.elapsedTime * 2.4) * 0.03;
+  });
+  return (
+    <group ref={group} position={[0, 0, -1]}>
+      <mesh material={shell} renderOrder={5}>
+        <sphereGeometry args={[3.6, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} material={rim} renderOrder={5}>
+        <torusGeometry args={[3.6, 0.05, 8, 64]} />
+      </mesh>
+    </group>
+  );
+}
 
 export function InkfallScene() {
   return (
@@ -229,6 +305,7 @@ export function InkfallScene() {
       <Carried beats={RAFT_BEATS} drop={1.1}>
         <Box position={[0, 0, -0.8]} size={[2.6, 0.12, 4]} material={paper} />
         <Mira position={[0, 0.06, -2.4]} rotationY={Math.PI} />
+        <FrostBubble flag="l3-shield-on" />
       </Carried>
     </>
   );
@@ -416,6 +493,20 @@ function PaperWaves() {
   return <mesh geometry={geometry} material={material} position={[0, -0.6, -100]} receiveShadow />;
 }
 
+/** Turns the paper ship model so its bow points along the camera's forward (−Z). */
+const PAPER_SHIP_YAW = Math.PI / 2;
+
+function PaperShipFallback() {
+  return (
+    <>
+      <Box position={[0, 0, -1]} size={[3, 1, 7]} material={paper} />
+      <mesh position={[0, 3.4, -2]} material={paper}>
+        <planeGeometry args={[3.6, 4.4]} />
+      </mesh>
+    </>
+  );
+}
+
 export function SeaScene() {
   return (
     <>
@@ -424,7 +515,10 @@ export function SeaScene() {
         {GALLEONS.map((g, i) => (
           <Galleon key={i} position={sub(g, SEA_ORIGIN)} index={i + 1} />
         ))}
-        <CitadelTowers spots={[[0, -2, -330, 110], [-34, -2, -310, 80], [38, -2, -318, 90], [-14, -2, -350, 130], [18, -2, -346, 100]]} />
+        {/* The Cinder Citadel rising from the far shore of the paper sea */}
+        <group position={[0, -6, -340]}>
+          <CinderCitadel />
+        </group>
         {[[-20, -30], [24, -60], [-30, -140], [18, -190], [-10, -240]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0, z ?? 0]}>
             <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, i, 0.3]} material={ashDarkFlat} />
@@ -432,11 +526,14 @@ export function SeaScene() {
           </group>
         ))}
       </group>
+      {/* Mira's folded paper ship. The camera stands at the stern, so the bow and sails are ahead
+          (owner: "you need to have the head of the boat in front of the player"). */}
       <Carried beats={SHIP_BEATS} drop={1.9}>
-        <Box position={[0, 0, -1]} size={[3, 1, 7]} material={paper} />
-        <mesh position={[0, 3.4, -2]} material={paper}>
-          <planeGeometry args={[3.6, 4.4]} />
-        </mesh>
+        <ModelBoundary fallback={<PaperShipFallback />}>
+          <Suspense fallback={<PaperShipFallback />}>
+            <Prop id="paper_ship" position={[0, -1.4, -4.2]} height={9} rotationY={PAPER_SHIP_YAW} />
+          </Suspense>
+        </ModelBoundary>
         <Mira position={[0.8, 0.5, -3.4]} rotationY={Math.PI} />
       </Carried>
     </>

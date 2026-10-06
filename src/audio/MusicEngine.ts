@@ -64,6 +64,8 @@ const MOODS: Record<MusicId, Mood> = {
   'blank-wander': { tempo: 70, root: 49, scale: MINOR, progression: [I, II, I, VII], pad: 0.65, arp: 0.25, bass: 0.4, drums: 0.15, brightness: 700, lead: 0.25 },
   'citadel-battle': { tempo: 138, root: 47, scale: MINOR, progression: [I, VII, VI, V], pad: 0.4, arp: 0.55, bass: 0.75, drums: 0.85, brightness: 2200, lead: 0.5, battle: true },
   'unwriter-battle': { tempo: 152, root: 45, scale: MINOR, progression: [I, VI, III, V], pad: 0.45, arp: 0.6, bass: 0.8, drums: 0.9, brightness: 2600, lead: 0.6, battle: true },
+  // The final celebration (owner, 2026-10-07: "play some victory music"): bright, fast and proud.
+  victory: { tempo: 128, root: 62, scale: MAJOR, progression: [I, IV, V, I], pad: 0.45, arp: 0.6, bass: 0.55, drums: 0.7, brightness: 3400, lead: 0.7 },
   homecoming: { tempo: 96, root: 62, scale: MAJOR, progression: [I, V, VI, IV], pad: 0.55, arp: 0.45, bass: 0.4, drums: 0.3, brightness: 2800, lead: 0.55 },
 };
 

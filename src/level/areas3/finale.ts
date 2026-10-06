@@ -76,6 +76,8 @@ export const throne: AreaScript = {
       ],
     }),
     checkpoint('l3-throne-checkpoint', A, 'unwriter-sealed', { attention: 'ending' }),
+    // The way home (owner: the ending was abrupt): the Warden opens the Rift and carries everyone home.
+    talk('l3-go-home', A, ['l3-warden-home', 'l3-pip-home'], { attention: 'ending' }),
   ],
   encounters: [
     {
@@ -185,7 +187,7 @@ export const homecoming: AreaScript = {
     HOME_TOWER: [0, 31, -54],
   },
   beats: [
-    fade('l3-home-enter', H, 'HOME_START', { fadeOutSec: 1.4, holdSec: 0.8, fadeInSec: 1.6, music: 'homecoming', objective: 'none', attention: 'ending' }),
+    fade('l3-home-enter', H, 'HOME_START', { fadeOutSec: 1.4, holdSec: 0.8, fadeInSec: 1.6, music: 'victory', objective: 'none', attention: 'ending' }),
     travel('l3-home-walk', H, ['HOME_START', 'HOME_GATHER'], 7, {
       attention: 'ending',
       barks: ['l3-home-1'],
@@ -195,8 +197,17 @@ export const homecoming: AreaScript = {
         { kind: 'fireworks', at: 'HOME_SKY_RIGHT', atBeat: 0.75 },
       ],
     }),
-    talk('l3-home-vault', H, ['l3-orin-vault', 'l3-pip-keeping'], { attention: 'ending' }),
-    talk('l3-home-ceremony', H, ['l3-orin-wardkeeper', 'l3-mira-told-you', 'l3-pip-three'], { attention: 'ending' }),
+    // Keeper Orin thanks the apprentice in front of the whole school (owner: "it makes the kid playing
+    // the game feel nice"), then names them Wardkeeper, and everyone cheers under the fireworks.
+    talk('l3-home-vault', H, ['l3-orin-thanks-1', 'l3-orin-thanks-2', 'l3-orin-vault'], { attention: 'ending' }),
+    talk('l3-home-ceremony', H, ['l3-orin-wardkeeper', 'l3-mira-cheer', 'l3-pip-three'], {
+      attention: 'ending',
+      fx: [
+        { kind: 'fireworks', at: 'HOME_SKY_LEFT', scale: 1.6 },
+        { kind: 'fireworks', at: 'HOME_SKY_RIGHT', scale: 1.6 },
+        { kind: 'fireworks', at: 'HOME_SKY', scale: 2 },
+      ],
+    }),
     travel('l3-home-final', H, ['HOME_GATHER', 'HOME_FINAL'], 5, {
       attention: 'ending',
       fx: [

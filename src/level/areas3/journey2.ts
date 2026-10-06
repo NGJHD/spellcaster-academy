@@ -8,7 +8,7 @@
  *   out of the far wall at z = −20.
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, hold, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, knight } from '../areas2/hush';
 import type { TargetSpawn } from '../levelTypes';
 import { colour, fireTide, fireball, memoryPage, pathWord } from './blank';
@@ -22,7 +22,7 @@ export const GALLERY3_ORIGIN: Vec3 = [2400, 0, 0];
 const I = origin(FALLS_ORIGIN);
 const L = origin(MARGIN_ORIGIN);
 const Y = origin(GALLERY3_ORIGIN);
-export const RAFT_BEATS = ['l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
+export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
 export const SLIDE_SECTIONS: readonly Vec3[] = [I(0, 14, -96), I(0, 9, -106), I(0, 4, -116)];
 export const WALKWAYS: readonly Vec3[] = [L(0, 0, -4), L(0, 0, -12), L(0, 0, -20)];
 export const JOURNAL: Vec3 = L(0, 2, -40);
@@ -63,6 +63,11 @@ export const inkfall: AreaScript = {
   },
   beats: [
     fade('l3-if-enter', F, 'IF_TOP', { music: 'citadel-battle', objective: 'l3-inkfall', barks: ['l3-raft'] }),
+    // Owner (2026-10-07): "won't we burn to death?" A frost bubble keeps the fire off the paper raft.
+    hold('l3-shield-up', F, 'IF_TOP', 1, {
+      barks: ['l3-shield'],
+      chase: [{ at: 0.05, target: pathWord('raft-shield', I(0, 41.4, -4), 'shield', 'l3-shield-on', { defeatBark: 'l3-shield-on', defeatFx: { kind: 'shockwave', scale: 1.2, color: '#9fd8ff' } }) }],
+    }),
     travel('l3-raft-1', F, ['IF_TOP', 'IF_S1'], 6, {
       chase: [{ at: 0.4, target: memoryPage('falls-page', I(0, 0, 0), 'drift', 'memory-3', { follow: { ahead: 4.4, side: 1.3, up: 0.6 } }) }],
     }),
@@ -261,7 +266,7 @@ export const gallery3: AreaScript = {
     fight('l3-pw-1', G, { barks: ['l3-pw-mirror'] }),
     fight('l3-pw-2', G, { barks: ['l3-pw-perfect'] }),
     fight('l3-pw-3', G, { barks: ['l3-pw-together'] }),
-    checkpoint('l3-g3-checkpoint', G, 'perfect-warden-defeated', { barks: ['l3-pw-done'], objective: 'l3-sea' }),
+    checkpoint('l3-g3-checkpoint', G, 'perfect-warden-defeated', { barks: ['l3-pw-done', 'l3-pw-after'], objective: 'l3-sea' }),
   ],
   encounters: [
     {
