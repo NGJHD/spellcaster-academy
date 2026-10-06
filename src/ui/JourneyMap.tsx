@@ -4,12 +4,9 @@
  * apprentice sets off: the places already visited, the beacons lit so far, and a glowing dotted trail
  * to the next stop. It shows for a few seconds and never covers the middle of the screen.
  */
-import { useEffect, useState } from 'react';
 import { strings } from '../content/strings';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
-
-const SHOW_MS = 5200;
 
 interface Stop {
   readonly x: number;
@@ -44,14 +41,8 @@ function Flame({ x, y, lit }: { x: number; y: number; lit: boolean }) {
 
 export function JourneyMap() {
   const journey = useRunStore((s) => s.journey);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    if (!journey) return;
-    setVisible(true);
-    const t = window.setTimeout(() => setVisible(false), SHOW_MS);
-    return () => window.clearTimeout(t);
-  }, [journey]);
-  if (!journey || !visible) return null;
+  // The card's CSS animation fades it in and out (about five seconds); a new key replays it.
+  if (!journey) return null;
   const to = ORDER.indexOf(journey.to);
   if (to < 0) return null;
   const flags = getRun()?.flags ?? new Set<string>();
