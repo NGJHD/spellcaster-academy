@@ -67,6 +67,10 @@ export function CinderCitadel({ distant = false }: { distant?: boolean }) {
   });
   return (
     <group>
+      {/* A wide rocky skirt running down below the horizon, so the fortress never floats */}
+      <mesh position={[0, -70, 0]} material={rock}>
+        <cylinderGeometry args={[RING + 70, RING + 230, 140, 13, 4]} />
+      </mesh>
       {/* The rocky mount, stepped like a broken cliff */}
       <mesh position={[0, MOUNT_H / 2, 0]} material={rock}>
         <cylinderGeometry args={[RING + 14, RING + 46, MOUNT_H, 11, 3]} />

@@ -444,9 +444,11 @@ export function LakeScene() {
         <Boathouse position={[18, 0, -50]} rotationY={-Math.PI / 2} />
         <Box position={[12, 0.3, -46]} size={[7, 0.3, 2.4]} material={MAT.lightOak} />
         {/* Lighthouse island */}
-        <mesh position={[0, -0.5, -128]} material={MAT.burntGround}>
-          <cylinderGeometry args={[12, 16, 2, 32]} />
-        </mesh>
+        {/* The lighthouse island: a low rocky shore ringed with boulders (was a flat polygon disc) */}
+        <mesh position={[0, -0.6, -128]} material={MAT.rockGround} geometry={worldCylinder(11, 15, 1.6, 48)} receiveShadow />
+        {Array.from({ length: 14 }, (_, i) => (i / 14) * Math.PI * 2).map((a, i) => (
+          <Prop key={i} id={i % 2 ? 'rock_moss_set_01' : 'ash_rock'} position={[Math.cos(a) * (12 + (i % 3)), -0.6, -128 + Math.sin(a) * (12 + (i % 3))]} height={1.2 + (i % 4) * 0.5} rotationY={a * 3} />
+        ))}
         <group position={[0, 0, -128]}>
           {/* Red-and-white lighthouse (AI-pipeline prop; striped cylinders until it loads) */}
           <ModelBoundary fallback={<LighthouseStripes />}>

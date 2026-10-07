@@ -20,7 +20,7 @@ import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop } from '../Prop';
 import { moltenInk, useMoltenFlow } from '../molten';
-import { worldPlane } from '../surfaces';
+import { worldCylinder, worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { metreSurface, surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
@@ -32,8 +32,30 @@ const redInk = moltenInk();
 const inkStream = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.6 });
 const blackIron = () => metreSurface('iron', 3, { metalness: 0.45 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
-const paper = new MeshStandardMaterial({ color: '#d8d2c4', roughness: 0.9 });
-const inkBlue = new MeshStandardMaterial({ color: '#2a5cff', roughness: 0.3, emissive: '#2a5cff', emissiveIntensity: 0.4 });
+/** Glowing blue ink: the edges of everything the apprentice writes into being. */
+const inkGlow = new MeshStandardMaterial({ color: '#9ec4ff', roughness: 0.3, emissive: '#3a7cff', emissiveIntensity: 2.4 });
+
+/**
+ * A written path (owner: the blue slabs were "plain rectangles of solid colour"): wooden planks laid
+ * across it with small gaps, between two rails of glowing blue ink. Centred on its origin, `length`
+ * along Z.
+ */
+function WrittenPlanks({ width, length }: { width: number; length: number }) {
+  const count = Math.max(2, Math.floor(length / 0.42));
+  const step = length / count;
+  return (
+    <group>
+      {Array.from({ length: count }, (_, i) => (
+        <Box key={i} position={[((i * 7) % 3 - 1) * 0.02, 0, -length / 2 + step * (i + 0.5)]} size={[width * (0.96 + ((i * 5) % 4) * 0.01), 0.12, step * 0.86]} material={MAT.lightOak} />
+      ))}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * (width / 2 + 0.04), 0.07, 0]} material={inkGlow}>
+          <boxGeometry args={[0.07, 0.07, length]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 
@@ -134,9 +156,12 @@ export function ShoreScene() {
       {/* Stepping stones written across the ink */}
       {STONES.map((s, i) => (
         <Written key={i} flag={`l3-stone-${i + 1}`}>
-          <mesh position={sub(s, SHORE_ORIGIN)} material={inkBlue}>
-            <cylinderGeometry args={[1.1, 1.2, 0.4, 16]} />
-          </mesh>
+          <group position={sub(s, SHORE_ORIGIN)}>
+            <mesh material={MAT.rockGround} geometry={worldCylinder(1.1, 1.25, 0.45, 32)} castShadow receiveShadow />
+            <mesh position={[0, 0.23, 0]} rotation={[-Math.PI / 2, 0, 0]} material={inkGlow}>
+              <torusGeometry args={[1.08, 0.03, 8, 48]} />
+            </mesh>
+          </group>
         </Written>
       ))}
       {/* Burnt shell, boat and lantern on the beach, repainted when restored */}
@@ -187,7 +212,8 @@ export function CinderwoodScene() {
     {/* Riding on the tortoise's shell: it sits below the camera, head ahead (owner: "why did we wake
         the tortoise just to run?" — it carries us through the fire). */}
     <Carried beats={TORTOISE_RIDE_BEATS} drop={5.4}>
-      <group position={[0, 0, 0.6]}>
+      {/* Seated forward on the shell so its domed back and head are in view ahead */}
+      <group position={[0, 0, -2.4]}>
         <GiantTortoise />
       </group>
     </Carried>
@@ -264,6 +290,47 @@ function OnBeatsL3({ hide, children }: { hide: readonly string[]; children: Reac
 // ---------- Inkfall Cascades ----------
 
 /**
+ * The raft: one giant page folded at its edges into a shallow tray (owner: the white box was a "plain
+ * rectangle"), cream paper with faint ruled lines, its folds catching the firelight.
+ */
+function PaperRaft() {
+  const sheet = useMemo(() => {
+    const m = surface('paper', [3, 4.4], 1.2);
+    const c = m.clone();
+    c.color.set('#efe3c8');
+    c.side = DoubleSide;
+    c.roughness = 0.95;
+    c.envMapIntensity = 0.15;
+    return c;
+  }, []);
+  return (
+    <group position={[0, 0, -0.8]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} material={sheet} receiveShadow>
+        <planeGeometry args={[2.6, 4]} />
+      </mesh>
+      {/* Folded-up edges */}
+      {[-1, 1].map((side) => (
+        <mesh key={`s${side}`} position={[side * 1.38, 0.12, 0]} rotation={[0, 0, side * -1.05]} material={sheet}>
+          <planeGeometry args={[0.32, 4]} />
+        </mesh>
+      ))}
+      {[-1, 1].map((end) => (
+        <mesh key={`e${end}`} position={[0, 0.12, end * 2.08]} rotation={[end * 1.05, 0, 0]} material={sheet}>
+          <planeGeometry args={[2.6, 0.32]} />
+        </mesh>
+      ))}
+      {/* Faint ruled lines across the page */}
+      {Array.from({ length: 9 }, (_, i) => (
+        <mesh key={`l${i}`} position={[0, 0.004, -1.7 + i * 0.42]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2.3, 0.012]} />
+          <meshBasicMaterial color="#8aa0c8" transparent opacity={0.45} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/**
  * The frost bubble around the raft (owner: "won't we burn to death?"): once the apprentice types
  * "shield", a shimmering icy dome grows over the raft and keeps the burning ink off it.
  */
@@ -313,12 +380,14 @@ export function InkfallScene() {
         {/* The broken drop: written into a slide of blue ink */}
         {SLIDE_SECTIONS.map((p, i) => (
           <Written key={i} flag={`l3-slide-${i + 1}`}>
-            <Box position={sub(p, FALLS_ORIGIN)} size={[4, 0.3, 10]} rotation={[0.45, 0, 0]} material={inkBlue} />
+            <group position={sub(p, FALLS_ORIGIN)} rotation={[0.45, 0, 0]}>
+              <WrittenPlanks width={4} length={10} />
+            </group>
           </Written>
         ))}
       </group>
       <Carried beats={RAFT_BEATS} drop={1.1}>
-        <Box position={[0, 0, -0.8]} size={[2.6, 0.12, 4]} material={paper} />
+        <PaperRaft />
         <Mira position={[0, 0.06, -2.4]} rotationY={Math.PI} />
         <FrostBubble flag="l3-shield-on" />
       </Carried>
@@ -348,6 +417,30 @@ export function MarginScene() {
       <Slab x={[-9, 9]} y={[-3, -0.4]} z={[1.4, 2]} material={MAT.rockGround} />
       <Slab x={[-9, 9]} y={[-3, -0.4]} z={[-24, -23.4]} material={MAT.rockGround} />
       <mesh position={[0, -26, -11]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(120, 80)} />
+      {/* Rocky undersides: the two halves of the hall are floating ruins, torn out of the ground */}
+      {([[9, 14], [-36, 24]] as const).map(([z, len]) => (
+        <group key={z} position={[0, -0.4, z]}>
+          <mesh rotation={[Math.PI, 0, 0]} position={[0, -7, 0]} scale={[1, 1, len / 18]} material={MAT.rockGround}>
+            <coneGeometry args={[10.5, 14, 9, 3]} />
+          </mesh>
+          {[-6, 0, 5].map((x, i) => (
+            <mesh key={x} rotation={[Math.PI, i, 0]} position={[x, -12 - i * 2, (i - 1) * 2]} material={MAT.rockGround}>
+              <coneGeometry args={[2.4, 9, 7]} />
+            </mesh>
+          ))}
+        </group>
+      ))}
+      {/* Broken arches still reaching across the chasm */}
+      {[-6.5, 6.5].map((x) => (
+        <group key={x} position={[x, 0, 1.6]}>
+          <mesh rotation={[0, Math.PI / 2, 0]} position={[0, 6, -6]} material={MAT.academyStone}>
+            <torusGeometry args={[6, 0.45, 12, 32, Math.PI * 0.45]} />
+          </mesh>
+          <mesh rotation={[0, -Math.PI / 2, Math.PI]} position={[0, 6, -19]} material={MAT.academyStone}>
+            <torusGeometry args={[6, 0.45, 12, 32, Math.PI * 0.38]} />
+          </mesh>
+        </group>
+      ))}
       {/* Stone side walls lined with tall bookcases (only where there is floor) */}
       {([[2, 16], [-48, -24]] as const).map(([z0, z1], k) => (
         <group key={k}>
@@ -401,7 +494,9 @@ export function MarginScene() {
       })}
       {WALKWAYS.map((p, i) => (
         <Written key={i} flag={`l3-walk-${i + 1}`}>
-          <Box position={sub(p, MARGIN_ORIGIN)} size={[3, 0.3, 8]} material={inkBlue} />
+          <group position={sub(p, MARGIN_ORIGIN)}>
+            <WrittenPlanks width={3} length={8} />
+          </group>
         </Written>
       ))}
       {/* Corvane's journal on its lectern, burning into a tornado of pages */}

@@ -119,8 +119,8 @@ export const cinderwood: AreaScript = {
     CW_MID: { position: C(0, 1.6, -18), lookAt: C(0, 2, -34) },
     CW_END: { position: C(1, 2.6, -36), lookAt: C(3, 1.5, -40) },
     // On the tortoise's back (its shell top is about 4.5 m up; the camera sits just above it).
-    CW_MOUNT: { position: C(3, 5.4, -40.6), lookAt: C(3, 3, -70) },
-    CW_RIDE: { position: C(3, 5.4, -86), lookAt: C(3, 3.5, -120) },
+    CW_MOUNT: { position: C(3, 5.4, -40.6), lookAt: C(3, -1, -70) },
+    CW_RIDE: { position: C(3, 5.4, -86), lookAt: C(3, -0.5, -120) },
   },
   lookPoints: {
     CW_DEER: C(-3, 1, -14),

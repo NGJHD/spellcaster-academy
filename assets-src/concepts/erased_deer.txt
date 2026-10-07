@@ -1,0 +1,2 @@
+seed: 66
+prompt: A graceful red deer stag with large antlers standing calmly, realistic fur, gentle eyes, full body side view, highly detailed realistic 3D render of a single object or character, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

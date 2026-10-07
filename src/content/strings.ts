@@ -228,7 +228,7 @@ export const strings = {
     'l2-valves': 'Speed round! Open the valves!',
     'l2-shelves': 'Speed round! Save the shelves!',
     'l3-flock': 'Speed round! Restore the flock!',
-    'l3-sculptures': 'Speed round! Restore the sculptures!',
+    'l3-sculptures': 'Speed round! Restore the stolen treasures!',
   } as Record<string, string>,
   hazards: {
     'arc-left': 'Light arc from the left',
