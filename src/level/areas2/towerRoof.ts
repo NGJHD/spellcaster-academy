@@ -16,7 +16,8 @@ export const ROOF_ORIGIN: Vec3 = [1600, 60, 0];
 const T = origin(ROOF_ORIGIN);
 export const WYRM_HEAD: Vec3 = T(0, 6, -14);
 const WYRM_HEART: Vec3 = T(0, 3.2, -11);
-export const AFTERMATH_ORIGIN: Vec3 = [1700, 0, 0];
+/** The aftermath is staged on the same roof, at dawn. */
+export const AFTERMATH_ORIGIN: Vec3 = ROOF_ORIGIN;
 const O = origin(AFTERMATH_ORIGIN);
 
 /** A glowing page-scale or ink gland on the wyrm's body. */
@@ -29,13 +30,15 @@ const scale = (id: string, position: Vec3, word: TargetSpawn['words'][number], o
 
 export const towerRoof: AreaScript = {
   nodes: {
-    PALM_BASE: { position: T(4, -50, 12), lookAt: T(4, -30, 4) },
-    PALM_MID: { position: T(5, -26, 11), lookAt: T(2, -6, 2) },
+    // Held out in the Warden's palm, well clear of the tower, looking up past its edge to the roof and
+    // the burning sky (the wall filled the whole view before).
+    PALM_BASE: { position: T(7, -46, 21), lookAt: T(-2, 2, -4) },
+    PALM_MID: { position: T(6, -22, 17), lookAt: T(-1, 8, -6) },
     PALM_TOP: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
     ROOF_FIGHT: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
     ROOF_ORBIT_A: { position: T(-6, 2.4, 3), lookAt: T(-10, 8, -16) },
     ROOF_ORBIT_B: { position: T(6, 2.4, 3), lookAt: T(12, 9, -14) },
-    AFTER_OBS: { position: O(0, 1.7, 6), lookAt: O(0, 1.2, 0) },
+    AFTER_OBS: { position: O(0.3, 1.6, 3.4), lookAt: O(0, 1.25, 0) },
     AFTER_RIFT: { position: O(0, 2.2, 4), lookAt: O(-10, 40, -120) },
   },
   lookPoints: {

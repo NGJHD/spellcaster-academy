@@ -1,4 +1,6 @@
-import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { useThree } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { Group } from 'three';
 import type { AreaId } from '../game/types';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
@@ -100,6 +102,27 @@ const KEEP_PREVIOUS_MS = 2500;
  * Area-based loading (§15): only the current area — plus the previous one briefly, so a fade
  * never reveals an empty world — is mounted at a time.
  */
+/**
+ * Mounts a scene hidden so its models and textures load, then compiles its materials once (shown for
+ * that one compile only), so walking into it later costs no frame-rate dip.
+ */
+function Prefetch({ children }: { children: ReactNode }) {
+  const group = useRef<Group>(null);
+  const { gl, camera, scene } = useThree();
+  useEffect(() => {
+    const g = group.current;
+    if (!g) return;
+    g.visible = true;
+    gl.compile(scene, camera);
+    g.visible = false;
+  }, [gl, camera, scene]);
+  return (
+    <group ref={group} visible={false}>
+      {children}
+    </group>
+  );
+}
+
 export function World() {
   const storeArea = useRunStore((s) => s.areaId);
   const area: AreaId = storeArea ?? getRun()?.currentAreaId ?? 'arrival-gate';
@@ -116,6 +139,20 @@ export function World() {
 
   const mounted = new Set<SceneKey>([current]);
   if (shown.previous && shown.previous !== current) mounted.add(shown.previous);
+  // The next area loads in the background while this one plays (Chrome playtest: entering the
+  // burning library stalled for 16 s while its assets loaded and its materials compiled).
+  const beatId = useRunStore((st) => st.beatId);
+  const next = useMemo(() => {
+    const run = getRun();
+    if (!run || !beatId) return null;
+    const beats = run.level.route.beats;
+    const i = run.level.beatIndexOf(beatId);
+    for (let k = Math.max(0, i); k < beats.length; k++) {
+      const b = beats[k];
+      if (b && sceneFor(b.areaId) !== current) return sceneFor(b.areaId);
+    }
+    return null;
+  }, [beatId, current]);
 
   const scenes: Record<SceneKey, ReactNode> = {
     exterior: <ExteriorScene celebration={area === 'celebration-courtyard'} />,
@@ -175,6 +212,11 @@ export function World() {
           <group>{scenes[key]}</group>
         </Suspense>
       ))}
+      {next && !mounted.has(next) && (
+        <Suspense key={`next-${next}`} fallback={null}>
+          <Prefetch>{scenes[next]}</Prefetch>
+        </Suspense>
+      )}
     </>
   );
 }

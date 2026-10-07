@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { AdditiveBlending, DoubleSide, MeshStandardMaterial, type Group, type PointLight } from 'three';
+import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, type Group, type PointLight } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
@@ -17,13 +17,18 @@ import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { Fire, Restorable } from '../Fire';
-import { Banner, Box, GableRoof, KitModel, Slab } from '../kit';
+import { Banner, Box, GableRoof, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
+import { glowTexture, LightBeam } from '../glow';
+import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BeaconBrazier, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
+
+/** Dark red crystal with a hot inner glow. */
+const SHARD_MAT = new MeshStandardMaterial({ color: '#3a0606', roughness: 0.15, metalness: 0.2, emissive: '#ff2a10', emissiveIntensity: 1.6 });
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const nightWater = new MeshStandardMaterial({ color: '#0a0606', roughness: 0.35, metalness: 0.1, emissive: '#4a0c04', emissiveIntensity: 0.35, envMapIntensity: 0.15 });
@@ -472,22 +477,100 @@ export function LakeScene() {
   );
 }
 
+const BOAT_LENGTH = 4.6;
+/** Stern at z = +0.9 (just behind the camera), bow at z = −3.7. */
+const BOAT_STERN_Z = 0.9;
+
+/**
+ * A smooth clinker rowing boat hull, lofted from cross-sections (owner: the AI boat looked shredded up
+ * close). Each section is a rounded U from gunwale to keel to gunwale; the beam narrows to a sharp bow
+ * and a square-ish stern. UVs are in metres so the plank texture keeps its size.
+ */
+function boatHull(): BufferGeometry {
+  const ALONG = 28;
+  const AROUND = 18;
+  const pos: number[] = [];
+  const uv: number[] = [];
+  for (let i = 0; i <= ALONG; i++) {
+    const t = i / ALONG; // 0 stern → 1 bow
+    const z = BOAT_STERN_Z - t * BOAT_LENGTH;
+    const beam = 0.82 * Math.pow(Math.sin(Math.PI * (0.18 + t * 0.82)), 0.7) * (t > 0.85 ? 1 - (t - 0.85) * 2.2 : 1);
+    const depth = 0.62 - t * 0.12;
+    const sheer = 0.08 * Math.pow(t, 3) + 0.03 * (1 - t); // gunwale rises to the bow
+    let arc = 0;
+    let prev: [number, number] | null = null;
+    for (let j = 0; j <= AROUND; j++) {
+      const a = Math.PI * (j / AROUND); // 0 port gunwale → π starboard gunwale
+      const x = -Math.cos(a) * Math.max(0.04, beam);
+      const y = sheer - Math.pow(Math.sin(a), 1.4) * depth;
+      if (prev) arc += Math.hypot(x - prev[0], y - prev[1]);
+      prev = [x, y];
+      pos.push(x, y, z);
+      uv.push(arc, z);
+    }
+  }
+  const idx: number[] = [];
+  const row = AROUND + 1;
+  for (let i = 0; i < ALONG; i++) {
+    for (let j = 0; j < AROUND; j++) {
+      const a = i * row + j;
+      idx.push(a, a + row, a + 1, a + 1, a + row, a + row + 1);
+    }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+
 /** Oarsby's rowing boat with Oarsby at the oars and a lantern on the bow; origin at the stern seat. */
 function OarsbyBoat() {
-  const hull = <Box position={[0, -0.6, -1.8]} size={[1.6, 0.6, 4.4]} material={MAT.darkOak} />;
+  const hull = useMemo(() => boatHull(), []);
+  // Cloned at render time, after the photo-scanned plank texture has been attached to the shared material.
+  const hullMaterial = useMemo(() => {
+    const m = MAT.lightOak.clone();
+    m.side = DoubleSide;
+    return m;
+  }, []);
   return (
-    <>
-      {/* AI-pipeline prop; long axis turned to the camera's forward, centred ahead of the stern seat */}
-      <ModelBoundary fallback={hull}>
-        <Suspense fallback={hull}>
-          <Prop id="rowing_boat" position={[0, -1.0, -2.0]} height={2.9} rotationY={Math.PI / 2} doubleSided />
-        </Suspense>
-      </ModelBoundary>
-      {/* Oarsby sits at the oars on the right, facing the stern, so the bow stays in view */}
-      <Student position={[0.55, -1.05, -1.6]} rotationY={Math.PI} robe={MAT.darkOak} height={1.25} />
-      <Prop id="wooden_lantern_01" position={[0, -0.35, -3.9]} height={0.5} />
-      <pointLight position={[0, 0.1, -3.9]} color="#ffc070" intensity={3} distance={6} decay={2} />
-    </>
+    // Gunwale about 0.3 m above the water: 1.1 m below the eye when carried (Carried drops 1.0 m).
+    <group position={[0, -0.16, 0]}>
+      <mesh geometry={hull} material={hullMaterial} castShadow receiveShadow />
+      {/* Gunwale rails and the transom */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.74, 0.06, BOAT_STERN_Z - BOAT_LENGTH * 0.42]} rotation={[0, side * 0.05, 0]} material={MAT.lightOak}>
+          <boxGeometry args={[0.07, 0.07, BOAT_LENGTH * 0.72]} />
+        </mesh>
+      ))}
+      {/* Thwarts (seats) */}
+      {[0.1, -1.3, -2.5].map((z) => (
+        <mesh key={z} position={[0, -0.18, z]} material={MAT.lightOak} castShadow>
+          <boxGeometry args={[1.45, 0.06, 0.3]} />
+        </mesh>
+      ))}
+      {/* Oars resting in their locks */}
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * 0.78, 0.1, -2.45]} rotation={[0, side * 0.35, side * -0.25]}>
+          <mesh rotation={[0, 0, Math.PI / 2]} position={[side * 1.0, 0, 0]} material={MAT.lightOak}>
+            <cylinderGeometry args={[0.035, 0.035, 2.6, 12]} />
+          </mesh>
+          <mesh position={[side * 2.25, 0, 0]} material={MAT.lightOak}>
+            <boxGeometry args={[0.55, 0.03, 0.18]} />
+          </mesh>
+        </group>
+      ))}
+      {/* Oarsby at the oars, facing the stern, low on the middle thwart */}
+      <Student position={[0.42, -0.2, -2.45]} rotationY={Math.PI} robe={MAT.darkOak} height={1.2} />
+      {/* The bow lantern on a short post */}
+      <mesh position={[0, 0.3, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} material={MAT.darkOak}>
+        <cylinderGeometry args={[0.025, 0.03, 0.6, 8]} />
+      </mesh>
+      <Prop id="wooden_lantern_01" position={[0, 0.6, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} height={0.4} />
+      <pointLight position={[0, 0.9, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} color="#ffc070" intensity={3} distance={6} decay={2} />
+    </group>
   );
 }
 
@@ -590,6 +673,38 @@ export function RampartScene() {
 
 // ---------- Moon Tower roof and the Vellum Wyrm ----------
 
+/**
+ * The Moon Tower roof (Level 2 finale and dawn aftermath): the tower shaft, a paved roof, a continuous
+ * parapet ring crowned with merlons, and four iron braziers.
+ */
+function RoofBase() {
+  return (
+    <>
+      <mesh position={[0, -30, 0]} material={MAT.academyStone} geometry={worldCylinder(9, 9.6, 60, 64)} castShadow receiveShadow />
+      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.paving} geometry={worldCircle(9, 64)} receiveShadow />
+      {/* Parapet ring, inside and out, with a walkway lip */}
+      <mesh position={[0, 0.55, 0]} material={MAT.academyStoneDark} geometry={worldCylinder(9.2, 9.2, 1.1, 64)} />
+      <mesh position={[0, 0.55, 0]} material={MAT.academyStoneDark} geometry={insideCylinder(8.7, 1.1, 64)} />
+      <mesh position={[0, 1.14, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.academyStone}>
+        <ringGeometry args={[8.65, 9.25, 64]} />
+      </mesh>
+      {Array.from({ length: 28 }, (_, i) => (i / 28) * Math.PI * 2).map((a, i) => (
+        <Box key={i} position={[Math.cos(a) * 8.95, 1.55, Math.sin(a) * 8.95]} size={[0.62, 0.8, 1.05]} rotation={[0, -a, 0]} material={MAT.academyStone} />
+      ))}
+      {[0.6, 2.2, 3.8, 5.4].map((a) => (
+        <group key={a} position={[Math.cos(a) * 7.6, 0, Math.sin(a) * 7.6]}>
+          <mesh position={[0, 0.5, 0]} material={MAT.darkSteel}>
+            <cylinderGeometry args={[0.12, 0.2, 1, 16]} />
+          </mesh>
+          <mesh position={[0, 1.05, 0]} material={MAT.darkSteel}>
+            <cylinderGeometry args={[0.45, 0.25, 0.3, 24, 1, true]} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
 export function RoofScene() {
   const head = sub(WYRM_HEAD, ROOF_ORIGIN);
   const wyrm = useRef<Group>(null);
@@ -606,16 +721,7 @@ export function RoofScene() {
   });
   return (
     <group position={ROOF_ORIGIN}>
-      {/* Tower shaft (the palm ride climbs its outside) and the crenellated roof */}
-      <mesh position={[0, -30, 0]} material={MAT.academyStone} castShadow receiveShadow>
-        <cylinderGeometry args={[9, 9.6, 60, 48]} />
-      </mesh>
-      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.paving}>
-        <circleGeometry args={[9, 48]} />
-      </mesh>
-      {Array.from({ length: 24 }, (_, i) => (i / 24) * Math.PI * 2).map((a, i) =>
-        i % 2 ? null : <Box key={i} position={[Math.cos(a) * 8.8, 0.6, Math.sin(a) * 8.8]} size={[1.2, 1.2, 0.6]} rotation={[0, -a, 0]} material={MAT.academyStone} />,
-      )}
+      <RoofBase />
       {[[-6, 0, -3], [6, 0, -4], [-3, 0, 6], [5, 0, 5]].map((p, i) => (
         <Fire key={i} position={p as unknown as Vec3} size={2} count={3} spread={1.6} light={i === 0} />
       ))}
@@ -642,32 +748,43 @@ export function RoofScene() {
 
 // ---------- Aftermath: the observatory at dawn ----------
 
+/**
+ * Dawn after the siege (owner: the aftermath was a bare disc in a pale void): on the Moon Tower roof
+ * where the Wyrm fell, the fires out, Keeper Orin and Mira gathered round the Quill shard on a marble
+ * column. The shard is a red crystal cluster with a soft glow and a shaft of light.
+ */
 export function AftermathScene() {
   const shard = useRef<Group>(null);
   useFrame((state) => {
     if (shard.current) shard.current.rotation.y = state.clock.elapsedTime * 0.5;
   });
+  const glow = useMemo(() => glowTexture(), []);
   return (
     <group position={AFTERMATH_ORIGIN}>
+      <RoofBase />
       <AftermathDressing />
-      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.paving}>
-        <circleGeometry args={[12, 48]} />
-      </mesh>
-      <KitModel id="telescope" position={[-5, 0, -4]} rotationY={0.6} />
-      <Box position={[0, 0.5, 0]} size={[1, 1, 1]} material={MAT.marble} />
-      <group ref={shard} position={[0, 1.4, 0]}>
-        <mesh>
-          <octahedronGeometry args={[0.28, 0]} />
-          <meshStandardMaterial color="#120808" roughness={0.1} metalness={0.4} emissive="#ff2a10" emissiveIntensity={1.4} />
-        </mesh>
+      {/* Marble column */}
+      <mesh position={[0, 0.5, 0]} material={MAT.marble} geometry={worldCylinder(0.32, 0.38, 1, 32)} castShadow />
+      <mesh position={[0, 1.04, 0]} material={MAT.marble} geometry={worldCylinder(0.48, 0.36, 0.1, 32)} />
+      <mesh position={[0, 0.04, 0]} material={MAT.marble} geometry={worldCylinder(0.55, 0.6, 0.08, 32)} />
+      {/* The Quill shard: a cluster of red crystal points, glowing */}
+      <group ref={shard} position={[0, 1.12, 0]}>
+        {([[0, 0, 0, 0.34, 0], [0.07, 0, 0.04, 0.2, 0.5], [-0.06, 0, -0.05, 0.24, -0.45]] as const).map(([x, y, z, h, tilt], i) => (
+          <mesh key={i} position={[x, y + h / 2, z]} rotation={[tilt * 0.6, i, tilt]} material={SHARD_MAT}>
+            <cylinderGeometry args={[0, 0.05 + h * 0.12, h, 6]} />
+          </mesh>
+        ))}
+        <sprite position={[0, 0.18, 0]} scale={1.1}>
+          <spriteMaterial map={glow} color="#ff4a20" transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+        </sprite>
       </group>
+      <group position={[0, 1.1, 0]}>
+        <LightBeam height={6} width={0.7} color="#ff6a3a" intensity={0.5} />
+      </group>
+      <pointLight position={[0, 1.5, 0]} color="#ff4a20" intensity={3} distance={5} decay={2} />
       <KeeperOrin position={[1.4, 0, -1.2]} rotationY={-0.6} />
       <Mira position={[-1.6, 0, -0.8]} rotationY={0.7} />
-      <StaticWarden position={[4, 0, -6]} scale={1} rotationY={-0.5} />
-      {/* Smoke still rising from the academy below */}
-      {[[-30, 0, -60], [20, 0, -80], [50, 0, -40]].map((p, i) => (
-        <Fire key={i} position={p as unknown as Vec3} size={5} count={2} spread={4} kind="warm" />
-      ))}
+      <StaticWarden position={[4, 0, -5]} scale={1} rotationY={-0.5} />
     </group>
   );
 }
