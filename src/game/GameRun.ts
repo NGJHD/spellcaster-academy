@@ -1163,7 +1163,8 @@ export class GameRun {
         this.popup('CHAIN SPARK!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
       }
     }
-    if (!this.flags.has('seen-chain')) {
+    // Pip remarks on it only in the level where Chain Spark is learned, not out of nowhere later on.
+    if (!this.flags.has('seen-chain') && !this.level.startingSpells.includes('chain-spark')) {
       this.flags.add('seen-chain');
       this.queueBark(getLine('spell-chain'), this.director.currentIndex, true);
     }
@@ -1184,7 +1185,7 @@ export class GameRun {
         this.popup('STARFALL!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
       }
     }
-    if (!this.flags.has('seen-starfall')) {
+    if (!this.flags.has('seen-starfall') && !this.level.startingSpells.includes('starfall')) {
       this.flags.add('seen-starfall');
       this.queueBark(getLine('spell-starfall'), this.director.currentIndex, true);
     }

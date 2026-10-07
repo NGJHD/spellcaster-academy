@@ -145,7 +145,7 @@ export const strings = {
     'l2-herald': 'Defeat the Grey Herald',
     'l2-furnace': 'Relight the Furnace Beacon',
     'l2-lake': 'Cross the lake to the lighthouse',
-    'l2-library': 'Save the Star Atlas',
+    'l2-library': 'Save the star map',
     'l2-ramparts': 'Light the Rampart Beacon',
     'l2-wyrm': 'Stop the Vellum Wyrm',
     'l3-rift': 'Cross the Rift',
