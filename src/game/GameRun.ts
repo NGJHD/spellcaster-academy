@@ -221,6 +221,8 @@ interface QueuedLine {
   readonly line: DialogueLine;
   readonly beat: number;
   readonly at: number;
+  /** A fight's instruction or tip: the only kind of line that may be dropped once its fight is over. */
+  readonly instruction?: boolean;
 }
 
 /** Screen distance from centre (1 = edge) beyond which the camera turns to bring words into view. */
@@ -1163,7 +1165,7 @@ export class GameRun {
     }
     if (!this.flags.has('seen-chain')) {
       this.flags.add('seen-chain');
-      this.queueBark(getLine('spell-chain'));
+      this.queueBark(getLine('spell-chain'), this.director.currentIndex, true);
     }
   }
 
@@ -1184,7 +1186,7 @@ export class GameRun {
     }
     if (!this.flags.has('seen-starfall')) {
       this.flags.add('seen-starfall');
-      this.queueBark(getLine('spell-starfall'));
+      this.queueBark(getLine('spell-starfall'), this.director.currentIndex, true);
     }
   }
 
@@ -1232,12 +1234,12 @@ export class GameRun {
     // yet (instructions for a fight already won would be said over the wrong scene). Story lines and
     // conversations are never dropped; a line being said always finishes.
     if ((beat.barks ?? []).some((id) => !(LINE_NEEDS[id] && this.settings()[LINE_NEEDS[id]] === false))) {
-      this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex || this.level.route.beats[q.beat]?.kind !== 'encounter');
+      this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex || !q.instruction);
     }
     for (const id of beat.barks ?? []) {
       const needs = LINE_NEEDS[id];
       if (needs && this.settings()[needs] === false) continue;
-      this.queueBark(getLine(id), beatIndex);
+      this.queueBark(getLine(id), beatIndex, beat.kind === 'encounter');
       spoken++;
     }
     // A reveal that only showed a collectible, with collectibles switched off and nothing to say, is
@@ -1271,7 +1273,7 @@ export class GameRun {
         // Lines still waiting from the scene before (the rest of a conversation, an intro line) are
         // said first, so nothing in the story is lost (owner playtest: Orin's answer about the Unwriter
         // vanished); leftover instructions from a finished fight are dropped.
-        const carried = this.barkQueue.filter((q) => this.level.route.beats[q.beat]?.kind !== 'encounter').map((q) => q.line);
+        const carried = this.barkQueue.filter((q) => !q.instruction).map((q) => q.line);
         const lines = [...carried, ...beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l)];
         this.barkQueue = [];
         this.dialogue = { beatId: beat.id, lines, index: 0, elapsed: 0, started: false, releaseAt: this.releaseIndex(lines.length) };
@@ -1468,7 +1470,7 @@ export class GameRun {
           break;
         case 'assist-enabled':
           this.progress.assist = true;
-          this.queueBark(getLine('gal-assist'));
+          this.queueBark(getLine('gal-assist'), this.director.currentIndex, true);
           break;
         default:
           break;
@@ -1635,7 +1637,7 @@ export class GameRun {
       };
       this.song = new EncounterRunner({ id: 'song', areaId: this.areaId, kind: 'interaction', waves: [{ id: 'song', targets: [spawn] }] }, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
       this.songCooldown = 20;
-      this.queueBark(getLine('l3-shield-song'));
+      this.queueBark(getLine('l3-shield-song'), this.director.currentIndex, true);
       changed = true;
     }
     const song = this.song;
@@ -1738,7 +1740,7 @@ export class GameRun {
     if (runner.def.assistAfterFailures && failures >= runner.def.assistAfterFailures && !this.progress.assist) {
       this.progress.assist = true;
       runner.ctx.assist = true;
-      this.queueBark(getLine('assist-offer'));
+      this.queueBark(getLine('assist-offer'), this.director.currentIndex, true);
     } else {
       this.queueBark(getLine('focus-reset'));
     }
@@ -1769,6 +1771,10 @@ export class GameRun {
   /** Where a conversation lets the camera go: early before travel, at the last line before a fight. */
   private releaseIndex(lineCount: number): number {
     const i = this.director.currentIndex;
+    // An ending conversation is said in full before the story moves on (Mira's cheer and Pip's last
+    // joke were cut off by the results screen).
+    const here = this.level.route.beats[i];
+    if (here && 'attention' in here && here.attention === 'ending') return -1;
     const following = this.level.route.beats.slice(i + 1, i + 4);
     if (lineCount === 0 || following.some((b) => b.kind === 'results' || b.kind === 'choice')) return -1;
     const next = following[0];
@@ -1840,11 +1846,11 @@ export class GameRun {
     if (d) this.director.completeGatedBeat(d.beatId);
   }
 
-  private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex): void {
+  private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex, instruction = false): void {
     if (!line) return;
     // Keep remarks timely: a long backlog of reactions (not story lines) is trimmed from the front.
     if (this.barkQueue.length >= 6) this.barkQueue.shift();
-    this.barkQueue.push({ line, beat, at: this.speechClock });
+    this.barkQueue.push({ line, beat, at: this.speechClock, instruction });
   }
 
   /**
@@ -1880,8 +1886,7 @@ export class GameRun {
       if (!q) continue;
       // Story lines are always said (camera moves wait for theirs; only intros and spectacles move on
       // early). A late remark or instruction from a fight that is over is dropped.
-      const fromFight = this.level.route.beats[q.beat]?.kind === 'encounter';
-      if (q.beat >= this.director.currentIndex || !fromFight || this.speechClock - q.at <= LINE_FRESH_SEC) return q;
+      if (q.beat >= this.director.currentIndex || !q.instruction || this.speechClock - q.at <= LINE_FRESH_SEC) return q;
     }
     return undefined;
   }
@@ -1947,7 +1952,9 @@ export class GameRun {
       }
       if (match) {
         this.firedBarks.add(key);
-        this.queueBark(getLine(bark.line));
+        // Tips (first letter, mistakes, defeats, low HP, wave starts) may be dropped once the fight is
+        // over; a line on finishing the fight carries the story and is always said.
+        this.queueBark(getLine(bark.line), this.director.currentIndex, w.on !== 'complete');
       }
     });
   }

@@ -144,7 +144,7 @@ export const throne: AreaScript = {
         },
         {
           id: 'rings-3',
-          targets: [marker('pip-kind', [PIP_SEIZED[0], PIP_SEIZED[1] - 0.5, PIP_SEIZED[2]], 'kind', { labelHeight: 0.2, defeatFlag: 'l3-pip-ring-3', defeatFx: { kind: 'pillar', scale: 1, color: '#9fd8ff' } })],
+          targets: [marker('pip-kind', [PIP_SEIZED[0], PIP_SEIZED[1] - 0.5, PIP_SEIZED[2]], 'kind', { labelHeight: 0.2, defeatFlag: 'l3-pip-ring-3', defeatBark: 'l3-pip-ring-3', defeatFx: { kind: 'pillar', scale: 1, color: '#9fd8ff' } })],
         },
       ],
       onComplete: { flags: ['l3-pip-free'] },

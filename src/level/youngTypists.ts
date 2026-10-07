@@ -25,7 +25,8 @@ const BOSS_TARGETS_PER_ROUND = 2;
 const CHASE_PER_BEAT = 2;
 
 /** Teaching moments that must keep their authored shape. */
-const KEEP_AS_AUTHORED = new Set(['l2-fireballs']);
+// Kept whole: the fireball tutorial, and Pip's three rings ("Brave, curious, kind: say them!").
+const KEEP_AS_AUTHORED = new Set(['l2-fireballs', 'l3-u3']);
 
 const NON_MOB = new Set(['marker', 'gem', 'star-page']);
 

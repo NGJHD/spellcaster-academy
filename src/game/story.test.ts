@@ -64,7 +64,8 @@ describe('story', () => {
    * Every line that promises a number of words or things (owner: "name all three" when there were
    * two) names an encounter here, and that encounter must have exactly that many.
    */
-  const COUNT_CLAIMS: readonly { line: string; encounter: string; count: number; of: 'targets' | 'words' }[] = [
+  const COUNT_CLAIMS: readonly { line: string; encounter: string; count: number; of: 'targets' | 'words' | 'markers' }[] = [
+    { line: 'l3-save-pip', encounter: 'l3-u3', count: 3, of: 'markers' }, // "Brave, curious, kind"
     { line: 'lib-anchor-intro', encounter: 'library-anchor', count: 3, of: 'words' },
     { line: 'gh-anchor-intro', encounter: 'greenhouse-anchor', count: 3, of: 'targets' },
   ];
@@ -73,7 +74,7 @@ describe('story', () => {
     expect(def, encounter).toBeDefined();
     if (!def) return;
     const required = def.waves.flatMap((w) => w.targets.filter((t) => !t.optional && !t.challengeOnly));
-    const n = of === 'targets' ? required.length : required.reduce((m, t) => m + t.words.length, 0);
+    const n = of === 'targets' ? required.length : of === 'markers' ? required.filter((t) => t.kind === 'marker').length : required.reduce((m, t) => m + t.words.length, 0);
     expect(n, getLine(line)?.text).toBe(count);
   });
 });
