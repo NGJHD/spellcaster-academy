@@ -61,9 +61,9 @@ export const eastHall: AreaScript = {
       ],
     }),
     // Fast-rail set piece: wheel round and run backwards while the books swoop in.
-    // Mira's question and Pip's joke; her answer opens the chest fight, so the three stay together.
+    // Mira's question, Pip's joke and her answer stay together, before the chest interrupts.
     travel('east-hall-stampede', A, ['EAST_HALL_ENTRY', 'EAST_HALL_RUN_A', 'EAST_HALL_RUN_TURN', 'EAST_HALL_RUN_B', 'EAST_HALL_CHEST_STOP'], 12, {
-      barks: ['east-run-1', 'east-run-2'],
+      barks: ['east-run-1', 'east-run-2', 'east-run-3'],
       easing: 'easeInOutSine',
       chase: [
         { at: 0.34, target: runaway('stampede-1', -0.9, 0.15, 0) },
@@ -73,7 +73,7 @@ export const eastHall: AreaScript = {
       ],
     }),
     // Speed round: the chest's words in eight seconds burst it open.
-    fight('east-hall-chest', A, { barks: ['east-run-3', 'east-chest'] }),
+    fight('east-hall-chest', A, { barks: ['east-chest'] }),
     travel('east-hall-stampede-2', A, ['EAST_HALL_CHEST_STOP', 'EAST_HALL_RUN_D'], 7, {
       chase: [
         { at: 0.1, target: runaway('stampede-5', 0.9, 0.1, 4) },

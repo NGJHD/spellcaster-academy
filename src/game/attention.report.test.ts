@@ -58,7 +58,9 @@ export function measureGaps(msPerKey = 200) {
 }
 
 describe('attention rule (Level 1 at Fast)', () => {
-  it('never leaves more than 7 s with nothing to type (boss intros 8 s)', () => {
+  // Paused by the owner (2026-10-07: "Ignore the 7s rule for now") while the script is rewritten to read
+  // naturally; lines are not cut or bent to fit it until it is switched back on.
+  it.skip('never leaves more than 7 s with nothing to type (boss intros 8 s)', () => {
     const { gaps, intros, spectacles, ended, minutes } = measureGaps();
     expect(ended).toBe(true);
     const lines = gaps.map((g) => `${g.areaId.padEnd(22)} ${g.longest.toFixed(1).padStart(5)} s  (ends at ${g.beatId})`);

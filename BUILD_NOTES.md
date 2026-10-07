@@ -383,6 +383,12 @@ The owner asked for a full play in real Chrome, fixing everything that looked wr
 - **Loading:** the next area is mounted hidden and its materials compiled while the current one plays.
 - **AI models rejected:** the AI bed (flat shard posts) and the first tortoise (faceted shape from a noisy source; regenerating from a cleaner concept). Colour smoothing (`smooth_colours`) is available in `build_ai_creature.py`; Laplacian shape relaxing was tried and dropped (it broke the texture projection).
 
+## Script read-aloud pass (2026-10-07)
+
+- Owner: the opening dialogue was "chunky", Pip should react ("oh no! a sprite. Hey put me down!") and words like "naughty" felt awkward. Every line is now read in the order it is heard: characters react first, then instruct, in everyday words.
+- Owner decision: **"Ignore the 7s rule for now."** The 7-second attention test (`src/game/attention.report.test.ts`, which also holds the boss-intro and spectacle limits) is skipped while the script is rewritten. Lines are not shortened or moved just to fit it. Switch it back on when the owner asks.
+- Settings for spark gems and collectibles (star pages) exist and are both off for now (owner: gems broke the pacing). Lines that mention them only play when they are on.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
