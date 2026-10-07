@@ -55,7 +55,8 @@ export function TitleScreen() {
           </h1>
           <nav className="title-screen__options">
             <button type="button" className="menu-button menu-button--primary" onClick={() => onStart()} autoFocus>
-              {t.start}
+              {/* Say which level START begins (owner: "why did I end up at level 2?" — Level 1 was already complete) */}
+              {nextUnbeaten === 'level-1' ? t.start : t.startLevel(strings.levels[nextUnbeaten].number)}
             </button>
             <button
               type="button"

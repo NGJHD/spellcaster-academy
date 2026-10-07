@@ -8,6 +8,7 @@ export const strings = {
     game: 'Spellcaster Academy',
     subtitle: 'The Broken Ward',
     start: 'START',
+    startLevel: (level: string) => `START ${level.toUpperCase()}`,
     resume: 'RESUME',
     noResume: 'No journey to resume',
     lastSaved: (ago: string) => `Last saved ${ago}`,

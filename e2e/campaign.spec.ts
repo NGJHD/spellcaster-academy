@@ -25,7 +25,7 @@ async function seedProfile(page: Page, completed: string[]) {
 
 async function startFromTitle(page: Page, query: string, difficulty: string) {
   await page.goto(`/?test${query}`);
-  await page.getByRole('button', { name: 'START', exact: true }).click();
+  await page.getByRole('button', { name: /^START( LEVEL \d)?$/ }).click();
   const confirm = page.getByRole('button', { name: 'START FROM BEGINNING' });
   if (await confirm.isVisible().catch(() => false)) await confirm.click();
   await page.getByRole('radio', { name: new RegExp(difficulty) }).click();
@@ -76,6 +76,8 @@ test('START begins Level 2 once Level 1 is complete; the Chapters list unlocks i
   await expect(page.getByRole('button', { name: /Level 2: The Siege of Asterfall/ })).toBeEnabled();
   await expect(page.getByRole('button', { name: /Level 3: Into the Unwritten/ })).toBeDisabled();
   await page.getByRole('button', { name: 'CANCEL' }).click();
+  // The button says where it goes (owner: "why did I end up at level 2 at the start?").
+  await expect(page.getByRole('button', { name: 'START LEVEL 2', exact: true })).toBeVisible();
   await startFromTitle(page, '', 'Standard');
   await expect.poll(() => beat(page), { timeout: 15_000 }).toMatch(/^l2-/);
 });
