@@ -52,6 +52,8 @@ function runSettings(): RunSettings {
   return {
     // Owner decision (2026-10-02): no reduced-motion option; the authored camera always plays.
     rail: { reducedMotion: false, travelSpeed: TRAVEL_SPEED_MULTIPLIER[s.travelSpeed] },
+    gems: s.sparkGems,
+    collectibles: s.collectibles,
   };
 }
 

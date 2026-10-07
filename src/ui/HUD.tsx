@@ -43,6 +43,7 @@ export function HUD() {
   const beatId = useRunStore((s) => s.beatId);
   const progress = useRunStore((s) => s.progress);
   const showWpm = useSettingsStore((s) => s.showWpm);
+  const collectiblesOn = useSettingsStore((s) => s.collectibles);
   const objectiveText = objective ? strings.objectives[objective] : null;
 
   return (
@@ -85,7 +86,7 @@ export function HUD() {
             <span className="hud__chip-label">{strings.hud.streak}</span> {streak}
           </div>
         )}
-        {starPages > 0 && (
+        {starPages > 0 && collectiblesOn && (
           <div className="hud__chip" title={strings.hud.starPagesHelp}>
             <span className="hud__chip-icon">★</span>
             <span className="hud__chip-label">{strings.hud.collectibles[getRun()?.level.id ?? 'level-1'] ?? strings.hud.starPages}</span> {starPages} / {getRun()?.level.collectibles.length ?? 8}

@@ -64,7 +64,15 @@ const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
   readonly rail: RailSettings;
+  /** Spark gems (automatic and authored along the route). Absent means on. */
+  readonly gems?: boolean;
+  /** Optional collectibles (star pages, lanterns, memory pages). Absent means on. */
+  readonly collectibles?: boolean;
 }
+
+/** An optional pickup the settings can switch off (story targets that carry a page, like the thief, stay). */
+const isOptionalCollectible = (t: TargetSpawn) =>
+  t.optional === true && (t.kind === 'star-page' || t.kind === 'gem') && (t.reward?.starPage !== undefined || t.reward?.cosmetic !== undefined);
 
 export interface RunOptions {
   readonly difficulty: Difficulty;
@@ -664,7 +672,12 @@ export class GameRun {
   private startChase(beat: LevelBeat): void {
     if (!isCameraBeat(beat) || !beat.chase || beat.chase.length === 0) return;
     const duration = this.director.remainingSec(this.settings().rail);
-    const targets = beat.chase.map((c) => ({ ...c.target, delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
+    // With spark gems switched off, authored gems are left out (lanterns and other collectibles stay).
+    const gemsOff = this.settings().gems === false;
+    const collectiblesOff = this.settings().collectibles === false;
+    const chase = beat.chase.filter((c) => !(gemsOff && c.target.kind === 'gem' && !c.target.variant) && !(collectiblesOff && isOptionalCollectible(c.target)));
+    if (chase.length === 0) return;
+    const targets = chase.map((c) => ({ ...c.target, delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
     const def: EncounterDef = { id: `chase:${beat.id}`, areaId: beat.areaId, kind: 'interaction', waves: [{ id: 'chase', targets }] };
     this.chase = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
   }
@@ -869,6 +882,7 @@ export class GameRun {
   }
 
   private gemsAllowed(): boolean {
+    if (this.settings().gems === false) return false;
     if (this.ended || this.focusResetTimer > 0 || this.resumeIntro > 0) return false;
     const beat = this.director.currentBeat;
     // Exempt beats and scripted spectacle are never covered by a gem.
@@ -1306,6 +1320,7 @@ export class GameRun {
   private startBonus(beat: LevelBeat): void {
     const spawn = beat.bonus;
     if (!spawn) return;
+    if (this.settings().collectibles === false && isOptionalCollectible(spawn)) return;
     if (spawn.reward?.starPage && this.progress.collectedStarPageIds.includes(spawn.reward.starPage)) return;
     if (spawn.reward?.cosmetic && this.progress.unlockedCosmeticIds.includes(spawn.reward.cosmetic)) return;
     const def: EncounterDef = {
@@ -1318,7 +1333,12 @@ export class GameRun {
   }
 
   private startEncounter(beatId: string, encounterId: string): void {
-    const def = this.level.encounters.get(encounterId);
+    const authored = this.level.encounters.get(encounterId);
+    // Collectibles switched off: their optional pickups are left out of the fight.
+    const def =
+      authored && this.settings().collectibles === false
+        ? { ...authored, waves: authored.waves.map((w) => ({ ...w, targets: w.targets.filter((t) => !isOptionalCollectible(t)) })) }
+        : authored;
     if (!def) {
       this.director.completeGatedBeat(beatId);
       return;

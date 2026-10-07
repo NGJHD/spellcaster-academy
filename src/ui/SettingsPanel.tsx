@@ -89,6 +89,8 @@ export function SettingsPanel({ onBack }: { onBack: () => void }) {
         <Section title={s.sections.game}>
           <Toggle label={s.spokenDialogue} value={settings.spokenDialogue} onChange={(v) => update({ spokenDialogue: v })} />
           <Toggle label={s.showWpm} value={settings.showWpm} onChange={(v) => update({ showWpm: v })} />
+          <Toggle label={s.sparkGems} value={settings.sparkGems} onChange={(v) => update({ sparkGems: v })} />
+          <Toggle label={s.collectibles} value={settings.collectibles} onChange={(v) => update({ collectibles: v })} />
           <div className="setting-row">
             <div className="setting-row__label">{s.fullScreen}</div>
             <button type="button" className="toggle" onClick={toggleFullScreen}>⛶</button>

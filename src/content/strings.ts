@@ -67,6 +67,8 @@ export const strings = {
     fontSizes: { normal: 'Normal', large: 'Large', 'extra-large': 'Extra large' },
     spokenDialogue: 'Spoken dialogue (text to speech)',
     showWpm: 'Show typing speed during play',
+    sparkGems: 'Spark gems along the way',
+    collectibles: 'Star pages and lanterns to collect',
     quality: 'Graphics quality',
     qualities: { low: 'Low', medium: 'Medium', high: 'High' },
     master: 'Master volume',

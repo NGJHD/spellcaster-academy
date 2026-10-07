@@ -21,6 +21,10 @@ export interface Settings {
   /** Read subtitles aloud with the browser's speech synthesis. */
   readonly spokenDialogue: boolean;
   readonly showWpm: boolean;
+  /** Floating spark gems along the route (owner, 2026-10-07: off for now, to judge the pacing without them). */
+  readonly sparkGems: boolean;
+  /** Optional collectibles: star pages, festival lanterns and memory pages (off for now, as above). */
+  readonly collectibles: boolean;
   readonly quality: Quality;
   readonly volumes: Volumes;
 }
@@ -44,6 +48,8 @@ export function defaultSettings(): Settings {
     fontSize: 'normal',
     spokenDialogue: true,
     showWpm: false,
+    sparkGems: false,
+    collectibles: false,
     // §15: start on Medium; the player can override.
     quality: 'medium',
     volumes: { master: 0.8, music: 0.6, sfx: 0.8, ui: 0.7, voice: 0.9 },
@@ -66,6 +72,8 @@ export function sanitizeSettings(raw: unknown, defaults: Settings = defaultSetti
     fontSize: oneOf(r.fontSize, ['normal', 'large', 'extra-large'], defaults.fontSize),
     spokenDialogue: bool(r.spokenDialogue, defaults.spokenDialogue),
     showWpm: bool(r.showWpm, defaults.showWpm),
+    sparkGems: bool(r.sparkGems, defaults.sparkGems),
+    collectibles: bool(r.collectibles, defaults.collectibles),
     quality: oneOf(r.quality, ['low', 'medium', 'high'], defaults.quality),
     volumes: {
       master: unit(v.master, defaults.volumes.master),
