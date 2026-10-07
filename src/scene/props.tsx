@@ -4,9 +4,11 @@
  */
 import { LightBeam } from './glow';
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useMemo, useRef, type ReactNode } from 'react';
+import { Suspense, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { Color, Mesh, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
+import { AnimationMixer, Color, Mesh, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
+import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { ModelBoundary } from '../enemies/ModelBoundary';
 import { emptyPose, type TargetPose } from '../enemies/TargetVisuals';
 import { Dummy, ThornPod } from '../enemies/PropTargets';
 import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
@@ -600,13 +602,96 @@ function WardenGLB({ state, scale = 1 }: { state: { current: WardenState }; scal
   );
 }
 
+const WARDEN_AI_URL = `${import.meta.env.BASE_URL}assets/creatures/ward_warden_ai.glb`;
+/** The AI model is 3.2 m tall; the old Warden was about 2.8 m, so shrink it slightly to keep framing. */
+const WARDEN_AI_SCALE = 0.9;
+
+/**
+ * The Ward Warden (owner, 2026-10-07: "improve the visual uniqueness of the warden"): the AI-pipeline
+ * guardian of white marble and gold with a glowing star in its chest and a robe of starlight, posed
+ * from the same state as before (rising, bowing, leaning into its attacks, the core glowing brighter
+ * as it is reached), with its five shell plates orbiting it in the boss fight.
+ */
+function WardenAI({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
+  const gltf = useGLTF(WARDEN_AI_URL);
+  const parts = useMemo(() => {
+    const root = cloneSkinned(gltf.scene) as Object3D;
+    const glowing: MeshStandardMaterial[] = [];
+    root.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      o.frustumCulled = false;
+      const m = (o.material as MeshStandardMaterial).clone();
+      // A soft blue-white inner light so the starlight robe and chest star glow.
+      m.emissive = new Color('#9cc8ff');
+      m.emissiveIntensity = 0.12;
+      o.material = m;
+      glowing.push(m);
+    });
+    return { root, glowing };
+  }, [gltf.scene]);
+  const mixer = useMemo(() => new AnimationMixer(parts.root), [parts.root]);
+  useEffect(() => {
+    const idle = gltf.animations.find((c) => c.name === 'Idle');
+    if (idle) mixer.clipAction(idle).play();
+    return () => void mixer.stopAllAction();
+  }, [gltf.animations, mixer]);
+  const body = useRef<Group>(null);
+  const plates = useRef<(Group | null)[]>([]);
+  const time = useRef(0);
+  useFrame((_, dt) => {
+    mixer.update(Math.min(dt, 0.1));
+    time.current += dt;
+    const s = state.current;
+    const t = time.current;
+    const b = body.current;
+    if (b) {
+      b.position.y = (1 - s.rise) * -1.2 + Math.sin(t * 0.9) * 0.08 * s.rise;
+      b.rotation.x = (1 - s.rise) * 0.35 + s.bow * 0.4;
+      b.rotation.z = -s.attack * 0.18;
+    }
+    const glow = 0.12 + s.core * 0.5 + Math.sin(t * 6) * 0.06 * (1 - s.calm) + s.calm * 0.25;
+    for (const m of parts.glowing) m.emissiveIntensity = glow;
+    plates.current.forEach((p, i) => {
+      if (!p) return;
+      const open = Math.min(1, Math.max(0, s.shellOpen * 5 - i)) * (1 - s.calm);
+      const a = (i / 5) * Math.PI * 2 + t * 0.4;
+      p.position.set(Math.cos(a) * (1.1 + open * 1.5), 1.9 + Math.sin(a * 2) * 0.3, Math.sin(a) * (0.6 + open * 0.6));
+      p.rotation.set(0.3, a, 0);
+      p.visible = open > 0.02;
+    });
+  });
+  return (
+    <group scale={scale}>
+      <group ref={body}>
+        <primitive object={parts.root} scale={WARDEN_AI_SCALE} />
+      </group>
+      {Array.from({ length: 5 }, (_, i) => (
+        <group key={i} ref={(g) => void (plates.current[i] = g)} visible={false}>
+          {/* A curved marble shell plate edged in gold */}
+          <mesh scale={[1, 0.8, 0.28]} material={MAT.marble} castShadow>
+            <sphereGeometry args={[0.34, 28, 18]} />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]} scale={[1, 0.8, 1]} material={MAT.agedBrass}>
+            <torusGeometry args={[0.33, 0.018, 8, 40]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export function WardenModel({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
   return (
     <Suspense fallback={<WardenFallback state={state} scale={scale} />}>
-      <WardenGLB state={state} scale={scale} />
+      <ModelBoundary fallback={<WardenGLB state={state} scale={scale} />}>
+        <WardenAI state={state} scale={scale} />
+      </ModelBoundary>
     </Suspense>
   );
 }
+useGLTF.preload(WARDEN_AI_URL);
 
 // ---------- Ward anchor GLB (assets-src/scripts/props/hero_props.py) ----------
 
