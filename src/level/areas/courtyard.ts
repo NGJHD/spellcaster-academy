@@ -98,7 +98,7 @@ export const courtyard: AreaScript = {
       easing: 'easeInOutCubic',
       reducedMotion: 'glide',
     }),
-    fight('courtyard-c1', A, { music: 'courtyard-action', barks: ['court-1'] }),
+    fight('courtyard-c1', A, { music: 'courtyard-action', barks: ['court-1', 'court-goal'] }),
     reveal('courtyard-planter-reveal', A, 'COURTYARD_COMBAT_C1', ['COURTYARD_PLANTER_NW'], 0.9, 0.4, {
       fx: [{ kind: 'leaves', at: 'COURTYARD_PLANTER_NW', scale: 1.2, atBeat: 0.5 }],
     }),
