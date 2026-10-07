@@ -9,12 +9,8 @@ import { useMemo, useRef } from 'react';
 import { getRun } from '../state/gameStore';
 import { CinderCitadel } from './CinderCitadel';
 import { SkyTear } from './glow';
-import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, Color, NormalBlending, SphereGeometry, type Points } from 'three';
+import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, NormalBlending, type Points } from 'three';
 
-const PALETTES = {
-  inferno: { zenith: '#050204', mid: '#2a0806', horizon: '#ff4a12', glow: 0.55 },
-  blank: { zenith: '#3a0806', mid: '#9a2210', horizon: '#ff7a3a', glow: 0.75 },
-} as const;
 
 const FIRE_SKY_URL = `${import.meta.env.BASE_URL}assets/sky/fire_sky.jpg`;
 
@@ -22,8 +18,8 @@ const FIRE_SKY_URL = `${import.meta.env.BASE_URL}assets/sky/fire_sky.jpg`;
  * The Blank's sky (owner, 2026-10-07: "the sky is bland"): real cloud shapes recoloured into smoke lit
  * from below by fire (baked by assets-src/scripts/sky/fire_sky.py), on a sphere around the camera.
  */
-function FireSky() {
-  const texture = useTexture(FIRE_SKY_URL);
+function FireSky({ url = FIRE_SKY_URL }: { url?: string }) {
+  const texture = useTexture(url);
   useMemo(() => {
     texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = 4;
@@ -36,40 +32,13 @@ function FireSky() {
   );
 }
 
+/** Level 2's burning night: smoke clouds lit red from the fires below (was a plain gradient). */
+const NIGHT_SKY_URL = `${import.meta.env.BASE_URL}assets/sky/fire_sky_night.jpg`;
+
 export function RedSky({ kind }: { kind: 'inferno' | 'blank' }) {
-  if (kind === 'blank') return <FireSky />;
-  return <GradientSky kind={kind} />;
+  return <FireSky url={kind === 'blank' ? FIRE_SKY_URL : NIGHT_SKY_URL} />;
 }
 
-function GradientSky({ kind }: { kind: 'inferno' | 'blank' }) {
-  const geometry = useMemo(() => {
-    const g = new SphereGeometry(600, 48, 24);
-    const p = PALETTES[kind];
-    const zenith = new Color(p.zenith);
-    const mid = new Color(p.mid);
-    const horizon = new Color(p.horizon);
-    const pos = g.getAttribute('position');
-    const colors = new Float32Array(pos.count * 3);
-    const c = new Color();
-    for (let i = 0; i < pos.count; i++) {
-      const y = pos.getY(i) / 600;
-      // Bright band at the horizon, fading to the mid colour and then the zenith.
-      if (y < 0) c.copy(horizon).lerp(new Color('#120404'), Math.min(1, -y * 3));
-      else if (y < p.glow * 0.4) c.copy(horizon).lerp(mid, y / (p.glow * 0.4));
-      else c.copy(mid).lerp(zenith, Math.min(1, (y - p.glow * 0.4) / (1 - p.glow * 0.4)));
-      colors[i * 3] = c.r;
-      colors[i * 3 + 1] = c.g;
-      colors[i * 3 + 2] = c.b;
-    }
-    g.setAttribute('color', new BufferAttribute(colors, 3));
-    return g;
-  }, [kind]);
-  return (
-    <mesh geometry={geometry} renderOrder={-10}>
-      <meshBasicMaterial vertexColors side={BackSide} depthWrite={false} fog={false} toneMapped={false} />
-    </mesh>
-  );
-}
 
 const DRIFT = 420;
 

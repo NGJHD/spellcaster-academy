@@ -17,7 +17,7 @@ import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { Fire, Restorable } from '../Fire';
-import { Banner, Box, GableRoof, Slab } from '../kit';
+import { Banner, Box, GableRoof, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { glowTexture, LightBeam, WardBarrier } from '../glow';
@@ -25,7 +25,7 @@ import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
-import { BeaconBrazier, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
+import { BeaconBrazier, StoneHall, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
 /** Dark red crystal with a hot inner glow. */
 const SHARD_MAT = new MeshStandardMaterial({ color: '#3a0606', roughness: 0.15, metalness: 0.2, emissive: '#ff2a10', emissiveIntensity: 1.6 });
@@ -168,13 +168,22 @@ function CollapsingDeck() {
       {segments.map((z, i) => (
         <group key={z} ref={(g) => void (refs.current[i] = g)} position={[0, 0, z]}>
           <Box position={[0, -0.15, 0]} size={[5.2, 0.3, SEG]} material={MAT.darkOak} />
+          {/* Stone balustrades (the Level 1 kit piece) with oak posts carrying the roof */}
           {[-1, 1].map((s) => (
             <group key={s}>
-              <Box position={[s * 2.5, 0.55, 0]} size={[0.12, 1.1, SEG]} material={MAT.lightOak} />
-              <Box position={[s * 2.5, 2, 0]} size={[0.2, 4, 0.2]} material={MAT.darkOak} />
+              {[-1, 1].map((k) => (
+                <KitModel key={k} id="balustrade_2m" position={[s * 2.5, 0, k * 1]} rotationY={Math.PI / 2} />
+              ))}
+              <mesh position={[s * 2.5, 2, -SEG / 2 + 0.1]} material={MAT.darkOak} geometry={worldCylinder(0.12, 0.14, 4, 12)} castShadow />
             </group>
           ))}
-          {z > -44 && <Box position={[0, 4.1, 0]} size={[5.6, 0.2, SEG]} material={MAT.slate} />}
+          {z > -44 && (
+            <>
+              {/* Oak tie beam and a slate roof */}
+              <Box position={[0, 3.95, -SEG / 2 + 0.1]} size={[5.2, 0.22, 0.22]} material={MAT.darkOak} />
+              <Box position={[0, 4.1, 0]} size={[5.6, 0.2, SEG]} material={MAT.slate} />
+            </>
+          )}
         </group>
       ))}
     </>
@@ -253,17 +262,8 @@ export function HallScene() {
     <group position={HALL_ORIGIN}>
       <HallDressing />
       <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={MAT.paving} />
-      <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStoneDark} />
-      <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStoneDark} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={MAT.academyStoneDark} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[8, 9]} material={MAT.academyStoneDark} />
-      {/* Vaulted ceiling ribs */}
-      {[-40, -32, -24, -16, -8, 0].map((z) => (
-        <mesh key={z} position={[0, 12, z]} rotation={[0, 0, 0]} material={MAT.academyStoneDark}>
-          <torusGeometry args={[9.5, 0.3, 8, 24, Math.PI]} />
-        </mesh>
-      ))}
-      <Slab x={[-10, 10]} y={[19, 19.6]} z={[-48, 8]} material={MAT.slate} />
+      {/* The gallery's stone, columns and windows, under a plastered barrel vault (no gap to the sky) */}
+      <StoneHall half={9.5} z0={-48} z1={8} height={11} />
       {/* Long tables pushed into barricades in front of the camera */}
       {[[-4, -9, 0.3], [0.5, -10, -0.2], [4.5, -9, 0.4]].map(([x, z, r], i) => (
         <Prop key={i} id="WoodenTable_01" position={[x ?? 0, 0, z ?? 0]} rotationY={r ?? 0} height={0.85} />
@@ -273,13 +273,14 @@ export function HallScene() {
         const l = sub(d, HALL_ORIGIN);
         return (
           <group key={i} position={[l[0] + 0.55, 0, l[2]]}>
-            <Box position={[0, 1.8, 0]} size={[0.1, 3.6, 2.2]} material={MAT.darkOak} />
+            {/* Carved oak door (CC0; its base sits 1.13 m below its origin at full size) */}
+            <Prop id="large_castle_door" position={[0, 1.13 * (3.6 / 4.07), 0]} height={3.6} rotationY={Math.PI / 2} />
             <Fire position={[0.3, 0, 0]} size={1.4} count={3} spread={2} light={i === 1} />
           </group>
         );
       })}
       {/* East doors, blasted off their hinges by the Herald */}
-      {!doorsBlown && <Box position={[8.9, 2.6, -22]} size={[0.2, 5.2, 3.6]} material={MAT.darkOak} />}
+      {!doorsBlown && <Prop id="large_castle_door" position={[8.9, 1.13 * (5.2 / 4.07), -22]} height={5.2} rotationY={-Math.PI / 2} />}
       {doorsBlown && <Fire position={[8.4, 0, -22]} size={2.4} count={4} spread={3} light />}
       {/* Idris's barrier and the students behind it */}
       <group position={[0, 0, -42]}>
@@ -333,12 +334,9 @@ export function WorkshopScene() {
     <group position={WORKSHOP_ORIGIN}>
       <WorkshopDressing />
       <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={MAT.paving} />
-      <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
-      <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
-      <Slab x={[-12, 12]} y={[9, 9.4]} z={[-32, 8]} material={MAT.darkOak} />
-      {/* Back and front walls (the back was a black void), lined with cabinets, shelves and barrels */}
-      <Slab x={[-12.5, 12.5]} y={[0, 9.4]} z={[-32.5, -32]} material={MAT.academyStoneDark} />
-      <Slab x={[-12.5, 12.5]} y={[0, 9.4]} z={[8, 8.5]} material={MAT.academyStoneDark} />
+      {/* The gallery's stone and columns, under a plaster ceiling crossed by oak beams */}
+      <StoneHall half={12} z0={-32} z1={8} height={9} vault={false} bay={10} />
+      {/* Cabinets, shelves and barrels along the back wall */}
       {[-9, -5.5, 5.5, 9].map((x, i) => (
         <Prop key={x} id={i % 2 ? 'wooden_display_shelves_01' : 'GothicCabinet_01'} position={[x, 0, -31.4]} height={2.6} />
       ))}
