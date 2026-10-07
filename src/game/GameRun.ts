@@ -1228,10 +1228,11 @@ export class GameRun {
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
     if (beat.journey) patchRunUi({ journey: { key: nextKey(), to: beat.journey } });
     let spoken = 0;
-    // A scene with lines of its own drops earlier scenes' lines that have not started yet (they would
-    // be said over the wrong thing); a line already being said still finishes.
+    // A scene with lines of its own drops leftover lines from a fight that has ended and not started
+    // yet (instructions for a fight already won would be said over the wrong scene). Story lines and
+    // conversations are never dropped; a line being said always finishes.
     if ((beat.barks ?? []).some((id) => !(LINE_NEEDS[id] && this.settings()[LINE_NEEDS[id]] === false))) {
-      this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex);
+      this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex || this.level.route.beats[q.beat]?.kind !== 'encounter');
     }
     for (const id of beat.barks ?? []) {
       const needs = LINE_NEEDS[id];
@@ -1267,8 +1268,11 @@ export class GameRun {
 
     switch (beat.kind) {
       case 'dialogue': {
-        // Only this scene's lines: older ones were superseded so speech always matches the scene.
-        const lines = beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l);
+        // Lines still waiting from the scene before (the rest of a conversation, an intro line) are
+        // said first, so nothing in the story is lost (owner playtest: Orin's answer about the Unwriter
+        // vanished); leftover instructions from a finished fight are dropped.
+        const carried = this.barkQueue.filter((q) => this.level.route.beats[q.beat]?.kind !== 'encounter').map((q) => q.line);
+        const lines = [...carried, ...beat.lines.map((id) => getLine(id)).filter((l): l is DialogueLine => !!l)];
         this.barkQueue = [];
         this.dialogue = { beatId: beat.id, lines, index: 0, elapsed: 0, started: false, releaseAt: this.releaseIndex(lines.length) };
         if (!this.currentBark) this.startDialogue();
@@ -1874,7 +1878,10 @@ export class GameRun {
     while (this.barkQueue.length > 0) {
       const q = this.barkQueue.shift();
       if (!q) continue;
-      if (q.beat >= this.director.currentIndex || this.speechClock - q.at <= LINE_FRESH_SEC) return q;
+      // Story lines are always said (camera moves wait for theirs; only intros and spectacles move on
+      // early). A late remark or instruction from a fight that is over is dropped.
+      const fromFight = this.level.route.beats[q.beat]?.kind === 'encounter';
+      if (q.beat >= this.director.currentIndex || !fromFight || this.speechClock - q.at <= LINE_FRESH_SEC) return q;
     }
     return undefined;
   }
