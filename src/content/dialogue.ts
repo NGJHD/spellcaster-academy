@@ -343,7 +343,7 @@ export const RESUME_SUMMARY: Record<AreaId, DialogueLine> = {
   'whispering-library': line('pip', 'Back in the library. Mind the books.'),
   'hall-of-portraits': line('pip', 'Two anchors restored. The greenhouse is next.'),
   'enchanted-greenhouse': line('pip', 'The Greenhouse Anchor is wrapped in vines. Let’s free it.'),
-  'lower-stairwell': line('pip', 'Down the stairwell — the guards need commands.'),
+  'lower-stairwell': line('pip', 'Down the stairwell, past the armour guards!'),
   'practice-gallery': line('pip', 'A little practice, then the tower.'),
   'moon-tower': line('pip', 'Up the Moon Tower. The observatory is close.'),
   observatory: line('pip', 'The Warden needs our help. Read first, type clearly.'),
