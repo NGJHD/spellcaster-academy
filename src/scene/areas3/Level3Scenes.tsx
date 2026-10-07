@@ -210,9 +210,9 @@ export function CinderwoodScene() {
     <>
     {/* Riding on the tortoise's shell: it sits below the camera, head ahead (owner: "why did we wake
         the tortoise just to run?" — it carries us through the fire). */}
-    <Carried beats={TORTOISE_RIDE_BEATS} drop={5.4}>
-      {/* Seated forward on the shell so its domed back and head are in view ahead */}
-      <group position={[0, 0, -2.4]}>
+    <Carried beats={TORTOISE_RIDE_BEATS} drop={7.2}>
+      {/* Seated towards the back of the shell, so the dome and the head are ahead and below */}
+      <group position={[0, 0, -2.6]}>
         <GiantTortoise />
       </group>
     </Carried>
@@ -268,13 +268,13 @@ function GiantTortoise() {
   return (
     <ModelBoundary fallback={fallback}>
       <Suspense fallback={fallback}>
-        <Prop id="giant_tortoise" position={[0, 0, 0]} height={4.5} rotationY={TORTOISE_YAW} />
+        <Prop id="giant_tortoise" position={[0, 0, 0]} height={6} rotationY={TORTOISE_YAW} />
       </Suspense>
     </ModelBoundary>
   );
 }
-/** Turns the tortoise model so its head points along −Z. */
-const TORTOISE_YAW = Math.PI / 2;
+/** Turns the tortoise model (head along its +Z) so its head points along −Z. */
+const TORTOISE_YAW = Math.PI;
 
 /** Hides its children during the given beats. */
 function OnBeatsL3({ hide, children }: { hide: readonly string[]; children: ReactNode }) {

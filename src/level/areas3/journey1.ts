@@ -117,10 +117,11 @@ export const cinderwood: AreaScript = {
   nodes: {
     CW_START: { position: C(0, 1.6, 6), lookAt: C(-2, 1.4, -14) },
     CW_MID: { position: C(0, 1.6, -18), lookAt: C(0, 2, -34) },
-    CW_END: { position: C(1, 2.6, -36), lookAt: C(3, 1.5, -40) },
+    // Far enough back to see the whole 6 m tortoise.
+    CW_END: { position: C(-4, 3.2, -26), lookAt: C(3, 2.6, -40) },
     // On the tortoise's back (its shell top is about 4.5 m up; the camera sits just above it).
-    CW_MOUNT: { position: C(3, 5.4, -40.6), lookAt: C(3, -1, -70) },
-    CW_RIDE: { position: C(3, 5.4, -86), lookAt: C(3, -0.5, -120) },
+    CW_MOUNT: { position: C(3, 7.2, -37.4), lookAt: C(3, -3, -62) },
+    CW_RIDE: { position: C(3, 7.2, -86), lookAt: C(3, -3, -110) },
   },
   lookPoints: {
     CW_DEER: C(-2.2, 1, -8),
@@ -199,7 +200,7 @@ export const cinderwood: AreaScript = {
       id: 'l3-tortoise',
       areaId: W,
       kind: 'interaction',
-      waves: [{ id: 'tortoise', targets: [marker('tortoise-restore', [TORTOISE[0], 2.6, TORTOISE[2]], 'ancient', { labelHeight: 0.4, defeatFlag: 'l3-tortoise-free', defeatFx: { kind: 'pillar', scale: 1.2, color: '#7ae0a0' } })] }],
+      waves: [{ id: 'tortoise', targets: [marker('tortoise-restore', [TORTOISE[0], 7, TORTOISE[2]], 'ancient', { labelHeight: 0.4, defeatFlag: 'l3-tortoise-free', defeatFx: { kind: 'pillar', scale: 1.2, color: '#7ae0a0' } })] }],
     },
   ],
 };
