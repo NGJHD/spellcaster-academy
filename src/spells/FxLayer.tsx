@@ -58,6 +58,9 @@ interface ParticlePreset {
 }
 
 const PRESETS: Partial<Record<FxKind, ParticlePreset>> = {
+  // A firework shell: a big sphere of bright sparks that droop and fade (owner: the ending's fireworks
+  // were thin scattered specks).
+  shell: { count: 320, speed: [16, 20], lift: 0, spread: 1, gravity: -2.5, drag: 1.4, life: 2.4, size: 0.7, color: '#ffe08a', additive: true, opacity: 1, jitter: 0.05 },
   burst: { count: 140, speed: [3, 7], lift: 1, spread: 1, gravity: -2.5, drag: 1.6, life: 1.1, size: 0.16, color: '#ffe08a', additive: true, opacity: 1, jitter: 0.1 },
   sparks: { count: 70, speed: [4, 9], lift: 2, spread: 1, gravity: -11, drag: 0.6, life: 0.8, size: 0.07, color: '#ffd27a', additive: true, opacity: 1, jitter: 0.05 },
   dust: { count: 90, speed: [0.8, 2.6], lift: 0.4, spread: 0.9, gravity: 0.25, drag: 1.4, life: 1.8, size: 0.7, color: '#d9c7a4', additive: false, opacity: 0.42, jitter: 0.6 },
@@ -348,13 +351,12 @@ export function FxLayer() {
         startParticles(PRESETS.meteors as ParticlePreset, e.position, scale, e.color, true);
         break;
       case 'fireworks':
-        // A volley of coloured shells: each bursts high above the cue position.
-        for (let i = 0; i < 4; i++) {
-          const at = e.position.clone().add(new Vector3((Math.random() - 0.5) * 16 * scale, 10 + Math.random() * 8, (Math.random() - 0.5) * 6));
-          scheduled.current.push({
-            inSec: i * 0.35 + Math.random() * 0.15,
-            event: { ...e, kind: 'burst', position: at, scale: 2.6 * scale, color: e.color ?? FIREWORK_COLOURS[(Math.random() * FIREWORK_COLOURS.length) | 0] },
-          });
+        // A volley of big coloured shells high over the cue position, each with a white flash core.
+        for (let i = 0; i < 6; i++) {
+          const at = e.position.clone().add(new Vector3((Math.random() - 0.5) * 30 * scale, 22 + Math.random() * 14, -10 + (Math.random() - 0.5) * 10));
+          const colour = e.color ?? FIREWORK_COLOURS[(Math.random() * FIREWORK_COLOURS.length) | 0];
+          scheduled.current.push({ inSec: i * 0.3 + Math.random() * 0.2, event: { ...e, kind: 'shell', position: at, scale: 1.6 * scale, color: colour } });
+          scheduled.current.push({ inSec: i * 0.3 + 0.02, event: { ...e, kind: 'burst', position: at, scale: 0.8 * scale, color: '#ffffff' } });
         }
         break;
       default: {

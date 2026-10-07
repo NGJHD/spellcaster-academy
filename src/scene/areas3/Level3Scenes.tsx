@@ -22,7 +22,7 @@ import { Prop } from '../Prop';
 import { moltenInk, useMoltenFlow } from '../molten';
 import { worldCylinder, worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
-import { metreSurface, surface } from '../surfaceTextures';
+import { surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 
@@ -30,7 +30,6 @@ const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95
 /** Molten ink: cooled plates with glowing seams, flowing (see molten.ts). The ink stream in the forge stays a plain glow. */
 const redInk = moltenInk();
 const inkStream = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.6 });
-const blackIron = () => metreSurface('iron', 3, { metalness: 0.45 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 /** Glowing blue ink: the edges of everything the apprentice writes into being. */
 const inkGlow = new MeshStandardMaterial({ color: '#9ec4ff', roughness: 0.3, emissive: '#3a7cff', emissiveIntensity: 2.4 });
@@ -596,14 +595,14 @@ function IronGiant({ height }: { height: number }) {
   const s = height / 7;
   return (
     <group scale={s}>
-      <Box position={[0, 4.2, 0]} size={[2.4, 3, 1.4]} material={blackIron()} />
+      <Box position={[0, 4.2, 0]} size={[2.4, 3, 1.4]} material={MAT.ironPlate} />
       <Box position={[0, 4.4, 0.72]} size={[0.6, 0.8, 0.05]} material={ironSeam} />
-      <Box position={[0, 6.3, 0]} size={[1, 1, 1]} material={blackIron()} />
+      <Box position={[0, 6.3, 0]} size={[1, 1, 1]} material={MAT.ironPlate} />
       <Box position={[0, 6.3, 0.51]} size={[0.7, 0.1, 0.02]} material={ironSeam} />
       {[-1, 1].map((x) => (
         <group key={x}>
-          <Box position={[x * 1.6, 4.2, 0]} size={[0.7, 2.8, 0.7]} material={blackIron()} />
-          <Box position={[x * 0.6, 1.4, 0]} size={[0.8, 2.8, 0.8]} material={blackIron()} />
+          <Box position={[x * 1.6, 4.2, 0]} size={[0.7, 2.8, 0.7]} material={MAT.ironPlate} />
+          <Box position={[x * 0.6, 1.4, 0]} size={[0.8, 2.8, 0.8]} material={MAT.ironPlate} />
         </group>
       ))}
       <Fire position={[0, 4.6, 0.8]} size={1.2} count={2} spread={0.6} smoke={false} />
@@ -629,7 +628,7 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
   });
   const fallback = (
     <>
-      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={blackIron()} />
+      <Box position={[0, 1, 0]} size={[5, 2.4, 14]} material={MAT.ironPlate} />
       <mesh position={[0, 8.2, 0]} material={MAT.darkOak}>
         <cylinderGeometry args={[0.2, 0.3, 12, 10]} />
       </mesh>
@@ -773,8 +772,8 @@ function Hammer({ position, phase }: { position: Vec3; phase: number }) {
   });
   const fallback = (
     <>
-      <Box position={[0, 8, 0]} size={[6, 4, 6]} material={blackIron()} />
-      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={blackIron()} />
+      <Box position={[0, 8, 0]} size={[6, 4, 6]} material={MAT.ironPlate} />
+      <Box position={[0, 1, 0]} size={[8, 2, 8]} material={MAT.ironPlate} />
     </>
   );
   return (
@@ -791,16 +790,25 @@ function Hammer({ position, phase }: { position: Vec3; phase: number }) {
 }
 
 export function ForgeScene() {
+  useMoltenFlow();
   return (
     <group position={FORGE_ORIGIN}>
-      <Slab x={[-20, 20]} y={[-0.3, 0]} z={[-50, 20]} material={blackIron()} />
-      <Slab x={[-21, -20]} y={[0, 30]} z={[-50, 20]} material={blackIron()} />
-      <Slab x={[20, 21]} y={[0, 30]} z={[-50, 20]} material={blackIron()} />
+      {/* Volcanic stone floor and walls (were flat procedural iron) */}
+      <Slab x={[-20, 20]} y={[-0.3, 0]} z={[-50, 20]} material={MAT.volcanicStone} />
+      <Slab x={[-21, -20]} y={[0, 30]} z={[-50, 20]} material={MAT.volcanicStone} />
+      <Slab x={[20, 21]} y={[0, 30]} z={[-50, 20]} material={MAT.volcanicStone} />
       {FORGE_LINES.map((x, i) => (
         <group key={x} position={[x, 0, 0]}>
           {/* The line: a conveyor of moulds running towards the player, its furnace at the back */}
-          <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={blackIron()} />
-          <Box position={[0, 4, -28]} size={[5, 8, 4]} material={blackIron()} />
+          <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={MAT.ironPlate} />
+          {/* Channels of molten ink running beside the line */}
+          {[-1, 1].map((side) => (
+            <mesh key={side} position={[side * 1.7, 0.02, -14]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(0.7, 24)} />
+          ))}
+          <Box position={[0, 4, -28]} size={[5, 8, 4]} material={MAT.volcanicStone} />
+          {[1.5, 5, 7.6].map((y) => (
+            <Box key={y} position={[0, y, -25.95]} size={[5.2, 0.25, 0.2]} material={MAT.ironPlate} />
+          ))}
           <Box position={[0, 3, -25.9]} size={[2.4, 2.6, 0.1]} material={ironSeam} />
           <Fire position={[0, 1.6, -25.6]} size={3} count={4} spread={2} light untilFlag={`l3-line-${i + 1}`} />
           {/* Cauldron pouring molten red ink */}
@@ -810,7 +818,7 @@ export function ForgeScene() {
               <Prop id="ink_cauldron" position={[0, 7.6, -22]} height={3.2} rotationY={i * 1.1} />
             </Suspense>
           </ModelBoundary>
-          <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={blackIron()} />
+          <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={MAT.ironPlate} />
           <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} smoke={false} />
           <mesh position={[0, 5, -22]} material={inkStream}>
             <cylinderGeometry args={[0.2, 0.25, 6, 8]} />
@@ -886,7 +894,7 @@ export function CitadelScene() {
       {[1, 2, 3].map((n) => (
         <group key={n}>
           <Box position={[0, n * 8 - 0.3, -n * 12 + 2]} size={[10, 0.6, 6]} material={MAT.volcanicStone} />
-          <mesh position={[-4, n * 8 + 0.6, -n * 12 + 2]} material={blackIron()}>
+          <mesh position={[-4, n * 8 + 0.6, -n * 12 + 2]} material={MAT.ironPlate}>
             <cylinderGeometry args={[0.6, 0.3, 1.2, 12]} />
           </mesh>
           <Fire position={[-4, n * 8 + 1.2, -n * 12 + 2]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} light={n === 2} />
@@ -908,8 +916,8 @@ export function CitadelScene() {
 function ThroneBoxes() {
   return (
     <>
-      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={blackIron()} />
-      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={blackIron()} />
+      <Box position={[0, 2.5, -14.5]} size={[4, 5, 1.2]} material={MAT.ironPlate} />
+      <Box position={[0, 1, -13.5]} size={[3, 2, 2]} material={MAT.ironPlate} />
     </>
   );
 }
@@ -934,7 +942,7 @@ function UnwriterFallback() {
       </mesh>
       <Box position={[0, 4.7, 0.44]} size={[0.06, 0.6, 0.04]} material={ironSeam} />
       <group ref={quill}>
-        <mesh rotation={[0, 0, 0.5]} material={blackIron()}>
+        <mesh rotation={[0, 0, 0.5]} material={MAT.ironPlate}>
           <coneGeometry args={[0.12, 2.4, 8]} />
         </mesh>
         <Fire position={[0, 1, 0]} size={0.9} count={2} spread={0.3} smoke={false} />
@@ -967,7 +975,7 @@ export function ThroneScene() {
   const pip = sub(PIP_SEIZED, THRONE_ORIGIN);
   return (
     <group position={THRONE_ORIGIN}>
-      <mesh position={[0, -0.2, 0]} material={blackIron()} receiveShadow>
+      <mesh position={[0, -0.2, 0]} material={MAT.ironPlate} receiveShadow>
         <cylinderGeometry args={[14, 13, 0.4, 48]} />
       </mesh>
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} material={ironSeam}>
@@ -976,7 +984,7 @@ export function ThroneScene() {
       {/* Braziers ringing the platform */}
       {Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2).map((a, i) => (
         <group key={i} position={[Math.cos(a) * 12.5, 0, Math.sin(a) * 12.5]}>
-          <mesh position={[0, 0.6, 0]} material={blackIron()}>
+          <mesh position={[0, 0.6, 0]} material={MAT.ironPlate}>
             <cylinderGeometry args={[0.5, 0.3, 1.2, 10]} />
           </mesh>
           <Fire position={[0, 1.2, 0]} size={1.4} count={2} spread={0.4} smoke={false} light={i % 4 === 0} />

@@ -95,4 +95,6 @@ export const MAT = {
   rockGround: std('#6a6260', 1),
   /** The Cinder Citadel's black volcanic stone. */
   volcanicStone: std('#3a3436', 0.9),
+  /** Riveted dark iron plates (forge machinery). */
+  ironPlate: std('#4a4a50', 0.5, 0.7),
 };

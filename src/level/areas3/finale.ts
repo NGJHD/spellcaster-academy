@@ -178,7 +178,8 @@ export const homecoming: AreaScript = {
   nodes: {
     HOME_START: { position: [0, 1.6, 15], lookAt: [0, 2, 0] },
     HOME_GATHER: { position: [-1, 1.6, 8.5], lookAt: [3.5, 1.7, 3.2] },
-    HOME_FINAL: { position: [0.5, 2.2, 9.5], lookAt: [0, 26, -56] },
+    // Looking up over the hall roof into the night sky full of fireworks.
+    HOME_FINAL: { position: [0.5, 2.2, 9.5], lookAt: [0, 40, -40] },
   },
   lookPoints: {
     HOME_SKY: [0, 0, -14],
@@ -191,30 +192,15 @@ export const homecoming: AreaScript = {
     travel('l3-home-walk', H, ['HOME_START', 'HOME_GATHER'], 7, {
       attention: 'ending',
       barks: ['l3-home-1'],
-      fx: [
-        { kind: 'fireworks', at: 'HOME_SKY', atBeat: 0.05 },
-        { kind: 'fireworks', at: 'HOME_SKY_LEFT', atBeat: 0.4 },
-        { kind: 'fireworks', at: 'HOME_SKY_RIGHT', atBeat: 0.75 },
-      ],
     }),
     // Keeper Orin thanks the apprentice in front of the whole school (owner: "it makes the kid playing
     // the game feel nice"), then names them Wardkeeper, and everyone cheers under the fireworks.
     talk('l3-home-vault', H, ['l3-orin-thanks-1', 'l3-orin-thanks-2', 'l3-orin-vault'], { attention: 'ending' }),
     talk('l3-home-ceremony', H, ['l3-orin-wardkeeper', 'l3-mira-cheer', 'l3-pip-three'], {
       attention: 'ending',
-      fx: [
-        { kind: 'fireworks', at: 'HOME_SKY_LEFT', scale: 1.6 },
-        { kind: 'fireworks', at: 'HOME_SKY_RIGHT', scale: 1.6 },
-        { kind: 'fireworks', at: 'HOME_SKY', scale: 2 },
-      ],
     }),
     travel('l3-home-final', H, ['HOME_GATHER', 'HOME_FINAL'], 5, {
       attention: 'ending',
-      fx: [
-        { kind: 'fireworks', at: 'HOME_SKY_LEFT', atBeat: 0.2, scale: 1.4 },
-        { kind: 'fireworks', at: 'HOME_SKY_RIGHT', atBeat: 0.45, scale: 1.4 },
-        { kind: 'fireworks', at: 'HOME_TOWER', atBeat: 0.7, scale: 2 },
-      ],
     }),
     fade('l3-home-fade', H, 'HOME_FINAL', { fadeOutSec: 1.6, holdSec: 0.6, fadeInSec: 0.4, music: 'results', attention: 'ending' }),
     checkpoint('l3-complete', H, 'level-3-complete', { attention: 'ending' }),

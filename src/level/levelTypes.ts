@@ -44,6 +44,8 @@ export type LineId = string;
 export type FxKind =
   /** Sparkling magical explosion. */
   | 'burst'
+  /** One big firework shell (used by 'fireworks'). */
+  | 'shell'
   /** Tumbling chunks with gravity (wood, stone, books, crates: tinted by `color`). */
   | 'debris'
   | 'dust'

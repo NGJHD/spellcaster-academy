@@ -60,6 +60,7 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   crackedRedGround: { texture: 'cracked_red_ground', tileMetres: 3, tint: '#e0b0a0' },
   rockGround: { texture: 'rock_ground_02', tileMetres: 3, tint: '#b8aca8' },
   volcanicStone: { texture: 'volcanic_rock_tiles', tileMetres: 2.5, tint: '#8a8088', normalScale: 1.2 },
+  ironPlate: { texture: 'metal_plate', tileMetres: 2, tint: '#5a5a62' },
 };
 
 const loader = new TextureLoader();

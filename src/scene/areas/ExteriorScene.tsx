@@ -2,6 +2,7 @@
  * PLACEHOLDER exterior campus: Arrival Gate, Sunlit Courtyard, East Hall and the Celebration
  * dressing. Coordinates match src/level/areas/{arrivalGate,courtyard,eastHall}.ts.
  */
+import { Fireworks } from '../Fireworks';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { BackSide, type Group, type MeshBasicMaterial } from 'three';
@@ -459,6 +460,13 @@ function CelebrationDressing() {
           <Student key={i} position={[x, 0, z]} rotationY={r} robe={i % 3 === 0 ? MAT.burgundyLeather : MAT.navyCloth} height={1.35 + (i % 3) * 0.12} />
         ),
       )}
+      {/* Night celebration light: warm lamplight across the courtyard and a soft fill so faces read */}
+      <pointLight position={[0, 6, 2]} color="#ffc070" intensity={60} distance={40} decay={1.4} />
+      <pointLight position={[-10, 4, -6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
+      <pointLight position={[10, 4, 6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
+      <hemisphereLight args={['#8090c8', '#3a2a20', 0.6]} />
+      {/* Fireworks over the hall roof, all through the night homecoming */}
+      <Fireworks origin={[0, 18, -45]} spread={70} height={[16, 34]} active={() => getRun()?.level.id === 'level-3'} />
       {Array.from({ length: 14 }, (_, i) => (
         <FloatingLantern key={i} position={[Math.cos(i * 1.3) * (6 + (i % 3) * 2.5), 5 + (i % 4) * 0.8, Math.sin(i * 1.3) * (6 + (i % 3) * 2.5)]} seed={i} />
       ))}

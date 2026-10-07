@@ -23,7 +23,7 @@ export const CITADEL_ORIGIN: Vec3 = [2700, 0, 0];
 const S = origin(SEA_ORIGIN);
 const F = origin(FORGE_ORIGIN);
 const C = origin(CITADEL_ORIGIN);
-export const SHIP_BEATS = ['l3-ps-sail-1', 'l3-ps-to-fleet', 'l3-ps-galleons', 'l3-ps-to-storm', 'l3-ps-storm', 'l3-ps-to-end', 'l3-citadel-looms'] as const;
+export const SHIP_BEATS = ['l3-ps-enter', 'l3-ps-sail-1', 'l3-ps-to-fleet', 'l3-ps-galleons', 'l3-ps-to-storm', 'l3-ps-storm', 'l3-ps-to-end', 'l3-citadel-looms'] as const;
 export const GALLEONS: readonly Vec3[] = [S(-16, 0, -112), S(0, 0, -124), S(16, 0, -112)];
 export const FORGE_LINES = [-8, 0, 8] as const;
 export const FLIGHTS = [0, 1, 2, 3].map((i) => C(0, i * 8, -i * 12));
