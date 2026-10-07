@@ -51,6 +51,19 @@ describe('story', () => {
     expect(said).toContain(getLine('warden-wave')?.text);
   });
 
+  it('a reveal holds on its waiting word instead of panning away (owner: "shelf" in the library)', () => {
+    const { run, step } = runAt('library-balcony-pan');
+    step(12);
+    const page = run.level.route.lookPoints.LIB_BALCONY_PAGE;
+    expect(page).toBeDefined();
+    if (!page) return;
+    const pose = run.director.pose;
+    const look = pose.lookAt;
+    const toLook = Math.hypot(look.x - page[0], look.y - page[1], look.z - page[2]);
+    expect(run.director.currentBeat?.id).toBe('library-balcony-pan');
+    expect(toLook, 'camera still looking at the balcony page').toBeLessThan(1.5);
+  });
+
   /**
    * Every line that promises a number of words or things (owner: "name all three" when there were
    * two) names an encounter here, and that encounter must have exactly that many.

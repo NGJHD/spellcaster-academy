@@ -88,6 +88,16 @@ function fadeSec(sec: number): number {
   return sec * PACE.fade;
 }
 
+/**
+ * Seconds at the end of a reveal spent panning back to the node's own view (0 when it does not
+ * return). While a word shown by the reveal is waiting, the camera holds just before this, still
+ * looking at the word (owner, 2026-10-07: "it was looking at the target then the camera shifted away").
+ */
+export function revealReturnSec(beat: CameraBeat, settings: RailSettings): number {
+  if (beat.kind !== 'camera-reveal' || !beat.returnToNode || beat.lookTargets.length === 0) return 0;
+  return revealPanSec(beat, settings) + revealHoldSec(beat, settings);
+}
+
 export function beatDurationSec(route: CameraSpace, beat: CameraBeat, settings: RailSettings): number {
   switch (beat.kind) {
     case 'rail-travel':

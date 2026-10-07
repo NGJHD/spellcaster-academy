@@ -548,9 +548,10 @@ export class GameRun {
     let railDt = dt;
     // Fast-rail set pieces ease off while a chase word is being typed (§1A comfort, §1B speed).
     if (this.chaseTyping()) railDt *= CHASE_TYPING_RAIL;
-    if (this.wordsPending() || this.holdForSpeech()) {
-      railDt = Math.min(dt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
-    }
+    // A waiting word holds the camera; on a reveal it holds while still looking at the word, before
+    // the pan back (owner: "it was looking at the target then the camera shifted away").
+    if (this.wordsPending()) railDt = Math.min(railDt, Math.max(0, this.director.remainingBeforeReturnSec(settings.rail) - 1e-4));
+    if (this.holdForSpeech()) railDt = Math.min(railDt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
     this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;

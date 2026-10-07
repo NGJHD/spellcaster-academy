@@ -7,6 +7,7 @@ import {
   copyPose,
   createPose,
   evaluateBeat,
+  revealReturnSec,
   type TravelCurves,
 } from './rail/railMath';
 import { isCameraBeat, type CameraPose, type RailSettings } from './rail/railTypes';
@@ -69,6 +70,13 @@ export class LevelDirector {
     const beat = this.currentBeat;
     if (!beat || !isCameraBeat(beat)) return 0;
     return Math.max(0, beatDurationSec(this.route, beat, settings) - this.elapsedSec);
+  }
+
+  /** Seconds left before a reveal starts panning back to its own view (see revealReturnSec). */
+  remainingBeforeReturnSec(settings: RailSettings): number {
+    const beat = this.currentBeat;
+    if (!beat || !isCameraBeat(beat)) return 0;
+    return Math.max(0, this.remainingSec(settings) - revealReturnSec(beat, settings));
   }
 
   /** Begin playback at a beat (new run, resume, or checkpoint restart). */
