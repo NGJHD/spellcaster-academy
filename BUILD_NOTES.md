@@ -363,6 +363,16 @@ After realism pass 2 the triangle counts rose (books, photo-scanned plants, tree
 
 Optimisations: static architecture batched per material (`MergeStatic`), tree LOD0 only within 16 m, fir LOD1 thinned to 5.8 k by removing leaf islands, street lamps 2.5 k, background students on LOD1 (11.8 k), indoor views skip campus foliage, East Hall Mira only mounted in the hall. Not yet profiled on integrated graphics — Low quality (no shadows, dpr 1) is the fallback.
 
+## Playtest fixes (2026-10-07)
+
+Owner feedback after a full play-through: Level 1 good but chunky dialogue, Level 2 weak transitions and visuals, Level 3 "horrendous" visuals and confusing plot.
+
+- **Engine:** camera framing keeps every word on screen; reveals hold on their word; the camera-carried group (boat, raft, ship, tortoise) was turned 180° and so invisible behind the camera; spark gems no longer vanish when a fight starts; Chain Spark and Starfall label every word they take; capitalised emphasis is spoken as a word, not spelled out; the "press Enter to skip" option is gone.
+- **Level 1:** the Warden greets the apprentice inside the gate (type "hi") before the ward cracks; the script was rewritten line by line; the snapvine uses its AI model; the practice gallery has two short zones.
+- **Level 2:** opens in the apprentice's bedroom inside the Dormitory Tower (the window shows the real lawn, lake and Rift); a beacon map card and a "where next and why" line on every departure; the lake starts on a jetty (type "row" to board); the rampart beacon is a real brazier; photo-scanned surfaces replace the flat procedural ones; fireballs are soft additive glows.
+- **Level 3:** a baked fire sky (CC0 overcast clouds recoloured into smoke and firelight, `assets-src/scripts/sky/fire_sky.py`); CC0 burnt ground, rock and volcanic stone; flowing molten ink (`molten.py`); the Cinder Citadel built from AI towers and volcanic walls; the Margin Library, gallery and citadel stairwell rebuilt; an origami prow on the paper sea; a frost bubble on the ink river; the tortoise carries the party through fire; clearer story beats (the Perfect Warden is only a guard, the forge locks the Citadel gates, the run up the stairs, the way home) and a night homecoming with Orin's thanks, fireworks and a victory theme.
+- **New AI props:** giant tortoise (rebuilt at a higher budget), paper ship (kept, unused on board), dorm bed, wardrobe, beacon brazier, deer.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
