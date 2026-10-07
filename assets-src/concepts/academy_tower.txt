@@ -1,0 +1,2 @@
+seed: 82
+prompt: A tall round stone castle tower with a conical slate roof, rows of arched windows, a crenellated walkway below the roof, sandstone blocks, whole tower, highly detailed realistic 3D render of a single object or character, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

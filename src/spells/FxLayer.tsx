@@ -7,6 +7,7 @@ import { BEAM_GEOMETRY, beamTexture } from '../scene/glow';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import {
+  IcosahedronGeometry,
   AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
@@ -177,6 +178,25 @@ export function FxLayer() {
   );
   // Pillars rise from their base: the cylinder is shifted up so scaling Y grows it skyward.
   const pillarGeometry = BEAM_GEOMETRY;
+  /** A jagged chunk of rubble (irregular, flat-shaded), not a cube. */
+  const debrisGeometry = useMemo(() => {
+    const g = new IcosahedronGeometry(0.62, 0).toNonIndexed();
+    const pos = g.getAttribute('position');
+    const jitter = new Map<string, [number, number, number]>();
+    for (let i = 0; i < pos.count; i++) {
+      const key = `${pos.getX(i).toFixed(3)},${pos.getY(i).toFixed(3)},${pos.getZ(i).toFixed(3)}`;
+      let j = jitter.get(key);
+      if (!j) {
+        const h = Math.sin(jitter.size * 91.7) * 43758.5453;
+        const r = h - Math.floor(h);
+        j = [0.55 + r * 0.6, 0.45 + ((r * 7) % 1) * 0.5, 0.6 + ((r * 13) % 1) * 0.5];
+        jitter.set(key, j);
+      }
+      pos.setXYZ(i, pos.getX(i) * j[0], pos.getY(i) * j[1], pos.getZ(i) * j[2]);
+    }
+    g.computeVertexNormals();
+    return g;
+  }, []);
   const pillarTexture = useMemo(() => beamTexture(), []);
   const rings = useRef<TimedMesh[]>([]);
   const pillars = useRef<TimedMesh[]>([]);
@@ -537,8 +557,7 @@ export function FxLayer() {
       {systems.map((sys, i) => (
         <primitive key={`p${i}`} object={sys.points} />
       ))}
-      <instancedMesh ref={debrisRef} args={[undefined, undefined, DEBRIS]} frustumCulled={false} visible={false}>
-        <boxGeometry args={[1, 1, 1]} />
+      <instancedMesh ref={debrisRef} args={[debrisGeometry, undefined, DEBRIS]} frustumCulled={false} visible={false}>
         <meshStandardMaterial roughness={0.55} metalness={0.05} />
       </instancedMesh>
       {Array.from({ length: RINGS }, (_, i) => (

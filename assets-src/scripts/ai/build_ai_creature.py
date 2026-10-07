@@ -74,6 +74,8 @@ CONFIG = {
     # 2026-10-07 playtest fixes (static props).
     "giant_tortoise": dict(out="giant_tortoise", folder="props", rig="none", defeat="vanish", height=4.5, fit="width", width=9, tris=60000, tex=2048, smooth_colours=4),
     "ward_warden_ai": dict(out="ward_warden_ai", height=3.2, tris=40000, tex=2048, rig="floater", defeat="vanish", metallic=0.3, roughness=0.4),
+    "academy_hall": dict(out="academy_hall", folder="props", rig="none", defeat="vanish", height=22, fit="width", width=30, tris=30000, tex=2048, smooth_colours=2),
+    "academy_tower": dict(out="academy_tower", folder="props", rig="none", defeat="vanish", height=30, tris=20000, tex=2048, smooth_colours=2),
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
     "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
     "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),

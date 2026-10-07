@@ -122,11 +122,16 @@ export function KitModel({ id, position = [0, 0, 0], rotationY = 0, scale = 1, c
 export function WallLamp({ position, rotationY = 0, light = false, color = '#ffc98a', intensity = 6 }: { position: V3; rotationY?: number; light?: boolean; color?: string; intensity?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 0, 0.08]} material={MAT.agedBrass}>
-        <boxGeometry args={[0.06, 0.25, 0.16]} />
+      {/* A brass wall bracket holding a real lantern (CC0 model), its flame glowing (was a box and a ball) */}
+      <mesh position={[0, 0.12, 0.1]} rotation={[Math.PI / 2, 0, 0]} material={MAT.agedBrass}>
+        <cylinderGeometry args={[0.012, 0.012, 0.22, 8]} />
       </mesh>
-      <mesh position={[0, 0.15, 0.18]} material={MAT.lampGlow}>
-        <sphereGeometry args={[0.09, 16, 12]} />
+      <mesh position={[0, 0.02, 0.01]} material={MAT.agedBrass}>
+        <cylinderGeometry args={[0.05, 0.05, 0.02, 16]} />
+      </mesh>
+      <Prop id="Lantern_01" position={[0, -0.18, 0.2]} height={0.34} shadows={false} />
+      <mesh position={[0, -0.04, 0.2]} material={MAT.lampGlow}>
+        <sphereGeometry args={[0.035, 12, 8]} />
       </mesh>
       {light && <pointLight position={[0, 0.2, 0.45]} color={color} intensity={intensity} distance={8} decay={2} />}
     </group>
@@ -136,15 +141,8 @@ export function WallLamp({ position, rotationY = 0, light = false, color = '#ffc
 export function StandingLamp({ position, light = false }: { position: V3; light?: boolean }) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.05, 0]} material={MAT.agedBrass}>
-        <cylinderGeometry args={[0.18, 0.22, 0.1, 16]} />
-      </mesh>
-      <mesh position={[0, 1.2, 0]} material={MAT.agedBrass}>
-        <cylinderGeometry args={[0.03, 0.04, 2.3, 10]} />
-      </mesh>
-      <mesh position={[0, 2.45, 0]} material={MAT.lampGlow}>
-        <sphereGeometry args={[0.15, 18, 14]} />
-      </mesh>
+      {/* A cast-iron lamp post (CC0 model) */}
+      <Prop id="street_lamp_01" position={[0, 0, 0]} height={2.7} />
       {light && <pointLight position={[0, 2.5, 0]} color="#ffc98a" intensity={7} distance={9} decay={2} />}
     </group>
   );

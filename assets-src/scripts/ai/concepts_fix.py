@@ -33,6 +33,10 @@ CONCEPTS = {
                        "shoulders, strong arms with gold bracers, a calm noble face with softly glowing blue eyes, a ring of "
                        "small gold stars like a halo behind its head, its lower body tapering into a flowing robe of "
                        "starlight instead of legs, floating, full body front view", 67),
+    "academy_hall": ("A grand gothic stone academy hall building, sandstone walls, tall arched windows, steep slate roof "
+                     "with small turrets at each corner, a central bell spire, whole building three-quarter view", 81),
+    "academy_tower": ("A tall round stone castle tower with a conical slate roof, rows of arched windows, a "
+                      "crenellated walkway below the roof, sandstone blocks, whole tower", 82),
     "beacon_brazier": ("A large iron beacon brazier on a stone pedestal with a wide iron fire bowl full of logs, "
                        "ornate gold star decorations, castle rampart style", 65),
 }

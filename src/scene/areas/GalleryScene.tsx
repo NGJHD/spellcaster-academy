@@ -4,10 +4,11 @@ import { useRef } from 'react';
 import type { Group } from 'three';
 import { GALLERY_ORIGIN, GALLERY_ZONES, MIRA_GALLERY_POSITION } from '../../level/areas/gallery';
 import { getRun } from '../../state/gameStore';
-import { Arch, Box, Column, Slab, StandingLamp, WindowPane } from '../kit';
+import { Arch, Column, Slab, StandingLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { Mira, Student } from '../props';
+import { Prop } from '../Prop';
 
 const W = 6;
 const H = 9;
@@ -52,10 +53,11 @@ export function GalleryScene() {
       {[-4.8, 4.8].flatMap((x) => [-10, -28, -46].map((z) => <StandingLamp key={`${x}${z}`} position={[x, 0, z]} light={x < 0} />))}
       {[-18, -38].map((z) => (
         <group key={z} position={[W - 0.6, 0, z]}>
-          <Box position={[0, 1, 0]} size={[0.3, 2, 2.4]} material={MAT.darkOak} />
-          {[-0.8, 0, 0.8].map((dz) => (
-            <mesh key={dz} position={[-0.2, 1.4, dz]} rotation={[0, 0, 0.3]} material={MAT.lightOak}>
-              <cylinderGeometry args={[0.03, 0.03, 1.4, 8]} />
+          {/* A wand rack: real display shelves (CC0) with practice wands resting on them */}
+          <Prop id="wooden_display_shelves_01" position={[0, 0, 0]} height={2} rotationY={-Math.PI / 2} />
+          {[-0.6, 0, 0.6].map((dz) => (
+            <mesh key={dz} position={[-0.2, 1.35, dz]} rotation={[0, 0, 0.3]} material={MAT.lightOak}>
+              <cylinderGeometry args={[0.015, 0.025, 1.0, 12]} />
             </mesh>
           ))}
         </group>
@@ -68,7 +70,10 @@ export function GalleryScene() {
           <octahedronGeometry args={[0.25]} />
         </mesh>
       </group>
-      <Slab x={[-6, -3]} y={[0, 1.1]} z={[-8, -7.9]} material={MAT.agedBrass} />
+      {/* Mira's station: a table with practice books and a candle (was a flat brass panel) */}
+      <Prop id="WoodenTable_01" position={[-4.6, 0, -8.2]} height={0.85} />
+      <Prop id="book_encyclopedia_set_01" position={[-4.9, 0.86, -8.2]} height={0.3} rotationY={0.4} />
+      <Prop id="brass_candleholders" position={[-4.0, 0.86, -8.1]} height={0.35} />
       <Mira position={mira} rotationY={0.8} />
       <pointLight position={[0, 7, -30]} color="#ffe9c8" intensity={40} distance={50} decay={2} />
     </group>

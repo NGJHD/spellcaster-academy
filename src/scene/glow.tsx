@@ -559,3 +559,95 @@ export function brilliantGeometry(): BufferGeometry {
   geo.computeVertexNormals();
   return geo;
 }
+
+// ---------- A magic barrier ----------
+
+let wardTex: CanvasTexture | null = null;
+
+/** A faint honeycomb of light with glowing seams (tiles). */
+function wardTexture(): CanvasTexture {
+  if (wardTex) return wardTex;
+  const W = 256;
+  const H = 222; // two hex rows per tile
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d');
+  if (g) {
+    g.fillStyle = 'rgba(120, 180, 255, 0.10)';
+    g.fillRect(0, 0, W, H);
+    const r = 37;
+    const hexW = r * Math.sqrt(3);
+    g.lineJoin = 'round';
+    for (let row = -1; row < 4; row++) {
+      for (let col = -1; col < 5; col++) {
+        const cx = col * hexW + (row % 2 ? hexW / 2 : 0);
+        const cy = row * r * 1.5;
+        g.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const a = (Math.PI / 3) * k + Math.PI / 6;
+          const x = cx + Math.cos(a) * r;
+          const y = cy + Math.sin(a) * r;
+          if (k === 0) g.moveTo(x, y);
+          else g.lineTo(x, y);
+        }
+        g.closePath();
+        g.shadowColor = 'rgba(140, 200, 255, 1)';
+        g.shadowBlur = 10;
+        g.strokeStyle = 'rgba(200, 235, 255, 0.85)';
+        g.lineWidth = 2;
+        g.stroke();
+      }
+    }
+  }
+  wardTex = new CanvasTexture(c);
+  wardTex.wrapS = RepeatWrapping;
+  wardTex.wrapT = RepeatWrapping;
+  return wardTex;
+}
+
+/**
+ * A shimmering magic barrier (owner: no "plain rectangle of solid colour"): a gently curved wall of
+ * faint honeycomb light that ripples, with a brighter glow along its base and edges fading out.
+ * Stands on its origin, `width` across and `height` tall, curving towards +Z.
+ */
+export function WardBarrier({ width, height, color = '#7fb8ff' }: { width: number; height: number; color?: string }) {
+  const mat = useRef<MeshBasicMaterial>(null);
+  const edge = useRef<MeshBasicMaterial>(null);
+  const tex = useMemo(() => {
+    const t = wardTexture().clone();
+    t.needsUpdate = true;
+    t.repeat.set(width / 3, height / 2.6);
+    return t;
+  }, [width, height]);
+  const geometry = useMemo(() => {
+    const g = new PlaneGeometry(width, height, 32, 8);
+    const pos = g.getAttribute('position');
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i) / (width / 2);
+      pos.setZ(i, (1 - x * x) * width * 0.08);
+    }
+    g.translate(0, height / 2, 0);
+    g.computeVertexNormals();
+    return g;
+  }, [width, height]);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    tex.offset.set(t * 0.02, Math.sin(t * 0.7) * 0.02);
+    if (mat.current) mat.current.opacity = 0.55 + Math.sin(t * 2.3) * 0.12 + Math.sin(t * 5.1) * 0.05;
+    if (edge.current) edge.current.opacity = 0.5 + Math.sin(t * 3) * 0.15;
+  });
+  return (
+    <group>
+      <mesh geometry={geometry}>
+        <meshBasicMaterial ref={mat} map={tex} color={color} transparent depthWrite={false} blending={AdditiveBlending} side={2} toneMapped={false} />
+      </mesh>
+      {/* A glowing band where the ward meets the floor */}
+      <group position={[0, 0, width * 0.04]} rotation={[0, 0, Math.PI / 2]}>
+        <mesh geometry={STREAK_GEOMETRY} rotation={[Math.PI / 2, 0, 0]} scale={[1.2, width, 1]}>
+          <meshBasicMaterial ref={edge} map={streakTexture()} color={color} transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} side={2} />
+        </mesh>
+      </group>
+    </group>
+  );
+}

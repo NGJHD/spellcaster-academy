@@ -20,7 +20,7 @@ import { Fire, Restorable } from '../Fire';
 import { Banner, Box, GableRoof, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
-import { glowTexture, LightBeam } from '../glow';
+import { glowTexture, LightBeam, WardBarrier } from '../glow';
 import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
@@ -282,10 +282,9 @@ export function HallScene() {
       {!doorsBlown && <Box position={[8.9, 2.6, -22]} size={[0.2, 5.2, 3.6]} material={MAT.darkOak} />}
       {doorsBlown && <Fire position={[8.4, 0, -22]} size={2.4} count={4} spread={3} light />}
       {/* Idris's barrier and the students behind it */}
-      <mesh position={[0, 3, -42]}>
-        <planeGeometry args={[18, 6]} />
-        <meshBasicMaterial color="#6fb6ff" transparent opacity={0.22} blending={AdditiveBlending} depthWrite={false} side={DoubleSide} toneMapped={false} />
-      </mesh>
+      <group position={[0, 0, -42]}>
+        <WardBarrier width={18} height={7} />
+      </group>
       {[-6, -3.5, -1, 1.5, 4, 6.5].map((x, i) => (
         <Student key={x} position={[x, 0, -45 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} />
       ))}

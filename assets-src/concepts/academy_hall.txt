@@ -1,0 +1,2 @@
+seed: 81
+prompt: A grand gothic stone academy hall building, sandstone walls, tall arched windows, steep slate roof with small turrets at each corner, a central bell spire, whole building three-quarter view, highly detailed realistic 3D render of a single object or character, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text
