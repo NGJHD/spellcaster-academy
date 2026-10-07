@@ -21,16 +21,12 @@ import { Banner, Box, GableRoof, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
-import { metreSurface } from '../surfaceTextures';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BeaconBrazier, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const nightWater = new MeshStandardMaterial({ color: '#0a0606', roughness: 0.35, metalness: 0.1, emissive: '#4a0c04', emissiveIntensity: 0.35, envMapIntensity: 0.15 });
-const scorched = () => metreSurface('scorched', 6);
-const lawnGrass = () => metreSurface('grass', 5);
-const stoneFloor = () => metreSurface('stone', 3);
 
 // ---------- Lantern Festival Lawn ----------
 
@@ -38,7 +34,7 @@ export function LawnScene() {
   return (
     <group position={LAWN_ORIGIN}>
       <LawnDressing />
-      <Slab x={[-120, 120]} y={[-0.2, 0]} z={[-24, 120]} material={lawnGrass()} />
+      <Slab x={[-120, 120]} y={[-0.2, 0]} z={[-24, 120]} material={MAT.grass} />
       {/* Lantern Lake beyond the lawn, reflecting the red sky */}
       <mesh position={[0, -0.3, -140]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 240]} />
@@ -88,6 +84,9 @@ export function LawnScene() {
       </group>
       <BurningSkyline position={[0, 0, 70]} rotationY={Math.PI} seed={1} />
       <BurningSkyline position={[-70, 0, -10]} rotationY={Math.PI / 2} seed={2} />
+      {/* The academy burning across the lake: what the bedroom window and the lawn look out on */}
+      <BurningSkyline position={[-50, 0, -200]} rotationY={0} seed={7} />
+      <BurningSkyline position={[70, 0, -230]} rotationY={0} seed={8} />
       {/* Students fleeing towards the Great Hall */}
       {[[-10, 0, 6], [-12, 0, 9], [-9, 0, 11]].map((p, i) => (
         <Student key={i} position={p as unknown as Vec3} rotationY={-2.2} />
@@ -104,7 +103,7 @@ export function LawnScene() {
 function Boathouse({ position, rotationY = 0 }: { position: Vec3; rotationY?: number }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      <Box position={[0, 2.2, 0]} size={[8, 4.4, 6.4]} material={stoneFloor()} />
+      <Box position={[0, 2.2, 0]} size={[8, 4.4, 6.4]} material={MAT.paving} />
       {[-1, 1].map((sx) => [-1, 1].map((sz) => <Box key={`${sx}${sz}`} position={[sx * 4, 2.2, sz * 3.2]} size={[0.35, 4.6, 0.35]} material={MAT.darkOak} />))}
       <Box position={[0, 4.5, 3.25]} size={[8.4, 0.3, 0.3]} material={MAT.darkOak} />
       <Box position={[0, 4.5, -3.25]} size={[8.4, 0.3, 0.3]} material={MAT.darkOak} />
@@ -197,8 +196,8 @@ export function BridgeScene() {
         </Restorable>
       ))}
       {/* Gorge walls and the far floor */}
-      <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={scorched()} />
-      <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={scorched()} />
+      <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
+      <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
       {/* Belfry: a stone tower straddling the bridge, the great bell hanging inside */}
       <group position={[0, 0, bell[2]]}>
         {[-1, 1].map((s) => (
@@ -248,11 +247,11 @@ export function HallScene() {
   return (
     <group position={HALL_ORIGIN}>
       <HallDressing />
-      <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={stoneFloor()} />
-      <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={stoneFloor()} />
-      <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={stoneFloor()} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={stoneFloor()} />
-      <Slab x={[-10, 10]} y={[0, 12]} z={[8, 9]} material={stoneFloor()} />
+      <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={MAT.paving} />
+      <Slab x={[-10, -9]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStoneDark} />
+      <Slab x={[9, 10]} y={[0, 12]} z={[-48, 8]} material={MAT.academyStoneDark} />
+      <Slab x={[-10, 10]} y={[0, 12]} z={[-49, -48]} material={MAT.academyStoneDark} />
+      <Slab x={[-10, 10]} y={[0, 12]} z={[8, 9]} material={MAT.academyStoneDark} />
       {/* Vaulted ceiling ribs */}
       {[-40, -32, -24, -16, -8, 0].map((z) => (
         <mesh key={z} position={[0, 12, z]} rotation={[0, 0, 0]} material={MAT.academyStoneDark}>
@@ -329,9 +328,9 @@ export function WorkshopScene() {
   return (
     <group position={WORKSHOP_ORIGIN}>
       <WorkshopDressing />
-      <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={stoneFloor()} />
-      <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={stoneFloor()} />
-      <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={stoneFloor()} />
+      <Slab x={[-12, 12]} y={[-0.2, 0]} z={[-32, 8]} material={MAT.paving} />
+      <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
+      <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
       <Slab x={[-12, 12]} y={[9, 9.4]} z={[-32, 8]} material={MAT.darkOak} />
       {/* Benches in two rows with glassware and instruments */}
       {[-14, -20].map((z) =>
@@ -424,7 +423,7 @@ export function LakeScene() {
         <Boathouse position={[18, 0, -50]} rotationY={-Math.PI / 2} />
         <Box position={[12, 0.3, -46]} size={[7, 0.3, 2.4]} material={MAT.lightOak} />
         {/* Lighthouse island */}
-        <mesh position={[0, -0.5, -128]} material={scorched()}>
+        <mesh position={[0, -0.5, -128]} material={MAT.burntGround}>
           <cylinderGeometry args={[12, 16, 2, 32]} />
         </mesh>
         <group position={[0, 0, -128]}>
@@ -489,7 +488,7 @@ function OnBeats({ beats, children }: { beats: readonly string[]; children: Reac
 function LakeShore() {
   return (
     <>
-      <Slab x={[-80, 80]} y={[-0.6, 0.35]} z={[32, 110]} material={scorched()} />
+      <Slab x={[-80, 80]} y={[-0.6, 0.35]} z={[32, 110]} material={MAT.burntGround} />
       <Box position={[-2.2, 0.3, 26.5]} size={[2.2, 0.18, 12]} material={MAT.lightOak} />
       {[21, 24.5, 28, 31.5].map((z) => [-3.3, -1.1].map((x) => <Box key={`${x}${z}`} position={[x, -0.4, z]} size={[0.2, 1.6, 0.2]} material={MAT.darkOak} />))}
       <Prop id="wooden_lantern_01" position={[-3.2, 0.4, 21.4]} height={0.5} />
@@ -538,9 +537,9 @@ export function RampartScene() {
   return (
     <group position={RAMPART_ORIGIN}>
       <RampartDressing />
-      <Slab x={[-20, 20]} y={[-1, 0]} z={[-2.6, 6]} material={stoneFloor()} />
+      <Slab x={[-20, 20]} y={[-1, 0]} z={[-2.6, 6]} material={MAT.paving} />
       {/* Parapet with crenellations along the cliff edge */}
-      <Slab x={[-20, 20]} y={[0, 1]} z={[-3.2, -2.6]} material={stoneFloor()} />
+      <Slab x={[-20, 20]} y={[0, 1]} z={[-3.2, -2.6]} material={MAT.paving} />
       {Array.from({ length: 20 }, (_, i) => -19 + i * 2).map((x) => (
         <Box key={x} position={[x, 1.4, -2.9]} size={[1, 0.8, 0.6]} material={MAT.academyStone} />
       ))}
@@ -554,7 +553,7 @@ export function RampartScene() {
         </group>
       ))}
       {/* The cliff, the ladders of the Hush, and the lake far below */}
-      <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={scorched()} />
+      <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={MAT.rockGround} />
       {LADDERS.map((l, i) => {
         const q = sub(l, RAMPART_ORIGIN);
         return <Fire key={i} position={[q[0], q[1] + 2, q[2] + 2.4]} size={1.4} count={3} spread={0.6} smoke={false} />;

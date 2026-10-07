@@ -14,7 +14,6 @@ import { Box } from '../kit';
 import { Fire } from '../Fire';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
-import { metreSurface } from '../surfaceTextures';
 import { useBeatIndex } from '../props';
 
 /** True once the current level has reached (or passed) the given beat. */
@@ -170,7 +169,7 @@ export function BurningSkyline({ position, rotationY = 0, seed = 1 }: { position
         const rows = Math.max(2, Math.floor(b.h / 4));
         return (
           <group key={i} position={[b.x, 0, 0]}>
-            <Box position={[0, b.h / 2, 0]} size={[b.w, b.h, b.d]} material={metreSurface('stone', 3)} shadows={false} />
+            <Box position={[0, b.h / 2, 0]} size={[b.w, b.h, b.d]} material={MAT.academyStone} shadows={false} />
             {/* Cornice and buttresses break up the silhouette */}
             <Box position={[0, b.h - 0.3, b.d / 2 + 0.2]} size={[b.w + 0.6, 0.6, 0.4]} material={MAT.academyStoneDark} shadows={false} />
             {b.tower ? (

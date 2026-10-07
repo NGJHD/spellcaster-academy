@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
-import { CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, SphereGeometry, Vector2, Vector3, type Group } from 'three';
+import { AdditiveBlending, CanvasTexture, CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, SphereGeometry, SpriteMaterial, Vector2, Vector3, type Group, type Sprite } from 'three';
 import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
 
@@ -667,25 +667,74 @@ export function HushModel({ pose, kind }: { pose: PoseRef; kind: string }) {
 }
 
 /** An incoming fireball carrying a counter-word: a burning core with a trail of flame. */
+/** A soft radial glow texture (white centre fading to nothing), shared by every fireball. */
+let glowTexture: CanvasTexture | null = null;
+function softGlow(): CanvasTexture {
+  if (glowTexture) return glowTexture;
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  if (g) {
+    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.25, 'rgba(255,255,255,0.75)');
+    grad.addColorStop(0.6, 'rgba(255,255,255,0.18)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+  }
+  glowTexture = new CanvasTexture(c);
+  return glowTexture;
+}
+
+/**
+ * A fireball (owner, 2026-10-07: "the circle yellow with a blockish glow … needs a better render"):
+ * a white-hot core inside layers of soft additive glow (no hard edges), with a flickering orange
+ * corona and a short ember trail, all facing the camera.
+ */
 export function FireballModel({ pose }: { pose: PoseRef }) {
   const core = useRef<Group>(null);
-  const hot = useMemo(() => new MeshStandardMaterial({ color: '#ffb040', emissive: '#ff5a10', emissiveIntensity: 4, toneMapped: false }), []);
+  const corona = useRef<Sprite>(null);
+  const embers = useRef<Group>(null);
+  const hot = useMemo(() => new MeshStandardMaterial({ color: '#fff0c0', emissive: '#ffb040', emissiveIntensity: 5, toneMapped: false }), []);
+  const glows = useMemo(
+    () =>
+      (['#ffe8a0', '#ff8a20', '#ff3a08'] as const).map(
+        (color, i) => new SpriteMaterial({ map: softGlow(), color, transparent: true, opacity: [0.95, 0.7, 0.45][i] ?? 0.5, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+      ),
+    [],
+  );
   useFrame(() => {
     const p = pose.current;
     const g = core.current;
     if (!g) return;
-    g.rotation.z = p.time * 6;
-    g.scale.setScalar((0.9 + Math.sin(p.time * 20) * 0.1) * Math.max(0.001, 1 - p.dispel * 1.5));
+    const fade = Math.max(0.001, 1 - p.dispel * 1.5);
+    g.scale.setScalar(fade);
+    const flick = 1 + Math.sin(p.time * 23) * 0.08 + Math.sin(p.time * 37) * 0.05;
+    corona.current?.scale.setScalar(1.6 * flick);
+    const e = embers.current;
+    if (e) {
+      e.children.forEach((child, i) => {
+        const k = (p.time * 1.8 + i * 0.27) % 1;
+        child.position.set(Math.sin(i * 2.3 + p.time * 3) * 0.12 * k, Math.cos(i * 1.7) * 0.1 * k, k * 0.9);
+        child.scale.setScalar(0.12 * (1 - k));
+      });
+    }
   });
   return (
     <group ref={core}>
       <mesh material={hot}>
-        <icosahedronGeometry args={[0.28, 2]} />
+        <sphereGeometry args={[0.16, 20, 14]} />
       </mesh>
-      <mesh>
-        <sphereGeometry args={[0.5, 16, 12]} />
-        <meshBasicMaterial color="#ff4a10" transparent opacity={0.3} depthWrite={false} toneMapped={false} />
-      </mesh>
+      <sprite material={glows[0]} scale={0.7} />
+      <sprite ref={corona} material={glows[1]} scale={1.6} />
+      <sprite material={glows[2]} scale={2.6} />
+      {/* A short trail of embers behind it */}
+      <group ref={embers}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <sprite key={i} material={glows[1]} scale={0.1} />
+        ))}
+      </group>
     </group>
   );
 }

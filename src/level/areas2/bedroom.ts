@@ -8,7 +8,7 @@
  */
 import type { Vec3 } from '../rail/railTypes';
 import { fade, fight, hold, marker, reveal, travel, type AreaScript } from '../areas/builders';
-import { DORM_DOOR, LAWN_ORIGIN } from './lawn';
+import { DORM_DOOR } from './lawn';
 import { scribbleImp } from './hush';
 
 const A = 'l2-festival-lawn';
@@ -31,7 +31,8 @@ export const bedroom: AreaScript = {
   },
   lookPoints: {
     BED_RIFT: R(-3, 16, -26),
-    BED_BOATHOUSE: [LAWN_ORIGIN[0] + 18, 3, LAWN_ORIGIN[2] - 28],
+    // The academy burning across the lake (kept above the windowsill from the window).
+    BED_SHORE: R(8, -8, -80),
   },
   beats: [
     fade('l2-wake-fade', A, 'BED_LIE', { fadeOutSec: 0, holdSec: 0.6, fadeInSec: 1.4, music: 'siege-dread', objective: 'l2-wake' }),
@@ -42,14 +43,14 @@ export const bedroom: AreaScript = {
     }),
     travel('l2-wake-sit', A, ['BED_LIE', 'BED_SIT', 'BED_WINDOW'], 4, { barks: ['l2-wake-2'], easing: 'easeInOutCubic' }),
     // Through the window: the academy burning, and the crack tearing open into the Rift.
-    reveal('l2-rift-opens', A, 'BED_WINDOW', ['BED_RIFT', 'BED_BOATHOUSE'], 1.0, 6.5, {
+    reveal('l2-rift-opens', A, 'BED_WINDOW', ['BED_RIFT', 'BED_SHORE'], 1.0, 6.5, {
       attention: 'spectacle',
       barks: ['l2-seam', 'l2-voice-1'],
       fx: [
         { kind: 'flash', atBeat: 0.12 },
         { kind: 'lightning', at: 'BED_RIFT', atBeat: 0.12 },
         { kind: 'shake', atBeat: 0.12, scale: 1.4 },
-        { kind: 'meteors', at: 'BED_BOATHOUSE', atBeat: 0.4, scale: 1.2, color: '#ff4a12' },
+        { kind: 'meteors', at: 'BED_SHORE', atBeat: 0.4, scale: 1.2, color: '#ff4a12' },
         { kind: 'lightning', at: 'BED_RIFT', atBeat: 0.6 },
       ],
     }),
