@@ -391,7 +391,10 @@ export function Carried({ beats, children, drop }: { beats: readonly string[]; c
     g.visible = on;
     if (!on) return;
     g.position.set(state.camera.position.x, state.camera.position.y - drop, state.camera.position.z);
-    g.rotation.y = Math.atan2(-(state.camera.matrixWorld.elements[8] ?? 0), -(state.camera.matrixWorld.elements[10] ?? 1));
+    // The camera's local +Z axis is column 3 of its world matrix; it looks along −Z. Turning the group by
+    // atan2(z.x, z.z) puts the group's −Z (the bow) along the camera's view. (It was turned 180° before,
+    // which hid every boat, ship and ride behind the camera.)
+    g.rotation.y = Math.atan2(state.camera.matrixWorld.elements[8] ?? 0, state.camera.matrixWorld.elements[10] ?? 1);
   });
   return <group ref={group}>{children}</group>;
 }
@@ -464,10 +467,11 @@ function OarsbyBoat() {
       {/* AI-pipeline prop; long axis turned to the camera's forward, centred ahead of the stern seat */}
       <ModelBoundary fallback={hull}>
         <Suspense fallback={hull}>
-          <Prop id="rowing_boat" position={[0, -1.0, -2.0]} height={2.9} rotationY={Math.PI / 2} />
+          <Prop id="rowing_boat" position={[0, -1.0, -2.0]} height={2.9} rotationY={Math.PI / 2} doubleSided />
         </Suspense>
       </ModelBoundary>
-      <Student position={[0, -0.55, -1.7]} rotationY={Math.PI} robe={MAT.darkOak} height={1.6} />
+      {/* Oarsby sits at the oars on the right, facing the stern, so the bow stays in view */}
+      <Student position={[0.55, -1.05, -1.6]} rotationY={Math.PI} robe={MAT.darkOak} height={1.25} />
       <Prop id="wooden_lantern_01" position={[0, -0.35, -3.9]} height={0.5} />
       <pointLight position={[0, 0.1, -3.9]} color="#ffc070" intensity={3} distance={6} decay={2} />
     </>

@@ -1,6 +1,6 @@
 import { Detailed, useGLTF } from '@react-three/drei';
 import { useMemo } from 'react';
-import { Box3, Mesh, Vector3, type Object3D } from 'three';
+import { Box3, DoubleSide, Material, Mesh, Vector3, type Object3D } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
 
 const base = `${import.meta.env.BASE_URL}assets/props/`;
@@ -20,14 +20,20 @@ interface PropProps {
   readonly shadows?: boolean;
   /** Switch to LOD1 beyond this distance (metres). */
   readonly lodDistance?: number;
+  /** Render both faces (thin shells seen from inside, such as a hull the camera stands in). */
+  readonly doubleSided?: boolean;
 }
 
-function prepare(source: Object3D, shadows: boolean): Object3D {
+function prepare(source: Object3D, shadows: boolean, doubleSided: boolean): Object3D {
   const clone = source.clone(true);
   clone.traverse((o) => {
     if (o instanceof Mesh) {
       o.castShadow = shadows;
       o.receiveShadow = true;
+      if (doubleSided && o.material instanceof Material) {
+        o.material = o.material.clone();
+        o.material.side = DoubleSide;
+      }
     }
   });
   return clone;
@@ -42,14 +48,14 @@ function useScaled(id: string, height: number | undefined, scale: number): numbe
   }, [scene, height, scale]);
 }
 
-function Model({ id, shadows }: { id: string; shadows: boolean }) {
+function Model({ id, shadows, doubleSided = false }: { id: string; shadows: boolean; doubleSided?: boolean }) {
   const { scene } = useGLTF(propUrl(id));
-  const object = useMemo(() => prepare(scene, shadows), [scene, shadows]);
+  const object = useMemo(() => prepare(scene, shadows, doubleSided), [scene, shadows, doubleSided]);
   return <primitive object={object} />;
 }
 
 /** A CC0 prop GLB placed in the world. Geometry and textures are shared between copies. */
-export function Prop({ id, position, rotationY = 0, scale = 1, height, shadows = true, lodDistance = 35 }: PropProps) {
+export function Prop({ id, position, rotationY = 0, scale = 1, height, shadows = true, lodDistance = 35, doubleSided = false }: PropProps) {
   const s = useScaled(id, height, scale);
   return (
     <group position={position} rotation={[0, rotationY, 0]} scale={s}>
@@ -59,7 +65,7 @@ export function Prop({ id, position, rotationY = 0, scale = 1, height, shadows =
           <Model id={`${id}_lod1`} shadows={false} />
         </Detailed>
       ) : (
-        <Model id={id} shadows={shadows} />
+        <Model id={id} shadows={shadows} doubleSided={doubleSided} />
       )}
     </group>
   );

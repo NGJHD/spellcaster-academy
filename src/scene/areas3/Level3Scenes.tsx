@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
-import { DoubleSide, MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
+import { BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, SLIDE_SECTIONS, WALKWAYS } from '../../level/areas3/journey2';
@@ -580,25 +580,59 @@ function PaperWaves() {
       // so the creases catch the red light like real folded paper.
       const crease = 1 - Math.abs(Math.sin(z * 0.09 - t * 0.9 + Math.sin(x * 0.04) * 0.8));
       const cross = 1 - Math.abs(Math.sin(x * 0.07 + z * 0.02 + t * 0.5));
-      arr[i + 1] = crease * crease * 1.6 + cross * 0.45 + Math.sin((x + z) * 0.025 + t * 0.4) * 0.7;
+      arr[i + 1] = crease * crease * 1.1 + cross * 0.3 + Math.sin((x + z) * 0.025 + t * 0.4) * 0.45;
     }
     pos.needsUpdate = true;
     geometry.computeVertexNormals();
   });
-  return <mesh geometry={geometry} material={material} position={[0, -0.6, -100]} receiveShadow />;
+  // Crests stay below the ship's deck (they buried the hull before).
+  return <mesh geometry={geometry} material={material} position={[0, -1.4, -100]} receiveShadow />;
 }
 
-/** Turns the paper ship model so its bow points along the camera's forward (−Z). */
-const PAPER_SHIP_YAW = Math.PI / 2;
+/** Folded paper: matte cream, both faces, flat-shaded so every fold catches the light. */
+const foldedPaper = new MeshStandardMaterial({ color: '#f2e6cf', roughness: 0.92, side: DoubleSide, flatShading: true, envMapIntensity: 0.2 });
 
-function PaperShipFallback() {
+/**
+ * The prow of Mira's paper ship, folded like origami: a deck narrowing to a point 5 m ahead, hull
+ * sides sloping down to the keel, raised gunwale folds, and the bow lantern on its post at the tip.
+ * Local origin is the deck where the camera stands (the group is placed 1.9 m below the eye).
+ */
+function OrigamiProw() {
+  const geometry = useMemo(() => {
+    // Deck (centre ridge raised a little, like a fold), port and starboard hull sides down to the keel.
+    const v = [
+      // deck
+      -1.6, 0, 1.5, 1.6, 0, 1.5, 0, 0.12, 1.5, 0, 0.18, -5.2,
+      // keel points (below the waterline)
+      0, -1.8, 1.5, 0, -1.4, -5.2,
+    ];
+    const idx = [
+      0, 2, 3, 2, 1, 3, // deck halves meeting at the centre fold
+      0, 3, 5, 0, 5, 4, // port side
+      1, 4, 5, 1, 5, 3, // starboard side
+    ];
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(v, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return g;
+  }, []);
   return (
-    <>
-      <Box position={[0, 0, -1]} size={[3, 1, 7]} material={paper} />
-      <mesh position={[0, 3.4, -2]} material={paper}>
-        <planeGeometry args={[3.6, 4.4]} />
+    <group>
+      <mesh geometry={geometry} material={foldedPaper} castShadow />
+      {/* Raised gunwale folds along both edges, meeting at the prow */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * 0.8, 0.22, -1.85]} rotation={[0, side * Math.atan2(1.6, 6.7), 0]} material={foldedPaper}>
+          <boxGeometry args={[0.06, 0.44, 6.9]} />
+        </mesh>
+      ))}
+      {/* The bow lantern on a post at the very tip */}
+      <mesh position={[0, 0.7, -5.0]} material={MAT.darkOak}>
+        <cylinderGeometry args={[0.04, 0.05, 1.3, 8]} />
       </mesh>
-    </>
+      <Prop id="wooden_lantern_01" position={[0, 1.25, -5.05]} height={0.45} />
+      <pointLight position={[0, 1.5, -5.0]} color="#ffc070" intensity={5} distance={9} decay={2} />
+    </group>
   );
 }
 
@@ -621,15 +655,11 @@ export function SeaScene() {
           </group>
         ))}
       </group>
-      {/* Mira's folded paper ship. The camera stands at the stern, so the bow and sails are ahead
-          (owner: "you need to have the head of the boat in front of the player"). */}
+      {/* Mira's folded paper ship: the camera stands at the bow, with the origami prow and its
+          lantern ahead (owner: "you need to have the head of the boat in front of the player"). */}
       <Carried beats={SHIP_BEATS} drop={1.9}>
-        <ModelBoundary fallback={<PaperShipFallback />}>
-          <Suspense fallback={<PaperShipFallback />}>
-            <Prop id="paper_ship" position={[0, -1.4, -4.2]} height={9} rotationY={PAPER_SHIP_YAW} />
-          </Suspense>
-        </ModelBoundary>
-        <Mira position={[0.8, 0.5, -3.4]} rotationY={Math.PI} />
+        <OrigamiProw />
+        <Mira position={[1.0, -0.05, 0.6]} rotationY={-2.6} />
       </Carried>
     </>
   );

@@ -175,7 +175,8 @@ export const LEVEL_LOOKS: Record<Exclude<AreaId, keyof typeof AREA_LOOKS_L1>, Ar
   // Roofless ruins under the fire sky (owner: the flat red backdrop looked unrendered).
   'l3-margin-library': { ...BLANK, fog: ['#8a3018', 24, 150], citadelOnHorizon: false },
   'l3-unfinished-gallery': { ...BLANK, fog: ['#8a3018', 24, 160], citadelOnHorizon: false },
-  'l3-paper-sea': BLANK,
+  // The real Citadel stands across the sea: no horizon copy, and fog far enough to see it.
+  'l3-paper-sea': { ...BLANK, fog: ['#8a3018', 60, 560], citadelOnHorizon: false },
   'l3-forge': CITADEL,
   'l3-citadel': CITADEL,
   'l3-throne': CITADEL,

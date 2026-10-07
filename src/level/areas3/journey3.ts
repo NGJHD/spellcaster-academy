@@ -36,8 +36,8 @@ const mast = (id: string, at: Vec3) => target(id, 'marker', at, [len(5, 6), len(
 
 export const sea: AreaScript = {
   nodes: {
-    PS_START: { position: S(0, 2.4, 40), lookAt: S(0, 3, 0) },
-    PS_MID: { position: S(0, 2.4, -40), lookAt: S(0, 3, -90) },
+    PS_START: { position: S(0, 2.4, 40), lookAt: S(0, 0.6, 0) },
+    PS_MID: { position: S(0, 2.4, -40), lookAt: S(0, 0.6, -90) },
     PS_FLEET: { position: S(0, 2.4, -84), lookAt: S(0, 6, -118) },
     PS_STORM: { position: S(0, 2.4, -150), lookAt: S(0, 4, -190) },
     PS_END: { position: S(0, 2.4, -210), lookAt: S(0, 8, -260) },
