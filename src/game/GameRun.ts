@@ -1239,7 +1239,7 @@ export class GameRun {
     for (const id of beat.barks ?? []) {
       const needs = LINE_NEEDS[id];
       if (needs && this.settings()[needs] === false) continue;
-      this.queueBark(getLine(id), beatIndex, beat.kind === 'encounter');
+      this.queueBark(getLine(id), beatIndex);
       spoken++;
     }
     // A reveal that only showed a collectible, with collectibles switched off and nothing to say, is
@@ -1846,11 +1846,11 @@ export class GameRun {
     if (d) this.director.completeGatedBeat(d.beatId);
   }
 
-  private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex, instruction = false): void {
+  private queueBark(line: DialogueLine | undefined, beat = this.director.currentIndex, tip = false): void {
     if (!line) return;
     // Keep remarks timely: a long backlog of reactions (not story lines) is trimmed from the front.
     if (this.barkQueue.length >= 6) this.barkQueue.shift();
-    this.barkQueue.push({ line, beat, at: this.speechClock, instruction });
+    this.barkQueue.push({ line, beat, at: this.speechClock, instruction: tip || line.tip === true });
   }
 
   /**
@@ -1952,9 +1952,10 @@ export class GameRun {
       }
       if (match) {
         this.firedBarks.add(key);
-        // Tips (first letter, mistakes, defeats, low HP, wave starts) may be dropped once the fight is
-        // over; a line on finishing the fight carries the story and is always said.
-        this.queueBark(getLine(bark.line), this.director.currentIndex, w.on !== 'complete');
+        // Lines on the first letter, first mistake or low HP are typing tips; lines on a wave, a defeat
+        // or the end of a fight carry the story unless the line itself is a tip.
+        const tip = w.on === 'first-correct' || w.on === 'first-mistake' || w.on === 'focus-below';
+        this.queueBark(getLine(bark.line), this.director.currentIndex, tip);
       }
     });
   }

@@ -9,6 +9,11 @@ export type Speaker = 'pip' | 'mira' | 'orin' | 'portrait-1' | 'portrait-2' | 'w
 export interface DialogueLine {
   readonly speaker: Speaker;
   readonly text: string;
+  /**
+   * A how-to-type hint ("Runes! Pick any one."), the only kind of line that may go unsaid once its
+   * fight is over. Every other line carries the story and is always said.
+   */
+  readonly tip?: boolean;
 }
 
 export const SPEAKER_NAMES: Record<Speaker, string> = {
@@ -26,6 +31,7 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
 };
 
 const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text });
+const tip = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text, tip: true });
 
 export const LINES = {
   // Opening and Arrival Gate
@@ -36,9 +42,9 @@ export const LINES = {
   'open-rescued': line('pip', 'Phew, thanks! That sprite looked scared, not mean. Weird.'),
   'open-2': line('pip', 'Huh? The gate crystals have gone dark. They never do that!'),
   'open-3': line('pip', 'Type their words to light them up.'),
-  'gate-first-correct': line('pip', 'That\'s it! Every letter you type builds up magic.'),
+  'gate-first-correct': tip('pip', 'That\'s it! Every letter you type builds up magic.'),
   'gate-first-word': line('pip', 'And the final letter casts it. Very neat.'),
-  'gate-first-mistake': line('pip', 'Oops! Press Backspace to fix it.'),
+  'gate-first-mistake': tip('pip', 'Oops! Press Backspace to fix it.'),
   'gate-pause-tip': line('pip', 'If you ever need a rest, press Escape to pause.'),
   'gate-done': line('pip', 'The gate\'s open! Come on in.'),
   'fracture-1': line('pip', 'That is… not part of the welcome ceremony.'),
@@ -49,8 +55,8 @@ export const LINES = {
   'court-1': line('pip', 'The training dummies are moving on their own! Calm them down!'),
   'court-first': line('pip', 'Nice! No need to aim. Your word steers the spell.'),
   'court-sprites': line('pip', 'More sprites? They never leave the forest. Something scared them.'),
-  'court-tab-tip': line('pip', 'Start any word you like. Tab switches targets too.'),
-  'court-breathe': line('pip', 'Take a breath. Read the whole word, then type.'),
+  'court-tab-tip': tip('pip', 'Start any word you like. Tab switches targets too.'),
+  'court-breathe': tip('pip', 'Take a breath. Read the whole word, then type.'),
   'court-warden': line('pip', 'There\'s the Warden, holding the whole shield up by itself!'),
   'court-chase': line('pip', 'Hey! That sprite grabbed a page! After it!'),
   'court-chase-caught': line('pip', 'Got it! Huh, half the writing\'s rubbed out.'),
@@ -79,8 +85,8 @@ export const LINES = {
   'lib-wisps': line('pip', 'Ink wisps! Break the shield word first, then the other one.'),
   'lib-mosaic': line('pip', 'Look at this picture! The Warden is locking a man with a pen behind the sky.'),
   'lib-grim-1': line('pip', 'The Great Grimoire is awake, and it\'s scared!'),
-  'lib-grim-clasps': line('pip', 'Type a word to open each clasp!'),
-  'lib-grim-pages': line('pip', 'Flying pages! Watch for the glow before each gust.'),
+  'lib-grim-clasps': tip('pip', 'Type a word to open each clasp!'),
+  'lib-grim-pages': tip('pip', 'Flying pages! Watch for the glow before each gust.'),
   'lib-grim-sentence': line('pip', 'Push back! Every word makes your beam stronger!'),
   'lib-grim-done': line('pip', 'It\'s calm now. It whispered one word: "Unwriter".'),
   'lib-anchor-intro': line('pip', 'Here\'s the library anchor. Three words to fix it.'),
@@ -101,7 +107,7 @@ export const LINES = {
   'gh-1': line('pip', 'Whoa, a snapvine! Grow the bridge before it bites!'),
   'gh-snap': line('pip', 'Missed us! Keep going!'),
   'gh-stampede': line('pip', 'Mosslings! Here they come!'),
-  'gh-pods': line('pip', 'That pod glows before it shoots. Type its word first!'),
+  'gh-pods': tip('pip', 'That pod glows before it shoots. Type its word first!'),
   'gh-moss': line('pip', 'Don\'t worry, they\'re not mean. The crack\'s light scared them.'),
   'gh-warden': line('pip', 'The Warden saved the baby plants! It looks after everything here.'),
   'gh-anchor-intro': line('pip', 'The last anchor is tied up in vines. Untie the three knots!'),
@@ -117,8 +123,8 @@ export const LINES = {
   // Practice Gallery
   'gal-1': line('mira', 'The practice gallery! Warm up your wand before the tower.'),
   'gal-2': line('pip', 'Targets up!'),
-  'gal-p1': line('pip', 'Zone one: nice and careful!'),
-  'gal-p2': line('pip', 'Zone two: who goes first?'),
+  'gal-p1': tip('pip', 'Zone one: nice and careful!'),
+  'gal-p2': tip('pip', 'Zone two: who goes first?'),
   'gal-p3': line('pip', 'Zone three: five perfect words in a row!'),
   'gal-bonus': line('pip', 'Bonus round! Beat the clock!'),
   'gal-bonus-done': line('pip', 'What a finish!'),
@@ -140,9 +146,9 @@ export const LINES = {
   'obs-1': line('pip', 'The Warden\'s holding the crack shut, and its defences think WE\'RE the danger!'),
   'obs-symbol': line('warden', 'PROTECT. SEAL. NO ENTRY.'),
   'obs-2': line('pip', 'It thinks keeping everyone out is the only way. Let\'s show it another way!'),
-  'obs-w1': line('pip', 'Each word loosens a plate. Watch for the glow before it swings!'),
+  'obs-w1': tip('pip', 'Each word loosens a plate. Watch for the glow before it swings!'),
   'obs-plate3': line('pip', 'Nearly at the core. Keep going!'),
-  'obs-w2': line('pip', 'Runes! Pick any one.'),
+  'obs-w2': tip('pip', 'Runes! Pick any one.'),
   'obs-anchors': line('pip', 'It can feel the anchors we fixed!'),
   'obs-w3': line('pip', 'The shield is cracking! Push it back with what our school stands for!'),
   'obs-restored': line('warden', 'WARD RESTORED. THANK YOU, APPRENTICE.'),
@@ -183,7 +189,7 @@ export const LINES = {
   'l2-knights': line('pip', 'Empty armour with fire inside. Two words each!'),
   'l2-voice-herald': line('unwriter', 'Such a noisy, untidy school. Let me tidy it.'),
   'l2-herald-rude': line('pip', 'Who was THAT? How rude! Tear up its decree!'),
-  'l2-herald-trumpet': line('pip', 'Trumpet blasts! Block them!'),
+  'l2-herald-trumpet': tip('pip', 'Trumpet blasts! Block them!'),
   'l2-herald-last': line('pip', 'Now push it back! Not on my watch!'),
   'l2-idris-2': line('idris', 'The hall holds! The students are safe here. Now go!'),
   'l2-ws-1': line('pip', 'The furnace beacon is choked with ash. Let\'s relight it!'),
@@ -229,12 +235,12 @@ export const LINES = {
   'l3-cw-1': line('mira', 'A forest of burnt trees… and something is watching us.'),
   'l3-deer': line('pip', 'A deer, half rubbed out! Finish it. Type its words!'),
   'l3-deer-path': line('pip', 'The deer is free! Its colour is spreading through the woods. Keep going!'),
-  'l3-erased-tip': line('pip', 'Some letters are faded, but you know the word. Type all of it!'),
+  'l3-erased-tip': tip('pip', 'Some letters are faded, but you know the word. Type all of it!'),
   'l3-redactors': line('mira', 'Those black shapes are going for the deer! Stop them first!'),
   'l3-tortoise': line('pip', 'A giant tortoise, half rubbed out! Finish it, and maybe it can help us.'),
   'l3-tortoise-ride': line('pip', 'Straight through the flames! Nothing can burn that shell!'),
   'l3-raft': line('mira', 'This burning river runs to the Citadel. A raft made of one giant page. Hold on!'),
-  'l3-tide-tip': line('pip', 'A wall of fire! Type BOTH words. Hold fast!'),
+  'l3-tide-tip': tip('pip', 'A wall of fire! Type BOTH words. Hold fast!'),
   'l3-broken-drop': line('pip', 'The falls are broken! Write us a slide!'),
   'l3-mira-raft': line('mira', 'Never doing that again. …Can we do that again?'),
   'l3-ml-1': line('pip', 'Look at the books. These are OURS! Everything he erases ends up here, blank.'),

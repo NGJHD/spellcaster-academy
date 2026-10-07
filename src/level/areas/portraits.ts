@@ -128,8 +128,10 @@ export const portraits: AreaScript = {
         },
       ],
       barks: [
-        { when: { on: 'wave-start', wave: 1 }, line: 'por-1' },
-        { when: { on: 'wave-start', wave: 2 }, line: 'por-2' },
+        // The portraits speak as soon as the imps attack: the fight is trimmed to one wave for young
+        // typists, so lines on later waves were never heard.
+        { when: { on: 'wave-start', wave: 0 }, line: 'por-1' },
+        { when: { on: 'wave-start', wave: 0 }, line: 'por-2' },
         { when: { on: 'complete' }, line: 'por-3' },
       ],
     },
