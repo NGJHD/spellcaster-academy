@@ -371,7 +371,7 @@ Owner feedback after a full play-through: Level 1 good but chunky dialogue, Leve
 - **Level 1:** the Warden greets the apprentice inside the gate (type "hi") before the ward cracks; the script was rewritten line by line; the snapvine uses its AI model; the practice gallery has two short zones.
 - **Level 2:** opens in the apprentice's bedroom inside the Dormitory Tower (the window shows the real lawn, lake and Rift); a beacon map card and a "where next and why" line on every departure; the lake starts on a jetty (type "row" to board); the rampart beacon is a real brazier; photo-scanned surfaces replace the flat procedural ones; fireballs are soft additive glows.
 - **Level 3:** a baked fire sky (CC0 overcast clouds recoloured into smoke and firelight, `assets-src/scripts/sky/fire_sky.py`); CC0 burnt ground, rock and volcanic stone; flowing molten ink (`molten.py`); the Cinder Citadel built from AI towers and volcanic walls; the Margin Library, gallery and citadel stairwell rebuilt; an origami prow on the paper sea; a frost bubble on the ink river; the tortoise carries the party through fire; clearer story beats (the Perfect Warden is only a guard, the forge locks the Citadel gates, the run up the stairs, the way home) and a night homecoming with Orin's thanks, fireworks and a victory theme.
-- **New AI props:** giant tortoise (rebuilt at a higher budget), paper ship (kept, unused on board), dorm bed, wardrobe, beacon brazier, deer.
+- **New AI props:** giant tortoise (rebuilt at a higher budget), paper ship (built but not shipped: its sails filled the view from on board), dorm bed, wardrobe, beacon brazier, deer.
 
 ## Known limitations / next steps
 
