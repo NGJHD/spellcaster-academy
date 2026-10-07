@@ -373,6 +373,16 @@ Owner feedback after a full play-through: Level 1 good but chunky dialogue, Leve
 - **Level 3:** a baked fire sky (CC0 overcast clouds recoloured into smoke and firelight, `assets-src/scripts/sky/fire_sky.py`); CC0 burnt ground, rock and volcanic stone; flowing molten ink (`molten.py`); the Cinder Citadel built from AI towers and volcanic walls; the Margin Library, gallery and citadel stairwell rebuilt; an origami prow on the paper sea; a frost bubble on the ink river; the tortoise carries the party through fire; clearer story beats (the Perfect Warden is only a guard, the forge locks the Citadel gates, the run up the stairs, the way home) and a night homecoming with Orin's thanks, fireworks and a victory theme.
 - **New AI props:** giant tortoise (rebuilt at a higher budget), paper ship (built but not shipped: its sails filled the view from on board), dorm bed, wardrobe, beacon brazier, deer.
 
+## Chrome playthrough (2026-10-07)
+
+The owner asked for a full play in real Chrome, fixing everything that looked wrong, and that "anything that looks blockish polygon must go".
+
+- **Speech:** with real voices, lines ran behind their scenes; a camera move now waits at its end until its own lines are said, every voice is about 10% faster, and the script was trimmed to keep the 7-second rule.
+- **Rendered light:** the sky tear (Rift and seam), light beams, the boss push-back beams and the pillar effect are painted textures on camera-facing quads (`src/scene/glow.tsx`), not solid cylinders and tubes. Fire is a per-pixel noise flipbook; fireworks are rockets bursting into streaking sparks (`src/scene/Fireworks.tsx`).
+- **Replaced blocky or broken pieces:** the Ward Warden (new AI model), the rowing boat (lofted hull), the four-poster bed, the workshop's walls, the roof and aftermath, the forge's furnaces, written paths (planks between glowing ink rails), the raft (folded page), the lighthouse island.
+- **Loading:** the next area is mounted hidden and its materials compiled while the current one plays.
+- **AI models rejected:** the AI bed (flat shard posts) and the first tortoise (faceted shape from a noisy source; regenerating from a cleaner concept). Colour smoothing (`smooth_colours`) is available in `build_ai_creature.py`; Laplacian shape relaxing was tried and dropped (it broke the texture projection).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
