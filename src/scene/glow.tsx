@@ -10,7 +10,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, CanvasTexture, Matrix4, Mesh, PlaneGeometry, RepeatWrapping, SRGBColorSpace, Vector3, type MeshBasicMaterial } from 'three';
+import { AdditiveBlending, BufferGeometry, CanvasTexture, Float32BufferAttribute, Matrix4, Mesh, PlaneGeometry, RepeatWrapping, SRGBColorSpace, Vector3, type MeshBasicMaterial } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
 
 /** Deterministic pseudo-random numbers (render must stay pure and repeatable). */
@@ -416,4 +416,146 @@ export function placeStreak(mesh: Mesh, a: Vector3, b: Vector3, width: number, c
   mesh.position.copy(sMid);
   // The bright core fills about a third of the texture's height: widen the plane to match.
   mesh.scale.set(length, width * 3, 1);
+}
+
+// ---------- Fireball and gem sparkle textures ----------
+
+let fireballTex: CanvasTexture | null = null;
+let glintTex: CanvasTexture | null = null;
+
+/** Smooth 2D value noise for the fireball (tiles around the circle by angle). */
+function vnoise(x: number, y: number, period: number): number {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const h = (i: number, j: number) => {
+    const ii = ((i % period) + period) % period;
+    const v = Math.sin(ii * 127.1 + j * 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  };
+  const sx = xf * xf * (3 - 2 * xf);
+  const sy = yf * yf * (3 - 2 * yf);
+  const a = h(xi, yi) + (h(xi + 1, yi) - h(xi, yi)) * sx;
+  const b = h(xi, yi + 1) + (h(xi + 1, yi + 1) - h(xi, yi + 1)) * sx;
+  return a + (b - a) * sy;
+}
+
+/**
+ * A ball of fire (owner, 2026-10-07: the fireball read as a white light bulb): a churning orange body
+ * with a yellow-white heart, its edge broken into licking tongues of flame, fading to nothing. Drawn
+ * per pixel from noise around the circle, so the outline is ragged fire, not a disc.
+ */
+export function fireballTexture(): CanvasTexture {
+  if (fireballTex) return fireballTex;
+  const S = 192;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  if (g) {
+    const img = g.createImageData(S, S);
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const dx = (x / (S - 1)) * 2 - 1;
+        const dy = (y / (S - 1)) * 2 - 1;
+        const r = Math.sqrt(dx * dx + dy * dy);
+        const ang = (Math.atan2(dy, dx) / (Math.PI * 2) + 0.5) * 16;
+        // Ragged edge: tongues of flame around the rim, with finer flicker on top.
+        const edge = 0.52 + (vnoise(ang, r * 3, 16) - 0.5) * 0.34 + (vnoise(ang * 2.3, r * 7 + 3, 37) - 0.5) * 0.14;
+        // Churning body: mottled heat inside.
+        const churn = vnoise(dx * 5 + 9, dy * 5 + 4, 1000) * 0.5 + vnoise(dx * 11 + 2, dy * 11 + 7, 1000) * 0.25;
+        let heat = Math.max(0, 1 - r / edge);
+        heat = Math.pow(heat, 0.8) * (0.75 + churn * 0.6);
+        heat = Math.min(1, heat * 1.25);
+        // Colour ramp: deep red edge → orange → yellow → white-hot heart.
+        const rr = 255;
+        const gg = Math.round(255 * Math.min(1, Math.pow(heat, 1.1) * 1.15));
+        const bb = Math.round(255 * Math.max(0, (heat - 0.72) / 0.28) * 0.85);
+        const a = Math.min(1, heat * 1.6);
+        const i = (y * S + x) * 4;
+        img.data[i] = rr;
+        img.data[i + 1] = Math.round(gg * 0.85 + 40 * heat);
+        img.data[i + 2] = bb;
+        img.data[i + 3] = Math.round(a * 255);
+      }
+    }
+    g.putImageData(img, 0, 0);
+  }
+  fireballTex = new CanvasTexture(c);
+  fireballTex.colorSpace = SRGBColorSpace;
+  return fireballTex;
+}
+
+/** A four-pointed sparkle (the glint that flashes across a cut gem). */
+export function glintTexture(): CanvasTexture {
+  if (glintTex) return glintTex;
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  if (g) {
+    const img = g.createImageData(S, S);
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const dx = Math.abs((x / (S - 1)) * 2 - 1);
+        const dy = Math.abs((y / (S - 1)) * 2 - 1);
+        const ray = Math.max(Math.exp(-dy * 40) * (1 - dx), Math.exp(-dx * 40) * (1 - dy));
+        const core = Math.exp(-(dx * dx + dy * dy) * 30);
+        const a = Math.min(1, ray * 1.2 + core);
+        const i = (y * S + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+        img.data[i + 3] = Math.round(a * 255);
+      }
+    }
+    g.putImageData(img, 0, 0);
+  }
+  glintTex = new CanvasTexture(c);
+  return glintTex;
+}
+
+/**
+ * A brilliant-cut gem (owner: the 8-sided gem "looks blockish"): an octagonal table, eight star and
+ * eight kite (bezel) facets on the crown, sixteen upper-girdle facets, and sixteen pavilion mains down
+ * to a point. Flat-shaded per facet so each catches the light. Height about 0.3 m.
+ */
+export function brilliantGeometry(): BufferGeometry {
+  const T = new Vector3(0, 0.085, 0);
+  const C = new Vector3(0, -0.2, 0);
+  const A = Array.from({ length: 8 }, (_, i) => new Vector3(Math.cos((i / 8) * Math.PI * 2) * 0.085, 0.085, Math.sin((i / 8) * Math.PI * 2) * 0.085));
+  const B = Array.from({ length: 8 }, (_, i) => new Vector3(Math.cos(((i + 0.5) / 8) * Math.PI * 2) * 0.138, 0.046, Math.sin(((i + 0.5) / 8) * Math.PI * 2) * 0.138));
+  const G = Array.from({ length: 16 }, (_, k) => new Vector3(Math.cos((k / 16) * Math.PI * 2) * 0.165, 0, Math.sin((k / 16) * Math.PI * 2) * 0.165));
+  const tris: Vector3[][] = [];
+  for (let i = 0; i < 8; i++) {
+    const a0 = A[i] as Vector3;
+    const a1 = A[(i + 1) % 8] as Vector3;
+    const b0 = B[i] as Vector3;
+    const bPrev = B[(i + 7) % 8] as Vector3;
+    const g0 = G[2 * i] as Vector3;
+    const g1 = G[2 * i + 1] as Vector3;
+    const g2 = G[(2 * i + 2) % 16] as Vector3;
+    tris.push([T, a0, a1]); // table
+    tris.push([a0, b0, a1]); // star
+    tris.push([a0, bPrev, g0], [a0, g0, b0]); // kite (bezel)
+    tris.push([b0, g0, g1], [b0, g1, g2]); // upper girdle
+  }
+  for (let k = 0; k < 16; k++) tris.push([G[k] as Vector3, C, G[(k + 1) % 16] as Vector3]); // pavilion
+  const pos: number[] = [];
+  const n = new Vector3();
+  const e1 = new Vector3();
+  const e2 = new Vector3();
+  const mid = new Vector3();
+  for (const [p, q, r] of tris) {
+    if (!p || !q || !r) continue;
+    e1.subVectors(q, p);
+    e2.subVectors(r, p);
+    n.crossVectors(e1, e2);
+    mid.copy(p).add(q).add(r).multiplyScalar(1 / 3);
+    // The gem is convex: wind every facet to face away from its centre.
+    const [a, b, c] = n.dot(mid) < 0 ? [p, r, q] : [p, q, r];
+    pos.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+  }
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  geo.computeVertexNormals();
+  return geo;
 }

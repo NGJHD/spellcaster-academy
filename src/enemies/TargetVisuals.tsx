@@ -5,7 +5,8 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type RefObject } from 'react';
-import { AdditiveBlending, CanvasTexture, CatmullRomCurve3, LatheGeometry, MeshStandardMaterial, Quaternion, SphereGeometry, SpriteMaterial, Vector2, Vector3, type Group, type Sprite } from 'three';
+import { brilliantGeometry, fireballTexture, glintTexture } from '../scene/glow';
+import { AdditiveBlending, CanvasTexture, CatmullRomCurve3, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, SphereGeometry, SpriteMaterial, Vector3, type Group, type Sprite } from 'three';
 import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
 
@@ -694,85 +695,111 @@ function softGlow(): CanvasTexture {
  */
 export function FireballModel({ pose }: { pose: PoseRef }) {
   const core = useRef<Group>(null);
-  const corona = useRef<Sprite>(null);
+  const flameA = useRef<Sprite>(null);
+  const flameB = useRef<Sprite>(null);
   const embers = useRef<Group>(null);
-  const hot = useMemo(() => new MeshStandardMaterial({ color: '#fff0c0', emissive: '#ffb040', emissiveIntensity: 5, toneMapped: false }), []);
-  const glows = useMemo(
-    () =>
-      (['#ffe8a0', '#ff8a20', '#ff3a08'] as const).map(
-        (color, i) => new SpriteMaterial({ map: softGlow(), color, transparent: true, opacity: [0.95, 0.7, 0.45][i] ?? 0.5, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
-      ),
-    [],
-  );
+  const fire = useMemo(() => fireballTexture(), []);
+  const flameMatA = useMemo(() => new SpriteMaterial({ map: fire, transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), [fire]);
+  const flameMatB = useMemo(() => new SpriteMaterial({ map: fire, color: '#ffb070', transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), [fire]);
+  const haloMat = useMemo(() => new SpriteMaterial({ map: softGlow(), color: '#ff5a10', transparent: true, opacity: 0.45, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
+  const emberMat = useMemo(() => new SpriteMaterial({ map: softGlow(), color: '#ff8a2a', transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
   useFrame(() => {
     const p = pose.current;
     const g = core.current;
     if (!g) return;
-    const fade = Math.max(0.001, 1 - p.dispel * 1.5);
-    g.scale.setScalar(fade);
-    const flick = 1 + Math.sin(p.time * 23) * 0.08 + Math.sin(p.time * 37) * 0.05;
-    corona.current?.scale.setScalar(1.6 * flick);
+    g.scale.setScalar(Math.max(0.001, 1 - p.dispel * 1.5));
+    // Two layers of flame turning against each other, flickering: a churning ball of fire.
+    flameMatA.rotation = p.time * 2.2;
+    flameMatB.rotation = -p.time * 3.1 + 1;
+    const flick = 1 + Math.sin(p.time * 23) * 0.06 + Math.sin(p.time * 37) * 0.04;
+    flameA.current?.scale.setScalar(0.95 * flick);
+    flameB.current?.scale.setScalar(1.25 * (2 - flick));
     const e = embers.current;
     if (e) {
       e.children.forEach((child, i) => {
-        const k = (p.time * 1.8 + i * 0.27) % 1;
-        child.position.set(Math.sin(i * 2.3 + p.time * 3) * 0.12 * k, Math.cos(i * 1.7) * 0.1 * k, k * 0.9);
-        child.scale.setScalar(0.12 * (1 - k));
+        const k = (p.time * 1.8 + i * 0.21) % 1;
+        child.position.set(Math.sin(i * 2.3 + p.time * 3) * 0.15 * k, Math.cos(i * 1.7) * 0.12 * k + k * 0.2, k * 0.9);
+        child.scale.setScalar(0.14 * (1 - k));
       });
     }
   });
   return (
     <group ref={core}>
-      <mesh material={hot}>
-        <sphereGeometry args={[0.16, 20, 14]} />
-      </mesh>
-      <sprite material={glows[0]} scale={0.7} />
-      <sprite ref={corona} material={glows[1]} scale={1.6} />
-      <sprite material={glows[2]} scale={2.6} />
-      {/* A short trail of embers behind it */}
+      <sprite material={haloMat} scale={2.2} />
+      <sprite ref={flameB} material={flameMatB} scale={1.25} />
+      <sprite ref={flameA} material={flameMatA} scale={0.95} />
+      {/* Embers trailing off behind it */}
       <group ref={embers}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <sprite key={i} material={glows[1]} scale={0.1} />
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <sprite key={i} material={emberMat} scale={0.1} />
         ))}
       </group>
     </group>
   );
 }
 
-/** Cut-gem silhouette (crown and pavilion), revolved with eight facets for a crisp sparkle. */
-const GEM_PROFILE = [new Vector2(0, -0.19), new Vector2(0.15, -0.02), new Vector2(0.16, 0.02), new Vector2(0.1, 0.08), new Vector2(0, 0.08)];
-const GEM_COLOURS = ['#ffd45a', '#5ec8ff', '#ff7ab8', '#6dffa8'];
+// Deep jewel tones (amber, sapphire, ruby-pink, emerald): pale tones washed out against the sky.
+const GEM_COLOURS = ['#e8a010', '#1a6cff', '#e8206a', '#10b860'];
 
 /** Spark gem (CLAUDE.md §1B): spins, glints, and bursts outward when caught. */
 export function GemModel({ pose, seed }: { pose: PoseRef; seed: string }) {
   const body = useRef<Group>(null);
+  const glint = useRef<Sprite>(null);
+  const halo = useRef<Sprite>(null);
   const colour = GEM_COLOURS[[...seed].reduce((n, c) => n + c.charCodeAt(0), 0) % GEM_COLOURS.length] ?? '#ffd45a';
-  const geometry = useMemo(() => new LatheGeometry(GEM_PROFILE, 8), []);
+  const geometry = useMemo(() => brilliantGeometry(), []);
+  // A cut jewel: glassy, highly reflective facets with a soft inner glow of its own colour.
   const material = useMemo(
-    () => new MeshStandardMaterial({ color: colour, emissive: colour, emissiveIntensity: 1.6, roughness: 0.15, metalness: 0.3, flatShading: true }),
+    () =>
+      new MeshPhysicalMaterial({
+        color: colour,
+        emissive: colour,
+        emissiveIntensity: 0.12,
+        roughness: 0.04,
+        metalness: 0.1,
+        clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        ior: 2.4,
+        specularIntensity: 1,
+        envMapIntensity: 3,
+        transparent: true,
+        opacity: 0.94,
+      }),
     [colour],
   );
+  const glow = useMemo(() => new SpriteMaterial({ map: softGlowGem(), color: colour, transparent: true, opacity: 0.5, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), [colour]);
+  const sparkle = useMemo(() => new SpriteMaterial({ map: glintTexture(), color: '#ffffff', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
   useFrame(() => {
     const p = pose.current;
     const b = body.current;
     if (!b) return;
-    b.rotation.y = p.time * 2.4;
-    b.rotation.z = Math.sin(p.time * 1.7) * 0.25;
+    b.rotation.y = p.time * 1.6;
+    b.rotation.z = Math.sin(p.time * 1.3) * 0.18;
     const burst = p.defeated ? Math.min(1, p.dispel * 2) : 0;
     b.scale.setScalar(1 + burst * 1.8);
-    material.opacity = 1 - burst;
-    material.transparent = burst > 0;
-    material.emissiveIntensity = 1.6 + Math.sin(p.time * 6) * 0.4 + burst * 4;
+    material.opacity = 0.94 * (1 - burst);
+    material.emissiveIntensity = 0.12 + Math.sin(p.time * 5) * 0.06 + burst * 4;
+    // A glint flashes across the gem every couple of seconds.
+    const phase = (p.time * 0.55 + seed.length * 0.37) % 1;
+    const flash = phase < 0.12 ? Math.sin((phase / 0.12) * Math.PI) : 0;
+    sparkle.opacity = flash * (1 - burst);
+    sparkle.rotation = p.time * 0.8;
+    glint.current?.scale.setScalar(0.25 + flash * 0.35);
+    glow.opacity = 0.22 * (1 - burst) + Math.sin(p.time * 3) * 0.04;
+    halo.current?.scale.setScalar(0.75 + burst);
   });
   return (
     <group ref={body}>
-      <mesh geometry={geometry} material={material} />
-      <mesh>
-        <sphereGeometry args={[0.32, 16, 12]} />
-        <meshBasicMaterial color={colour} transparent opacity={0.16} depthWrite={false} toneMapped={false} />
-      </mesh>
+      <mesh geometry={geometry} material={material} scale={1.25} />
+      <sprite ref={halo} material={glow} scale={0.75} />
+      <sprite ref={glint} material={sparkle} position={[0.06, 0.1, 0.12]} scale={0.3} />
     </group>
   );
+}
+
+/** Soft round glow for gem halos (shared). */
+function softGlowGem() {
+  return softGlow();
 }
 
 export function ClaspModel({ pose }: { pose: PoseRef }) {
