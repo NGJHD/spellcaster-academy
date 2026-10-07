@@ -94,6 +94,14 @@ export class LevelDirector {
     if (beat && beat.id === beatId && !isCameraBeat(beat)) this.gatedDone = true;
   }
 
+  /** Jumps the current camera beat to its end (it then finishes on the next update). */
+  skipCameraBeat(settings: RailSettings): void {
+    const beat = this.currentBeat;
+    if (!beat || !isCameraBeat(beat)) return;
+    this.elapsedSec = beatDurationSec(this.route, beat, settings);
+    this.evaluate(beat, settings);
+  }
+
   update(deltaSec: number, settings: RailSettings): void {
     if (this.complete) return;
     let remaining = Math.min(Math.max(deltaSec, 0), MAX_FRAME_DELTA_SEC);

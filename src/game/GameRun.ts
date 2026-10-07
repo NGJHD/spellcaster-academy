@@ -70,6 +70,15 @@ export interface RunSettings {
   readonly collectibles?: boolean;
 }
 
+/**
+ * Lines that talk about something a setting can switch off: they are skipped when it is off
+ * (owner: "type the sparks as we fly in. Where are the sparks?").
+ */
+export const LINE_NEEDS: Readonly<Record<string, 'gems' | 'collectibles'>> = {
+  'open-sparks': 'gems',
+  'page-hint': 'collectibles',
+};
+
 /** An optional pickup the settings can switch off (story targets that carry a page, like the thief, stay). */
 const isOptionalCollectible = (t: TargetSpawn) =>
   t.optional === true && (t.kind === 'star-page' || t.kind === 'gem') && (t.reward?.starPage !== undefined || t.reward?.cosmetic !== undefined);
@@ -337,6 +346,8 @@ export class GameRun {
   private currentBarkBeat = -1;
   /** Seconds of play, for line freshness. */
   private speechClock = 0;
+  /** A camera beat to skip straight through (see onBeatStart), or −1. */
+  private skipBeatIndex = -1;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
   private pendingStartWave = 0;
@@ -560,6 +571,10 @@ export class GameRun {
     // the pan back (owner: "it was looking at the target then the camera shifted away").
     if (this.wordsPending()) railDt = Math.min(railDt, Math.max(0, this.director.remainingBeforeReturnSec(settings.rail) - 1e-4));
     if (this.holdForSpeech()) railDt = Math.min(railDt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
+    if (this.skipBeatIndex === this.director.currentIndex) {
+      this.skipBeatIndex = -1;
+      this.director.skipCameraBeat(settings.rail);
+    }
     this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
@@ -669,6 +684,15 @@ export class GameRun {
     }
   }
 
+  /**
+   * With collectibles off, an optional story target that carries a page (the courtyard thief) gives no
+   * page: no "STAR PAGE FOUND" for a counter the player cannot see.
+   */
+  private withoutCollectible(t: TargetSpawn): TargetSpawn {
+    if (this.settings().collectibles !== false || !t.optional || !t.reward?.starPage) return t;
+    return { ...t, reward: { ...t.reward, starPage: undefined } };
+  }
+
   private startChase(beat: LevelBeat): void {
     if (!isCameraBeat(beat) || !beat.chase || beat.chase.length === 0) return;
     const duration = this.director.remainingSec(this.settings().rail);
@@ -677,7 +701,7 @@ export class GameRun {
     const collectiblesOff = this.settings().collectibles === false;
     const chase = beat.chase.filter((c) => !(gemsOff && c.target.kind === 'gem' && !c.target.variant) && !(collectiblesOff && isOptionalCollectible(c.target)));
     if (chase.length === 0) return;
-    const targets = chase.map((c) => ({ ...c.target, delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
+    const targets = chase.map((c) => ({ ...this.withoutCollectible(c.target), delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
     const def: EncounterDef = { id: `chase:${beat.id}`, areaId: beat.areaId, kind: 'interaction', waves: [{ id: 'chase', targets }] };
     this.chase = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
   }
@@ -1203,7 +1227,24 @@ export class GameRun {
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
     if (beat.journey) patchRunUi({ journey: { key: nextKey(), to: beat.journey } });
-    for (const id of beat.barks ?? []) this.queueBark(getLine(id), beatIndex);
+    let spoken = 0;
+    // A scene with lines of its own drops earlier scenes' lines that have not started yet (they would
+    // be said over the wrong thing); a line already being said still finishes.
+    if ((beat.barks ?? []).some((id) => !(LINE_NEEDS[id] && this.settings()[LINE_NEEDS[id]] === false))) {
+      this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex);
+    }
+    for (const id of beat.barks ?? []) {
+      const needs = LINE_NEEDS[id];
+      if (needs && this.settings()[needs] === false) continue;
+      this.queueBark(getLine(id), beatIndex);
+      spoken++;
+    }
+    // A reveal that only showed a collectible, with collectibles switched off and nothing to say, is
+    // skipped (its pan begins and ends on the same view, so nothing jumps).
+    this.skipBeatIndex =
+      beat.kind === 'camera-reveal' && beat.bonus && isOptionalCollectible(beat.bonus) && this.settings().collectibles === false && spoken === 0 && !beat.fx?.length
+        ? beatIndex
+        : -1;
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
     if (beat.bonus) this.startBonus(beat);
     if (isCameraBeat(beat) && beat.chase) this.startChase(beat);
@@ -1337,7 +1378,7 @@ export class GameRun {
     // Collectibles switched off: their optional pickups are left out of the fight.
     const def =
       authored && this.settings().collectibles === false
-        ? { ...authored, waves: authored.waves.map((w) => ({ ...w, targets: w.targets.filter((t) => !isOptionalCollectible(t)) })) }
+        ? { ...authored, waves: authored.waves.map((w) => ({ ...w, targets: w.targets.filter((t) => !isOptionalCollectible(t)).map((t) => this.withoutCollectible(t)) })) }
         : authored;
     if (!def) {
       this.director.completeGatedBeat(beatId);
@@ -1517,10 +1558,15 @@ export class GameRun {
     this.progress.collectedStarPageIds.push(page);
     const count = this.progress.collectedStarPageIds.length;
     audio.playSfx('star-page');
-    patchRunUi({
-      starPages: count,
-      toast: { key: nextKey(), title: strings.toasts.collectible[this.level.id] ?? strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
-    });
+    // With collectibles off, story pages (Level 3's journal) still count but show no "1 / 8" tally.
+    if (this.settings().collectibles === false) {
+      patchRunUi({ starPages: count });
+    } else {
+      patchRunUi({
+        starPages: count,
+        toast: { key: nextKey(), title: strings.toasts.collectible[this.level.id] ?? strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
+      });
+    }
     this.saveNow();
   }
 

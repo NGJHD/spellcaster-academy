@@ -29,7 +29,9 @@ const line = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text 
 
 export const LINES = {
   // Opening and Arrival Gate
-  'open-1': line('pip', 'Hi! I\'m Pip, your guide orb. Welcome to Asterfall Academy! Type the sparks as we fly in!'),
+  'open-1': line('pip', "Hi! I'm Pip, your guide orb. Welcome to Asterfall Academy!"),
+  // Only said when spark gems are on (see LINE_NEEDS in GameRun).
+  'open-sparks': line('pip', 'Type the sparks as we fly in!'),
   'open-snatch': line('pip', 'Hey! Put me down! Type its word, quick!'),
   'open-rescued': line('pip', 'Thanks! That sprite looked scared, not naughty. Strange…'),
   'open-2': line('pip', 'The gate crystals have gone dim. That never happens!'),
@@ -155,7 +157,6 @@ export const LINES = {
   'seam-1': line('unwriter', 'Clever little apprentice. But one crack is all I need.'),
   'seam-2': line('pip', 'That voice… I know it. But how?'),
   // Level 2: The Siege of Asterfall
-  'l2-open-1': line('pip', 'The Lantern Festival! Type the lanterns into the sky!'),
   'l2-seam': line('pip', 'The academy\'s on fire! And the crack in the sky has torn wide open!'),
   'l2-voice-1': line('unwriter', 'Hello again, little school. Did you miss me?'),
   'l2-counter-tip': line('pip', 'Fireballs! Type the little word to block each one!'),
@@ -360,7 +361,7 @@ export const RESUME_SUMMARY: Record<AreaId, DialogueLine> = {
   'l3-rift-shore': line('pip', "We're through the Rift. Stay close."),
   'l3-cinderwood': line('pip', 'Through the burnt forest. Bring the colour back!'),
   'l3-inkfall': line('pip', 'Down the ink falls! Hold on!'),
-  'l3-margin-library': line('pip', 'The pages here remember things. Find them.'),
+  'l3-margin-library': line('pip', 'Everything he erased ends up here. Stay close.'),
   'l3-unfinished-gallery': line('pip', 'The Perfect Warden guards the gallery. Careful.'),
   'l3-paper-sea': line('pip', 'Across the Paper Sea to the Citadel.'),
   'l3-forge': line('pip', 'The Forge of Unwriting. Stop the hammers!'),

@@ -54,7 +54,7 @@ export const arrivalGate: AreaScript = {
     fade('arrival-opening-fade', A, 'ARRIVAL_SKY_01', { fadeOutSec: 0, holdSec: 0.2, fadeInSec: 0.8, music: 'arrival-wonder' }),
     // 1. The swoop: spark gems from the first second (`go`, `fly`, `sky`).
     travel('arrival-flyover', A, ['ARRIVAL_SKY_01', 'ARRIVAL_SKY_02'], 7, {
-      barks: ['open-1'],
+      barks: ['open-1', 'open-sparks'],
       easing: 'easeInOutSine',
       chase: [
         { at: 0.0, target: skyGem('sky-gem-go', 'go', -1.3) },
@@ -95,13 +95,15 @@ export const arrivalGate: AreaScript = {
     // Owner (2026-10-07): meet the Warden before the crack. It floats down, says hello, the player
     // types "hi" back, and it waves, then dashes to the tower as the ward cracks.
     hold('arrival-warden-hello', A, 'ARRIVAL_WARD_FRACTURE', 1.4, {
-      barks: ['warden-hello', 'pip-warden'],
+      // Pip introduces the Warden and prompts "hi"; the Warden answers once it is typed.
+      barks: ['pip-warden'],
       chase: [
         {
           at: 0.1,
           target: marker('warden-hi', WARDEN_HELLO_POSITION, 'hi', {
             labelHeight: 0.4,
             defeatFx: { kind: 'burst', scale: 0.8, color: '#ffe08a' },
+            defeatBark: 'warden-hello',
           }),
         },
       ],

@@ -5,6 +5,7 @@ import type { ResultsData } from '../game/scoring';
 import { readProfile } from '../game/saveData';
 import { gameStorage, useGameStore } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
+import { useSettingsStore } from '../state/settingsStore';
 
 const fmtSeconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 const fmtClock = (ms: number) => {
@@ -35,7 +36,8 @@ function rows(r: ResultsData): { group: keyof typeof strings.results.groups; lab
     { group: 'accuracy', label: t.streak, value: String(r.bestStreak) },
     { group: 'journey', label: t.words, value: String(r.completedWords) },
     { group: 'journey', label: t.levelTime, value: fmtClock(r.levelTimeMs) },
-    { group: 'journey', label: strings.hud.collectibles[r.levelId] ?? t.starPages, value: `${r.starPages} / ${r.starPagesTotal}` },
+    // Hidden when collectibles are switched off in Settings.
+    ...(useSettingsStore.getState().collectibles ? [{ group: 'journey' as const, label: strings.hud.collectibles[r.levelId] ?? t.starPages, value: `${r.starPages} / ${r.starPagesTotal}` }] : []),
     { group: 'journey', label: t.optional, value: String(r.optionalTargets) },
     { group: 'journey', label: t.focusLost, value: String(r.focusLost) },
     { group: 'journey', label: t.restarts, value: String(r.checkpointRestarts) },

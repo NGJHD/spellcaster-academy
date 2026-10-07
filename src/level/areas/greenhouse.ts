@@ -128,7 +128,8 @@ export const greenhouse: AreaScript = {
       fx: snap('GH_SNAP_3'),
     }),
     fight('greenhouse-h1', A, { barks: ['gh-pods'] }),
-    fight('greenhouse-h2', A, { barks: ['gh-stampede'] }),
+    // Both lines play over the mossling fight, so the Warden scene that follows keeps its own line.
+    fight('greenhouse-h2', A, { barks: ['gh-stampede', 'gh-moss'] }),
     // The Warden smashes down through the glass roof, catches the falling panel, and leaps away.
     reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_PAGE'], 2.0, 2.6, {
       barks: ['gh-warden'],
@@ -220,7 +221,6 @@ export const greenhouse: AreaScript = {
           ],
         },
       ],
-      barks: [{ when: { on: 'complete' }, line: 'gh-moss' }],
     },
     {
       id: 'greenhouse-anchor',
