@@ -20,6 +20,7 @@ import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop } from '../Prop';
 import { moltenInk, useMoltenFlow } from '../molten';
+import { LightBeam } from '../glow';
 import { worldCylinder, worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { surface } from '../surfaceTextures';
@@ -29,7 +30,6 @@ import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
 /** Molten ink: cooled plates with glowing seams, flowing (see molten.ts). The ink stream in the forge stays a plain glow. */
 const redInk = moltenInk();
-const inkStream = new MeshStandardMaterial({ color: '#3a0804', roughness: 0.15, emissive: '#ff2a08', emissiveIntensity: 1.6 });
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 /** Glowing blue ink: the edges of everything the apprentice writes into being. */
 const inkGlow = new MeshStandardMaterial({ color: '#9ec4ff', roughness: 0.3, emissive: '#3a7cff', emissiveIntensity: 2.4 });
@@ -793,6 +793,15 @@ export function ForgeScene() {
   useMoltenFlow();
   return (
     <group position={FORGE_ORIGIN}>
+      {/* Buttresses and glowing window slits along both walls */}
+      {[-1, 1].map((side) =>
+        [-44, -32, -20, -8, 4, 16].map((z) => (
+          <group key={`${side}${z}`}>
+            <Box position={[side * 19.4, 13, z]} size={[1.4, 26, 1.8]} material={MAT.ironPlate} />
+            <Box position={[side * 19.95, 9, z + 6]} size={[0.1, 4, 0.8]} material={ironSeam} />
+          </group>
+        )),
+      )}
       {/* Volcanic stone floor and walls (were flat procedural iron) */}
       <Slab x={[-20, 20]} y={[-0.3, 0]} z={[-50, 20]} material={MAT.volcanicStone} />
       <Slab x={[-21, -20]} y={[0, 30]} z={[-50, 20]} material={MAT.volcanicStone} />
@@ -801,15 +810,12 @@ export function ForgeScene() {
         <group key={x} position={[x, 0, 0]}>
           {/* The line: a conveyor of moulds running towards the player, its furnace at the back */}
           <Box position={[0, 0.5, -16]} size={[2.4, 1, 20]} material={MAT.ironPlate} />
-          {/* Channels of molten ink running beside the line */}
-          {[-1, 1].map((side) => (
-            <mesh key={side} position={[side * 1.7, 0.02, -14]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(0.7, 24)} />
-          ))}
-          <Box position={[0, 4, -28]} size={[5, 8, 4]} material={MAT.volcanicStone} />
-          {[1.5, 5, 7.6].map((y) => (
-            <Box key={y} position={[0, y, -25.95]} size={[5.2, 0.25, 0.2]} material={MAT.ironPlate} />
-          ))}
-          <Box position={[0, 3, -25.9]} size={[2.4, 2.6, 0.1]} material={ironSeam} />
+          {/* The line's furnace (AI-pipeline alchemy furnace), its mouth glowing until the line stops */}
+          <ModelBoundary fallback={<Box position={[0, 4, -28]} size={[5, 8, 4]} material={MAT.volcanicStone} />}>
+            <Suspense fallback={<Box position={[0, 4, -28]} size={[5, 8, 4]} material={MAT.volcanicStone} />}>
+              <Prop id="alchemy_furnace" position={[0, 0, -28.5]} height={7.5} rotationY={Math.PI} />
+            </Suspense>
+          </ModelBoundary>
           <Fire position={[0, 1.6, -25.6]} size={3} count={4} spread={2} light untilFlag={`l3-line-${i + 1}`} />
           {/* Cauldron pouring molten red ink */}
           {/* Black iron cauldron of molten red ink (AI-pipeline prop) on a gantry */}
@@ -820,9 +826,10 @@ export function ForgeScene() {
           </ModelBoundary>
           <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={MAT.ironPlate} />
           <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} smoke={false} />
-          <mesh position={[0, 5, -22]} material={inkStream}>
-            <cylinderGeometry args={[0.2, 0.25, 6, 8]} />
-          </mesh>
+          {/* Molten ink pouring from the cauldron: a rendered glowing stream (was a flat-glow rod) */}
+          <group position={[0, 7.4, -22]} rotation={[Math.PI, 0, 0]}>
+            <LightBeam height={6.6} width={0.55} color="#ff4a12" intensity={1.4} />
+          </group>
           {[-1, 0, 1].map((k) => (
             <Box key={k} position={[k * 0.8, 1.2, -14]} size={[0.15, 1.2, 0.15]} material={MAT.agedBrass} />
           ))}
