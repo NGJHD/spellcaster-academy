@@ -19,6 +19,7 @@ import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop } from '../Prop';
+import { DeadForest } from '../DeadForest';
 import { moltenInk, useMoltenFlow } from '../molten';
 import { LightBeam } from '../glow';
 import { worldCylinder, worldPlane } from '../surfaces';
@@ -203,6 +204,9 @@ function DeerFallback() {
   );
 }
 
+/** The Cinderwood path's centre line (local x at local z): straight ahead, nudged right for the ride. */
+const CINDERWOOD_PATH_X = (z: number) => (z < -30 ? 3 : 1);
+
 export function CinderwoodScene() {
   const deer = sub(DEER, WOOD_ORIGIN);
   const tortoise = sub(TORTOISE, WOOD_ORIGIN);
@@ -223,6 +227,10 @@ export function CinderwoodScene() {
         return <BurntTree key={i} position={[side * (5 + ((i * 7) % 14)), 0, 10 - i * 4.5]} height={8 + ((i * 5) % 6)} seed={i + 2} />;
       })}
       <AshRocks spots={[[-7, -8, 1.6], [8, -22, 2.4], [-9, -44, 3], [10, -58, 2], [-6, -74, 2.8], [7, -92, 3.4]]} />
+      {/* A dense barren forest on both sides of the path, all the way to the tortoise ride's end */}
+      <Suspense fallback={null}>
+        <DeadForest pathX={CINDERWOOD_PATH_X} clear={7} depth={70} zRange={[40, -230]} density={2.4} avoid={[[3, -40, 9], [-2.2, -8, 3]]} />
+      </Suspense>
       {/* The half-drawn deer: grey until its words restore it (AI-pipeline model; boxes until it loads) */}
       <Restorable flag="l3-deer-free" burning={false}>
         <group position={deer}>
