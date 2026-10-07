@@ -20,7 +20,7 @@ installBrowserVoice(() => {
 
 // Test hook for Playwright (`?test` only): read-only access to the live run.
 if (new URLSearchParams(window.location.search).has('test')) {
-  void Promise.all([import('./state/gameStore'), import('./player/RunDriver')]).then(([{ getRun }, { renderStats, debugScene }]) => {
+  void Promise.all([import('./state/gameStore'), import('./player/RunDriver')]).then(([{ getRun }, { renderStats, debugScene, debugCamera }]) => {
     (window as unknown as { __spellcaster: unknown }).__spellcaster = {
       beat: () => getRun()?.director.currentBeat?.id ?? null,
       music: () => musicDiagnostics.read(),
@@ -28,6 +28,7 @@ if (new URLSearchParams(window.location.search).has('test')) {
       focus: () => getRun()?.focus ?? null,
       render: () => ({ ...renderStats }),
       scene: () => debugScene.current,
+      camera: () => debugCamera.current,
       /** Visible triangles per top-level named group (performance investigation). */
       breakdown: () => {
         const out: Record<string, number> = {};

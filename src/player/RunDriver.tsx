@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef, type RefObject } from 'react';
-import { Vector3 } from 'three';
+import { PerspectiveCamera, Vector3 } from 'three';
 import { TIME_SCALE, getRun, isGameplayActive, useGameStore } from '../state/gameStore';
 import { KICK_SEC } from '../game/GameRun';
 import { labelElements } from '../ui/EnemyWordLabel';
@@ -20,6 +20,8 @@ const SUBTITLE_BAND = 150;
 export const renderStats = { triangles: 0, calls: 0, frameMs: 0 };
 /** Scene handle for the `?test` hook's triangle breakdown. */
 export const debugScene: { current: import('three').Object3D | null } = { current: null };
+/** The live camera, for `?test` measurements (camera steadiness). */
+export const debugCamera: { current: import('three').Camera | null } = { current: null };
 
 const look = new Vector3();
 const framing = new Vector3();
@@ -32,22 +34,33 @@ const toTarget = new Vector3();
  * framing and optional shake), drives the fade overlay, and projects word labels to the screen.
  * Nothing here touches React state.
  */
+/** A copy of the camera on the bare rail pose (no framing, shake or kick), for measuring words. */
+const railCamera = new PerspectiveCamera();
+
 export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | null> }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   debugScene.current = scene;
+  debugCamera.current = camera;
   const blend = useRef(0);
   const time = useRef(0);
 
   useEffect(() => {
     const run = getRun();
     if (!run) return;
+    // Measured from the rail's own view, not the framed camera: measuring through the camera that the
+    // framing itself turns made it chase its own tail (owner: "the screen jitters badly when 'moon' is
+    // shown"; the word sat on the framing threshold and the camera swung back and forth across it).
     run.centralityOf = (id) => {
       const t = run.findTarget(id);
       if (!t) return 99;
-      projected.copy(t.position).project(camera);
+      railCamera.copy(camera as PerspectiveCamera, false);
+      railCamera.position.copy(run.director.pose.position);
+      railCamera.lookAt(run.director.pose.lookAt);
+      railCamera.updateMatrixWorld();
+      projected.copy(t.position).project(railCamera);
       if (projected.z > 1) return 50;
       return Math.hypot(projected.x, projected.y);
     };
