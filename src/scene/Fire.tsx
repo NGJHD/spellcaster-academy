@@ -1,6 +1,6 @@
 /**
  * Fire for Levels 2 and 3 (LEVEL2_DESIGN A2-1b): camera-facing flame sprites animated from a
- * procedurally painted flipbook, with a flickering light for big fires and rising smoke.
+ * procedurally rendered flipbook (turbulent noise coloured by heat), with a flickering light for big fires and rising smoke.
  * - 'ink': the enemy's inkfire, red-orange with dark smoky cores.
  * - 'warm': ordinary flame (furnace, beacons, braziers).
  * Restorable objects burn to grey ash until their restore word is typed (flag set), then blaze back
@@ -12,7 +12,7 @@ import { AdditiveBlending, CanvasTexture, Color, Mesh, MeshStandardMaterial, Nor
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
 
-const FRAMES = 8;
+const FRAMES = 16;
 const FRAME_PX = 128;
 
 let flameSheets: Record<'ink' | 'warm', CanvasTexture> | null = null;
@@ -24,62 +24,140 @@ const hash = (a: number, b: number) => {
   return x - Math.floor(x);
 };
 
-function paintFlames(kind: 'ink' | 'warm'): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = FRAME_PX * FRAMES;
-  canvas.height = FRAME_PX * 2;
-  const g = canvas.getContext('2d');
-  if (!g) return new CanvasTexture(canvas);
-  const stops =
-    kind === 'ink'
-      ? ['rgba(255,240,180,1)', 'rgba(255,140,40,0.95)', 'rgba(220,40,20,0.85)', 'rgba(40,6,6,0.6)', 'rgba(0,0,0,0)']
-      : ['rgba(255,255,220,1)', 'rgba(255,200,80,0.95)', 'rgba(255,110,30,0.8)', 'rgba(160,40,10,0.4)', 'rgba(0,0,0,0)'];
-  for (let f = 0; f < FRAMES; f++) {
-    const ox = f * FRAME_PX;
-    // Several tongues of flame per frame, each a gradient-filled teardrop that sways with the frame.
-    for (let t = 0; t < 5; t++) {
-      const base = ox + FRAME_PX * (0.28 + 0.44 * hash(t, 7));
-      const sway = (hash(f, t) - 0.5) * FRAME_PX * 0.22;
-      const height = FRAME_PX * 2 * (0.55 + 0.4 * hash(t, f + 3));
-      const width = FRAME_PX * (0.18 + 0.16 * hash(t + 9, f));
-      const bottom = FRAME_PX * 2 - 4;
-      const grad = g.createLinearGradient(0, bottom, 0, bottom - height);
-      stops.forEach((c, i) => grad.addColorStop(i / (stops.length - 1), c));
-      g.fillStyle = grad;
-      g.globalCompositeOperation = 'lighter';
-      g.beginPath();
-      g.moveTo(base - width, bottom);
-      g.bezierCurveTo(base - width * 1.1, bottom - height * 0.45, base + sway - width * 0.3, bottom - height * 0.8, base + sway, bottom - height);
-      g.bezierCurveTo(base + sway + width * 0.3, bottom - height * 0.8, base + width * 1.1, bottom - height * 0.45, base + width, bottom);
-      g.closePath();
-      g.fill();
-    }
-    if (kind === 'ink') {
-      // Dark smoky cores: the inkfire "burns black" in the middle.
-      g.globalCompositeOperation = 'source-atop';
-      const core = g.createRadialGradient(ox + FRAME_PX / 2, FRAME_PX * 1.45, 2, ox + FRAME_PX / 2, FRAME_PX * 1.45, FRAME_PX * 0.35);
-      core.addColorStop(0, 'rgba(20,0,0,0.75)');
-      core.addColorStop(1, 'rgba(20,0,0,0)');
-      g.fillStyle = core;
-      g.fillRect(ox, 0, FRAME_PX, FRAME_PX * 2);
+/** Smooth value noise that tiles every `period` cells vertically (so the flipbook loops). */
+function noise(x: number, y: number, period: number): number {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const xf = x - xi;
+  const yf = y - yi;
+  const wrap = (v: number) => ((v % period) + period) % period;
+  const h = (i: number, j: number) => hash(i, wrap(j));
+  const sx = xf * xf * (3 - 2 * xf);
+  const sy = yf * yf * (3 - 2 * yf);
+  const a = h(xi, yi) + (h(xi + 1, yi) - h(xi, yi)) * sx;
+  const b = h(xi, yi + 1) + (h(xi + 1, yi + 1) - h(xi, yi + 1)) * sx;
+  return a + (b - a) * sy;
+}
+
+/** Turbulence: four octaves of noise (each tiles vertically). */
+function fbm(x: number, y: number): number {
+  let sum = 0;
+  let amp = 0.5;
+  let f = 1;
+  for (let o = 0; o < 4; o++) {
+    sum += amp * noise(x * f, y * f, 4 * f);
+    amp *= 0.5;
+    f *= 2;
+  }
+  return sum;
+}
+
+/** Heat to colour (r, g, b in 0–255, a in 0–1). */
+const RAMPS: Record<'ink' | 'warm', readonly (readonly [number, number, number, number, number])[]> = {
+  // [heat, r, g, b, alpha]
+  warm: [
+    [0.0, 90, 10, 0, 0],
+    [0.18, 150, 25, 5, 0.35],
+    [0.4, 235, 85, 15, 0.85],
+    [0.65, 255, 170, 45, 1],
+    [0.85, 255, 230, 140, 1],
+    [1.0, 255, 255, 235, 1],
+  ],
+  // Inkfire: redder, with a deep crimson body.
+  ink: [
+    [0.0, 60, 0, 0, 0],
+    [0.18, 120, 10, 5, 0.4],
+    [0.4, 215, 45, 15, 0.85],
+    [0.65, 255, 120, 35, 1],
+    [0.85, 255, 200, 110, 1],
+    [1.0, 255, 245, 215, 1],
+  ],
+};
+
+function ramp(kind: 'ink' | 'warm', heat: number): [number, number, number, number] {
+  const stops = RAMPS[kind];
+  for (let i = 1; i < stops.length; i++) {
+    const b = stops[i];
+    const a = stops[i - 1];
+    if (!a || !b) continue;
+    if (heat <= b[0]) {
+      const t = (heat - a[0]) / (b[0] - a[0]);
+      return [a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t, a[4] + (b[4] - a[4]) * t];
     }
   }
+  return [255, 255, 235, 1];
+}
+
+/**
+ * A rendered flame flipbook (owner, 2026-10-07: the old bezier teardrops "look polygon"): every pixel
+ * is computed from turbulent noise rising through a flame-shaped falloff and coloured by heat, so the
+ * flames have soft edges, licking tongues and a white-hot core. Frames scroll the noise upwards and
+ * loop seamlessly.
+ */
+function paintFlames(kind: 'ink' | 'warm'): CanvasTexture {
+  const W = FRAME_PX;
+  const H = FRAME_PX * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * FRAMES;
+  canvas.height = H;
+  const g = canvas.getContext('2d');
+  if (!g) return new CanvasTexture(canvas);
+  const img = g.createImageData(W * FRAMES, H);
+  for (let f = 0; f < FRAMES; f++) {
+    const scroll = (f / FRAMES) * 4; // one full noise period per loop
+    for (let py = 0; py < H; py++) {
+      const v = 1 - py / (H - 1); // 0 at the base, 1 at the top
+      for (let px = 0; px < W; px++) {
+        const u = (px / (W - 1)) * 2 - 1;
+        // Turbulence sways the flame sideways more the higher it rises.
+        const n = fbm(u * 2.2 + 7, v * 3.2 - scroll);
+        const uu = u + (n - 0.5) * 0.9 * v;
+        // A teardrop body: wide at the base, licking to a point at the top.
+        const halfWidth = 0.62 * Math.pow(1 - v, 0.55) + 0.02;
+        const body = Math.max(0, 1 - Math.abs(uu) / halfWidth);
+        const tongue = fbm(u * 4 + 3, v * 6 - scroll * 2);
+        let heat = body * 1.35 - v * 0.85 + (tongue - 0.5) * 0.8;
+        heat *= Math.min(1, v * 14 + 0.3); // soft at the very bottom edge
+        heat = Math.max(0, Math.min(1, heat));
+        const [r, gg, b, a] = ramp(kind, heat);
+        const i = (py * W * FRAMES + f * W + px) * 4;
+        img.data[i] = r;
+        img.data[i + 1] = gg;
+        img.data[i + 2] = b;
+        img.data[i + 3] = Math.round(a * 255);
+      }
+    }
+  }
+  g.putImageData(img, 0, 0);
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
   tex.repeat.set(1 / FRAMES, 1);
   return tex;
 }
 
+/** A soft, billowing smoke puff (noise-shaped, not a plain disc). */
 function paintSmoke(): CanvasTexture {
+  const S = 96;
   const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 64;
+  canvas.width = canvas.height = S;
   const g = canvas.getContext('2d');
   if (g) {
-    const grad = g.createRadialGradient(32, 32, 2, 32, 32, 32);
-    grad.addColorStop(0, 'rgba(40,36,34,0.7)');
-    grad.addColorStop(1, 'rgba(40,36,34,0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 64, 64);
+    const img = g.createImageData(S, S);
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const dx = x / (S - 1) * 2 - 1;
+        const dy = y / (S - 1) * 2 - 1;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        const n = fbm(dx * 2 + 11, dy * 2 + 5);
+        const a = Math.max(0, 1 - d * (1.1 - (n - 0.5) * 0.9)) ** 1.6 * 0.75;
+        const i = (y * S + x) * 4;
+        img.data[i] = 42;
+        img.data[i + 1] = 38;
+        img.data[i + 2] = 36;
+        img.data[i + 3] = Math.round(a * 255);
+      }
+    }
+    g.putImageData(img, 0, 0);
   }
   return new CanvasTexture(canvas);
 }
@@ -143,7 +221,7 @@ export function Fire({ position, size = 1.6, kind = 'ink', count = 4, spread = 0
       const seed = seeds[i];
       const tex = textures[i];
       if (!sp || !seed || !tex) return;
-      const frame = Math.floor(time.current * seed.rate + seed.phase) % FRAMES;
+      const frame = Math.floor(time.current * seed.rate * 1.6 + seed.phase) % FRAMES;
       tex.offset.x = frame / FRAMES;
       const h = size * seed.s * level.current * (0.9 + Math.sin(time.current * 7 + i) * 0.1);
       sp.scale.set(h * 0.55, h, 1);

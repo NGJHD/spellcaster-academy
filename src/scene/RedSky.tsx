@@ -8,7 +8,8 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { getRun } from '../state/gameStore';
 import { CinderCitadel } from './CinderCitadel';
-import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, Color, CurvePath, LineCurve3, NormalBlending, SphereGeometry, TubeGeometry, Vector3, type Group, type MeshBasicMaterial, type Points } from 'three';
+import { SkyTear } from './glow';
+import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, Color, NormalBlending, SphereGeometry, type Points } from 'three';
 
 const PALETTES = {
   inferno: { zenith: '#050204', mid: '#2a0806', horizon: '#ff4a12', glow: 0.55 },
@@ -147,47 +148,18 @@ export function CitadelOnHorizon() {
  * Sits in the camera-following sky rig, so it reads as infinitely far away.
  */
 export function Rift() {
-  const core = useRef<MeshBasicMaterial>(null);
-  const halo = useRef<MeshBasicMaterial>(null);
-  const group = useRef<Group>(null);
   const width = useRef(0.15);
-  const geometry = useMemo(() => {
-    // A ragged zig-zag tear: many short straight segments (centripetal spline keeps the corners sharp).
-    const pts: Vector3[] = [];
-    for (let i = 0; i <= 13; i++) {
-      const t = i / 13;
-      // Irregular kinks, like a crack in glass, slanting up across the sky.
-      const jag = (rand(i, 7) - 0.5) * 40;
-      pts.push(new Vector3(-300 + t * 600 + (rand(i, 9) - 0.5) * 30, 300 + t * 60 + jag, -540 + (rand(i, 8) - 0.5) * 30));
-    }
-    // Straight segments keep the corners sharp: a crack, not a ribbon.
-    const curve = new CurvePath<Vector3>();
-    for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1];
-      const b = pts[i];
-      if (a && b) curve.add(new LineCurve3(a, b));
-    }
-    return { core: new TubeGeometry(curve, 260, 2.2, 6, false), halo: new TubeGeometry(curve, 260, 12, 8, false) };
-  }, []);
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const run = getRun();
     const rift = run?.level.beatIndexOf('l2-rift-opens') ?? -1;
     const open = run !== null && run !== undefined && rift >= 0 && run.director.currentIndex >= rift;
-    width.current += ((open ? 1 : 0.15) - width.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
-    const t = state.clock.elapsedTime;
-    const flicker = 0.8 + Math.sin(t * 5) * 0.12 + Math.sin(t * 17) * 0.08;
-    if (group.current) group.current.scale.set(1, width.current, width.current);
-    if (core.current) core.current.opacity = flicker;
-    if (halo.current) halo.current.opacity = 0.35 * flicker * width.current;
+    width.current += ((open ? 1 : 0.12) - width.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
   });
+  // A rendered split across the sky (owner: the zig-zag tube "looks like it was done in ms paint").
   return (
-    <group ref={group}>
-      <mesh geometry={geometry.core} frustumCulled={false} renderOrder={-9}>
-        <meshBasicMaterial ref={core} color="#ffb070" transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} fog={false} />
-      </mesh>
-      <mesh geometry={geometry.halo} frustumCulled={false} renderOrder={-9}>
-        <meshBasicMaterial ref={halo} color="#ff2a0a" transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} fog={false} />
-      </mesh>
-    </group>
+    <>
+      <SkyTear from={[-320, 290, -540]} to={[320, 360, -540]} width={130} seed={7} open={() => width.current} renderOrder={-9} />
+      <SkyTear from={[-160, 250, -560]} to={[60, 300, -560]} width={40} seed={19} open={() => width.current * 0.8} opacity={() => 0.6} renderOrder={-9} />
+    </>
   );
 }

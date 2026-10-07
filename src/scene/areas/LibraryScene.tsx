@@ -1,4 +1,5 @@
 /** PLACEHOLDER Whispering Library (§14A.19). Local coordinates; see src/level/areas/library.ts. */
+import { LightBeam } from '../glow';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
 import type { Group, Object3D, PointLight } from 'three';
@@ -73,10 +74,10 @@ function Shell() {
       ))}
       {/* Dust light beams through the end windows */}
       {[-3, 3].map((x) => (
-        <mesh key={x} position={[x, 4.5, -26]} rotation={[0.45, 0, 0]}>
-          <cylinderGeometry args={[0.8, 1.6, 9, 16, 1, true]} />
-          <meshBasicMaterial color="#ffe2a8" transparent opacity={0.05} depthWrite={false} />
-        </mesh>
+        // Rendered shafts angled down from the windows to the floor (were faint solid cones).
+        <group key={x} position={[x, 8.6, -30.6]} rotation={[Math.PI - 0.77, 0, 0]}>
+          <LightBeam height={11.5} width={2.6} color="#ffe2a8" intensity={0.22} />
+        </group>
       ))}
       <Slab x={[-1.4, 1.4]} y={[0, 3.6]} z={[1.95, 2]} material={MAT.darkOak} />
       {[-4, -12, -20, -28].map((z) => (

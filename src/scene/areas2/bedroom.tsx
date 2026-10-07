@@ -88,6 +88,20 @@ export function DormBedroom() {
         <cylinderGeometry args={[0.03, 0.03, 0.18, 12]} />
       </mesh>
       <pointLight position={[-1.6, 1.1, -2.1]} color="#ffc070" intensity={1.6} distance={5} decay={2} />
+      {/* Beyond the door: a stone landing and the top of the spiral stairs going down, lit by fire
+          from below (Chrome playtest: the doorway showed open sky 16 m up). */}
+      <group position={[-H - W, 0, (DOOR.z[0] + DOOR.z[1]) / 2]}>
+        <Slab x={[-3.2, 0]} y={[-0.2, 0]} z={[-1.6, 1.6]} material={MAT.paving} />
+        <Slab x={[-3.4, 0]} y={[0, T]} z={[-1.9, -1.6]} material={MAT.academyStoneDark} />
+        <Slab x={[-3.4, 0]} y={[0, T]} z={[1.6, 1.9]} material={MAT.academyStoneDark} />
+        <Slab x={[-3.6, -3.2]} y={[-3, T]} z={[-1.9, 1.9]} material={MAT.academyStoneDark} />
+        <Slab x={[-3.4, 0]} y={[T, T + 0.3]} z={[-1.9, 1.9]} material={MAT.academyStoneDark} />
+        {/* Steps turning down to the right */}
+        {[0, 1, 2, 3].map((k) => (
+          <Box key={k} position={[-2.4, -0.25 - k * 0.25, 1.0 - k * 0.0]} size={[1.4, 0.12, 0.5]} material={MAT.paving} />
+        ))}
+        <pointLight position={[-2.2, 0.4, 0.6]} color="#ff6a2a" intensity={8} distance={6} decay={1.8} />
+      </group>
       <FireGlow />
     </group>
   );

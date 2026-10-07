@@ -332,6 +332,19 @@ export function WorkshopScene() {
       <Slab x={[-12.5, -12]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
       <Slab x={[12, 12.5]} y={[0, 9]} z={[-32, 8]} material={MAT.academyStoneDark} />
       <Slab x={[-12, 12]} y={[9, 9.4]} z={[-32, 8]} material={MAT.darkOak} />
+      {/* Back and front walls (the back was a black void), lined with cabinets, shelves and barrels */}
+      <Slab x={[-12.5, 12.5]} y={[0, 9.4]} z={[-32.5, -32]} material={MAT.academyStoneDark} />
+      <Slab x={[-12.5, 12.5]} y={[0, 9.4]} z={[8, 8.5]} material={MAT.academyStoneDark} />
+      {[-9, -5.5, 5.5, 9].map((x, i) => (
+        <Prop key={x} id={i % 2 ? 'wooden_display_shelves_01' : 'GothicCabinet_01'} position={[x, 0, -31.4]} height={2.6} />
+      ))}
+      <Prop id="wooden_barrels_01" position={[-11, 0, -28]} height={1.1} />
+      <Prop id="wooden_crate_01" position={[11, 0, -28.5]} height={0.8} rotationY={0.4} />
+      <Prop id="wooden_barrels_01" position={[11, 0, -5]} height={1.1} rotationY={1.2} />
+      {[-8, 0, 8].map((x) => (
+        <Prop key={x} id="Chandelier_01" position={[x * 0.8, 6.2, -12 - Math.abs(x)]} height={1.6} />
+      ))}
+      <pointLight position={[0, 6, -14]} color="#ffb070" intensity={18} distance={22} decay={1.6} />
       {/* Benches in two rows with glassware and instruments */}
       {[-14, -20].map((z) =>
         [-6, 6].map((x) => (

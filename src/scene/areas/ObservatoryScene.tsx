@@ -1,7 +1,8 @@
 /** PLACEHOLDER Observatory boss arena (§14A.25) with the Ward Warden. */
+import { LightBeam } from '../glow';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { BackSide, type Group, type Mesh, type MeshBasicMaterial } from 'three';
+import { BackSide, type Group, type MeshBasicMaterial } from 'three';
 import { OBSERVATORY_ORIGIN, VALUE_POSITIONS } from '../../level/areas/observatory';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
@@ -147,7 +148,7 @@ function WardDome() {
 
 /** One beam from the wand area into the dome for each value word typed (Phase W3). */
 function ValueBeams() {
-  const beams = useRef<(Mesh | null)[]>([]);
+  const beams = useRef<(Group | null)[]>([]);
   const geo = useMemo(
     () =>
       VALUE_POSITIONS.map((p) => {
@@ -169,10 +170,9 @@ function ValueBeams() {
   return (
     <group>
       {geo.map((p, i) => (
-        <mesh key={i} ref={(m) => void (beams.current[i] = m)} position={[p[0], p[1] / 2 + 6, p[2]]} scale={[1, 0.01, 1]} visible={false}>
-          <cylinderGeometry args={[0.05, 0.12, p[1] + 12, 8, 1, true]} />
-          <meshBasicMaterial color="#ffe08a" transparent opacity={0.5} depthWrite={false} toneMapped={false} />
-        </mesh>
+        <group key={i} ref={(m) => void (beams.current[i] = m)} position={[p[0], 0, p[2]]} scale={[1, 0.01, 1]} visible={false}>
+          <LightBeam height={p[1] + 12} width={0.9} color="#ffe08a" intensity={0.9} />
+        </group>
       ))}
     </group>
   );

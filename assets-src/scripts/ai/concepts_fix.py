@@ -10,7 +10,7 @@ import sys
 from comfy import concept
 
 STYLE = (
-    "highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, "
+    "highly detailed realistic 3D render of a single object or character, physically based materials, soft even studio lighting, "
     "plain light grey background, entire object in frame, centered, no people, no text"
 )
 
@@ -25,6 +25,11 @@ CONCEPTS = {
                  "side, fantasy academy style", 64),
     "erased_deer": ("A graceful red deer stag with large antlers standing calmly, realistic fur, gentle eyes, full body "
                     "side view", 66),
+    "ward_warden_ai": ("A towering friendly guardian construct made of white marble and polished gold, a glowing blue-white "
+                       "star in the centre of its chest, smooth armour plates engraved with gold constellations, broad "
+                       "shoulders, strong arms with gold bracers, a calm noble face with softly glowing blue eyes, a ring of "
+                       "small gold stars like a halo behind its head, its lower body tapering into a flowing robe of "
+                       "starlight instead of legs, floating, full body front view", 67),
     "beacon_brazier": ("A large iron beacon brazier on a stone pedestal with a wide iron fire bowl full of logs, "
                        "ornate gold star decorations, castle rampart style", 65),
 }

@@ -97,15 +97,17 @@ export const workshops: AreaScript = {
       A,
       'blotling',
       [
+        // In from the side doors, across the lit floor in front of the furnace (they were invisible
+        // against its dark iron, Chrome playtest 2026-10-07).
         [
-          { path: [K(-9, 0, -28), K(-6, 0, -24), K(-4.2, 0, -22)] },
-          { path: [K(9, 0, -28), K(6, 0, -24), K(4.2, 0, -22)] },
-          { path: [K(0, 0, -30), K(0, 0, -26), K(0, 0, -24.5)] },
+          { path: [K(-11, 0, -18), K(-7, 0, -19), K(-4.2, 0, -19.5)] },
+          { path: [K(11, 0, -18), K(7, 0, -19), K(4.2, 0, -19.5)] },
+          { path: [K(-11, 0, -14), K(-5, 0, -16), K(-1.5, 0, -18)] },
         ],
         [
-          { path: [K(-10, 0, -22), K(-7, 0, -22), K(-5, 0, -20.5)] },
-          { path: [K(10, 0, -22), K(7, 0, -22), K(5, 0, -20.5)] },
-          { path: [K(-3, 0, -30), K(-2, 0, -26), K(-1.8, 0, -25)] },
+          { path: [K(-11, 0, -22), K(-7, 0, -21), K(-5, 0, -20.5)] },
+          { path: [K(11, 0, -22), K(7, 0, -21), K(5, 0, -20.5)] },
+          { path: [K(11, 0, -14), K(5, 0, -16), K(1.8, 0, -18)] },
         ],
       ],
       { labelHeight: 1.0, entrance: { kind: 'geyser', scale: 0.4, color: '#1a1414' }, defeatFx: { kind: 'burst', scale: 0.9, color: '#ff7a2a' } },

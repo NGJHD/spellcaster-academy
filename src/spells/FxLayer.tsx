@@ -3,6 +3,7 @@
  * bounded effects for FxEvents from the run — magical bursts, tumbling debris, dust, ink geysers,
  * leaves, glass, shockwaves, light pillars, meteors, lightning and fireworks. Purely cosmetic.
  */
+import { BEAM_GEOMETRY, beamTexture } from '../scene/glow';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import {
@@ -11,7 +12,6 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
-  CylinderGeometry,
   DoubleSide,
   DynamicDrawUsage,
   type InstancedMesh,
@@ -173,7 +173,8 @@ export function FxLayer() {
     [],
   );
   // Pillars rise from their base: the cylinder is shifted up so scaling Y grows it skyward.
-  const pillarGeometry = useMemo(() => new CylinderGeometry(0.7, 0.9, 80, 24, 1, true).translate(0, 40, 0), []);
+  const pillarGeometry = BEAM_GEOMETRY;
+  const pillarTexture = useMemo(() => beamTexture(), []);
   const rings = useRef<TimedMesh[]>([]);
   const pillars = useRef<TimedMesh[]>([]);
   const bolts = useMemo<Bolt[]>(
@@ -363,7 +364,7 @@ export function FxLayer() {
     }
   };
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dt = Math.min(delta, 0.1);
     const run = getRun();
     if (run) {
@@ -471,7 +472,9 @@ export function FxLayer() {
         continue;
       }
       const grow = Math.min(1, p.t / 0.45);
-      p.mesh.scale.set(p.scale * (1 + Math.sin(p.t * 9) * 0.06), grow, p.scale * (1 + Math.sin(p.t * 9) * 0.06));
+      // A rendered shaft of light (glow.tsx beam texture) turned to face the camera, 80 m tall.
+      p.mesh.rotation.set(0, Math.atan2(state.camera.position.x - p.mesh.position.x, state.camera.position.z - p.mesh.position.z), 0);
+      p.mesh.scale.set(2.6 * p.scale * (1 + Math.sin(p.t * 9) * 0.06), 80 * grow, 1);
       (p.mesh.material as MeshBasicMaterial).opacity = 0.75 * Math.min(1, (1 - u) * 2.5);
     }
     const flock = birdsRef.current;
@@ -558,7 +561,7 @@ export function FxLayer() {
           }}
         >
           <primitive object={pillarGeometry} attach="geometry" />
-          <meshBasicMaterial color="#ffe6a0" transparent opacity={0} side={DoubleSide} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+          <meshBasicMaterial map={pillarTexture} color="#ffe6a0" transparent opacity={0} side={DoubleSide} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
         </mesh>
       ))}
       {bolts.map((b, i) => (

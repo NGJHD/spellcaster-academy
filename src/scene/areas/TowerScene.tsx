@@ -137,7 +137,8 @@ function shaftDisc(flip: -1 | 1): ShapeGeometry {
 const liftOffset = new Vector3();
 
 /**
- * PLACEHOLDER runaway lift (LD-0): a brass platform with a railing and cables that carries the camera
+ * PLACEHOLDER runaway lift (LD-0): a brass platform with a railing that carries the camera (no cables:
+ * one passed right in front of the camera and split the view, Chrome playtest 2026-10-07)
  * up the shaft. Rides under the camera while the lift beats play.
  */
 function Lift() {
@@ -167,9 +168,6 @@ function Lift() {
         <group key={i} rotation={[0, (i / 6) * Math.PI * 2 + 0.5, 0]}>
           <mesh position={[1.22, 0.5, 0]} material={MAT.agedBrass}>
             <cylinderGeometry args={[0.03, 0.03, 1.0, 8]} />
-          </mesh>
-          <mesh position={[1.1, 6, 0]} material={MAT.darkSteel}>
-            <cylinderGeometry args={[0.012, 0.012, 10, 6]} />
           </mesh>
         </group>
       ))}

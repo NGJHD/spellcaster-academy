@@ -1,8 +1,9 @@
 /** PLACEHOLDER Enchanted Greenhouse (§14A.21). Local coordinates; see src/level/areas/greenhouse.ts. */
+import { placeStreak, STREAK_GEOMETRY, streakTexture } from '../glow';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import { AdditiveBlending, CatmullRomCurve3, Quaternion, Mesh, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
+import { AdditiveBlending, CatmullRomCurve3, DoubleSide, Mesh, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
 import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } from '../../level/areas/greenhouse';
 import { beatIndexOf } from '../../level/level1Route';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -363,9 +364,7 @@ const BEAM_SOURCES: readonly { from: Vector3; color: string }[] = [
   { from: new Vector3(-160, 0, -40), color: '#ffcf6a' },
   { from: new Vector3(90, 0, -150), color: '#9fc8ff' },
 ];
-const UP = new Vector3(0, 1, 0);
-const beamDir = new Vector3();
-const beamQuat = new Quaternion();
+const beamTo = new Vector3();
 
 /**
  * LD-13: after the third anchor, all three anchor beams converge toward the Moon Tower: the greenhouse
@@ -375,7 +374,8 @@ function ConvergingBeams() {
   const beams = useRef<(Mesh | null)[]>([]);
   const time = useRef(0);
   const beat = useBeatIndex();
-  useFrame((_, dt) => {
+  const streak = useMemo(() => streakTexture(), []);
+  useFrame((state, dt) => {
     const on = PILLAR_BEAT >= 0 && beat >= PILLAR_BEAT;
     time.current = on ? time.current + Math.min(dt, 0.1) : 0;
     beams.current.forEach((m, i) => {
@@ -386,22 +386,17 @@ function ConvergingBeams() {
       if (!src) return;
       // Each beam shoots up in turn and reaches the meeting point.
       const grow = Math.min(1, Math.max(0, (time.current - i * 0.35) / 1.2));
-      beamDir.copy(CONVERGE).sub(src.from);
-      const length = beamDir.length() * grow;
-      beamDir.normalize();
-      beamQuat.setFromUnitVectors(UP, beamDir);
-      m.quaternion.copy(beamQuat);
-      m.position.copy(src.from).addScaledVector(beamDir, length / 2);
+      beamTo.copy(src.from).lerp(CONVERGE, grow);
       const pulse = 1 + Math.sin(time.current * 6 + i) * 0.15;
-      m.scale.set(pulse, Math.max(0.001, length), pulse);
+      // A rendered streak of light (was a solid cylinder).
+      placeStreak(m, src.from, beamTo, 0.7 * pulse, state.camera.position);
     });
   });
   return (
     <group>
       {BEAM_SOURCES.map((b, i) => (
-        <mesh key={i} ref={(m) => void (beams.current[i] = m)} visible={false} frustumCulled={false}>
-          <cylinderGeometry args={[0.35, 0.35, 1, 12, 1, true]} />
-          <meshBasicMaterial color={b.color} transparent opacity={0.6} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} />
+        <mesh key={i} ref={(m) => void (beams.current[i] = m)} visible={false} frustumCulled={false} geometry={STREAK_GEOMETRY}>
+          <meshBasicMaterial map={streak} color={b.color} transparent opacity={0.95} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} side={DoubleSide} />
         </mesh>
       ))}
     </group>

@@ -5,7 +5,8 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, Color, Quaternion, Vector3, type Group, type Mesh, type MeshBasicMaterial } from 'three';
+import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type MeshBasicMaterial, type Sprite } from 'three';
+import { glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from '../scene/glow';
 import { getRun } from '../state/gameStore';
 
 const PLAYER_COLOUR = '#ffd56a';
@@ -16,25 +17,13 @@ const start = new Vector3();
 const clash = new Vector3();
 const forward = new Vector3();
 const right = new Vector3();
-const dir = new Vector3();
-const quat = new Quaternion();
-
-/** Stretches a unit cylinder (height 1 along Y) between two points. */
-function span(mesh: Mesh, a: Vector3, b: Vector3, radius: number): void {
-  dir.copy(b).sub(a);
-  const length = dir.length();
-  mesh.position.copy(a).addScaledVector(dir, 0.5);
-  quat.setFromUnitVectors(UP, dir.normalize());
-  mesh.quaternion.copy(quat);
-  mesh.scale.set(radius, Math.max(0.001, length), radius);
-}
 
 export function BeamStruggle() {
   const root = useRef<Group>(null);
   const playerBeam = useRef<Mesh>(null);
   const playerCore = useRef<Mesh>(null);
   const enemyBeam = useRef<Mesh>(null);
-  const ball = useRef<Mesh>(null);
+  const ball = useRef<Sprite>(null);
   const shown = useRef(0);
   const push = useRef(0);
   const time = useRef(0);
@@ -63,37 +52,36 @@ export function BeamStruggle() {
     clash.lerpVectors(start, target, u);
 
     const flicker = 1 + Math.sin(time.current * 31) * 0.12;
-    if (playerBeam.current) span(playerBeam.current, start, clash, 0.07 * flicker * shown.current);
-    if (playerCore.current) span(playerCore.current, start, clash, 0.025 * shown.current);
+    if (playerBeam.current) placeStreak(playerBeam.current, start, clash, 0.12 * flicker * shown.current, cam.position);
+    if (playerCore.current) placeStreak(playerCore.current, start, clash, 0.04 * shown.current, cam.position);
     if (enemyBeam.current) {
-      span(enemyBeam.current, clash, target, 0.14 * (1.1 - push.current * 0.5) * shown.current);
+      placeStreak(enemyBeam.current, clash, target, 0.24 * (1.1 - push.current * 0.5) * shown.current, cam.position);
       enemyColour.set(beam.color);
       (enemyBeam.current.material as MeshBasicMaterial).color.copy(enemyColour);
     }
     if (ball.current) {
       ball.current.position.copy(clash);
-      ball.current.scale.setScalar((0.22 + Math.sin(time.current * 23) * 0.04) * shown.current);
+      ball.current.scale.setScalar((1.1 + Math.sin(time.current * 23) * 0.2) * shown.current);
     }
   });
 
+  // Rendered streaks of light and a soft glow at the clash (they were solid cylinders and a ball).
+  const streak = useMemo(() => streakTexture(), []);
+  const glow = useMemo(() => glowTexture(), []);
   return (
     <group ref={root} visible={false}>
-      <mesh ref={playerBeam} frustumCulled={false}>
-        <cylinderGeometry args={[1, 1, 1, 12, 1, true]} />
-        <meshBasicMaterial color={PLAYER_COLOUR} transparent opacity={0.55} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+      <mesh ref={playerBeam} geometry={STREAK_GEOMETRY} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color={PLAYER_COLOUR} transparent opacity={0.9} blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
       </mesh>
-      <mesh ref={playerCore} frustumCulled={false}>
-        <cylinderGeometry args={[1, 1, 1, 8, 1, true]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+      <mesh ref={playerCore} geometry={STREAK_GEOMETRY} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color="#ffffff" transparent opacity={1} blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
       </mesh>
-      <mesh ref={enemyBeam} frustumCulled={false}>
-        <cylinderGeometry args={[1, 1, 1, 12, 1, true]} />
-        <meshBasicMaterial color="#b9a8ff" transparent opacity={0.5} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+      <mesh ref={enemyBeam} geometry={STREAK_GEOMETRY} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color="#b9a8ff" transparent opacity={0.85} blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
       </mesh>
-      <mesh ref={ball} frustumCulled={false}>
-        <sphereGeometry args={[1, 20, 14]} />
-        <meshBasicMaterial color="#fff4d0" transparent opacity={0.85} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
-      </mesh>
+      <sprite ref={ball} frustumCulled={false}>
+        <spriteMaterial map={glow} color="#fff4d0" transparent opacity={1} blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+      </sprite>
     </group>
   );
 }

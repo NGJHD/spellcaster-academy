@@ -1947,3 +1947,13 @@ kbd {
 }
 @keyframes journey-march { to { stroke-dashoffset: -9; } }
 @keyframes journey-pulse { 50% { stroke-width: 5; opacity: 0.6; } }
+
+/* The Tab hint waits until a new word has landed (Chrome playtest: during the giant fly-in it covered
+   the word being typed). */
+.word-label__hint {
+  animation: word-hint-in 1300ms step-end both;
+}
+@keyframes word-hint-in {
+  0% { visibility: hidden; }
+  100% { visibility: visible; }
+}

@@ -177,7 +177,7 @@ export const LINES = {
   'l2-bell-intro': line('pip', 'Three words to ring the bell. Make it LOUD!'),
   'l2-bell-lit': line('pip', 'One beacon lit! Hear that? The Hush hate it!'),
   'l2-hall-rumble': line('pip', 'Something BIG is at the other doors…'),
-  'l2-idris-1': line('idris', 'I\'m Professor Idris. Keep them off the doors while I hold the barrier!'),
+  'l2-idris-1': line('idris', 'I\'m Prefect Idris. Keep them off the doors while I hold the barrier!'),
   'l2-lanes': line('pip', 'Three doors! Watch the one that glows the most!'),
   'l2-knights': line('pip', 'Empty armour with fire inside. Two words each!'),
   'l2-voice-herald': line('unwriter', 'Such a noisy, untidy school. Let me tidy it.'),
@@ -315,9 +315,9 @@ export const LINES = {
   // Shared
   'focus-reset': line('pip', "Let's take a breath and try that part again."),
   'assist-offer': line('pip', "I'll make the words a little shorter for this part. You've got this."),
-  'spell-frost': line('pip', 'Frost Thread! A perfect word slows the others down.'),
-  'spell-starfall': line('pip', 'STARFALL! Eight perfect words — the sky fights for us!'),
-  'spell-chain': line('pip', 'Chain Spark! Five perfect words in a row!'),
+  'spell-frost': line('pip', 'Brrr! Look at them slow down!'),
+  'spell-starfall': line('pip', 'STARFALL! The sky fights for us!'),
+  'spell-chain': line('pip', 'Whoa, look at those sparks leap!'),
 
   // Ending
   'end-1': line('orin', 'You mended the ward, apprentice. But it was broken from OUTSIDE.'),

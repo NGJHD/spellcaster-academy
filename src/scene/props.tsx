@@ -2,6 +2,7 @@
  * PLACEHOLDER story props whose state follows the run (anchors, crystals, Grimoire, Warden,
  * characters). Everything is read imperatively from the run each frame — no React state per frame.
  */
+import { LightBeam } from './glow';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
@@ -39,7 +40,7 @@ const ANCHOR_THEME = {
 function WardAnchorFallback({ position, encounterId, theme }: { position: Vec3; encounterId: string; theme: keyof typeof ANCHOR_THEME }) {
   const rings = useRef<(Group | null)[]>([]);
   const shard = useRef<Group>(null);
-  const column = useRef<Mesh>(null);
+  const column = useRef<Group>(null);
   const nodes = useMemo(() => [0, 1, 2].map(() => MAT.crystalDim.clone()), []);
   const accent = useMemo(() => new Color(ANCHOR_THEME[theme].accent), [theme]);
   const level = useRef(0);
@@ -107,10 +108,10 @@ function WardAnchorFallback({ position, encounterId, theme }: { position: Vec3; 
           <octahedronGeometry args={[0.16]} />
         </mesh>
       </group>
-      <mesh ref={column} position={[0, 12, 0]} visible={false}>
-        <cylinderGeometry args={[0.12, 0.3, 22, 16, 1, true]} />
-        <meshBasicMaterial color={ANCHOR_THEME[theme].accent} transparent opacity={0.28} depthWrite={false} toneMapped={false} />
-      </mesh>
+      {/* A rendered shaft of light rising from the restored anchor (was a solid cylinder). */}
+      <group ref={column} position={[0, 1, 0]} visible={false}>
+        <LightBeam height={22} width={1.4} color={ANCHOR_THEME[theme].accent} intensity={0.9} />
+      </group>
     </group>
   );
 }
@@ -631,7 +632,7 @@ function WardAnchorGLB({ position, encounterId, theme }: { position: Vec3; encou
   }, [parts]);
   const accent = useMemo(() => new Color(ANCHOR_THEME[theme].accent), [theme]);
   const dim = useMemo(() => new Color('#1d2a3a'), []);
-  const column = useRef<Mesh>(null);
+  const column = useRef<Group>(null);
   const level = useRef(0);
   const time = useRef(0);
 
@@ -668,10 +669,10 @@ function WardAnchorGLB({ position, encounterId, theme }: { position: Vec3; encou
   return (
     <group position={position}>
       <primitive object={parts.root} />
-      <mesh ref={column} position={[0, 12, 0]} visible={false}>
-        <cylinderGeometry args={[0.12, 0.3, 22, 16, 1, true]} />
-        <meshBasicMaterial color={ANCHOR_THEME[theme].accent} transparent opacity={0.28} depthWrite={false} toneMapped={false} />
-      </mesh>
+      {/* A rendered shaft of light rising from the restored anchor (was a solid cylinder). */}
+      <group ref={column} position={[0, 1, 0]} visible={false}>
+        <LightBeam height={22} width={1.4} color={ANCHOR_THEME[theme].accent} intensity={0.9} />
+      </group>
     </group>
   );
 }
