@@ -1794,13 +1794,10 @@ export class GameRun {
     const beat = this.director.currentBeat;
     if (!beat || ('attention' in beat && (beat.attention === 'spectacle' || beat.attention === 'boss-intro'))) return false;
     if (!this.speechPending(this.director.currentIndex)) return false;
-    // Only hold when the next moment brings lines of its own; otherwise the line simply carries on
-    // (uncut) over the next walk, reveal or fight, and nobody waits in silence.
-    const next = this.level.route.beats[this.director.currentIndex + 1];
-    if (!next || ('attention' in next && (next.attention === 'spectacle' || next.attention === 'boss-intro'))) return false;
-    // A fight's lines play over its typing, so a slightly late start still matches its scene.
-    if (next.kind === 'encounter') return false;
-    return (next.barks?.length ?? 0) > 0 || next.kind === 'dialogue';
+    // Chrome playtest (2026-10-07): with real voices, lines that were allowed to carry on into the next
+    // scene were said over the wrong thing ("a healing fountain!" while passing the paintings). A camera
+    // move now waits at its end until its own lines have been said in full.
+    return true;
   }
 
   /**

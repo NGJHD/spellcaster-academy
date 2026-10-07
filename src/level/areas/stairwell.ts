@@ -76,9 +76,10 @@ export const stairwell: AreaScript = {
     ST_GUARD_3: spiral(-220, stairFloor(-220) + 1.2),
   },
   beats: [
-    fade('stairwell-enter', A, 'ST_TOP', { music: 'tower-battle', barks: ['st-1'] }),
+    fade('stairwell-enter', A, 'ST_TOP', { music: 'tower-battle' }),
     // Fast-rail set piece: the tea-tray slide, one guardian per arc.
     travel('stairwell-slide-1', A, ['ST_TOP', 'ST_SLIDE_A', 'ST_SLIDE_1_END'], 8, {
+      barks: ['st-1'],
       easing: 'easeInOutSine',
       chase: [{ at: 0.05, target: command(0, 'stand', 'stair-guard-1-calm') }],
     }),

@@ -94,7 +94,7 @@ export const arrivalGate: AreaScript = {
     }),
     // Owner (2026-10-07): meet the Warden before the crack. It floats down, says hello, the player
     // types "hi" back, and it waves, then dashes to the tower as the ward cracks.
-    hold('arrival-warden-hello', A, 'ARRIVAL_WARD_FRACTURE', 2.5, {
+    hold('arrival-warden-hello', A, 'ARRIVAL_WARD_FRACTURE', 1.4, {
       barks: ['warden-hello', 'pip-warden'],
       chase: [
         {
@@ -102,7 +102,6 @@ export const arrivalGate: AreaScript = {
           target: marker('warden-hi', WARDEN_HELLO_POSITION, 'hi', {
             labelHeight: 0.4,
             defeatFx: { kind: 'burst', scale: 0.8, color: '#ffe08a' },
-            defeatBark: 'warden-wave',
           }),
         },
       ],
@@ -143,7 +142,6 @@ export const arrivalGate: AreaScript = {
       barks: [
         { when: { on: 'first-correct' }, line: 'gate-first-correct' },
         { when: { on: 'first-mistake' }, line: 'gate-first-mistake' },
-        { when: { on: 'complete' }, line: 'gate-done' },
       ],
       onComplete: { flags: ['gate-open'] },
       // The doors blow open in an explosion of light and leaves.

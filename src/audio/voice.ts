@@ -28,21 +28,21 @@ interface Casting {
  */
 const CASTING: Record<Speaker, Casting> = {
   // The guide orb: bright and young.
-  pip: { prefer: ['Ana', 'Maisie', 'Molly', 'Emily', 'Google UK English Female'], gender: 'female', pitch: 1.3, rate: 1.1 },
+  pip: { prefer: ['Ana', 'Maisie', 'Molly', 'Emily', 'Google UK English Female'], gender: 'female', pitch: 1.3, rate: 1.22 },
   // Mira: a brave older student.
-  mira: { prefer: ['Libby', 'Sonia', 'Clara', 'Jenny', 'Aria', 'Hazel'], gender: 'female', pitch: 1.05, rate: 1.05 },
+  mira: { prefer: ['Libby', 'Sonia', 'Clara', 'Jenny', 'Aria', 'Hazel'], gender: 'female', pitch: 1.05, rate: 1.17 },
   // Keeper Orin: the warm old headmaster (also the game's narrator voice).
-  orin: { prefer: ['Ryan', 'George', 'Guy', 'Roger', 'David'], gender: 'male', pitch: 0.85, rate: 0.94 },
+  orin: { prefer: ['Ryan', 'George', 'Guy', 'Roger', 'David'], gender: 'male', pitch: 0.85, rate: 1.06 },
   // The Ward Warden: deep and slow stone.
-  warden: { prefer: ['Christopher', 'Davis', 'Eric', 'Steffan', 'William'], gender: 'male', pitch: 0.5, rate: 0.84 },
+  warden: { prefer: ['Christopher', 'Davis', 'Eric', 'Steffan', 'William'], gender: 'male', pitch: 0.5, rate: 0.96 },
   // The Unwriter: cold and precise.
-  unwriter: { prefer: ['Thomas', 'Brian', 'Connor', 'Mitchell', 'Google UK English Male'], gender: 'male', pitch: 0.7, rate: 0.88 },
+  unwriter: { prefer: ['Thomas', 'Brian', 'Connor', 'Mitchell', 'Google UK English Male'], gender: 'male', pitch: 0.7, rate: 1.0 },
   // Prefect Idris: a calm senior student.
-  idris: { prefer: ['Andrew', 'Liam', 'Alfie', 'Elliot', 'Mark'], gender: 'male', pitch: 1.0, rate: 1.04 },
+  idris: { prefer: ['Andrew', 'Liam', 'Alfie', 'Elliot', 'Mark'], gender: 'male', pitch: 1.0, rate: 1.16 },
   // Oarsby the boatman: gruff and cheerful.
-  oarsby: { prefer: ['Roger', 'Guy', 'William', 'Prabhat', 'James'], gender: 'male', pitch: 0.78, rate: 0.95 },
-  'portrait-1': { prefer: ['Steffan', 'Eric', 'Connor', 'Prabhat'], gender: 'male', pitch: 0.92, rate: 0.98 },
-  'portrait-2': { prefer: ['Michelle', 'Emma', 'Ava', 'Natasha', 'Susan'], gender: 'female', pitch: 1.15, rate: 1.0 },
+  oarsby: { prefer: ['Roger', 'Guy', 'William', 'Prabhat', 'James'], gender: 'male', pitch: 0.78, rate: 1.07 },
+  'portrait-1': { prefer: ['Steffan', 'Eric', 'Connor', 'Prabhat'], gender: 'male', pitch: 0.92, rate: 1.1 },
+  'portrait-2': { prefer: ['Michelle', 'Emma', 'Ava', 'Natasha', 'Susan'], gender: 'female', pitch: 1.15, rate: 1.12 },
 };
 
 /** Order of assignment: main characters choose first. */

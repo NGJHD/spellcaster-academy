@@ -35,20 +35,16 @@ function runAt(beat: string) {
 }
 
 describe('story', () => {
-  it('the Warden says hello, the apprentice types "hi", and it waves', () => {
+  it('the Warden says hello and waits for the apprentice to type "hi"', () => {
     const { run, step } = runAt('arrival-warden-hello');
     step(2);
-    const hi = useRunStore.getState().labels.find((l) => l.word === 'hi');
-    expect(hi).toBeDefined();
+    expect(useRunStore.getState().labels.find((l) => l.word === 'hi')).toBeDefined();
+    step(6);
+    expect(run.director.currentBeat?.id, 'the camera waits for "hi"').toBe('arrival-warden-hello');
     run.handleIntent({ kind: 'letter', char: 'h' });
     run.handleIntent({ kind: 'letter', char: 'i' });
-    const said: string[] = [];
-    for (let i = 0; i < 200; i++) {
-      step(0.1);
-      const t = useRunStore.getState().subtitle?.text;
-      if (t && said[said.length - 1] !== t) said.push(t);
-    }
-    expect(said).toContain(getLine('warden-wave')?.text);
+    step(8);
+    expect(run.director.currentBeat?.id).not.toBe('arrival-warden-hello');
   });
 
   it('a reveal holds on its waiting word instead of panning away (owner: "shelf" in the library)', () => {

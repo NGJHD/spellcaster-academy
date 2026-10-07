@@ -108,7 +108,7 @@ export const courtyard: AreaScript = {
       'courtyard-rooftop-chase',
       A,
       ['COURTYARD_COMBAT_C1', 'COURTYARD_ROOF_LEAP', 'COURTYARD_ROOF_RUN_A', 'COURTYARD_ROOF_RUN_B', 'COURTYARD_ROOF_END'],
-      9,
+      8,
       {
         barks: ['court-chase'],
         easing: 'easeInOutSine',
@@ -126,6 +126,8 @@ export const courtyard: AreaScript = {
               defeatBark: 'court-chase-caught',
             }),
           },
+          // A spark gem along the last stretch of roof keeps the run lively while Pip talks.
+          { at: 0.8, target: target('roof-gem', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
         ],
       },
     ),
@@ -146,10 +148,9 @@ export const courtyard: AreaScript = {
       ],
     }),
     travel('courtyard-to-anchor', A, ['COURTYARD_ROOF_END', 'COURTYARD_MID_01', 'COURTYARD_ANCHOR'], 6, {
-      barks: ['court-anchor-intro'],
       music: 'arrival-wonder',
     }),
-    fight('courtyard-anchor', A),
+    fight('courtyard-anchor', A, { barks: ['court-anchor-intro'] }),
     // The anchor blasts a pillar of light into the sky; the camera looks up.
     reveal('courtyard-anchor-pillar', A, 'COURTYARD_ANCHOR', ['COURTYARD_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('courtyard-power', A, { barks: ['power-spark'] }),
