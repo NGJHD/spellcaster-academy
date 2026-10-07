@@ -21,7 +21,7 @@ const C = origin(WOOD_ORIGIN);
 /** The Cinder Citadel on the horizon, seen from the whole Blank. */
 export const CITADEL_FAR: Vec3 = [2400, 120, -900];
 export const STONES: readonly Vec3[] = [R(0.5, 0, -6), R(-0.6, 0, -10), R(0.4, 0, -14)];
-export const DEER: Vec3 = C(-3, 0, -14);
+export const DEER: Vec3 = C(-2.2, 0, -8);
 export const TORTOISE: Vec3 = C(3, 0, -40);
 
 /** Burning debris tumbling out of the Rift with a counter-word, beside the camera. */
@@ -123,7 +123,7 @@ export const cinderwood: AreaScript = {
     CW_RIDE: { position: C(3, 5.4, -86), lookAt: C(3, -0.5, -120) },
   },
   lookPoints: {
-    CW_DEER: C(-3, 1, -14),
+    CW_DEER: C(-2.2, 1, -8),
   },
   beats: [
     fade('l3-cw-enter', W, 'CW_START', { music: 'blank-wander', objective: 'l3-cinderwood', barks: ['l3-cw-1'] }),
@@ -152,7 +152,7 @@ export const cinderwood: AreaScript = {
       waves: [
         {
           id: 'deer',
-          targets: [target('deer-restore', 'marker', [DEER[0], 1.4, DEER[2]], ['gentle', 'graceful'], { labelHeight: 0.4, defeatFx: { kind: 'burst', scale: 2, color: '#ffb86a' } })],
+          targets: [target('deer-restore', 'marker', [DEER[0], 2.7, DEER[2]], ['gentle', 'graceful'], { labelHeight: 0.4, defeatFx: { kind: 'burst', scale: 2, color: '#ffb86a' } })],
         },
       ],
       onComplete: { flags: ['l3-deer-free'] },

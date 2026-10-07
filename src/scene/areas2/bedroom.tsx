@@ -5,13 +5,14 @@
  * Kit boxes use the shared photo-scanned materials; the bed and wardrobe are AI-pipeline props.
  */
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useRef } from 'react';
-import type { PointLight } from 'three';
+import { Suspense, useMemo, useRef } from 'react';
+import { SphereGeometry, type PointLight } from 'three';
 import { BEDROOM_CENTRE, BEDROOM_HALF as H, BEDROOM_HEIGHT as T } from '../../level/areas2/bedroom';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Box, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
+import { worldCylinder } from '../surfaces';
 
 const W = 0.3; // wall thickness
 /** Window opening on the −Z wall. */
@@ -44,6 +45,48 @@ function FireGlow() {
   return <pointLight ref={light} position={[0, 2.2, -H - 1.5]} color="#ff6a2a" distance={12} decay={1.6} />;
 }
 
+/**
+ * A four-poster bed built from photo-scanned wood and cloth (the AI bed's posts came out as flat
+ * shards): turned posts, a panelled frame, a mattress, a patchwork quilt pulled back and two soft
+ * pillows. Headboard towards +Z, 2.2 m long.
+ */
+function FourPosterBed({ position }: { position: [number, number, number] }) {
+  const pillow = useMemo(() => new SphereGeometry(0.5, 24, 12).scale(0.62, 0.16, 0.34), []);
+  return (
+    <group position={position}>
+      {[[-0.72, -1.05], [0.72, -1.05], [-0.72, 1.05], [0.72, 1.05]].map(([x, z]) => (
+        <group key={`${x}${z}`} position={[x ?? 0, 0, z ?? 0]}>
+          <mesh position={[0, 1.05, 0]} material={MAT.darkOak} geometry={worldCylinder(0.05, 0.06, 2.1, 16)} castShadow />
+          <mesh position={[0, 0.25, 0]} material={MAT.darkOak} geometry={worldCylinder(0.08, 0.08, 0.5, 16)} />
+          <mesh position={[0, 2.14, 0]} material={MAT.darkOak}>
+            <sphereGeometry args={[0.07, 16, 10]} />
+          </mesh>
+        </group>
+      ))}
+      {/* Canopy rails, frame, headboard and footboard */}
+      {[-1.05, 1.05].map((z) => (
+        <Box key={`r${z}`} position={[0, 2.05, z]} size={[1.5, 0.08, 0.08]} material={MAT.darkOak} />
+      ))}
+      {[-0.72, 0.72].map((x) => (
+        <Box key={`s${x}`} position={[x, 2.05, 0]} size={[0.08, 0.08, 2.2]} material={MAT.darkOak} />
+      ))}
+      <Box position={[0, 0.3, 0]} size={[1.4, 0.24, 2.1]} material={MAT.darkOak} />
+      <Box position={[0, 0.85, 1.05]} size={[1.36, 0.9, 0.06]} material={MAT.panelWood} />
+      <Box position={[0, 0.55, -1.05]} size={[1.36, 0.36, 0.06]} material={MAT.panelWood} />
+      {/* Mattress, sheet and quilt (pulled back from the pillows) */}
+      <Box position={[0, 0.52, 0]} size={[1.3, 0.2, 2.0]} material={MAT.linen} />
+      <Box position={[0, 0.635, -0.25]} size={[1.36, 0.05, 1.5]} material={MAT.jacquard} />
+      <Box position={[0, 0.66, 0.42]} size={[1.36, 0.06, 0.18]} material={MAT.jacquard} />
+      {[-0.32, 0.32].map((x) => (
+        <mesh key={x} position={[x, 0.7, 0.78]} geometry={pillow} material={MAT.linen} />
+      ))}
+      {/* Chest at the foot of the bed */}
+      <Box position={[0, 0.24, -1.4]} size={[1.0, 0.48, 0.42]} material={MAT.lightOak} />
+      <Box position={[0, 0.49, -1.4]} size={[1.04, 0.04, 0.46]} material={MAT.darkOak} />
+    </group>
+  );
+}
+
 export function DormBedroom() {
   return (
     <group position={BEDROOM_CENTRE}>
@@ -71,7 +114,7 @@ export function DormBedroom() {
       <Box position={[0, (WIN.y[0] + WIN.y[1]) / 2, -H - W / 2]} size={[0.08, WIN.y[1] - WIN.y[0], 0.12]} material={MAT.darkOak} />
       <Box position={[0, 2.2, -H - W / 2]} size={[2.6, 0.06, 0.1]} material={MAT.darkOak} />
       {/* Bed against the right wall, foot towards the window */}
-      <Furniture id="dorm_bed" position={[1.5, 0, 1.1]} size={[1.4, 0.7, 2.2]} height={2.3} rotationY={Math.PI / 2} />
+      <FourPosterBed position={[1.5, 0, 1.1]} />
       {/* Wardrobe on the back wall, desk and chair by the window */}
       <Furniture id="wardrobe" position={[-1.6, 0, H - 0.4]} size={[1.4, 2.1, 0.6]} height={2.1} rotationY={Math.PI} />
       <Box position={[-1.9, 0.75, -1.6]} size={[1.0, 0.06, 1.6]} material={MAT.lightOak} />
