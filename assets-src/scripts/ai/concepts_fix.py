@@ -15,8 +15,11 @@ STYLE = (
 )
 
 CONCEPTS = {
-    "giant_tortoise": ("A giant gentle ancient tortoise creature with a huge domed shell covered in moss, glowing gold "
-                       "patterns on the shell, wise kind eyes, sturdy elephant-like legs, full body side view", 61),
+    # Second try (2026-10-07): a clean, smooth domed shell with clear scutes; the mossy shell made a
+    # noisy, faceted 3D shape.
+    "giant_tortoise": ("A giant gentle ancient Galapagos tortoise, smooth high domed brown shell with clear large "
+                       "hexagonal scutes and thin gold lines between them, leathery grey-brown skin, wise kind eyes, "
+                       "sturdy legs, full body three-quarter view, clean simple shapes", 71),
     "paper_ship": ("A large sailing ship folded entirely from white paper like origami, crisp folded hull, tall folded "
                    "paper sails, a small lantern at the bow, three-quarter view", 62),
     "dorm_bed": ("A cosy wooden four-poster student bed with a patchwork quilt, two pillows and a small wooden chest at "

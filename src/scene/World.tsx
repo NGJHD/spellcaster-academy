@@ -103,21 +103,26 @@ const KEEP_PREVIOUS_MS = 2500;
  * never reveals an empty world — is mounted at a time.
  */
 /**
- * Mounts a scene hidden so its models and textures load, then compiles its materials once (shown for
- * that one compile only), so walking into it later costs no frame-rate dip.
+ * Holds one area's scene. While it is only being staged (the next area) it is hidden, and its
+ * materials are compiled once in the background so showing it later costs no frame-rate dip.
  */
-function Prefetch({ children }: { children: ReactNode }) {
+function Staged({ shown, children }: { shown: boolean; children: ReactNode }) {
   const group = useRef<Group>(null);
   const { gl, camera, scene } = useThree();
+  const compiled = useRef(false);
   useEffect(() => {
     const g = group.current;
-    if (!g) return;
-    g.visible = true;
-    gl.compile(scene, camera);
-    g.visible = false;
-  }, [gl, camera, scene]);
+    if (!g || shown || compiled.current) return;
+    compiled.current = true;
+    const id = window.setTimeout(() => {
+      g.visible = true;
+      gl.compile(scene, camera);
+      g.visible = false;
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [gl, camera, scene, shown]);
   return (
-    <group ref={group} visible={false}>
+    <group ref={group} visible={shown}>
       {children}
     </group>
   );
@@ -206,17 +211,14 @@ export function World() {
       <Suspense fallback={null}>
         <Atmosphere areaId={area} />
       </Suspense>
-      {[...mounted].map((key) => (
+      {/* The upcoming area is mounted hidden under the same key, so when the story reaches it the very
+          same scene simply becomes visible: assets loaded and materials compiled, no remount. */}
+      {[...mounted, ...(next && !mounted.has(next) ? [next] : [])].map((key) => (
         // Each area streams its own assets; one area loading never blanks another.
         <Suspense key={key} fallback={null}>
-          <group>{scenes[key]}</group>
+          <Staged shown={mounted.has(key)}>{scenes[key]}</Staged>
         </Suspense>
       ))}
-      {next && !mounted.has(next) && (
-        <Suspense key={`next-${next}`} fallback={null}>
-          <Prefetch>{scenes[next]}</Prefetch>
-        </Suspense>
-      )}
     </>
   );
 }

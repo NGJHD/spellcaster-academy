@@ -72,7 +72,7 @@ CONFIG = {
     "citadel_tower": dict(out="citadel_tower", folder="props", rig="none", defeat="vanish", height=60, tris=16000, tex=1024),
     "journal_lectern": dict(out="journal_lectern", folder="props", rig="none", defeat="vanish", height=1.6, tris=10000, tex=1024),
     # 2026-10-07 playtest fixes (static props).
-    "giant_tortoise": dict(out="giant_tortoise", folder="props", rig="none", defeat="vanish", height=4.5, fit="width", width=9, tris=60000, tex=2048),
+    "giant_tortoise": dict(out="giant_tortoise", folder="props", rig="none", defeat="vanish", height=4.5, fit="width", width=9, tris=60000, tex=2048, smooth_colours=4),
     "ward_warden_ai": dict(out="ward_warden_ai", height=3.2, tris=40000, tex=2048, rig="floater", defeat="vanish", metallic=0.3, roughness=0.4),
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
     "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
@@ -120,6 +120,47 @@ high.data.update()
 if cfg.get("fit") == "width":
     H = max(0.01, bbox(high)[1].z)
 high.name = "HighPoly"
+
+
+def smooth_colours(obj, iterations):
+    """
+    Averages each vertex colour with its neighbours `iterations` times (owner: the tortoise's texture
+    showed triangle facets, TRELLIS colour varies sharply between neighbouring vertices).
+    """
+    import numpy as np
+
+    mesh = obj.data
+    attr = mesh.color_attributes.active_color
+    if attr is None:
+        return
+    n = len(mesh.vertices)
+    if attr.domain == "POINT":
+        cols = np.array([c.color[:] for c in attr.data], dtype=np.float64)
+    else:
+        cols = np.zeros((n, 4))
+        counts = np.zeros(n)
+        for loop in mesh.loops:
+            cols[loop.vertex_index] += attr.data[loop.index].color[:]
+            counts[loop.vertex_index] += 1
+        cols /= np.maximum(counts, 1)[:, None]
+    edges = np.array([e.vertices[:] for e in mesh.edges], dtype=np.int64)
+    deg = np.bincount(edges.ravel(), minlength=n).astype(np.float64)
+    for _ in range(iterations):
+        acc = cols.copy()
+        np.add.at(acc, edges[:, 0], cols[edges[:, 1]])
+        np.add.at(acc, edges[:, 1], cols[edges[:, 0]])
+        cols = acc / (deg + 1)[:, None]
+    if attr.domain == "POINT":
+        for i, c in enumerate(attr.data):
+            c.color = cols[i]
+    else:
+        for loop in mesh.loops:
+            attr.data[loop.index].color = cols[loop.vertex_index]
+    print(f"PREP smoothed colours x{iterations}")
+
+
+if cfg.get("smooth_colours"):
+    smooth_colours(high, cfg["smooth_colours"])
 
 
 def unwrap_xatlas(obj):
@@ -176,6 +217,15 @@ for _ in range(4):
     dec.ratio = max(0.02, cfg["tris"] / current)
     dec.use_collapse_triangulate = True
     bpy.ops.object.modifier_apply(modifier=dec.name)
+if cfg.get("smooth_shape"):
+    # Relax faceted AI geometry (Laplacian smoothing that preserves volume), then smooth shading.
+    lap = low.modifiers.new("Relax", "LAPLACIANSMOOTH")
+    lap.iterations = cfg["smooth_shape"]
+    lap.lambda_factor = 0.6
+    lap.use_volume_preserve = True
+    lap.use_normalized = True
+    bpy.ops.object.modifier_apply(modifier=lap.name)
+    print(f"PREP relaxed shape x{cfg['smooth_shape']}")
 bpy.ops.object.shade_smooth()
 unwrap_xatlas(low)
 

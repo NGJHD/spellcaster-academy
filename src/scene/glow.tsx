@@ -14,8 +14,12 @@ import { AdditiveBlending, CanvasTexture, Matrix4, Mesh, PlaneGeometry, RepeatWr
 import type { Vec3 } from '../level/rail/railTypes';
 
 /** Deterministic pseudo-random numbers (render must stay pure and repeatable). */
+/** Exported for tests. */
+export const rngForTest = (seed: number) => rng(seed);
+
 function rng(seed: number) {
-  let s = seed * 9301 + 49297;
+  // Kept positive whatever the seed (a negative seed gave negative glow radii, which throw).
+  let s = ((Math.round(seed) % 233280) + 233280) % 233280;
   return () => {
     s = (s * 9301 + 49297) % 233280;
     return s / 233280;
