@@ -672,10 +672,29 @@ Level 3:
   - While it blasts one, the next lands and the one before climbs again.
   - The bolts have no light of their own: lights switching on and off recompile every material.
 
+## Recorded CC0 soundtracks (2026-10-16)
+
+- Owner: Level 1's music suits it (light-hearted); Level 2 should be darker and Level 3 sinister; "you
+  can find CC0 soundtracks instead of creating your own", then "if you can find a suitable level 1 bgm cc0
+  u can replace it also".
+- The tracks are thirteen CC0 recordings from OpenGameArt in `public/audio/music/`, converted to
+  Ogg Vorbis q4 (18 MB in total). Licences and composers are in `public/audio/music/CREDITS.md`.
+- `MusicEngine` `TRACKS` maps each mood to a file. The file loads once, loops through the mood's
+  crossfading bus (so ducking under dialogue still works), and resumes where it stopped, so a story theme
+  interrupted by a fight carries on. The procedural mood plays until the file has loaded, and for moods
+  without a track (the ward fracturing).
+- Choices:
+  - Level 1: Once Upon a Time and Treasure Hunter (TAD); Medieval: Battle (RandomMind); Battle Theme B
+    (cynicmusic).
+  - Level 2: Lament of the War (Cethiel); Determined Pursuit and QaziJamJam (Emma_MA).
+  - Level 3: Dark Shrine Loop (qubodup/yd; the owner preferred it to the horror-tagged "Insistent");
+    Evil Approach (nene); Epic Endgame Cinematic (cynicmusic).
+  - Celebrations: A Legend Will Rise (CodeManu); Victory Theme (cynicmusic).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
 - Character faces are stylised volume sculpts — readable at dialogue distance, not close-up hero quality. Creature LOD1/LOD2 files are not yet generated (single LOD within budget).
 - Manual checks in §17 that need a human at a real keyboard have not been done by a person: deliberately slow Gentle play, intentional-mistake Standard play by feel, focus loss / tab switching by hand, browser resizing at several resolutions, refresh at every checkpoint. Automated equivalents exist for most flows.
 - Firefox is out of scope by owner decision (Edge/Chromium only). Text-to-speech voice quality depends on the voices installed in the browser/OS.
-- Music is procedural placeholder material; SFX are synthesised.
+- Music is recorded CC0 tracks (see public/audio/music/CREDITS.md); SFX are synthesised.

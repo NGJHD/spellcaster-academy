@@ -69,6 +69,42 @@ const MOODS: Record<MusicId, Mood> = {
   homecoming: { tempo: 96, root: 62, scale: MAJOR, progression: [I, V, VI, IV], pad: 0.55, arp: 0.45, bass: 0.4, drums: 0.3, brightness: 2800, lead: 0.55 },
 };
 
+/**
+ * Recorded CC0 soundtracks for Levels 2 and 3 (owner, 2026-10-16: the light-hearted Level 1 music
+ * should give way to something darker for the siege and something sinister for the Blank; "you can find
+ * CC0 soundtracks"). Each loops; the procedural mood plays until its file has loaded. Sources and
+ * licences: public/audio/music/CREDITS.md.
+ */
+const TRACKS: Partial<Record<MusicId, { readonly file: string; readonly gain: number }>> = {
+  // Level 1 and the title (owner: "if you can find a suitable level 1 bgm cc0 u can replace it also").
+  title: { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  'arrival-wonder': { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  'east-hall-calm': { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  'portrait-rest': { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  'greenhouse-wonder': { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  results: { file: 'once-upon-a-time.ogg', gain: 0.9 },
+  'library-mystery': { file: 'treasure-hunter.ogg', gain: 0.9 },
+  'tower-ascent': { file: 'treasure-hunter.ogg', gain: 0.9 },
+  'courtyard-action': { file: 'medieval-battle.ogg', gain: 0.85 },
+  'greenhouse-action': { file: 'medieval-battle.ogg', gain: 0.85 },
+  'tower-battle': { file: 'medieval-battle.ogg', gain: 0.85 },
+  'grimoire-battle': { file: 'battle-theme-b.ogg', gain: 0.85 },
+  'warden-defence': { file: 'battle-theme-b.ogg', gain: 0.85 },
+  'ward-repair': { file: 'a-legend-will-rise.ogg', gain: 0.9 },
+  celebration: { file: 'a-legend-will-rise.ogg', gain: 0.9 },
+  homecoming: { file: 'a-legend-will-rise.ogg', gain: 0.9 },
+  victory: { file: 'victory-theme.ogg', gain: 0.9 },
+  // Levels 2 and 3.
+  'siege-dread': { file: 'lament-of-the-war.ogg', gain: 0.9 },
+  'evacuation-hope': { file: 'lament-of-the-war.ogg', gain: 0.9 },
+  'siege-battle': { file: 'determined-pursuit.ogg', gain: 0.85 },
+  'wyrm-battle': { file: 'qazijamjam.ogg', gain: 0.85 },
+  'blank-wander': { file: 'dark-shrine-loop.ogg', gain: 1.1 },
+  'citadel-battle': { file: 'evil-approach.ogg', gain: 0.85 },
+  'unwriter-battle': { file: 'epic-endgame.ogg', gain: 0.85 },
+};
+const TRACK_BASE = `${import.meta.env.BASE_URL}audio/music/`;
+
 const LOOKAHEAD_SEC = 0.25;
 /** Music level while dialogue is playing. */
 const DUCK_LEVEL = 0.35;
@@ -87,6 +123,11 @@ interface Voice {
   readonly seed: number;
   nextBeatTime: number;
   beat: number;
+  /** Set once a recorded track has taken over from the procedural mood. */
+  track: AudioBufferSourceNode | null;
+  trackFile?: string;
+  /** Context time at which the track's position 0 would have played. */
+  trackStart?: number;
 }
 
 export class MusicEngine {
@@ -141,10 +182,12 @@ export class MusicEngine {
     const mood = id ? MOODS[id] : null;
     const fade = mood?.battle || old?.mood.battle ? BATTLE_FADE_SEC : CROSSFADE_SEC;
     if (old) {
+      if (old.trackFile && old.trackStart !== undefined) this.trackPosition.set(old.trackFile, now - old.trackStart);
       old.bus.gain.cancelScheduledValues(now);
       old.bus.gain.setValueAtTime(old.bus.gain.value, now);
       old.bus.gain.linearRampToValueAtTime(0, now + fade);
       window.setTimeout(() => {
+        old.track?.stop();
         old.bus.disconnect();
         old.wet.disconnect();
       }, (fade + 3) * 1000);
@@ -167,9 +210,50 @@ export class MusicEngine {
     let seed = 7;
     for (let i = 0; i < id.length; i++) seed = (Math.imul(seed, 31) + id.charCodeAt(i)) >>> 0;
     // Battles start on the beat at once; story moods ease in.
-    this.voice = { mood, bus, padFilter, wet, seed, nextBeatTime: now + 0.05, beat: 0 };
+    const voice: Voice = { mood, bus, padFilter, wet, seed, nextBeatTime: now + 0.05, beat: 0, track: null };
+    this.voice = voice;
     this.timer ??= window.setInterval(() => this.schedule(), 100);
+    const track = TRACKS[id];
+    if (track) void this.startTrack(voice, track.file, track.gain);
   }
+
+  private readonly buffers = new Map<string, Promise<AudioBuffer | null>>();
+
+  private loadTrack(file: string): Promise<AudioBuffer | null> {
+    let p = this.buffers.get(file);
+    if (!p) {
+      p = fetch(`${TRACK_BASE}${file}`)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(`${r.status}`))))
+        .then((data) => this.ctx.decodeAudioData(data))
+        .catch(() => null);
+      this.buffers.set(file, p);
+    }
+    return p;
+  }
+
+  /** Swaps the procedural mood for its recorded track once loaded (the same track carries on across moods). */
+  private async startTrack(voice: Voice, file: string, gain: number): Promise<void> {
+    const buffer = await this.loadTrack(file);
+    if (!buffer || this.voice !== voice) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    // Bypasses the hall reverb (the recordings carry their own room).
+    src.connect(g).connect(voice.bus);
+    // Picks up where this track last left off, so a story theme interrupted by a fight carries on
+    // rather than restarting from its first bar every time.
+    const offset = (this.trackPosition.get(file) ?? 0) % buffer.duration;
+    const startedAt = this.ctx.currentTime;
+    src.start(startedAt, offset);
+    voice.track = src;
+    voice.trackFile = file;
+    voice.trackStart = startedAt - offset;
+  }
+
+  /** Seconds into each recorded track when it last stopped. */
+  private readonly trackPosition = new Map<string, number>();
 
   /**
    * Dip the music under dialogue: quick to soften, slower to swell back. `level` is the music's share
@@ -206,7 +290,8 @@ export class MusicEngine {
 
   private schedule(): void {
     const v = this.voice;
-    if (!v) return;
+    // A recorded track plays on its own; the procedural notes stop once it has started.
+    if (!v || v.track) return;
     const secPerBeat = 60 / v.mood.tempo;
     while (v.nextBeatTime < this.ctx.currentTime + LOOKAHEAD_SEC) {
       this.playBeat(v, v.beat, v.nextBeatTime, secPerBeat);
