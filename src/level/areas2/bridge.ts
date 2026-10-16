@@ -12,7 +12,9 @@ import type { EncounterDef, FxCue } from '../levelTypes';
 import { fireball, moth, restore } from './hush';
 
 const A = 'l2-bell-bridge';
-export const BRIDGE_ORIGIN: Vec3 = [1000, 0, 0];
+// Far from the lawn (x 900): the lawn stays mounted for a moment after we leave it, and its lake showed
+// as water round the bridge (owner, 2026-10-16).
+export const BRIDGE_ORIGIN: Vec3 = [1000, 0, -700];
 const B = origin(BRIDGE_ORIGIN);
 export const BELL_POSITION: Vec3 = B(0, 7.2, -50);
 export const PLANK_GAPS: readonly number[] = [-12, -24, -36];

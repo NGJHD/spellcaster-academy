@@ -203,6 +203,10 @@ export function BridgeScene() {
   const bankGrass = useMemo(() => {
     const m = MAT.grass.clone() as MeshStandardMaterial;
     m.color.set('#78c050');
+    // Matte: lit by the red sky, its sheen glared orange like water.
+    m.envMapIntensity = 0.1;
+    m.roughnessMap = null;
+    m.roughness = 1;
     return m;
   }, []);
   const bellGlow = useRef<PointLight>(null);
@@ -223,8 +227,14 @@ export function BridgeScene() {
         </Restorable>
       ))}
       {/* Gorge walls and the far floor */}
-      <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
-      <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
+      {/* Grass on the gorge's rims, the same as the far bank, with rock cliffs below (owner, 2026-10-16:
+          the flat grey rims looked like water) */}
+      {([[-90, -22], [22, 90]] as const).map((x) => (
+        <group key={x[0]}>
+          <Slab x={x} y={[-80, -2.5]} z={[-80, 20]} material={MAT.rockGround} />
+          <Slab x={x} y={[-2.5, -2]} z={[-80, 20]} material={bankGrass} />
+        </group>
+      ))}
       {/* The far bank the bridge reaches: a rocky cliff, a strip of trodden earth where the bridge lands,
           then grassy ground with rocky outcrops under the burning castle (owner, 2026-10-16: the
           buildings looked like they floated on water; then "nobody builds on sand") */}

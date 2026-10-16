@@ -14,8 +14,8 @@ export const SHIELD_BREAK_SEC = 0.25;
 export const NEXT_WORD_DELAY_SEC = 0.45;
 export const DISPEL_SEC = 1.0;
 export const PROJECTILE_SEC = 0.25;
-/** Targeted enemies move at this fraction of their speed so the word stays readable. */
-export const TARGETED_SPEED = 0.35;
+/** Targeted enemies move at this fraction of their speed so the word stays readable (they still advance). */
+export const TARGETED_SPEED = 0.65;
 export const FROST_SLOW = 0.35;
 export const FROST_SEC = 2.5;
 /** Contact attackers fall back this fraction of their path after a hit (pounce and retreat). */

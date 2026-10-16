@@ -9,6 +9,7 @@ import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue'
 import { strings } from '../content/strings';
 import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
+import { closeInEncounter } from '../level/encounters/closeIn';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
 import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
@@ -1413,7 +1414,9 @@ export class GameRun {
     const startWave = this.pendingStartWave;
     this.pendingStartWave = 0;
     this.attempt++;
-    this.encounter = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: this.attempt }, startWave);
+    const cam = this.director.pose.position;
+    const closing = closeInEncounter(def, [cam.x, cam.y, cam.z]);
+    this.encounter = new EncounterRunner(closing, { difficulty: this.difficulty, assist: this.assist, attempt: this.attempt }, startWave);
     this.encounterBeatId = beatId;
     this.firedBarks.clear();
     this.encounterFirstCorrect = false;

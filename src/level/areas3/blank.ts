@@ -21,7 +21,7 @@ export const correctionMoth = (id: string, path: Vec3[], options: Partial<Target
 
 export const redactor = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'redactor', path[0] ?? [0, 0, 0], [len(5, 7)], {
-    movement: { kind: 'approach', path, speed: 0.7 },
+    movement: { kind: 'approach', path, speed: 1.1 },
     attack: { kind: 'contact', windupSec: 2.2, recoverSec: 1.2, intervalSec: 5, damage: 10 },
     labelHeight: 2.6,
     priority: true,
@@ -32,7 +32,7 @@ export const redactor = (id: string, path: Vec3[], options: Partial<TargetSpawn>
 
 export const foreman = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'foreman', path[0] ?? [0, 0, 0], [len(5, 7), len(5, 7), len(5, 7)], {
-    movement: { kind: 'approach', path, speed: 0.45 },
+    movement: { kind: 'approach', path, speed: 0.8 },
     attack: HUSH_ATTACKS.knightSweep,
     labelHeight: 3.1,
     entrance: { kind: 'dust', scale: 1.6, color: '#2a2220' },

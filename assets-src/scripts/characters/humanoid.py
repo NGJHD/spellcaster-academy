@@ -7,6 +7,7 @@ Built from blended volumes (skull, jaw, nose, ears; negative volumes carve eye s
 eyeballs, hair clumps, robe with flared skirt, sleeves, hands and boots. Natural proportions, softly
 stylised; no exaggerated anime anatomy. Actions: Idle, Wave, TalkShort, Celebrate.
 """
+import math
 import os
 import sys
 
@@ -56,15 +57,25 @@ vol = [
     E(v(0, 0.0, 0.18), (0.215 * k, 0.17 * k, 0.16 * k), "robe"),
     E(v(0, 0.0, 0.06), (0.225 * k, 0.18 * k, 0.05 * k), "trim"),
 ]
+# Sleeves and hands are separate pieces hinged on the arm bones (owner, 2026-10-16: raised arms looked
+# weird; fused into the robe, lifting them stretched a band of robe and skin between arm and body).
+arm_parts = []  # (bone, volumes)
 for s in (1, -1):
+    side = "L" if s > 0 else "R"
     vol += [
         E(v(0.15 * s, 0.0, 1.07), (0.07 * k, 0.07 * k, 0.065 * k), "robe"),
-        K(v(0.17 * s, 0.0, 1.05), v(0.21 * s, -0.01, 0.82), 0.05 * k, "robe"),
-        K(v(0.21 * s, -0.01, 0.82), v(0.22 * s, -0.06, 0.6), 0.055 * k, "robe"),
-        E(v(0.222 * s, -0.065, 0.585), (0.06 * k, 0.06 * k, 0.03 * k), "trim"),
-        E(v(0.222 * s, -0.072, 0.53), (0.026 * k, 0.04 * k, 0.055 * k), "skin"),
-        E(v(0.212 * s, -0.098, 0.548), (0.012 * k, 0.018 * k, 0.022 * k), "skin", rotation=(0, 0, 20 * s)),
         E(v(0.08 * s, -0.06, 0.035), (0.05 * k, 0.09 * k, 0.035 * k), "boots"),
+    ]
+    arm_parts += [
+        (f"arm_{side}", [K(v(0.17 * s, 0.0, 1.05), v(0.21 * s, -0.01, 0.82), 0.05 * k, "robe")]),
+        (f"forearm_{side}", [
+            K(v(0.21 * s, -0.01, 0.82), v(0.22 * s, -0.06, 0.6), 0.055 * k, "robe"),
+            E(v(0.222 * s, -0.065, 0.585), (0.06 * k, 0.06 * k, 0.03 * k), "trim"),
+        ]),
+        (f"hand_{side}", [
+            E(v(0.222 * s, -0.072, 0.53), (0.026 * k, 0.04 * k, 0.055 * k), "skin"),
+            E(v(0.212 * s, -0.098, 0.548), (0.012 * k, 0.018 * k, 0.022 * k), "skin", rotation=(0, 0, 20 * s)),
+        ]),
     ]
 
 style = spec["style"]
@@ -122,9 +133,23 @@ C.paint_zones(
     blend=0.1,
 )
 body.data.materials.clear()  # boolean cutters leave empty slots behind
-body.data.materials.append(C.make_material(f"{who}Skin", roughness=0.62, vertex_colors=True))
+skin_material = C.make_material(f"{who}Skin", roughness=0.62, vertex_colors=True)
+body.data.materials.append(skin_material)
 for poly in body.data.polygons:
     poly.material_index = 0
+
+ZONE_COLOURS = {
+    "skin": spec["skin"],
+    "robe": spec["robe"],
+    "trim": spec["trim"],
+}
+arm_meshes = []
+for bone, parts in arm_parts:
+    piece = C.build_volume_mesh(f"{who.title()}_{bone}", parts, voxel=0.0045 * k, smooth=3, target_tris=700)
+    C.paint_zones(piece, parts, ZONE_COLOURS, noise=0.035, blend=0.1)
+    piece.data.materials.clear()
+    piece.data.materials.append(skin_material)
+    arm_meshes.append((piece, bone))
 
 sclera = C.make_material("Sclera", color="#f2ece4", roughness=0.25)
 iris = C.make_material("Iris", color="#4a3020" if who != "student_b" else "#3a5a70", roughness=0.15)
@@ -156,6 +181,8 @@ for side, s in (("L", 1), ("R", -1)):
         J(f"hand_{side}", v(0.222 * s, -0.065, 0.585), v(0.224 * s, -0.09, 0.47), f"forearm_{side}"),
     ]
 rig = C.build_armature(who.title(), joints, body)
+for piece, bone in arm_meshes:
+    C.attach(piece, rig, bone)
 
 
 def bone_for(vol):
@@ -202,8 +229,21 @@ C.pose_action(rig, "TalkShort", [
     (30, {"forearm_L": (-45, 0, 25), "arm_L": (-12, 0, 14), "head": (-3, -5, 0)}),
     (48, {"forearm_L": (0, 0, 0), "arm_L": (0, 0, 0), "head": (0, 0, 0)}),
 ])
-# Arms flung up in a wide V (straight up they sat beside the head and read as horns).
-cheer = {"arm_L": (0, 0, 120), "arm_R": (0, 0, -120), "forearm_L": (0, 0, -12), "forearm_R": (0, 0, 12)}
+
+
+def raise_arm(side, out=0.45):
+    """Euler (degrees) turning arm_<side> from hanging down to pointing straight up (a touch outward)."""
+    from mathutils import Vector
+
+    bone = rig.data.bones[f"arm_{side}"]
+    target = Vector(((out if side == "L" else -out), 0.0, 1.0)).normalized()
+    local = bone.matrix_local.to_3x3().inverted() @ target
+    euler = Vector((0.0, 1.0, 0.0)).rotation_difference(local).to_euler("XYZ")
+    return tuple(math.degrees(a) for a in euler)
+
+
+# Both hands straight up in the air, spread apart (owner, 2026-10-16).
+cheer = {"arm_L": raise_arm("L"), "arm_R": raise_arm("R"), "forearm_L": (0, 0, 0), "forearm_R": (0, 0, 0)}
 C.pose_action(rig, "Celebrate", [
     (0, {"arm_L": (0, 0, 0), "arm_R": (0, 0, 0), "forearm_L": (0, 0, 0), "forearm_R": (0, 0, 0), "hips": {"loc": (0, 0, 0)}}),
     (10, {**cheer, "hips": {"loc": (0, 0.05, 0)}}),

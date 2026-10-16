@@ -46,8 +46,8 @@ const PW_CORE = Y(0, 3.6, -19);
 const wisp = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'wisp', path[0] ?? L(0, 0, -20), [len(3, 5), len(4, 6)], {
     shield: true,
-    movement: { kind: 'approach', path, speed: 0.9 },
-    attack: { kind: 'ranged', windupSec: 1.3, recoverSec: 0.7, intervalSec: 7, damage: 8 },
+    movement: { kind: 'approach', path, speed: 1.3 },
+    attack: { kind: 'ranged', windupSec: 1.3, recoverSec: 0.7, intervalSec: 5, damage: 8 },
     labelHeight: 1.35,
     entrance: { kind: 'geyser', scale: 0.6, color: '#2a0c0c' },
     ...options,

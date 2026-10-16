@@ -24,6 +24,8 @@ export const debugScene: { current: import('three').Object3D | null } = { curren
 export const debugCamera: { current: import('three').Camera | null } = { current: null };
 
 const look = new Vector3();
+/** How quickly the framing point pans to a new target (per second). */
+const FRAMING_PAN_RATE = 3;
 /** A fireball's word sits at most this far above it per metre of distance from the camera. */
 const FIREBALL_LABEL_SLOPE = 0.12;
 const framing = new Vector3();
@@ -83,7 +85,12 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
     const goal = run.framingTarget(framing);
     // Owner (2026-10-08): "the speed round jumps the camera after it's done". When the last word goes,
     // the camera eases back from where it was leaning instead of snapping to the rail.
-    if (goal > 0) lastFraming.copy(framing);
+    // A new framing point glides there rather than cutting (owner, 2026-10-16: with the framing held
+    // between words, the camera cut from "story" straight across to "verse").
+    if (goal > 0) {
+      if (blend.current < 0.05) lastFraming.copy(framing);
+      else lastFraming.lerp(framing, 1 - Math.exp(-FRAMING_PAN_RATE * Math.min(delta, 0.1)));
+    }
     blend.current += (goal - blend.current) * (1 - Math.exp(-FRAMING_RATE * Math.min(delta, 0.1)));
     look.copy(pose.lookAt);
     if (blend.current > 0.001) look.lerp(lastFraming, blend.current);

@@ -8,7 +8,7 @@ import { len, marker, target } from '../areas/builders';
 
 export const HUSH_ATTACKS = {
   blotInk: { kind: 'contact', windupSec: 1.0, recoverSec: 0.8, intervalSec: 1.4, damage: 7 },
-  mothDust: { kind: 'ranged', windupSec: 1.2, recoverSec: 0.6, intervalSec: 6, damage: 6 },
+  mothDust: { kind: 'ranged', windupSec: 1.2, recoverSec: 0.6, intervalSec: 4, damage: 6 },
   houndLunge: { kind: 'contact', windupSec: 0.9, recoverSec: 0.9, intervalSec: 1.2, damage: 10 },
   knightSweep: { kind: 'contact', windupSec: 1.6, recoverSec: 1.2, intervalSec: 4.5, damage: 14 },
   impScratch: { kind: 'contact', windupSec: 1.1, recoverSec: 0.8, intervalSec: 1.6, damage: 5 },
@@ -21,7 +21,7 @@ const ASH_POOF: FxCue = { kind: 'dust', scale: 0.8, color: '#3a3330' };
 
 export const blotling = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'blotling', path[0] ?? [0, 0, 0], [len(3, 5)], {
-    movement: { kind: 'approach', path, speed: 1.0 },
+    movement: { kind: 'approach', path, speed: 2.2 },
     attack: HUSH_ATTACKS.blotInk,
     labelHeight: 1.0,
     weak: true,
@@ -43,7 +43,7 @@ export const moth = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {
 
 export const scribbleImp = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'scribble-imp', path[0] ?? [0, 0, 0], [len(3, 4)], {
-    movement: { kind: 'approach', path, speed: 1.3 },
+    movement: { kind: 'approach', path, speed: 2.4 },
     attack: HUSH_ATTACKS.impScratch,
     labelHeight: 1.1,
     weak: true,
@@ -54,7 +54,7 @@ export const scribbleImp = (id: string, path: Vec3[], options: Partial<TargetSpa
 
 export const hound = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'smudgehound', path[0] ?? [0, 0, 0], [len(4, 6)], {
-    movement: { kind: 'approach', path, speed: 2.1 },
+    movement: { kind: 'approach', path, speed: 2.7 },
     attack: HUSH_ATTACKS.houndLunge,
     labelHeight: 1.4,
     priority: true,
@@ -65,7 +65,7 @@ export const hound = (id: string, path: Vec3[], options: Partial<TargetSpawn> = 
 
 export const knight = (id: string, path: Vec3[], words: readonly WordSpec[] = [len(5, 7), len(5, 7)], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'hollow-knight', path[0] ?? [0, 0, 0], words, {
-    movement: { kind: 'approach', path, speed: 0.55 },
+    movement: { kind: 'approach', path, speed: 0.95 },
     attack: HUSH_ATTACKS.knightSweep,
     labelHeight: 2.5,
     entrance: { kind: 'dust', scale: 1.2, color: '#2a2220' },

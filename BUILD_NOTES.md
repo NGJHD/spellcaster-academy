@@ -605,6 +605,34 @@ Fireball words (owner: "bag", "pen" and "cup" sat far above their fireballs):
 Level 3:
 - The tortoise-ride words are correction moths keeping pace beside the tortoise (they were gems).
 
+## Seventh playtest (2026-10-16)
+
+- Raised arms looked wrong:
+  - Cause: the sleeves were fused into the robe, so lifting them stretched a band of robe and skin
+    colour.
+  - Sleeves (upper, lower) and hands are now separate pieces hinged on the arm bones (`humanoid.py`
+    `arm_parts`).
+  - Owner: "raise their hands up straight in the air … spread the arms further apart". The raise is
+    computed from each bone's rest frame (`raise_arm`); Euler guesses on these bones were not
+    linear. student_a, student_b and Mira were rebuilt.
+- Bell Bridge water: the lawn (x 900) stays mounted for 2.5 s after we leave it, and its lake plane
+  covered the bridge area (x 1000), so it showed as water. The bridge moved to z −700. The gorge rims
+  have the same matte grass as the far bank, and the gorge is wider so the drop shows.
+- Library "verse" cut: since the framing is held between sequential words, a new framing point snapped
+  across the room. The look point now glides there (`FRAMING_PAN_RATE`), a smooth ~1 s pan from "story"
+  to "verse".
+- Mobs "just standing there, no threat":
+  - Cause: three slowdowns stacked. Gentle's 0.7 speed, 0.2 time while mid-word (a young typist is
+    almost always mid-word), and 0.35 for the targeted mob.
+  - Now: 0.85 speed, 0.55 time while mid-word, 0.65 for the targeted mob. Standard and Challenge were
+    raised too.
+  - Walkers are faster: blotling 2.2, imp 2.4, hound 2.7, knight 0.95, redactor 1.1, foreman 0.8,
+    wisp 1.3. Ranged moths and wisps attack more often.
+  - `closeInEncounter`: in a fight, every walking melee mob's path ends 2.6 m from the camera, so its
+    hits land up close. Authored paths stopped about 6 m away.
+  - The pacing test still passes.
+- The Warden at the rampart beacon is a still model (`StaticWarden`); only the inkfire on it moves.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
