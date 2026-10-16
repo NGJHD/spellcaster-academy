@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, Vector3, type Group, type PointLight } from 'three';
+import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, SpriteMaterial, Vector3, type Group, type PointLight } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
@@ -808,6 +808,8 @@ function LibraryWyrmPass() {
 const FIGHT_ROUND_SEC = 4.2;
 /** Where the climbers come over: on the Warden's near side, so it never hides them (rampart-local x offsets). */
 const CLIMB_SIDES = [-1.8, -2.6, -1.4, -2.2] as const;
+/** The bolt leaves the Warden's hand at this point of a round and strikes at 0.5. */
+const BOLT_FROM = 0.44;
 
 /**
  * The Warden holds the wall beside us (owner, 2026-10-16: "have the warden fight some climbers"). Hush
@@ -824,6 +826,8 @@ function WardenHoldsTheWall({ position }: { position: Vec3 }) {
   const round = useRef(-1);
   const burst = useRef(false);
   const yaw = useRef(Math.PI);
+  const bolt = useRef<Group>(null);
+  const boltMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: '#bfe4ff', transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
   const url = creatureUrl('scribble-imp') ?? creatureUrl('blotling');
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1);
@@ -864,21 +868,39 @@ function WardenHoldsTheWall({ position }: { position: Vec3 }) {
       c.position.set(px + Math.sign(side) * k * 3, k * 4 - k * k * 10, -1.9 - k * 10);
       c.rotation.set(k * 9, 0, k * 6 * Math.sign(side));
     }
+    // The Warden thrusts its hand at the climber and a bolt of starlight flies from it (owner,
+    // 2026-10-16: a magic academy's guardian casts; it should not headbutt).
+    const b = bolt.current;
+    if (b) {
+      const k = (u - BOLT_FROM) / (0.5 - BOLT_FROM);
+      b.visible = fighting && k >= 0 && k < 1;
+      if (b.visible) {
+        const hand = { x: position[0] + Math.sin(yaw.current) * 1.1, y: 2.6, z: position[2] + Math.cos(yaw.current) * 1.1 };
+        b.position.set(hand.x + (px - hand.x) * k, hand.y + (0.7 - hand.y) * k, hand.z + (-1.9 - hand.z) * k);
+        b.scale.setScalar(0.5 + k * 0.4);
+      }
+    }
     if (fighting && u >= 0.5 && !burst.current) {
       burst.current = true;
-      run.emitFx({ kind: 'burst', scale: 1.3, color: '#ffd27a' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
+      run.emitFx({ kind: 'burst', scale: 1.5, color: '#9fd8ff' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
+      run.emitFx({ kind: 'sparks', scale: 1, color: '#ffd27a' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
     }
     // The Warden turns to face each climber and strikes as it lands on the parapet.
     const face = Math.atan2(side, -0.7);
     const turn = Math.atan2(Math.sin(face - yaw.current), Math.cos(face - yaw.current));
     yaw.current += turn * (1 - Math.exp(-5 * dt));
     w.rotation.y = yaw.current;
+    // The Attack clip: the arm swings out (frame 12) and thrusts forward (18–24) as the bolt flies.
     state.current.strike = fighting && u > 0.3 && u < 0.62 ? (u - 0.3) / 0.32 : 0;
   });
   return (
     <>
       <group ref={warden} position={position} rotation={[0, Math.PI, 0]}>
         <WardenModel state={state} scale={1.1} />
+      </group>
+      <group ref={bolt} visible={false}>
+        <sprite material={boltMaterial} scale={1.2} />
+        <pointLight color="#9fd8ff" intensity={30} distance={6} decay={2} />
       </group>
       <group ref={climber} visible={false} name="warden-climber" scale={1.8}>
         {url && (

@@ -636,6 +636,14 @@ Level 3:
   - The Warden turns to it and strikes: its Attack clip is scrubbed via `WardenState.strike`. The imp is
     knocked off the wall in a burst of sparks.
   - It pauses while the inkfire covers the Warden and stops when the Lantern Ward closes.
+  - Owner: "it will feel strange if he headbutts everyone". The AI Warden's rig had only
+    pelvis/spine/chest/head, so its Attack clip just bent forward.
+    - `build_ai_creature.py` now gives it arm bones: cfg `arms`, the measured gap between arm and robe.
+      The faces bridging that gap below the shoulder are cut so a raised arm doesn't drag a sheet of
+      robe.
+    - Its Attack clip is now a cast: the arm swings out, then thrusts its hand at the foe.
+    - In the fight, a starlight bolt flies from the hand to the imp, which bursts in blue and gold
+      sparks.
   - The Warden moved from x 10 to x 5.5, and the post camera turns slightly towards it so the fight is
     in view.
 

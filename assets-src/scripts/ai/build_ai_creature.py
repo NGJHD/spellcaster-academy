@@ -73,7 +73,9 @@ CONFIG = {
     "journal_lectern": dict(out="journal_lectern", folder="props", rig="none", defeat="vanish", height=1.6, tris=10000, tex=1024),
     # 2026-10-07 playtest fixes (static props).
     "giant_tortoise": dict(out="giant_tortoise", folder="props", rig="none", defeat="vanish", height=4.5, fit="width", width=9, tris=60000, tex=2048, smooth_colours=4),
-    "ward_warden_ai": dict(out="ward_warden_ai", height=3.2, tris=40000, tex=2048, rig="floater", defeat="vanish", metallic=0.3, roughness=0.4),
+    # arms: the hanging arms stand clear of the robe outside ±0.31 W between 0.36 and 0.72 H (measured);
+    # they get their own bones so the Warden can cast with a hand (owner, 2026-10-16: it "headbutts").
+    "ward_warden_ai": dict(out="ward_warden_ai", height=3.2, tris=40000, tex=2048, rig="floater", defeat="vanish", metallic=0.3, roughness=0.4, arms=(0.31, 0.36, 0.72)),
     "academy_hall": dict(out="academy_hall", folder="props", rig="none", defeat="vanish", height=22, fit="width", width=30, tris=30000, tex=2048, smooth_colours=2),
     "academy_tower": dict(out="academy_tower", folder="props", rig="none", defeat="vanish", height=30, tris=20000, tex=2048, smooth_colours=2),
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
@@ -340,6 +342,13 @@ if cfg["rig"] != "none":
             J("chest", (0, 0, z2), (0, 0, z3), "spine"),
             J("head", (0, 0, z3), (0, 0, H), "chest"),
         ]
+        if cfg.get("arms"):
+            ax, _, _ = cfg["arms"]
+            # An arm bone each side, from the shoulder down to the hand (−X is the left).
+            joints += [
+                J("arm_l", (-(ax + 0.02) * W, 0, 0.76 * H), (-(ax + 0.06) * W, 0, 0.4 * H), "chest"),
+                J("arm_r", ((ax + 0.02) * W, 0, 0.76 * H), ((ax + 0.06) * W, 0, 0.4 * H), "chest"),
+            ]
         if cfg["rig"] == "dragon":
             # A wing bone each side, from the shoulder out along the span (wings lie along ±X).
             joints += [
@@ -392,13 +401,45 @@ if cfg["rig"] != "none":
         u = min(1.0, max(0.0, (abs(co.x) - 0.22 * W) / (0.1 * W)))
         return u * u * (3 - 2 * u)
 
+    if cfg.get("arms"):
+        groups["arm_l"] = body.vertex_groups.new(name="arm_l")
+        groups["arm_r"] = body.vertex_groups.new(name="arm_r")
+
+    def arm_share(co):
+        """How much a vertex belongs to an arm: outside the robe's flanks, between hand and shoulder."""
+        if not cfg.get("arms"):
+            return 0.0
+        ax, z_lo, z_hi = cfg["arms"]
+        f = co.z / H
+        # A hard cut at the gap between arm and robe: a soft blend stretched a sheet of robe up with the
+        # arm. Only the shoulder, where the arm really joins the body, blends.
+        if abs(co.x) < ax * W or f < z_lo - 0.06:
+            return 0.0
+        return min(1.0, max(0.0, (z_hi + 0.08 - f) / 0.08))
+
     for v in body.data.vertices:
-        wing = wing_share(v.co)
+        wing = max(wing_share(v.co), arm_share(v.co))
         for name, w in band_weights(v.co.z).items():
             if w * (1 - wing) > 0:
                 groups[name].add([v.index], w * (1 - wing), "REPLACE")
         if wing > 0:
-            groups["wing_l" if v.co.x < 0 else "wing_r"].add([v.index], wing, "REPLACE")
+            limb = ("arm" if cfg.get("arms") else "wing") + ("_l" if v.co.x < 0 else "_r")
+            groups[limb].add([v.index], wing, "REPLACE")
+    if cfg.get("arms"):
+        # Cut the thin skin of faces bridging arm and robe below the shoulder; bound to both, they
+        # stretched into a sheet when the arm rose. They sit in the hidden gap under the arm.
+        _, _, z_hi = cfg["arms"]
+        bm = bmesh.new()
+        bm.from_mesh(body.data)
+        bridging = []
+        for face in bm.faces:
+            shares = [arm_share(vert.co) for vert in face.verts]
+            if max(shares) > 0 and min(shares) == 0 and all(vert.co.z / H < z_hi for vert in face.verts):
+                bridging.append(face)
+        bmesh.ops.delete(bm, geom=bridging, context="FACES")
+        bm.to_mesh(body.data)
+        bm.free()
+        print(f"arms: cut {len(bridging)} bridging faces")
     body.parent = rig
     mod = body.modifiers.new("Armature", "ARMATURE")
     mod.object = rig
@@ -464,13 +505,30 @@ if cfg["rig"] != "none":
                 roll = (6 if i in (0, 4) else -6) if not up else 0
                 move.append((frame, {"pelvis": {"loc": (0, bob if up else 0, 0), "rot": (0, roll, 0)}, "spine": (10, 0, -roll * 0.5), "chest": (4, 0, 0), "head": (-8, 0, roll * 0.4)}))
         P(rig, "Move", move)
-        # Anticipation (rear back and crouch), strike (lunge forward), recovery.
-        P(rig, "Attack", [
-            (0, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-            (14, {"pelvis": {"loc": (0, -0.03 * H, -0.03 * H)}, "spine": (-16, 0, 0), "chest": (-14, 0, 0), "head": (16, 0, 0)}),
-            (20, {"pelvis": {"loc": (0, 0.02 * H, 0.08 * H)}, "spine": (24, 0, 0), "chest": (18, 0, 0), "head": (-10, 0, 0)}),
-            (30, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
-        ])
+        if cfg.get("arms"):
+            # A spell cast, not a lunge: the casting arm swings up and back, then thrusts its open hand
+            # forward at the foe (the model faces −Y); the body leans in only a little.
+            def aim(bone_name, direction):
+                bone = rig.data.bones[bone_name]
+                local = bone.matrix_local.to_3x3().inverted() @ Vector(direction).normalized()
+                return tuple(math.degrees(a) for a in Vector((0.0, 1.0, 0.0)).rotation_difference(local).to_euler("XYZ"))
+
+            rest = {"arm_l": (0, 0, 0), "arm_r": (0, 0, 0), "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}
+            P(rig, "Attack", [
+                (0, rest),
+                (12, {**rest, "arm_l": aim("arm_l", (-0.35, 0.35, 0.87)), "arm_r": aim("arm_r", (0.3, 0.1, -0.95)), "chest": (-6, 0, 0), "head": (6, 0, 0)}),
+                (18, {**rest, "arm_l": aim("arm_l", (-0.1, -0.97, 0.2)), "arm_r": aim("arm_r", (0.3, 0.2, -0.93)), "chest": (6, 0, 0), "spine": (4, 0, 0)}),
+                (24, {**rest, "arm_l": aim("arm_l", (-0.1, -0.97, 0.22))}),
+                (34, rest),
+            ])
+        else:
+            # Anticipation (rear back and crouch), strike (lunge forward), recovery.
+            P(rig, "Attack", [
+                (0, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+                (14, {"pelvis": {"loc": (0, -0.03 * H, -0.03 * H)}, "spine": (-16, 0, 0), "chest": (-14, 0, 0), "head": (16, 0, 0)}),
+                (20, {"pelvis": {"loc": (0, 0.02 * H, 0.08 * H)}, "spine": (24, 0, 0), "chest": (18, 0, 0), "head": (-10, 0, 0)}),
+                (30, {"pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            ])
         P(rig, "Hit", [
             (0, {"spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
             (3, {"spine": (-14, 0, 6), "chest": (-10, 0, 0), "head": (-18, 10, 0)}),
