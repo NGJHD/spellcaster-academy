@@ -635,7 +635,7 @@ Level 3:
   - A scribble imp climbs the wall on the Warden's near side every 4.2 s and drops onto the wall walk.
   - The Warden turns to it and strikes: its Attack clip is scrubbed via `WardenState.strike`. The imp is
     knocked off the wall in a burst of sparks.
-  - It pauses while the inkfire covers the Warden and stops when the Lantern Ward closes.
+  - It keeps fighting while the inkfire covers it (owner) and stops when the Lantern Ward closes.
   - Owner: "it will feel strange if he headbutts everyone". The AI Warden's rig had only
     pelvis/spine/chest/head, so its Attack clip just bent forward.
     - `build_ai_creature.py` now gives it arm bones: cfg `arms`, the measured gap between arm and robe.

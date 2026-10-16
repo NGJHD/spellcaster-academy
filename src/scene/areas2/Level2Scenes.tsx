@@ -843,8 +843,8 @@ function placeClimber(c: Group, px: number, side: number, u: number): void {
 /**
  * The Warden holds the wall beside us (owner, 2026-10-16: "have the warden fight some climbers"). Hush
  * imps keep coming over the parapet next to it, three at a time in turn; it turns to each, thrusts its
- * hand and a bolt of starlight bursts the imp off the wall. It pauses while the inkfire covers it (until
- * the apprentice restores it) and stops once the Lantern Ward closes and the Hush are gone.
+ * hand and a bolt of starlight bursts the imp off the wall. It keeps fighting while the inkfire covers it
+ * and stops once the Lantern Ward closes and the Hush are gone.
  */
 function WardenHoldsTheWall({ position }: { position: Vec3 }) {
   const warden = useRef<Group>(null);
@@ -862,9 +862,8 @@ function WardenHoldsTheWall({ position }: { position: Vec3 }) {
     const run = getRun();
     const w = warden.current;
     if (!run || !w) return;
-    const beat = run.director.currentBeat?.id ?? '';
-    const scorched = beat === 'l2-rp-warden' && !run.flags.has('l2-warden-restored');
-    const fighting = !scorched && !run.flags.has('l2-ward-closed') && run.currentAreaId === 'l2-ramparts';
+    // It keeps fighting even while the inkfire covers it and we put it out (owner, 2026-10-16).
+    const fighting = !run.flags.has('l2-ward-closed') && run.currentAreaId === 'l2-ramparts';
     if (fighting) clock.current += dt;
     let target: { side: number; strike: number } | null = null;
     for (let i = 0; i < CLIMBERS; i++) {
