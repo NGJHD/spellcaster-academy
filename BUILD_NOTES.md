@@ -631,7 +631,13 @@ Level 3:
   - `closeInEncounter`: in a fight, every walking melee mob's path ends 2.6 m from the camera, so its
     hits land up close. Authored paths stopped about 6 m away.
   - The pacing test still passes.
-- The Warden at the rampart beacon is a still model (`StaticWarden`); only the inkfire on it moves.
+- Rampart Warden (owner: "have the warden fight some climbers"): `WardenHoldsTheWall`.
+  - A scribble imp climbs the wall on the Warden's near side every 4.2 s and drops onto the wall walk.
+  - The Warden turns to it and strikes: its Attack clip is scrubbed via `WardenState.strike`. The imp is
+    knocked off the wall in a burst of sparks.
+  - It pauses while the inkfire covers the Warden and stops when the Lantern Ward closes.
+  - The Warden moved from x 10 to x 5.5, and the post camera turns slightly towards it so the fight is
+    in view.
 
 ## Known limitations / next steps
 

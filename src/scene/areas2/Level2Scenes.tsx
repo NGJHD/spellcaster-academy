@@ -5,7 +5,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, type Group, type PointLight } from 'three';
+import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, Vector3, type Group, type PointLight } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
@@ -23,7 +23,9 @@ import { Prop } from '../Prop';
 import { glowTexture, LightBeam, WardBarrier } from '../glow';
 import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
-import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex } from '../props';
+import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex, WardenModel, type WardenState } from '../props';
+import { CreatureModel, creatureUrl } from '../../enemies/CreatureModel';
+import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BeaconBrazier, StoneHall, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
@@ -802,6 +804,95 @@ function LibraryWyrmPass() {
 
 // ---------- East Ramparts ----------
 
+/** One round of the Warden's fight: a climber comes over the parapet, the Warden swings, it flies off. */
+const FIGHT_ROUND_SEC = 4.2;
+/** Where the climbers come over: on the Warden's near side, so it never hides them (rampart-local x offsets). */
+const CLIMB_SIDES = [-1.8, -2.6, -1.4, -2.2] as const;
+
+/**
+ * The Warden holds the wall beside us (owner, 2026-10-16: "have the warden fight some climbers"). Hush
+ * climbers keep coming over the parapet next to it; it turns, strikes with its Attack clip and sends each
+ * one flying off the wall in a burst of sparks. It pauses while the inkfire covers it (until the
+ * apprentice restores it) and stops once the Lantern Ward closes and the Hush are gone.
+ */
+function WardenHoldsTheWall({ position }: { position: Vec3 }) {
+  const warden = useRef<Group>(null);
+  const climber = useRef<Group>(null);
+  const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.3, calm: 0, attack: 0, bow: 0, strike: 0 });
+  const pose = useRef<TargetPose>(emptyPose());
+  const clock = useRef(0);
+  const round = useRef(-1);
+  const burst = useRef(false);
+  const yaw = useRef(Math.PI);
+  const url = creatureUrl('scribble-imp') ?? creatureUrl('blotling');
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1);
+    const run = getRun();
+    const w = warden.current;
+    const c = climber.current;
+    if (!run || !w || !c) return;
+    const beat = run.director.currentBeat?.id ?? '';
+    const scorched = beat === 'l2-rp-warden' && !run.flags.has('l2-warden-restored');
+    const fighting = !scorched && !run.flags.has('l2-ward-closed') && run.currentAreaId === 'l2-ramparts';
+    if (fighting) clock.current += dt;
+    const t = clock.current % FIGHT_ROUND_SEC;
+    const n = Math.floor(clock.current / FIGHT_ROUND_SEC);
+    if (n !== round.current) {
+      round.current = n;
+      burst.current = false;
+    }
+    const side = CLIMB_SIDES[n % CLIMB_SIDES.length] ?? 2;
+    const u = t / FIGHT_ROUND_SEC;
+    // The climber: up the wall and over the parapet (0–0.25), down onto the wall walk (to 0.35), crouched
+    // ready to pounce (to 0.5), then knocked flying back over the wall (0.5–0.9).
+    c.visible = fighting && u < 0.9;
+    pose.current.time += dt;
+    pose.current.moving = u < 0.35;
+    pose.current.windup = u > 0.35 && u < 0.5 ? (u - 0.35) / 0.15 : 0;
+    const px = position[0] + side;
+    if (u < 0.25) {
+      const k = u / 0.25;
+      c.position.set(px, -2.4 + k * 4.4, -3.8 + k * 0.8);
+      c.rotation.set(0, 0, 0);
+    } else if (u < 0.35) {
+      const k = (u - 0.25) / 0.1;
+      c.position.set(px, 2 * (1 - k) + Math.sin(k * Math.PI) * 0.5, -3 + k * 1.1);
+    } else if (u < 0.5) {
+      c.position.set(px, 0, -1.9);
+    } else {
+      const k = (u - 0.5) / 0.4;
+      c.position.set(px + Math.sign(side) * k * 3, k * 4 - k * k * 10, -1.9 - k * 10);
+      c.rotation.set(k * 9, 0, k * 6 * Math.sign(side));
+    }
+    if (fighting && u >= 0.5 && !burst.current) {
+      burst.current = true;
+      run.emitFx({ kind: 'burst', scale: 1.3, color: '#ffd27a' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
+    }
+    // The Warden turns to face each climber and strikes as it lands on the parapet.
+    const face = Math.atan2(side, -0.7);
+    const turn = Math.atan2(Math.sin(face - yaw.current), Math.cos(face - yaw.current));
+    yaw.current += turn * (1 - Math.exp(-5 * dt));
+    w.rotation.y = yaw.current;
+    state.current.strike = fighting && u > 0.3 && u < 0.62 ? (u - 0.3) / 0.32 : 0;
+  });
+  return (
+    <>
+      <group ref={warden} position={position} rotation={[0, Math.PI, 0]}>
+        <WardenModel state={state} scale={1.1} />
+      </group>
+      <group ref={climber} visible={false} name="warden-climber" scale={1.8}>
+        {url && (
+          <ModelBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <CreatureModel url={url} pose={pose} />
+            </Suspense>
+          </ModelBoundary>
+        )}
+      </group>
+    </>
+  );
+}
+
 export function RampartScene() {
   const warden = sub(RAMPART_WARDEN, RAMPART_ORIGIN);
   return (
@@ -831,7 +922,7 @@ export function RampartScene() {
       <mesh position={[0, -30, -120]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 220]} />
       </mesh>
-      <StaticWarden position={warden} scale={1.1} rotationY={Math.PI} />
+      <WardenHoldsTheWall position={warden} />
       <BeaconBrazier position={sub(RAMPART_BEACON, RAMPART_ORIGIN)} flag="l2-beacon-rampart" />
       {[1, 2, 3].map((n) => (
         <Fire key={n} position={[warden[0] + (n - 2) * 0.5, 2 + n * 0.6, warden[2] + 0.3]} size={0.9} count={2} spread={0.4} smoke={false} untilFlag={`l2-warden-${n}`} />

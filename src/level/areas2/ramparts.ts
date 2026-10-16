@@ -14,7 +14,8 @@ export const RAMPART_ORIGIN: Vec3 = [1500, 30, 0];
 const R = origin(RAMPART_ORIGIN);
 /** The last beacon: an iron brazier on the wall walk, in front of the post. */
 export const RAMPART_BEACON: Vec3 = R(-1.2, 0, -1.6);
-export const RAMPART_WARDEN: Vec3 = R(10, 0, -1.5);
+// Close enough to the post to be seen fighting the climbers (owner, 2026-10-16).
+export const RAMPART_WARDEN: Vec3 = R(5.5, 0, -1.2);
 export const LADDERS: readonly Vec3[] = [R(-8, -6, -6), R(0, -6, -7), R(8, -6, -6)];
 
 /** Up a flaming ladder and over the wall into the lane. */
@@ -26,10 +27,10 @@ const climb = (n: 0 | 1 | 2, x = 0): Vec3[] => {
 export const ramparts: AreaScript = {
   nodes: {
     RP_ENTRY: { position: R(-14, 1.6, 4), lookAt: R(0, 1, -6) },
-    RP_POST: { position: R(0, 1.6, 3.4), lookAt: R(0, 0.4, -6) },
+    RP_POST: { position: R(0, 1.6, 3.4), lookAt: R(2.4, 0.8, -6) },
   },
   lookPoints: {
-    RP_WARDEN: R(10, 3, -1.5),
+    RP_WARDEN: R(5.5, 3, -1.2),
     RP_BEACON: R(-1.2, 2.6, -1.6),
     RP_LAKE: R(0, -20, -80),
     RP_DOME: R(0, 70, -60),
@@ -71,8 +72,8 @@ export const ramparts: AreaScript = {
           id: 'restore',
           sequential: true,
           targets: [
-            restore('rp-warden-1', R(10, 3.2, -1.2), 'stone', 'l2-warden-1'),
-            restore('rp-warden-2', R(10.6, 2.2, -1.2), 'steady', 'l2-warden-2'),
+            restore('rp-warden-1', R(5.5, 3.2, -0.9), 'stone', 'l2-warden-1'),
+            restore('rp-warden-2', R(6.1, 2.2, -0.9), 'steady', 'l2-warden-2'),
           ],
         },
       ],
@@ -94,7 +95,7 @@ export const ramparts: AreaScript = {
               entrance: { kind: 'geyser', scale: 1.4, color: '#ff5a1a' },
             }),
             fireball('rp-halt', R(0, 2.4, -4), R(-0.4, 1.7, 2.6), { delaySec: 4, words: ['halt'] }),
-            restore('rp-warden-3', R(10, 3.6, -1.2), 'guard', 'l2-warden-3', { optional: true, leaveAfterSec: 16, delaySec: 2 }),
+            restore('rp-warden-3', R(5.5, 3.6, -0.9), 'guard', 'l2-warden-3', { optional: true, leaveAfterSec: 16, delaySec: 2 }),
           ],
         },
       ],

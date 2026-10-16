@@ -224,6 +224,8 @@ export interface WardenState {
   attack: number;
   /** Bow in the ending. */
   bow: number;
+  /** 0…1 progress through a strike (the Attack clip); 0 when not striking. */
+  strike?: number;
 }
 
 function WardenFallback({ state, scale = 1 }: { state: { current: WardenState }; scale?: number }) {
@@ -637,18 +639,36 @@ function WardenAI({ state, scale = 1 }: { state: { current: WardenState }; scale
     return { root, glowing };
   }, [gltf.scene]);
   const mixer = useMemo(() => new AnimationMixer(parts.root), [parts.root]);
-  useEffect(() => {
-    const idle = gltf.animations.find((c) => c.name === 'Idle');
-    if (idle) mixer.clipAction(idle).play();
-    return () => void mixer.stopAllAction();
+  const clips = useMemo(() => {
+    const idleClip = gltf.animations.find((c) => c.name === 'Idle');
+    const attackClip = gltf.animations.find((c) => c.name === 'Attack');
+    return { idle: idleClip ? mixer.clipAction(idleClip) : null, attack: attackClip ? mixer.clipAction(attackClip) : null };
   }, [gltf.animations, mixer]);
+  const strikeWeight = useRef(0);
+  useEffect(() => {
+    clips.idle?.reset().play();
+    // The Attack clip is scrubbed by state.strike (the rampart fight), never played on its own.
+    if (clips.attack) {
+      clips.attack.reset().play();
+      clips.attack.paused = true;
+      clips.attack.setEffectiveWeight(0);
+    }
+    return () => void mixer.stopAllAction();
+  }, [clips, mixer]);
   const body = useRef<Group>(null);
   const plates = useRef<(Group | null)[]>([]);
   const time = useRef(0);
   useFrame((_, dt) => {
+    const s = state.current;
+    const striking = (s.strike ?? 0) > 0;
+    strikeWeight.current += ((striking ? 1 : 0) - strikeWeight.current) * (1 - Math.exp(-12 * Math.min(dt, 0.1)));
+    if (clips.attack) {
+      clips.attack.time = (s.strike ?? 0) * clips.attack.getClip().duration;
+      clips.attack.setEffectiveWeight(strikeWeight.current);
+    }
+    clips.idle?.setEffectiveWeight(1 - strikeWeight.current);
     mixer.update(Math.min(dt, 0.1));
     time.current += dt;
-    const s = state.current;
     const t = time.current;
     const b = body.current;
     if (b) {
