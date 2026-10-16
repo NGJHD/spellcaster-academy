@@ -8,6 +8,7 @@ import { useFrame } from '@react-three/fiber';
 import type { Group } from 'three';
 import { getRun } from '../../state/gameStore';
 import { CharacterModel } from '../CharacterModel';
+import { RAISE_CYCLE_SEC, RAISE_SEC } from '../props';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Box } from '../kit';
 import { Prop } from '../Prop';
@@ -44,6 +45,7 @@ export function DormitoryFires() {
 }
 
 const STUDENT_HEIGHT = 1.25;
+const cycle = (t: number) => ((t % RAISE_CYCLE_SEC) + RAISE_CYCLE_SEC) % RAISE_CYCLE_SEC;
 /** Seconds a freed student waits, then walks down the stairs, before slipping out of sight. */
 const FREED_PAUSE_SEC = 0.8;
 const WALK_SEC = 4;
@@ -58,7 +60,7 @@ function TrappedStudent({ deg, flag }: { deg: number; flag: string }) {
   const group = useRef<Group>(null);
   const freedFor = useRef(0);
   const isFree = () => getRun()?.flags.has(flag) ?? false;
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const g = group.current;
     if (!g) return;
     const free = isFree();
@@ -69,8 +71,8 @@ function TrappedStudent({ deg, flag }: { deg: number; flag: string }) {
     const a = (at * Math.PI) / 180;
     let lift = 0;
     if (!free) {
-      // Two quick hops, then a pause.
-      const c = (state.clock.elapsedTime + deg * 0.05) % 3;
+      // Hands up and two quick hops, then a rest (the same rhythm as the students in the Great Hall).
+      const c = cycle(performance.now() / 1000 + deg * 0.05);
       lift = c < 0.9 ? Math.abs(Math.sin((c / 0.45) * Math.PI)) * 0.28 : 0;
     } else if (walk > 0 && walk < 1) {
       lift = Math.abs(Math.sin(s * 9)) * 0.04;
@@ -84,7 +86,7 @@ function TrappedStudent({ deg, flag }: { deg: number; flag: string }) {
   return (
     <group ref={group} scale={STUDENT_HEIGHT / 1.4}>
       <Suspense fallback={null}>
-        <CharacterModel id="student_a_lod1" clip={() => (isFree() ? 'Idle' : 'Celebrate')} />
+        <CharacterModel id="student_a_lod1" clip={() => (isFree() || cycle(performance.now() / 1000 + deg * 0.05) >= RAISE_SEC ? 'Idle' : 'Celebrate')} />
       </Suspense>
     </group>
   );

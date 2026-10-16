@@ -25,7 +25,8 @@ import { insideCylinder, worldCircle, worldCylinder } from '../surfaces';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex, WardenModel, type WardenState } from '../props';
 import { CreatureModel, creatureUrl } from '../../enemies/CreatureModel';
-import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
+import { emptyPose } from '../../enemies/TargetVisuals';
+import { LakeWater } from '../LakeWater';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BeaconBrazier, StoneHall, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
 
@@ -325,7 +326,7 @@ export function HallScene() {
         <WardBarrier width={18} height={7} />
       </group>
       {[-6, -3.5, -1, 1.5, 4, 6.5].map((x, i) => (
-        <Student key={x} position={[x, 0, -28.5 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} />
+        <Student key={x} position={[x, 0, -28.5 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} raising />
       ))}
       <Student position={[-3, 0, -24.6]} rotationY={0} robe={MAT.greenLeather} height={1.75} />
       {/* Banners along the walls, two of them burning. Each hangs between a window and a column, clear
@@ -468,9 +469,7 @@ export function LakeScene() {
       <group position={LAKE_ORIGIN}>
         <LakeDressing />
         <LakeShore />
-        <mesh position={[0, 0, -80]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
-          <planeGeometry args={[500, 400]} />
-        </mesh>
+        <LakeWater position={[0, 0, -80]} size={[500, 400]} />
         {/* Burning lanterns adrift */}
         {[[-6, -20], [7, -28], [-9, -52], [5, -66], [-3, -90], [9, -104]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0.2, z ?? 0]}>
@@ -804,113 +803,133 @@ function LibraryWyrmPass() {
 
 // ---------- East Ramparts ----------
 
-/** One round of the Warden's fight: a climber comes over the parapet, the Warden swings, it flies off. */
+/** One climber's round: it comes over the parapet, the Warden casts at it, it flies off. */
 const FIGHT_ROUND_SEC = 4.2;
+/**
+ * Three climbers, each a third of a round behind the last (owner, 2026-10-16: the Warden looked "chill
+ * and lazy"; while it blasts the second, the third is landing and the first is climbing again).
+ */
+const CLIMBERS = 3;
 /** Where the climbers come over: on the Warden's near side, so it never hides them (rampart-local x offsets). */
-const CLIMB_SIDES = [-1.8, -2.6, -1.4, -2.2] as const;
+const CLIMB_SIDES = [-1.8, -2.9, -1.2, -2.4, -3.2] as const;
 /** The bolt leaves the Warden's hand at this point of a round and strikes at 0.5. */
 const BOLT_FROM = 0.44;
+/** The Warden's cast (its Attack clip) runs over this part of a climber's round. */
+const CAST_FROM = 0.3;
+const CAST_TO = 0.62;
+
+/** Where a climber is at `u` (0…1) of its round, beside the Warden at rampart-local x `px`. */
+function placeClimber(c: Group, px: number, side: number, u: number): void {
+  if (u < 0.25) {
+    const k = u / 0.25;
+    c.position.set(px, -2.4 + k * 4.4, -3.8 + k * 0.8);
+    c.rotation.set(0, 0, 0);
+  } else if (u < 0.35) {
+    // Down off the parapet onto the wall walk.
+    const k = (u - 0.25) / 0.1;
+    c.position.set(px, 2 * (1 - k) + Math.sin(k * Math.PI) * 0.5, -3 + k * 1.1);
+  } else if (u < 0.5) {
+    c.position.set(px, 0, -1.9);
+  } else {
+    // Blasted back over the wall, spinning.
+    const k = (u - 0.5) / 0.4;
+    c.position.set(px + Math.sign(side) * k * 3, k * 4 - k * k * 10, -1.9 - k * 10);
+    c.rotation.set(k * 9, 0, k * 6 * Math.sign(side));
+  }
+}
 
 /**
  * The Warden holds the wall beside us (owner, 2026-10-16: "have the warden fight some climbers"). Hush
- * climbers keep coming over the parapet next to it; it turns, strikes with its Attack clip and sends each
- * one flying off the wall in a burst of sparks. It pauses while the inkfire covers it (until the
- * apprentice restores it) and stops once the Lantern Ward closes and the Hush are gone.
+ * imps keep coming over the parapet next to it, three at a time in turn; it turns to each, thrusts its
+ * hand and a bolt of starlight bursts the imp off the wall. It pauses while the inkfire covers it (until
+ * the apprentice restores it) and stops once the Lantern Ward closes and the Hush are gone.
  */
 function WardenHoldsTheWall({ position }: { position: Vec3 }) {
   const warden = useRef<Group>(null);
-  const climber = useRef<Group>(null);
+  const climbers = useRef<(Group | null)[]>([]);
+  const bolts = useRef<(Group | null)[]>([]);
   const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.3, calm: 0, attack: 0, bow: 0, strike: 0 });
-  const pose = useRef<TargetPose>(emptyPose());
+  const poses = useMemo(() => Array.from({ length: CLIMBERS }, () => ({ current: emptyPose() })), []);
   const clock = useRef(0);
-  const round = useRef(-1);
-  const burst = useRef(false);
+  const burstRound = useRef<number[]>(Array.from({ length: CLIMBERS }, () => -1));
   const yaw = useRef(Math.PI);
-  const bolt = useRef<Group>(null);
   const boltMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: '#bfe4ff', transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
   const url = creatureUrl('scribble-imp') ?? creatureUrl('blotling');
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1);
     const run = getRun();
     const w = warden.current;
-    const c = climber.current;
-    if (!run || !w || !c) return;
+    if (!run || !w) return;
     const beat = run.director.currentBeat?.id ?? '';
     const scorched = beat === 'l2-rp-warden' && !run.flags.has('l2-warden-restored');
     const fighting = !scorched && !run.flags.has('l2-ward-closed') && run.currentAreaId === 'l2-ramparts';
     if (fighting) clock.current += dt;
-    const t = clock.current % FIGHT_ROUND_SEC;
-    const n = Math.floor(clock.current / FIGHT_ROUND_SEC);
-    if (n !== round.current) {
-      round.current = n;
-      burst.current = false;
-    }
-    const side = CLIMB_SIDES[n % CLIMB_SIDES.length] ?? 2;
-    const u = t / FIGHT_ROUND_SEC;
-    // The climber: up the wall and over the parapet (0–0.25), down onto the wall walk (to 0.35), crouched
-    // ready to pounce (to 0.5), then knocked flying back over the wall (0.5–0.9).
-    c.visible = fighting && u < 0.9;
-    pose.current.time += dt;
-    pose.current.moving = u < 0.35;
-    pose.current.windup = u > 0.35 && u < 0.5 ? (u - 0.35) / 0.15 : 0;
-    const px = position[0] + side;
-    if (u < 0.25) {
-      const k = u / 0.25;
-      c.position.set(px, -2.4 + k * 4.4, -3.8 + k * 0.8);
-      c.rotation.set(0, 0, 0);
-    } else if (u < 0.35) {
-      const k = (u - 0.25) / 0.1;
-      c.position.set(px, 2 * (1 - k) + Math.sin(k * Math.PI) * 0.5, -3 + k * 1.1);
-    } else if (u < 0.5) {
-      c.position.set(px, 0, -1.9);
-    } else {
-      const k = (u - 0.5) / 0.4;
-      c.position.set(px + Math.sign(side) * k * 3, k * 4 - k * k * 10, -1.9 - k * 10);
-      c.rotation.set(k * 9, 0, k * 6 * Math.sign(side));
-    }
-    // The Warden thrusts its hand at the climber and a bolt of starlight flies from it (owner,
-    // 2026-10-16: a magic academy's guardian casts; it should not headbutt).
-    const b = bolt.current;
-    if (b) {
-      const k = (u - BOLT_FROM) / (0.5 - BOLT_FROM);
-      b.visible = fighting && k >= 0 && k < 1;
-      if (b.visible) {
-        const hand = { x: position[0] + Math.sin(yaw.current) * 1.1, y: 2.6, z: position[2] + Math.cos(yaw.current) * 1.1 };
-        b.position.set(hand.x + (px - hand.x) * k, hand.y + (0.7 - hand.y) * k, hand.z + (-1.9 - hand.z) * k);
-        b.scale.setScalar(0.5 + k * 0.4);
+    let target: { side: number; strike: number } | null = null;
+    for (let i = 0; i < CLIMBERS; i++) {
+      const c = climbers.current[i];
+      const pose = poses[i];
+      if (!c || !pose) continue;
+      const time = clock.current + (i * FIGHT_ROUND_SEC) / CLIMBERS;
+      const n = Math.floor(time / FIGHT_ROUND_SEC);
+      const u = (time % FIGHT_ROUND_SEC) / FIGHT_ROUND_SEC;
+      const side = CLIMB_SIDES[(n * CLIMBERS + i) % CLIMB_SIDES.length] ?? -2;
+      const px = position[0] + side;
+      c.visible = fighting && u < 0.9;
+      pose.current.time += dt;
+      pose.current.moving = u < 0.35;
+      pose.current.windup = u > 0.35 && u < 0.5 ? (u - 0.35) / 0.15 : 0;
+      placeClimber(c, px, side, u);
+      if (u > CAST_FROM && u < CAST_TO) target = { side, strike: (u - CAST_FROM) / (CAST_TO - CAST_FROM) };
+      // The bolt from the Warden's hand to this climber.
+      const b = bolts.current[i];
+      if (b) {
+        const k = (u - BOLT_FROM) / (0.5 - BOLT_FROM);
+        b.visible = fighting && k >= 0 && k < 1;
+        if (b.visible) {
+          const hx = position[0] + Math.sin(yaw.current) * 1.1;
+          const hz = position[2] + Math.cos(yaw.current) * 1.1;
+          b.position.set(hx + (px - hx) * k, 2.6 + (0.7 - 2.6) * k, hz + (-1.9 - hz) * k);
+          b.scale.setScalar(0.5 + k * 0.4);
+        }
+      }
+      if (fighting && u >= 0.5 && burstRound.current[i] !== n) {
+        burstRound.current[i] = n;
+        const at = new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]);
+        run.emitFx({ kind: 'burst', scale: 1.5, color: '#9fd8ff' }, at);
+        run.emitFx({ kind: 'sparks', scale: 1, color: '#ffd27a' }, at);
       }
     }
-    if (fighting && u >= 0.5 && !burst.current) {
-      burst.current = true;
-      run.emitFx({ kind: 'burst', scale: 1.5, color: '#9fd8ff' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
-      run.emitFx({ kind: 'sparks', scale: 1, color: '#ffd27a' }, new Vector3(px + RAMPART_ORIGIN[0], 0.8 + RAMPART_ORIGIN[1], -1.9 + RAMPART_ORIGIN[2]));
+    // The Warden turns to the climber it is casting at, swings its arm out and thrusts its hand forward.
+    if (target) {
+      const face = Math.atan2(target.side, -0.7);
+      const turn = Math.atan2(Math.sin(face - yaw.current), Math.cos(face - yaw.current));
+      yaw.current += turn * (1 - Math.exp(-8 * dt));
     }
-    // The Warden turns to face each climber and strikes as it lands on the parapet.
-    const face = Math.atan2(side, -0.7);
-    const turn = Math.atan2(Math.sin(face - yaw.current), Math.cos(face - yaw.current));
-    yaw.current += turn * (1 - Math.exp(-5 * dt));
     w.rotation.y = yaw.current;
-    // The Attack clip: the arm swings out (frame 12) and thrusts forward (18–24) as the bolt flies.
-    state.current.strike = fighting && u > 0.3 && u < 0.62 ? (u - 0.3) / 0.32 : 0;
+    state.current.strike = fighting && target ? target.strike : 0;
   });
   return (
     <>
       <group ref={warden} position={position} rotation={[0, Math.PI, 0]}>
         <WardenModel state={state} scale={1.1} />
       </group>
-      <group ref={bolt} visible={false}>
-        <sprite material={boltMaterial} scale={1.2} />
-        <pointLight color="#9fd8ff" intensity={30} distance={6} decay={2} />
-      </group>
-      <group ref={climber} visible={false} name="warden-climber" scale={1.8}>
-        {url && (
-          <ModelBoundary fallback={null}>
-            <Suspense fallback={null}>
-              <CreatureModel url={url} pose={pose} />
-            </Suspense>
-          </ModelBoundary>
-        )}
-      </group>
+      {poses.map((pose, i) => (
+        <group key={i}>
+          <group ref={(g) => void (bolts.current[i] = g)} visible={false}>
+            {/* No light of its own: lights switching on and off make every material recompile (a hitch). */}
+            <sprite material={boltMaterial} scale={1.6} />
+          </group>
+          <group ref={(g) => void (climbers.current[i] = g)} visible={false} name="warden-climber" scale={1.8}>
+            {url && (
+              <ModelBoundary fallback={null}>
+                <Suspense fallback={null}>
+                  <CreatureModel url={url} pose={pose} />
+                </Suspense>
+              </ModelBoundary>
+            )}
+          </group>
+        </group>
+      ))}
     </>
   );
 }

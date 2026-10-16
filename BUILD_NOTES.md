@@ -647,6 +647,23 @@ Level 3:
   - The Warden moved from x 10 to x 5.5, and the post camera turns slightly towards it so the fight is
     in view.
 
+## Eighth playtest (2026-10-16)
+
+- Great Hall students "look like they are exercising": `Student raising` raises both hands (one Celebrate
+  loop, 1.35 s), rests, and raises them again every 3.4 s. The trapped first-years use the same rhythm,
+  hopping while their hands are up.
+- Lantern Lake "looks iced": `LakeWater` replaces the flat glossy plane.
+  - A gentle swell moves the surface; it is kept small so the boat and jetty never sink into it.
+  - A drifting, tiling ripple normal map (a canvas height field of whole-number waves) breaks up the
+    sky's reflections.
+  - The water is dark and much less reflective of the neutral environment map, which had turned it grey.
+- Knight Captain: the model has no sword, and its "halt" counter is a fireball it hurls. Pip now says
+  "When it hurls fire at us, type halt to block it!".
+- Rampart Warden "chill and lazy": three climbers run a third of a round apart, so the Warden is always
+  casting.
+  - While it blasts one, the next lands and the one before climbs again.
+  - The bolts have no light of their own: lights switching on and off recompile every material.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
