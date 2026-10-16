@@ -86,7 +86,13 @@ export const ramparts: AreaScript = {
         {
           id: 'captain',
           targets: [
-            knight('rp-captain', climb(1), [len(5, 7), len(5, 7), len(5, 7)], { variant: 'captain', labelHeight: 2.9 }),
+            // Leaps over the parapet in a burst of fire rather than climbing the ladder out of sight
+            // (owner, 2026-10-16: the captain took far too long to appear).
+            knight('rp-captain', [R(0, 1, -2.9), R(0, 0, -1.4)], [len(5, 7), len(5, 7), len(5, 7)], {
+              variant: 'captain',
+              labelHeight: 2.9,
+              entrance: { kind: 'geyser', scale: 1.4, color: '#ff5a1a' },
+            }),
             fireball('rp-halt', R(0, 2.4, -4), R(-0.4, 1.7, 2.6), { delaySec: 4, words: ['halt'] }),
             restore('rp-warden-3', R(10, 3.6, -1.2), 'guard', 'l2-warden-3', { optional: true, leaveAfterSec: 16, delaySec: 2 }),
           ],

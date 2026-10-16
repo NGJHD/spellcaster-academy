@@ -220,6 +220,34 @@ def build_armature(name, joints, mesh_obj):
     return arm
 
 
+def weights_from_volumes(mesh_obj, arm, volumes, bones, blend=0.3):
+    """
+    Skin weights from the source volumes instead of bone heat (which fails on these blended-volume
+    meshes and left the students and Mira with no skin at all, so their arms never moved). Each vertex
+    belongs to the volumes it is nearest to, softly blended across seams, and each volume to one bone
+    (`bones[i]` for `volumes[i]`).
+    """
+    for g in list(mesh_obj.vertex_groups):
+        mesh_obj.vertex_groups.remove(g)
+    groups = {name: mesh_obj.vertex_groups.new(name=name) for name in set(bones)}
+    for vert in mesh_obj.data.vertices:
+        p = mesh_obj.matrix_world @ vert.co
+        dists = [(vol.distance(p), bone) for vol, bone in zip(volumes, bones)]
+        d0 = min(d for d, _ in dists)
+        acc = {}
+        for d, bone in dists:
+            if d <= d0 + blend:
+                acc[bone] = acc.get(bone, 0.0) + (d0 + blend - d) / blend
+        total = sum(acc.values())
+        for bone, w in acc.items():
+            groups[bone].add([vert.index], w / total, "REPLACE")
+    arm_mod = next((m for m in mesh_obj.modifiers if m.type == "ARMATURE"), None)
+    if arm_mod is None:
+        arm_mod = mesh_obj.modifiers.new("Armature", "ARMATURE")
+    arm_mod.object = arm
+    print(f"weights_from_volumes: {len(mesh_obj.data.vertices)} vertices over {len(groups)} bones")
+
+
 def attach(obj, arm, bone_name):
     """Rigidly parent an accessory mesh to a bone (keeps its world transform)."""
     world = obj.matrix_world.copy()

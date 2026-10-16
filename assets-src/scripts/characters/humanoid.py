@@ -156,6 +156,28 @@ for side, s in (("L", 1), ("R", -1)):
         J(f"hand_{side}", v(0.222 * s, -0.065, 0.585), v(0.224 * s, -0.09, 0.47), f"forearm_{side}"),
     ]
 rig = C.build_armature(who.title(), joints, body)
+
+
+def bone_for(vol):
+    """The bone that carries a source volume (sleeves on the arm chain, robe on the spine)."""
+    c = (vol.center + vol.end) / 2 if vol.end is not None else vol.center
+    x, z = c.x / k, c.z / k
+    side = "L" if c.x > 0 else "R"
+    if vol.zone == "boots":
+        return "hips"
+    if vol.zone == "leather":
+        return "chest" if vol.kind == "capsule" else "hips"
+    if abs(x) >= 0.12 and z > 0.45 and vol.zone != "hair":
+        return f"shoulder_{side}" if z >= 1.0 else f"arm_{side}" if z >= 0.8 else f"forearm_{side}" if z >= 0.6 else f"hand_{side}"
+    if z >= 1.2 or vol.zone in ("hair", "lips"):
+        return "head"
+    if z >= 1.12:
+        return "neck"
+    return "chest" if z >= 1.0 else "spine" if z >= 0.8 else "hips"
+
+
+# Bone heat fails on this blended mesh (no skin was exported): weight it from its volumes instead.
+C.weights_from_volumes(body, rig, vol, [bone_for(x) for x in vol])
 for obj, bone in acc:
     C.attach(obj, rig, bone)
 
@@ -164,7 +186,7 @@ C.pose_action(rig, "Idle", [
     (45, {"chest": (2, 0, 0), "head": (-3, 4, 0), "spine": (0, 0, 1.5)}),
     (90, {"chest": (0, 0, 0), "head": (0, 0, 0), "spine": (0, 0, 0)}),
 ])
-wave_up = {"arm_R": (0, 0, -150), "forearm_R": (0, 0, -20), "head": (0, -8, 4)}
+wave_up = {"arm_R": (0, 0, -135), "forearm_R": (0, 0, -20), "head": (0, -8, 4)}
 C.pose_action(rig, "Wave", [
     (0, {"arm_R": (0, 0, 0), "forearm_R": (0, 0, 0), "hand_R": (0, 0, 0), "head": (0, 0, 0)}),
     (10, {**wave_up, "hand_R": (0, 0, 0)}),
@@ -180,7 +202,8 @@ C.pose_action(rig, "TalkShort", [
     (30, {"forearm_L": (-45, 0, 25), "arm_L": (-12, 0, 14), "head": (-3, -5, 0)}),
     (48, {"forearm_L": (0, 0, 0), "arm_L": (0, 0, 0), "head": (0, 0, 0)}),
 ])
-cheer = {"arm_L": (0, 0, 150), "arm_R": (0, 0, -150), "forearm_L": (0, 0, 15), "forearm_R": (0, 0, -15)}
+# Arms flung up in a wide V (straight up they sat beside the head and read as horns).
+cheer = {"arm_L": (0, 0, 120), "arm_R": (0, 0, -120), "forearm_L": (0, 0, -12), "forearm_R": (0, 0, 12)}
 C.pose_action(rig, "Celebrate", [
     (0, {"arm_L": (0, 0, 0), "arm_R": (0, 0, 0), "forearm_L": (0, 0, 0), "forearm_R": (0, 0, 0), "hips": {"loc": (0, 0, 0)}}),
     (10, {**cheer, "hips": {"loc": (0, 0.05, 0)}}),

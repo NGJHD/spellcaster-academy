@@ -196,8 +196,8 @@ export const margin: AreaScript = {
         {
           id: 'books',
           targets: [
-            fireball('falling-book-1', L(-3, 14, -10), L(-0.4, 1.8, 6.4)),
-            fireball('falling-book-2', L(3, 14, -12), L(0.5, 1.6, 6.4), { delaySec: 1.6 }),
+            fireball('falling-book-1', L(-3, 7, -10), L(-0.5, 1.5, 4.4)),
+            fireball('falling-book-2', L(3, 7, -12), L(0.6, 1.4, 4.4), { delaySec: 1.6 }),
           ],
         },
       ],

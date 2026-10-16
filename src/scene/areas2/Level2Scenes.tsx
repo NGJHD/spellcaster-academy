@@ -190,8 +190,21 @@ function CollapsingDeck() {
   );
 }
 
+/** Rocks on the far bank: [x, z, height]. */
+const BANK_ROCKS: readonly (readonly [number, number, number])[] = [
+  [-14, -79, 1.4], [-7, -81, 0.9], [8, -80, 1.2], [15, -78, 1.6], [24, -82, 1], [-24, -80, 1.3], [-38, -79, 1.1], [36, -80, 1.4],
+  [-52, -104, 2.6], [-30, -102, 2.2], [-6, -100, 1.8], [12, -101, 2.4], [32, -103, 2], [54, -102, 2.8],
+  [-46, -120, 2.2], [-12, -119, 2], [20, -121, 2.4], [48, -118, 2],
+];
+
 export function BridgeScene() {
   const bellLit = useMemo(() => MAT.agedBrass.clone() as MeshStandardMaterial, []);
+  // Greener than the daytime grass, so it still reads as grass under the red night sky.
+  const bankGrass = useMemo(() => {
+    const m = MAT.grass.clone() as MeshStandardMaterial;
+    m.color.set('#78c050');
+    return m;
+  }, []);
   const bellGlow = useRef<PointLight>(null);
   useFrame(() => {
     const lit = getRun()?.flags.has('l2-beacon-bell') ?? false;
@@ -212,10 +225,16 @@ export function BridgeScene() {
       {/* Gorge walls and the far floor */}
       <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
       <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
-      {/* The far bank the bridge reaches: a rocky cliff topped with earth, where the burning castle
-          stands (owner, 2026-10-16: the buildings looked like they were floating on water) */}
+      {/* The far bank the bridge reaches: a rocky cliff, a strip of trodden earth where the bridge lands,
+          then grassy ground with rocky outcrops under the burning castle (owner, 2026-10-16: the
+          buildings looked like they floated on water; then "nobody builds on sand") */}
       <Slab x={[-160, 160]} y={[-80, -0.6]} z={[-260, -64]} material={MAT.rockGround} />
-      <Slab x={[-160, 160]} y={[-0.6, 0]} z={[-260, -64]} material={MAT.earth} />
+      <Slab x={[-160, 160]} y={[-0.6, 0]} z={[-80, -64]} material={MAT.earth} />
+      <Slab x={[-160, 160]} y={[-0.6, 0.02]} z={[-260, -80]} material={bankGrass} />
+      {/* Rocks breaking up the line where the earth meets the grass, and round the buildings' feet */}
+      {BANK_ROCKS.map(([x, z, h], i) => (
+        <Prop key={i} id={i % 3 === 0 ? 'ash_rock' : 'rock_moss_set_01'} position={[x, -0.2, z]} height={h} rotationY={i * 2.1} shadows={false} />
+      ))}
       {/* Belfry: a stone tower straddling the bridge, the great bell hanging inside */}
       <group position={[0, 0, bell[2]]}>
         {[-1, 1].map((s) => (
@@ -467,6 +486,7 @@ export function LakeScene() {
             <sphereGeometry args={[0.8, 24, 16]} />
           </mesh>
         </group>
+        <LighthouseLift />
         <BurningSkyline position={[0, 0, 60]} rotationY={Math.PI} seed={4} />
       </group>
       {/* Oarsby's boat moored at the end of the jetty, then carried with the camera. The camera sits
@@ -480,9 +500,69 @@ export function LakeScene() {
         <OarsbyBoat />
       </Carried>
       <Carried beats={LIFT_BEATS_L2} drop={1.6}>
-        <Prop id="lift_platform" position={[0, 0, -0.4]} height={2.4} />
+        <Prop id="lift_cage" position={[0, 0, 0]} height={1.35} />
       </Carried>
+      {/* The lift waits at the foot of its shaft as the boat comes in, and stays at the top afterwards */}
+      <OnBeats beats={LIFT_WAITING_BEATS}>
+        <Prop id="lift_cage" position={[LAKE_ORIGIN[0] + LIFT_X, 0, LAKE_ORIGIN[2] + LIFT_Z]} height={1.35} />
+      </OnBeats>
+      <OnBeats beats={LIFT_UP_BEATS}>
+        <Prop id="lift_cage" position={[LAKE_ORIGIN[0] + LIFT_X, LIGHTHOUSE_HEIGHT, LAKE_ORIGIN[2] + LIFT_Z]} height={1.35} />
+      </OnBeats>
     </>
+  );
+}
+
+/** The lighthouse lift's shaft stands on the island's rim, where the boat docks (lake-local). */
+const LIFT_X = 11;
+const LIFT_Z = -121;
+const LIFT_WAITING_BEATS = ['l2-lake-seg-2', 'l2-lake-dock-island'] as const;
+const LIFT_UP_BEATS = ['l2-lighthouse-beacon', 'l2-lighthouse-sweep', 'l2-lake-checkpoint', 'l2-lake-exit'] as const;
+
+/**
+ * The lighthouse lift (owner, 2026-10-16: riding the boat past the lighthouse and then flying up felt
+ * weird). A brass shaft beside the tower: four rails from a small landing stage at the water to a
+ * pulley house at the top, crossed by iron hoops, with a gangway across to the lantern gallery.
+ */
+function LighthouseLift() {
+  const top = LIGHTHOUSE_HEIGHT;
+  const half = 1.35;
+  const hoops = Array.from({ length: Math.floor(top / 5) }, (_, i) => 3 + i * 5);
+  // Gangway from the shaft to the gallery round the lamp (the tower is at the origin's (0, −128)).
+  const dx = -LIFT_X;
+  const dz = -128 - LIFT_Z;
+  const span = Math.hypot(dx, dz) - 3;
+  const yaw = Math.atan2(dx, dz);
+  return (
+    <group position={[LIFT_X, 0, LIFT_Z]}>
+      {/* Landing stage at the water's edge */}
+      <Box position={[0, -0.15, 0]} size={[3.6, 0.3, 3.6]} material={MAT.lightOak} />
+      <Box position={[0, -0.15, 2.8]} size={[2.2, 0.3, 2.4]} material={MAT.lightOak} />
+      {/* Four brass rails */}
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh key={`${sx}${sz}`} position={[sx * half, (top + 3) / 2, sz * half]} material={MAT.agedBrass} geometry={worldCylinder(0.07, 0.09, top + 3, 10)} castShadow />
+        )),
+      )}
+      {/* Iron hoops holding the rails, every five metres */}
+      {hoops.map((y) => (
+        <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, Math.PI / 4]} material={MAT.darkSteel}>
+          <torusGeometry args={[half * Math.SQRT2, 0.05, 6, 4]} />
+        </mesh>
+      ))}
+      {/* Pulley house and wheel at the top */}
+      <Box position={[0, top + 3.2, 0]} size={[3.2, 0.4, 3.2]} material={MAT.darkSteel} />
+      <mesh position={[0, top + 3.8, 0]} rotation={[0, 0, Math.PI / 2]} material={MAT.agedBrass}>
+        <torusGeometry args={[0.6, 0.08, 8, 24]} />
+      </mesh>
+      {/* Gangway across to the lantern gallery */}
+      <group position={[0, top - 0.1, 0]} rotation={[0, yaw, 0]}>
+        <Box position={[0, 0, span / 2 + 1.4]} size={[1.3, 0.2, span]} material={MAT.lightOak} />
+        {[-1, 1].map((s) => (
+          <Box key={s} position={[s * 0.65, 0.55, span / 2 + 1.4]} size={[0.05, 0.05, span]} material={MAT.agedBrass} />
+        ))}
+      </group>
+    </group>
   );
 }
 
@@ -818,7 +898,9 @@ export function RoofScene() {
           file="vellum_dragon.glb"
           position={stand}
           scale={1}
-          fromBeat="l2-wyrm-rises"
+          // On the roof from the start of the climb (owner, 2026-10-16: an empty roof, then the dragon
+          // suddenly appeared).
+          fromBeat="l2-roof-enter"
           goneFlag="l2-wyrm-defeated"
           fallback={<WyrmFallback />}
           // Owner (2026-10-16): its wings beat whenever it is in view.

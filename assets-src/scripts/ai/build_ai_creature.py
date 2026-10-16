@@ -82,6 +82,7 @@ CONFIG = {
     "vellum_dragon": dict(out="vellum_dragon", height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
     "vine_tangle": dict(out="vine_tangle", folder="props", rig="none", defeat="vanish", height=2.4, tris=30000, tex=1024),
     "wooden_oar": dict(out="wooden_oar", folder="props", rig="none", defeat="vanish", height=0.18, fit="width", width=2.8, tris=6000, tex=1024),
+    "lift_cage": dict(out="lift_cage", folder="props", rig="none", defeat="vanish", height=1.25, fit="width", width=2.8, tris=20000, tex=1024),
     "burning_wreck": dict(out="burning_wreck", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=7, tris=20000, tex=1024),
     "citadel_gate": dict(out="citadel_gate", folder="props", rig="none", defeat="vanish", height=36, fit="width", width=64, tris=40000, tex=2048),
     "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),

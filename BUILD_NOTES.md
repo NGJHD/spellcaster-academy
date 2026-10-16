@@ -570,6 +570,41 @@ Level 3:
     the facets).
   - The mount uses metre-UV cylinders, so the rock texture no longer smears into stripes.
 
+## Sixth playtest (2026-10-16)
+
+Level 2:
+- Trapped first-years:
+  - The owner said they "look like they are enjoying being burnt". Root cause: the student and Mira GLBs
+    had been exported with no skin at all. Bone heat weighting failed on their blended-volume meshes,
+    so none of their clips (Wave, Celebrate, TalkShort) ever moved the mesh.
+  - `humanoid.py` now weights each vertex from the source volumes it was built from
+    (`creature.weights_from_volumes`): sleeves follow the arm chain, the robe follows the spine.
+    student_a, student_b and Mira were rebuilt. Orin already had a working skin and was left alone.
+  - The cheer pose is a wide V; straight up, the hands read as horns.
+  - `TrappedStudent` waves both arms and jumps twice every few seconds until its door is restored. Then it
+    calms, walks off down the stairs and disappears.
+- `CharacterModel` has the same Suspense re-show fix as `CreatureModel` (it froze in the rest pose).
+- Bell Bridge bank: trodden earth only where the bridge lands, then grass (a greener night tint), with
+  CC0 rocks along the seam and round the buildings' feet.
+- Lighthouse lift: a brass shaft on the island's rim. It has four rails, iron hoops, a landing stage at
+  the water, a pulley house, and a gangway at the top to the lantern gallery. The lift car waits at the
+  bottom as the boat comes in and stays at the top afterwards. Oarsby says what it is.
+- The lift car is the new `lift_cage` (AI pipeline, RTX 3080): a solid brass car with a waist-high wall.
+  It replaces `lift_platform`, whose thin chains came out shredded around the camera.
+- Knight Captain: it used to climb a ladder out of sight for many seconds. It now appears on the parapet
+  in a burst of fire and steps down.
+- Moon Tower: the dragon is on the roof from the start of the climb, and Pip says so. The intro hold is
+  shorter.
+
+Fireball words (owner: "bag", "pen" and "cup" sat far above their fireballs):
+- `labelHeight` 1.7 → 0.9.
+- As a fireball closes in, its word's lift is capped at 0.12 m per metre of distance, so near ones
+  don't push the word to the top of the screen.
+- The surge debris, the palm-ride fireballs and the falling books now start lower.
+
+Level 3:
+- The tortoise-ride words are correction moths keeping pace beside the tortoise (they were gems).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

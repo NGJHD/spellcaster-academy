@@ -47,9 +47,10 @@ export const shore: AreaScript = {
       easing: 'easeInOutCubic',
       barks: ['l3-orin-open', 'l3-not-scared'],
       chase: [
-        { at: 0.2, target: debris('rift-debris-1', 1.1, 0.8) },
-        { at: 0.45, target: debris('rift-debris-2', -1.0, 1.0) },
-        { at: 0.7, target: debris('rift-debris-3', 0.6, 1.2) },
+        // Near eye level, so their words stay in the middle of the view (owner, 2026-10-16: too high).
+        { at: 0.2, target: debris('rift-debris-1', 1.1, 0.1) },
+        { at: 0.45, target: debris('rift-debris-2', -1.0, 0.2) },
+        { at: 0.7, target: debris('rift-debris-3', 0.6, 0.3) },
       ],
     }),
     // Beat 2: the first view of the Blank.
@@ -139,10 +140,10 @@ export const cinderwood: AreaScript = {
     travel('l3-tortoise-ride', W, ['CW_MOUNT', 'CW_RIDE'], 8, {
       barks: ['l3-tortoise-ride'],
       chase: [
-        // Spark gems flying beside the tortoise (owner, 2026-10-16: two words floated over bare trees with
-        // nothing to aim at).
-        { at: 0.3, target: target('ride-gem-1', 'gem', C(0, 0, 0), [len(3, 4)], { optional: true, labelHeight: 0.28, variant: '-1', follow: { ahead: 4.2, side: -1.25, up: 0.15 } }) },
-        { at: 0.65, target: target('ride-gem-2', 'gem', C(0, 0, 0), [len(3, 4)], { optional: true, labelHeight: 0.28, variant: '1', follow: { ahead: 4.2, side: 1.25, up: 0.15 } }) },
+        // Correction moths chasing the tortoise, keeping pace beside it (owner, 2026-10-16: mobs, not gems;
+        // before that the words floated over bare trees).
+        { at: 0.3, target: correctionMoth('ride-moth-1', [C(0, 0, 0)], { words: [len(3, 4)], movement: { kind: 'static' }, follow: { ahead: 5, side: -1.7, up: 0.3 } }) },
+        { at: 0.65, target: correctionMoth('ride-moth-2', [C(0, 0, 0)], { words: [len(3, 4)], movement: { kind: 'static' }, follow: { ahead: 5, side: 1.7, up: 0.3 } }) },
       ],
     }),
     checkpoint('l3-cw-checkpoint', W, 'cinderwood-coloured', { objective: 'l3-inkfall' }),

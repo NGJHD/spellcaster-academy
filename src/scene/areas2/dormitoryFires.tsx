@@ -3,12 +3,15 @@ import { DORM_DOORS } from '../../level/areas2/dormitory';
 import { spiral, stairFloor, STAIRWELL_ORIGIN } from '../../level/areas/stairwell';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { Fire, Restorable } from '../Fire';
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import type { Group } from 'three';
+import { getRun } from '../../state/gameStore';
+import { CharacterModel } from '../CharacterModel';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Box } from '../kit';
 import { Prop } from '../Prop';
 import { MAT } from '../materials';
-import { Student } from '../props';
 
 const local = (p: Vec3): Vec3 => [p[0] - STAIRWELL_ORIGIN[0], p[1] - STAIRWELL_ORIGIN[1], p[2] - STAIRWELL_ORIGIN[2]];
 
@@ -29,13 +32,60 @@ export function DormitoryFires() {
                 </Suspense>
               </ModelBoundary>
             </Restorable>
-            <Student position={local(spiral(d.deg + 4, floor, 8.6))} rotationY={-a - Math.PI / 2} height={1.25} />
+            <TrappedStudent deg={d.deg + 4} flag={`l2-dorm-door-${d.id}`} />
           </group>
         );
       })}
       {[10, -100, -180, -260].map((deg) => (
         <Fire key={deg} position={local(spiral(deg, stairFloor(deg) + 0.2, 8.7))} size={1.4} count={3} spread={1} />
       ))}
+    </group>
+  );
+}
+
+const STUDENT_HEIGHT = 1.25;
+/** Seconds a freed student waits, then walks down the stairs, before slipping out of sight. */
+const FREED_PAUSE_SEC = 0.8;
+const WALK_SEC = 4;
+const WALK_DEG = 40;
+
+/**
+ * A first-year trapped at a burning door (owner, 2026-10-16: they stood calmly in the fire "like they
+ * are enjoying being burnt"). Until the door is restored they wave both arms over their head and jump
+ * twice every few seconds; once freed they calm down, walk off down the stairs and are gone.
+ */
+function TrappedStudent({ deg, flag }: { deg: number; flag: string }) {
+  const group = useRef<Group>(null);
+  const freedFor = useRef(0);
+  const isFree = () => getRun()?.flags.has(flag) ?? false;
+  useFrame((state, delta) => {
+    const g = group.current;
+    if (!g) return;
+    const free = isFree();
+    freedFor.current = free ? freedFor.current + Math.min(delta, 0.1) : 0;
+    const s = freedFor.current;
+    const walk = Math.min(1, Math.max(0, (s - FREED_PAUSE_SEC) / WALK_SEC));
+    const at = deg - walk * WALK_DEG;
+    const a = (at * Math.PI) / 180;
+    let lift = 0;
+    if (!free) {
+      // Two quick hops, then a pause.
+      const c = (state.clock.elapsedTime + deg * 0.05) % 3;
+      lift = c < 0.9 ? Math.abs(Math.sin((c / 0.45) * Math.PI)) * 0.28 : 0;
+    } else if (walk > 0 && walk < 1) {
+      lift = Math.abs(Math.sin(s * 9)) * 0.04;
+    }
+    const p = local(spiral(at, stairFloor(at) + lift, free ? 8.6 - walk * 0.5 : 8.6));
+    g.position.set(p[0], p[1], p[2]);
+    // Facing in towards the stairs while trapped; facing down the stairs while walking away.
+    g.rotation.y = walk > 0 ? Math.atan2(Math.sin(a), -Math.cos(a)) : -a - Math.PI / 2;
+    g.visible = s < FREED_PAUSE_SEC + WALK_SEC + 0.2;
+  });
+  return (
+    <group ref={group} scale={STUDENT_HEIGHT / 1.4}>
+      <Suspense fallback={null}>
+        <CharacterModel id="student_a_lod1" clip={() => (isFree() ? 'Idle' : 'Celebrate')} />
+      </Suspense>
     </group>
   );
 }

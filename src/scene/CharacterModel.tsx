@@ -16,7 +16,7 @@ const FADE_SEC = 0.35;
  * Rigged character GLB (assets-src/scripts/characters/humanoid.py). Plays `clip` on loop; when
  * `speaker` is set, gestures with TalkShort while that character's subtitle is on screen.
  */
-export function CharacterModel({ id, clip = 'Idle', speaker }: { id: CharacterId; clip?: CharacterClip; speaker?: Speaker }) {
+export function CharacterModel({ id, clip = 'Idle', speaker }: { id: CharacterId; clip?: CharacterClip | (() => CharacterClip); speaker?: Speaker }) {
   const gltf = useGLTF(`${base}${id}.glb`);
   const scene = useMemo(() => {
     const s = cloneSkinned(gltf.scene) as Object3D;
@@ -41,13 +41,19 @@ export function CharacterModel({ id, clip = 'Idle', speaker }: { id: CharacterId
   }, [gltf.animations, mixer]);
   const state = useMemo(() => ({ current: '' }), []);
 
-  useEffect(() => () => {
-    mixer.stopAllAction();
-  }, [mixer]);
+  useEffect(() => {
+    // Also re-runs when a Suspense boundary above hides and re-shows the model: the cleanup stopped every
+    // action, so start over and let the next frame play the wanted clip again (characters used to freeze
+    // in their rest pose, arms down, after another asset loaded).
+    state.current = '';
+    return () => {
+      mixer.stopAllAction();
+    };
+  }, [mixer, state]);
 
   useFrame((_, dt) => {
     const talking = speaker !== undefined && useRunStore.getState().subtitle?.speaker === speaker;
-    const want = talking ? 'TalkShort' : clip;
+    const want = talking ? 'TalkShort' : typeof clip === 'function' ? clip() : clip;
     if (want !== state.current) {
       const next = actions.get(want) ?? actions.get('Idle');
       const prev = actions.get(state.current);

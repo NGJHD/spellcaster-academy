@@ -83,8 +83,9 @@ export const fireball = (id: string, from: Vec3, to: Vec3, options: Partial<Targ
   target(id, 'fireball', from, [len(3, 3)], {
     movement: { kind: 'approach', path: [from, to], speed: 2.4 },
     attack: HUSH_ATTACKS.fireball,
-    // The word floats above the fireball, never over it (owner: "where are the fireballs?").
-    labelHeight: 1.7,
+    // The word sits just above the flames, never over them (owner: "where are the fireballs?"), and no
+    // higher (owner, 2026-10-16: "bag", "pen" and "cup" floated far above their fireballs).
+    labelHeight: 0.9,
     counter: true,
     weak: true,
     defeatFx: { kind: 'shockwave', scale: 0.4, color: '#9fd8ff' },

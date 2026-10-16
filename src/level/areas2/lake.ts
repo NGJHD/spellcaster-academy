@@ -76,7 +76,7 @@ export const lake: AreaScript = {
         { at: 0.7, target: lantern('lantern-lake-4', L(-4, 0.6, -96), 'harbor', 'lantern-lake-4', { follow: { ahead: 4.6, side: -1.3, up: -0.8 } }) },
       ],
     }),
-    travel('l2-lake-dock-island', A, ['LAKE_ISLAND', 'LH_BASE'], 3, { music: 'siege-dread' }),
+    travel('l2-lake-dock-island', A, ['LAKE_ISLAND', 'LH_BASE'], 3, { music: 'siege-dread', barks: ['l2-oarsby-lift'] }),
     // Fast-rail set piece: the lighthouse lift rockets up while moths smash through the windows.
     travel('l2-lighthouse-lift', A, ['LH_BASE', 'LH_TOP'], 9, {
       easing: 'easeInOutCubic',

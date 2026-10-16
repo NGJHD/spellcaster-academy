@@ -1,0 +1,2 @@
+seed: 66
+prompt: A round open-top brass lift car for a lighthouse: a thick riveted brass floor disc and a solid waist-high curved brass panel wall all the way round with a gap for a doorway, a polished brass handrail on top of the wall, no roof, no chains, no ropes, sturdy and simple, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

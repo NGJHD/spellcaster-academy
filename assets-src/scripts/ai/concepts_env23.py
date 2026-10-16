@@ -65,6 +65,10 @@ CONCEPTS = {
     "burning_wreck": ("The floating wreck of a small burnt wooden sailing boat, its hull broken open and listing, "
                       "charred black planks and curved ribs, a snapped mast leaning over with a torn scorched sail, "
                       "glowing red embers in the cracks of the wood", 65),
+    # 2026-10-16 owner: show the lighthouse lift; the old lift_platform's chains came out shredded.
+    "lift_cage": ("A round open-top brass lift car for a lighthouse: a thick riveted brass floor disc and a solid "
+                  "waist-high curved brass panel wall all the way round with a gap for a doorway, a polished brass "
+                  "handrail on top of the wall, no roof, no chains, no ropes, sturdy and simple", 66),
 }
 
 if __name__ == "__main__":

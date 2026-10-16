@@ -24,6 +24,8 @@ export const debugScene: { current: import('three').Object3D | null } = { curren
 export const debugCamera: { current: import('three').Camera | null } = { current: null };
 
 const look = new Vector3();
+/** A fireball's word sits at most this far above it per metre of distance from the camera. */
+const FIREBALL_LABEL_SLOPE = 0.12;
 const framing = new Vector3();
 const lastFraming = new Vector3();
 const projected = new Vector3();
@@ -135,7 +137,10 @@ function projectLabels(
       continue;
     }
     projected.copy(t.position);
-    projected.y += t.spawn.labelHeight ?? 1;
+    // A fireball's word rides just above it; as it closes in, the word stays close rather than drifting
+    // to the top of the screen (owner, 2026-10-16: "bag", "pen" and "cup" were far above their fireballs).
+    const lift = t.spawn.labelHeight ?? 1;
+    projected.y += t.spawn.kind === 'fireball' ? Math.min(lift, camera.position.distanceTo(t.position) * FIREBALL_LABEL_SLOPE) : lift;
     toTarget.copy(projected).sub(camera.position);
     const behind = toTarget.dot(forward) < 0;
     projected.project(camera);
