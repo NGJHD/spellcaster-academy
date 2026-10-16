@@ -677,7 +677,7 @@ Level 3:
 - Owner: Level 1's music suits it (light-hearted); Level 2 should be darker and Level 3 sinister; "you
   can find CC0 soundtracks instead of creating your own", then "if you can find a suitable level 1 bgm cc0
   u can replace it also".
-- The tracks are thirteen CC0 recordings from OpenGameArt in `public/audio/music/`, converted to
+- The tracks are twelve CC0 recordings from OpenGameArt in `public/audio/music/`, converted to
   Ogg Vorbis q4 (18 MB in total). Licences and composers are in `public/audio/music/CREDITS.md`.
 - `MusicEngine` `TRACKS` maps each mood to a file. The file loads once, loops through the mood's
   crossfading bus (so ducking under dialogue still works), and resumes where it stopped, so a story theme
