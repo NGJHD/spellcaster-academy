@@ -97,7 +97,7 @@ export function LawnScene() {
       <BurningSkyline position={[70, 0, -230]} rotationY={0} seed={8} />
       {/* Students fleeing towards the Great Hall */}
       {[[-10, 0, 6], [-12, 0, 9], [-9, 0, 11]].map((p, i) => (
-        <Student key={i} position={p as unknown as Vec3} rotationY={-2.2} />
+        <Student key={i} position={p as unknown as Vec3} rotationY={-2.2} raising />
       ))}
       <Mira position={[-7, 0, 8]} rotationY={-2.4} waving />
     </group>
@@ -328,7 +328,7 @@ export function HallScene() {
       {[-6, -3.5, -1, 1.5, 4, 6.5].map((x, i) => (
         <Student key={x} position={[x, 0, -28.5 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} raising />
       ))}
-      <Student position={[-3, 0, -24.6]} rotationY={0} robe={MAT.greenLeather} height={1.75} />
+      <Student position={[-3, 0, -24.6]} rotationY={0} robe={MAT.greenLeather} height={1.75} raising />
       {/* Banners along the walls, two of them burning. Each hangs between a window and a column, clear
           of the doors (owner, 2026-10-16: a door had a banner behind it). */}
       {[-30, -38, -46].map((z, i) => (
@@ -469,7 +469,7 @@ export function LakeScene() {
       <group position={LAKE_ORIGIN}>
         <LakeDressing />
         <LakeShore />
-        <LakeWater position={[0, 0, -80]} size={[500, 400]} />
+        <LakeWater position={[0, -0.45, -80]} size={[500, 400]} />
         {/* Burning lanterns adrift */}
         {[[-6, -20], [7, -28], [-9, -52], [5, -66], [-3, -90], [9, -104]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0.2, z ?? 0]}>
@@ -706,7 +706,7 @@ function OarsbyBoat() {
         </group>
       ))}
       {/* Oarsby at the oars, facing the stern, low on the middle thwart */}
-      <Student position={[0.42, -0.2, -2.45]} rotationY={Math.PI} robe={MAT.darkOak} height={1.2} />
+      <Student position={[0.42, -0.2, -2.45]} rotationY={Math.PI} robe={MAT.darkOak} height={1.2} calm />
       {/* The bow lantern on a short post */}
       <mesh position={[0, 0.3, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} material={MAT.darkOak}>
         <cylinderGeometry args={[0.025, 0.03, 0.6, 8]} />
@@ -803,30 +803,32 @@ function LibraryWyrmPass() {
 
 // ---------- East Ramparts ----------
 
-/** One climber's round: it comes over the parapet, the Warden casts at it, it flies off. */
-const FIGHT_ROUND_SEC = 4.2;
+/** One climber's round: it scrambles over the parapet, waits, the Warden casts at it, it flies off. */
+const FIGHT_ROUND_SEC = 3.6;
 /**
- * Three climbers, each a third of a round behind the last (owner, 2026-10-16: the Warden looked "chill
- * and lazy"; while it blasts the second, the third is landing and the first is climbing again).
+ * Four climbers, each a quarter of a round behind the last (owner, 2026-10-16: the Warden looked "chill
+ * and lazy", then "they are still coming 1 by 1"): at any moment one is scrambling up, one dropping onto
+ * the wall walk, one waiting its turn and one being blasted, so the Warden casts non-stop.
  */
-const CLIMBERS = 3;
+const CLIMBERS = 4;
 /** Where the climbers come over: on the Warden's near side, so it never hides them (rampart-local x offsets). */
 const CLIMB_SIDES = [-1.8, -2.9, -1.2, -2.4, -3.2] as const;
 /** The bolt leaves the Warden's hand at this point of a round and strikes at 0.5. */
 const BOLT_FROM = 0.44;
 /** The Warden's cast (its Attack clip) runs over this part of a climber's round. */
-const CAST_FROM = 0.3;
-const CAST_TO = 0.62;
+const CAST_FROM = 0.27;
+const CAST_TO = 0.52;
 
 /** Where a climber is at `u` (0…1) of its round, beside the Warden at rampart-local x `px`. */
 function placeClimber(c: Group, px: number, side: number, u: number): void {
-  if (u < 0.25) {
-    const k = u / 0.25;
+  if (u < 0.16) {
+    // A fast scramble up the wall and over the parapet.
+    const k = u / 0.16;
     c.position.set(px, -2.4 + k * 4.4, -3.8 + k * 0.8);
     c.rotation.set(0, 0, 0);
-  } else if (u < 0.35) {
+  } else if (u < 0.24) {
     // Down off the parapet onto the wall walk.
-    const k = (u - 0.25) / 0.1;
+    const k = (u - 0.16) / 0.08;
     c.position.set(px, 2 * (1 - k) + Math.sin(k * Math.PI) * 0.5, -3 + k * 1.1);
   } else if (u < 0.5) {
     c.position.set(px, 0, -1.9);
@@ -876,8 +878,8 @@ function WardenHoldsTheWall({ position }: { position: Vec3 }) {
       const px = position[0] + side;
       c.visible = fighting && u < 0.9;
       pose.current.time += dt;
-      pose.current.moving = u < 0.35;
-      pose.current.windup = u > 0.35 && u < 0.5 ? (u - 0.35) / 0.15 : 0;
+      pose.current.moving = u < 0.24;
+      pose.current.windup = u > 0.3 && u < 0.5 ? (u - 0.3) / 0.2 : 0;
       placeClimber(c, px, side, u);
       if (u > CAST_FROM && u < CAST_TO) target = { side, strike: (u - CAST_FROM) / (CAST_TO - CAST_FROM) };
       // The bolt from the Warden's hand to this climber.

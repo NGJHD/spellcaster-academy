@@ -525,12 +525,13 @@ export const RAISE_CYCLE_SEC = 3.4;
 
 /**
  * A background student. `raising`: raises both hands, rests a couple of seconds, raises them again
- * (owner, 2026-10-16: cheering non-stop looked like exercising); otherwise cheers continuously.
+ * (owner, 2026-10-16: cheering non-stop looked like exercising); `calm` just stands; otherwise it cheers
+ * continuously (the celebrations).
  */
-export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45, raising = false }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number; raising?: boolean }) {
+export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45, raising = false, calm = false }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number; raising?: boolean; calm?: boolean }) {
   const id = robe === MAT.navyCloth ? 'student_a' : 'student_b';
   const phase = position[0] * 0.9 + position[2] * 0.3;
-  const clip = raising ? () => (((performance.now() / 1000 + phase) % RAISE_CYCLE_SEC + RAISE_CYCLE_SEC) % RAISE_CYCLE_SEC < RAISE_SEC ? 'Celebrate' : 'Idle') : 'Celebrate';
+  const clip = calm ? 'Idle' : raising ? () => (((performance.now() / 1000 + phase) % RAISE_CYCLE_SEC + RAISE_CYCLE_SEC) % RAISE_CYCLE_SEC < RAISE_SEC ? 'Celebrate' : 'Idle') : 'Celebrate';
   return (
     <Suspense fallback={<StudentFallback position={position} rotationY={rotationY} robe={robe} height={height} />}>
       <group position={position} rotation={[0, rotationY, 0]} scale={height / (id === 'student_a' ? 1.4 : 1.5)}>

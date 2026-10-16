@@ -42,7 +42,7 @@ export function GalleryScene() {
       <Slab x={[-W, -W + 1.6]} y={[4.6, 4.8]} z={[-60, -2]} material={MAT.darkOak} />
       </MergeStatic>
       {[-10, -22, -35, -47].map((z, i) => (
-        <Student key={z} position={[-W + 0.8, 4.8, z]} rotationY={Math.PI / 2} height={1.4 + (i % 2) * 0.1} />
+        <Student key={z} position={[-W + 0.8, 4.8, z]} rotationY={Math.PI / 2} height={1.4 + (i % 2) * 0.1} raising />
       ))}
       {GALLERY_ZONES.map((z, i) => (
         <ZoneEmblem key={z} z={z} index={i} />

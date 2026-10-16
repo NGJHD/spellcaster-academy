@@ -652,6 +652,14 @@ Level 3:
 - Great Hall students "look like they are exercising": `Student raising` raises both hands (one Celebrate
   loop, 1.35 s), rests, and raises them again every 3.4 s. The trapped first-years use the same rhythm,
   hopping while their hands are up.
+- Follow-up (owner):
+  - "the one in red still raises continuously": the tall student by Idris's barrier now raises and
+    rests too, as do the fleeing lawn students and the gallery spectators. Oarsby, who uses the student
+    model, is `calm` and stands at his oars.
+  - The lake "still looks flat … like a dark diamond": rolling crested swells like the paper sea's, about
+    1 m from trough to crest, with a cross swell and chop. The lake sits 0.45 m low so the jetty stays dry.
+  - Imps "still coming 1 by 1": four climbers a quarter of a round apart, a 3.6 s round, and a scramble
+    of about 0.6 s. Two or three are on the wall at any moment.
 - Lantern Lake "looks iced": `LakeWater` replaces the flat glossy plane.
   - A gentle swell moves the surface; it is kept small so the boat and jetty never sink into it.
   - A drifting, tiling ripple normal map (a canvas height field of whole-number waves) breaks up the

@@ -54,13 +54,13 @@ function rippleNormals(): CanvasTexture {
 
 export function LakeWater({ position, size }: { position: readonly [number, number, number]; size: readonly [number, number] }) {
   const { geometry, material, base, ripples } = useMemo(() => {
-    const g = new PlaneGeometry(size[0], size[1], 140, 112);
+    const g = new PlaneGeometry(size[0], size[1], 200, 160);
     g.rotateX(-Math.PI / 2);
     const normals = rippleNormals();
     // One ripple tile every 9 m.
     normals.repeat.set(size[0] / 9, size[1] / 9);
     const m = new MeshStandardMaterial({
-      color: '#04060b',
+      color: '#0a1620',
       roughness: 0.24,
       metalness: 0,
       normalMap: normals,
@@ -76,13 +76,18 @@ export function LakeWater({ position, size }: { position: readonly [number, numb
     const t = state.clock.elapsedTime;
     // The ripples drift with the wind.
     ripples.offset.set(t * 0.012, t * 0.02);
-    // A gentle swell, small enough that boats and jetties never sink into it.
+    // Rolling swells like the paper sea's (owner, 2026-10-16: the gentle swell still looked flat): long
+    // crested waves rolling towards the shore, a cross swell and a choppy surface. The lake sits 0.45 m
+    // low, so crests lap the boat's hull but stay below the jetty.
     const pos = geometry.getAttribute('position');
     const arr = pos.array as Float32Array;
     for (let i = 0; i < arr.length; i += 3) {
       const x = base[i] ?? 0;
       const z = base[i + 2] ?? 0;
-      arr[i + 1] = Math.sin(x * 0.11 + t * 0.7) * 0.06 + Math.sin(z * 0.08 - t * 0.55 + x * 0.03) * 0.08 + Math.sin((x - z) * 0.2 + t * 1.1) * 0.03;
+      const roll = 1 - Math.abs(Math.sin(z * 0.075 - t * 0.8 + Math.sin(x * 0.03) * 0.9));
+      const cross = Math.sin(x * 0.06 + z * 0.025 + t * 0.55);
+      const chop = Math.sin(x * 0.31 + z * 0.17 + t * 1.6) * Math.sin(z * 0.27 - x * 0.12 - t * 1.3);
+      arr[i + 1] = roll * roll * 0.85 - 0.4 + cross * 0.25 + chop * 0.08;
     }
     pos.needsUpdate = true;
     geometry.computeVertexNormals();
