@@ -20,12 +20,11 @@ export const PIP_SEIZED: Vec3 = O(-3, 3.2, -6);
 const QUILL = O(1.6, 6.5, -11);
 const CHEST = O(0, 3.6, -11.4);
 
-/** One of the Unwriter's black-iron copies of a past foe: a short burst of erased-letter words. */
+/** One of the Unwriter's black-iron copies of a past foe: a short burst of words. */
 const copy = (id: string, kind: 'dummy' | 'book' | 'hollow-knight' | 'marker', at: Vec3, words: number) =>
   target(id, kind, at, Array.from({ length: words }, () => len(4, 6)), {
     variant: kind === 'dummy' ? 'perfect' : 'grey',
     labelHeight: kind === 'book' ? 0.9 : kind === 'marker' ? 0.5 : 2.2,
-    erased: true,
     movement: { kind: 'static' },
     entrance: { kind: 'geyser', scale: 1, color: '#ff3a10' },
     defeatFx: { kind: 'burst', scale: 2, color: kind === 'dummy' ? '#ffd24a' : kind === 'book' ? '#c78aff' : kind === 'hollow-knight' ? '#ff8a3a' : '#7ae0a0' },
@@ -90,7 +89,7 @@ export const throne: AreaScript = {
         {
           id: 'seals-1',
           targets: [
-            marker('seal-1', O(-3, 5, -10), len(5, 7), { labelHeight: 0.3, erased: true, movement: { kind: 'patrol', path: [O(-3, 5, -10), O(-1, 6, -9)], speed: 0.6 } }),
+            marker('seal-1', O(-3, 5, -10), len(5, 7), { labelHeight: 0.3, movement: { kind: 'patrol', path: [O(-3, 5, -10), O(-1, 6, -9)], speed: 0.6 } }),
             marker('seal-2', O(3, 4.2, -10), len(5, 7), { labelHeight: 0.3, delaySec: 0.6, movement: { kind: 'patrol', path: [O(3, 4.2, -10), O(1.5, 5.4, -9)], speed: 0.6 } }),
             fireball('stroke-1', QUILL, O(-0.6, 1.7, 5.4), { delaySec: 1.8 }),
           ],
@@ -98,12 +97,12 @@ export const throne: AreaScript = {
         {
           id: 'seals-2',
           targets: [
-            marker('seal-3', O(-2, 6.6, -11), len(5, 7), { labelHeight: 0.3, erased: true }),
+            marker('seal-3', O(-2, 6.6, -11), len(5, 7), { labelHeight: 0.3 }),
             marker('seal-4', O(2.4, 6, -11), len(5, 7), { labelHeight: 0.3, delaySec: 0.6 }),
             fireTide('stroke-tide', O(0, 1, -10), O(0, 1.7, 5.2), ['stand', 'firm'], { delaySec: 2.2 }),
           ],
         },
-        { id: 'seals-3', targets: [marker('seal-5', O(0, 7.2, -11), len(6, 7), { labelHeight: 0.3, erased: true }), fireball('stroke-2', QUILL, O(0.6, 1.8, 5.4), { delaySec: 1.4 })] },
+        { id: 'seals-3', targets: [marker('seal-5', O(0, 7.2, -11), len(6, 7), { labelHeight: 0.3 }), fireball('stroke-2', QUILL, O(0.6, 1.8, 5.4), { delaySec: 1.4 })] },
       ],
       hazard: { attacks: ['pulse'], firstDelaySec: 6, intervalSec: 9, windupSec: 1.8, damage: 12 },
     },
@@ -117,7 +116,7 @@ export const throne: AreaScript = {
         { id: 'copy-dummy', targets: [copy('copy-dummy', 'dummy', O(-2, 0, -6), 2)] },
         { id: 'copy-grimoire', targets: [copy('copy-grimoire', 'book', O(2, 2.4, -7), 2), fireball('copy-gust', O(2, 2.4, -7), O(0.4, 1.7, 5.4), { delaySec: 1.6 })] },
         { id: 'copy-herald', targets: [copy('copy-herald', 'hollow-knight', O(-1, 0, -7), 3)] },
-        { id: 'copy-wyrm', targets: [target('copy-wyrm', 'marker', O(0, 4, -8), ['every', 'page'], { labelHeight: 0.5, phrase: true, erased: true, entrance: { kind: 'geyser', scale: 1.4, color: '#ff3a10' }, defeatFx: { kind: 'leaves', scale: 3, color: '#f3ead2' } })] },
+        { id: 'copy-wyrm', targets: [target('copy-wyrm', 'marker', O(0, 4, -8), ['every', 'page'], { labelHeight: 0.5, phrase: true, entrance: { kind: 'geyser', scale: 1.4, color: '#ff3a10' }, defeatFx: { kind: 'leaves', scale: 3, color: '#f3ead2' } })] },
       ],
     },
     {
@@ -196,7 +195,7 @@ export const homecoming: AreaScript = {
     // Keeper Orin thanks the apprentice in front of the whole school (owner: "it makes the kid playing
     // the game feel nice"), then names them Wardkeeper, and everyone cheers under the fireworks.
     talk('l3-home-vault', H, ['l3-orin-thanks-1', 'l3-orin-thanks-2', 'l3-orin-vault'], { attention: 'ending' }),
-    talk('l3-home-ceremony', H, ['l3-orin-wardkeeper', 'l3-mira-cheer', 'l3-pip-three'], {
+    talk('l3-home-ceremony', H, ['l3-orin-wardkeeper', 'l3-mira-cheer'], {
       attention: 'ending',
     }),
     travel('l3-home-final', H, ['HOME_GATHER', 'HOME_FINAL'], 5, {

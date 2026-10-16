@@ -26,6 +26,8 @@ export const bedroom: AreaScript = {
     BED_LIE: { position: R(1.3, 0.85, 1.4), lookAt: R(0.9, 3.4, 0.4) },
     BED_SIT: { position: R(1.1, 1.3, 0.9), lookAt: R(0, 1.9, -2.8) },
     BED_WINDOW: { position: R(0, 1.6, -1.5), lookAt: R(-0.4, 2.6, -6) },
+    // At the window, looking up at the Rift (where the Rift reveal ends).
+    BED_WINDOW_UP: { position: R(0, 1.6, -1.5), lookAt: R(-3, 16, -26) },
     BED_ROOM: { position: R(1.2, 1.6, 1.6), lookAt: R(-0.3, 1.0, -2.6) },
     BED_DOOR: { position: R(-1.4, 1.6, 1.0), lookAt: R(-2.8, 1.4, 1.0) },
   },
@@ -43,9 +45,11 @@ export const bedroom: AreaScript = {
     }),
     travel('l2-wake-sit', A, ['BED_LIE', 'BED_SIT', 'BED_WINDOW'], 4, { barks: ['l2-wake-2'], easing: 'easeInOutCubic' }),
     // Through the window: the academy burning, and the crack tearing open into the Rift.
-    reveal('l2-rift-opens', A, 'BED_WINDOW', ['BED_RIFT', 'BED_SHORE'], 1.0, 6.5, {
-      attention: 'spectacle',
-      barks: ['l2-seam', 'l2-voice-1'],
+    // The fires first, then up to the Rift, holding on it while it is talked about (owner: the Rift
+    // line played over the plain horizon).
+    reveal('l2-rift-opens', A, 'BED_WINDOW', ['BED_SHORE', 'BED_RIFT'], 1.0, 6.5, {
+      returnToNode: false,
+      barks: ['l2-seam', 'l2-seam-2', 'l2-voice-1', 'l2-voice-react'],
       fx: [
         { kind: 'flash', atBeat: 0.12 },
         { kind: 'lightning', at: 'BED_RIFT', atBeat: 0.12 },
@@ -54,7 +58,7 @@ export const bedroom: AreaScript = {
         { kind: 'lightning', at: 'BED_RIFT', atBeat: 0.6 },
       ],
     }),
-    travel('l2-wake-back', A, ['BED_WINDOW', 'BED_ROOM'], 1.6, { easing: 'easeOutCubic' }),
+    travel('l2-wake-back', A, ['BED_WINDOW_UP', 'BED_ROOM'], 1.6, { easing: 'easeOutCubic' }),
     // Scribble imps climb in through the window.
     fight('l2-bedroom-imps', A, { music: 'siege-battle', barks: ['l2-imps-window'] }),
     travel('l2-to-door', A, ['BED_ROOM', 'BED_DOOR'], 2.5, { barks: ['l2-firstyears'] }),

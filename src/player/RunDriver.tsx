@@ -25,6 +25,7 @@ export const debugCamera: { current: import('three').Camera | null } = { current
 
 const look = new Vector3();
 const framing = new Vector3();
+const lastFraming = new Vector3();
 const projected = new Vector3();
 const forward = new Vector3();
 const toTarget = new Vector3();
@@ -78,10 +79,12 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
     const pose = run.director.pose;
     camera.position.copy(pose.position);
     const goal = run.framingTarget(framing);
-    const hasTarget = goal > 0;
+    // Owner (2026-10-08): "the speed round jumps the camera after it's done". When the last word goes,
+    // the camera eases back from where it was leaning instead of snapping to the rail.
+    if (goal > 0) lastFraming.copy(framing);
     blend.current += (goal - blend.current) * (1 - Math.exp(-FRAMING_RATE * Math.min(delta, 0.1)));
     look.copy(pose.lookAt);
-    if (blend.current > 0.001 && hasTarget) look.lerp(framing, blend.current);
+    if (blend.current > 0.001) look.lerp(lastFraming, blend.current);
     if (run.shakeTime > 0) {
       const k = run.shakeTime * SHAKE_AMPLITUDE * 3;
       const t = time.current * 37;

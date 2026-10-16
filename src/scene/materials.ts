@@ -93,6 +93,8 @@ export const MAT = {
   crackedRedGround: std('#9a5a48', 1),
   /** Rocky ground and cliffs. */
   rockGround: std('#6a6260', 1),
+  /** Packed brown earth (the Bell Bridge's far bank). */
+  earth: std('#7a5a3e', 1),
   /** The Cinder Citadel's black volcanic stone. */
   volcanicStone: std('#3a3436', 0.9),
   /** Riveted dark iron plates (forge machinery). */

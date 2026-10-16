@@ -5,25 +5,40 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  Line,
-  LineBasicMaterial,
+  DoubleSide,
+  MeshBasicMaterial as BasicMaterial,
   Points,
+  Sprite,
+  SpriteMaterial,
   PointsMaterial,
   Vector3,
   type Group,
   type Mesh,
-  type MeshBasicMaterial,
 } from 'three';
 import { PROJECTILE_SEC } from '../enemies/EnemyBrain';
 import { getRun } from '../state/gameStore';
 import { castSignal, wandTip } from '../player/Wand';
+import { glintTexture, glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from '../scene/glow';
 
 const POOL = 10;
 const TRAIL = 7;
 const BURSTS = 8;
 const BURST_PARTICLES = 28;
 const BURST_SEC = 0.55;
-const CHAIN_SEC = 0.35;
+/** A Chain Spark bolt: it races from the struck foe to the next in CHAIN_TRAVEL, then fades. */
+const CHAIN_SEC = 0.6;
+const CHAIN_TRAVEL = 0.22;
+const CHAIN_BEADS = 22;
+
+interface ChainBolt {
+  group: Group | null;
+  beads: (Sprite | null)[];
+  material: SpriteMaterial;
+  path: Vector3[];
+  to: Vector3;
+  t: number;
+  landed: boolean;
+}
 
 /** Trail colours by cosmetic (§7.3 Starlight, §7.6 Verdant). */
 const TRAILS: Record<string, { core: string; halo: string }> = {
@@ -47,6 +62,21 @@ interface Projectile {
   /** 0–1: grows with the combo, making the bolt bigger and the burst wider. */
   power: number;
 }
+
+interface ProjectileVisual {
+  group: Group | null;
+  core: Sprite | null;
+  halo: Sprite | null;
+  flare: Sprite | null;
+  streak: Mesh | null;
+  coreMat: SpriteMaterial;
+  haloMat: SpriteMaterial;
+  flareMat: SpriteMaterial;
+  streakMat: BasicMaterial;
+}
+
+const head = new Vector3();
+const tail = new Vector3();
 
 interface Burst {
   active: boolean;
@@ -91,7 +121,9 @@ export function SpellEffects() {
         geo.setAttribute('position', new BufferAttribute(new Float32Array(BURST_PARTICLES * 3), 3));
         const mat = new PointsMaterial({
           color: '#ffe7a3',
-          size: 0.06,
+          // Soft round glows (square points looked blocky).
+          map: glowTexture(),
+          size: 0.14,
           transparent: true,
           opacity: 1,
           depthWrite: false,
@@ -104,22 +136,38 @@ export function SpellEffects() {
       }),
     [bursts],
   );
-  const chains = useMemo(
+  const chains = useMemo<ChainBolt[]>(
     () =>
-      Array.from({ length: 4 }, () => {
-        const geo = new BufferGeometry();
-        geo.setAttribute('position', new BufferAttribute(new Float32Array(10 * 3), 3));
-        const line = new Line(geo, new LineBasicMaterial({ color: '#9ff4ff', toneMapped: false }));
-        line.frustumCulled = false;
-        line.visible = false;
-        return { line, t: 99 };
-      }),
+      Array.from({ length: 6 }, () => ({
+        group: null,
+        beads: [],
+        material: new SpriteMaterial({ map: glowTexture(), color: '#9ff4ff', transparent: true, opacity: 1, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+        path: Array.from({ length: CHAIN_BEADS }, () => new Vector3()),
+        to: new Vector3(),
+        t: 99,
+        landed: true,
+      })),
     [],
   );
-  const projectileMeshes = useRef<(Group | null)[]>([]);
+  // Each projectile: a white-hot core, a coloured halo, a turning star flare and a streak behind it.
+  const projectileVisuals = useMemo<ProjectileVisual[]>(
+    () =>
+      projectiles.map(() => ({
+        group: null,
+        core: null,
+        halo: null,
+        flare: null,
+        streak: null,
+        coreMat: new SpriteMaterial({ map: glowTexture(), color: '#ffffff', blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+        haloMat: new SpriteMaterial({ map: glowTexture(), color: '#7fc8ff', opacity: 0.8, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+        flareMat: new SpriteMaterial({ map: glintTexture(), color: '#7fc8ff', opacity: 0.9, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+        streakMat: new BasicMaterial({ map: streakTexture(), color: '#7fc8ff', transparent: true, blending: AdditiveBlending, depthWrite: false, toneMapped: false, side: DoubleSide }),
+      })),
+    [projectiles],
+  );
   const seen = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame(({ camera }, delta) => {
     const run = getRun();
     if (!run) return;
     const trailKey = run.trail ?? 'default';
@@ -133,8 +181,11 @@ export function SpellEffects() {
       const to = e.to.clone();
       to.y += (target?.spawn.labelHeight ?? 1) * 0.45;
       if (e.kind === 'chain') {
-        startChain(chains, wandTip, to);
-        startBurst(bursts, to, false);
+        // Owner (2026-10-08): the next foe "suddenly died". The bolt now jumps visibly from the foe
+        // that was hit to the next one, and bursts where it lands.
+        const from = e.from ? e.from.clone() : wandTip.clone();
+        if (e.from) from.y += 0.5;
+        startChain(chains, from, to);
         continue;
       }
       castSignal.time = 0;
@@ -144,7 +195,8 @@ export function SpellEffects() {
       p.t = 0;
       p.from.copy(wandTip);
       p.to.copy(to);
-      p.arc.set((Math.random() - 0.5) * 0.4, 0.35 + Math.random() * 0.2, 0);
+      // Owner (2026-10-08): straight from the wand to the target, not lobbed like artillery.
+      p.arc.set(0, 0, 0);
       p.power = e.power ?? 0;
       for (const h of p.history) h.copy(wandTip);
       const palette = TRAILS[e.kind === 'frost' ? 'frost' : trailKey] ?? TRAILS.default;
@@ -155,34 +207,32 @@ export function SpellEffects() {
     }
 
     projectiles.forEach((p, i) => {
-      const g = projectileMeshes.current[i];
-      if (!g) return;
+      const v = projectileVisuals[i];
+      if (!v || !v.group) return;
       if (!p.active) {
-        g.visible = false;
+        v.group.visible = false;
         return;
       }
       p.t += delta;
       const u = Math.min(1, p.t / PROJECTILE_SEC);
-      const pos = g.children[0]?.position ?? new Vector3();
-      pos.lerpVectors(p.from, p.to, u);
-      pos.addScaledVector(p.arc, Math.sin(u * Math.PI));
-      for (let k = TRAIL - 1; k > 0; k--) p.history[k]?.copy(p.history[k - 1] ?? pos);
-      p.history[0]?.copy(pos);
-      g.visible = true;
-      g.children.forEach((child, k) => {
-        if (k === 0) {
-          const mat = (child as Mesh).material as MeshBasicMaterial;
-          mat.color.copy(p.color.core);
-          child.scale.setScalar(1 + p.power * 1.4);
-          return;
-        }
-        const h = p.history[k - 1];
-        if (h) child.position.copy(h);
-        const mat = (child as Mesh).material as MeshBasicMaterial;
-        mat.color.copy(p.color.halo);
-        mat.opacity = 0.5 * (1 - k / (TRAIL + 1));
-        child.scale.setScalar((1 - k / (TRAIL + 2)) * (1 + p.power * 1.4));
-      });
+      head.lerpVectors(p.from, p.to, u);
+      tail.lerpVectors(p.from, p.to, Math.max(0, u - 0.35));
+      v.group.visible = true;
+      const size = 1 + p.power * 1.4;
+      v.coreMat.color.copy(p.color.core);
+      v.haloMat.color.copy(p.color.halo);
+      v.flareMat.color.copy(p.color.halo);
+      v.streakMat.color.copy(p.color.halo);
+      v.core?.position.copy(head);
+      v.core?.scale.setScalar(0.22 * size);
+      v.halo?.position.copy(head);
+      v.halo?.scale.setScalar(0.6 * size);
+      if (v.flare) {
+        v.flare.position.copy(head);
+        v.flare.scale.setScalar(0.5 * size);
+        v.flareMat.rotation = p.t * 9;
+      }
+      if (v.streak) placeStreak(v.streak, tail, head, 0.07 * size, camera.position);
       if (u >= 1) {
         p.active = false;
         startBurst(bursts, p.to, false, p.color.halo, p.power);
@@ -217,31 +267,47 @@ export function SpellEffects() {
 
     for (const c of chains) {
       c.t += delta;
-      c.line.visible = c.t < CHAIN_SEC;
+      const live = c.t < CHAIN_SEC;
+      if (c.group) c.group.visible = live;
+      if (!live) continue;
+      const head = Math.min(1, c.t / CHAIN_TRAVEL);
+      c.material.opacity = c.t < CHAIN_TRAVEL ? 1 : Math.max(0, 1 - (c.t - CHAIN_TRAVEL) / (CHAIN_SEC - CHAIN_TRAVEL));
+      c.beads.forEach((m, i) => {
+        if (!m) return;
+        const u = i / (CHAIN_BEADS - 1);
+        m.visible = u <= head;
+        const p = c.path[i];
+        if (p) m.position.set(p.x + (Math.random() - 0.5) * 0.05, p.y + (Math.random() - 0.5) * 0.05, p.z + (Math.random() - 0.5) * 0.05);
+        // A bright head races ahead of a crackling trail.
+        const atHead = Math.abs(u - head) < 0.08 && head < 1;
+        m.scale.setScalar(atHead ? 0.38 : 0.16 + Math.random() * 0.08);
+      });
+      if (!c.landed && head >= 1) {
+        c.landed = true;
+        startBurst(bursts, c.to, false, undefined, 0.6);
+      }
     }
   });
 
   return (
     <group name="spell-effects">
-      {projectiles.map((_, i) => (
-        <group key={i} ref={(g) => void (projectileMeshes.current[i] = g)} visible={false}>
-          <mesh>
-            <sphereGeometry args={[0.07, 14, 10]} />
-            <meshBasicMaterial color="#fff1c2" toneMapped={false} />
-          </mesh>
-          {Array.from({ length: TRAIL }, (_, k) => (
-            <mesh key={k}>
-              <sphereGeometry args={[0.09, 10, 8]} />
-              <meshBasicMaterial color="#7fc8ff" transparent opacity={0.4} depthWrite={false} blending={AdditiveBlending} toneMapped={false} />
-            </mesh>
-          ))}
+      {projectileVisuals.map((v, i) => (
+        <group key={i} ref={(g) => void (v.group = g)} visible={false}>
+          <mesh ref={(m) => void (v.streak = m)} geometry={STREAK_GEOMETRY} material={v.streakMat} frustumCulled={false} />
+          <sprite ref={(m) => void (v.halo = m)} material={v.haloMat} />
+          <sprite ref={(m) => void (v.flare = m)} material={v.flareMat} />
+          <sprite ref={(m) => void (v.core = m)} material={v.coreMat} />
         </group>
       ))}
       {burstPoints.map((p, i) => (
         <primitive key={`burst-${i}`} object={p} />
       ))}
       {chains.map((c, i) => (
-        <primitive key={`chain-${i}`} object={c.line} />
+        <group key={`chain-${i}`} ref={(g) => void (c.group = g)} visible={false}>
+          {Array.from({ length: CHAIN_BEADS }, (_, k) => (
+            <sprite key={k} ref={(m) => void (c.beads[k] = m)} material={c.material} frustumCulled={false} />
+          ))}
+        </group>
       ))}
     </group>
   );
@@ -267,20 +333,21 @@ function startBurst(bursts: Burst[], origin: Vector3, reduced: boolean, color?: 
   void color;
 }
 
-function startChain(chains: { line: Line; t: number }[], from: Vector3, to: Vector3): void {
+/** A jagged, arcing lightning path from one foe to the next. */
+function startChain(chains: ChainBolt[], from: Vector3, to: Vector3): void {
   const c = chains.find((x) => x.t >= CHAIN_SEC) ?? chains[0];
   if (!c) return;
   c.t = 0;
-  const attr = c.line.geometry.getAttribute('position') as BufferAttribute;
-  const arr = attr.array as Float32Array;
-  const n = arr.length / 3;
-  for (let i = 0; i < n; i++) {
-    const u = i / (n - 1);
-    const jitter = i === 0 || i === n - 1 ? 0 : 0.18;
-    arr[i * 3] = from.x + (to.x - from.x) * u + (Math.random() - 0.5) * jitter;
-    arr[i * 3 + 1] = from.y + (to.y - from.y) * u + (Math.random() - 0.5) * jitter;
-    arr[i * 3 + 2] = from.z + (to.z - from.z) * u + (Math.random() - 0.5) * jitter;
+  c.landed = false;
+  c.to.copy(to);
+  const span = from.distanceTo(to);
+  for (let i = 0; i < CHAIN_BEADS; i++) {
+    const u = i / (CHAIN_BEADS - 1);
+    const jag = i === 0 || i === CHAIN_BEADS - 1 ? 0 : 0.12 + span * 0.04;
+    c.path[i]?.set(
+      from.x + (to.x - from.x) * u + (Math.random() - 0.5) * jag,
+      from.y + (to.y - from.y) * u + Math.sin(u * Math.PI) * Math.min(1.2, span * 0.25) + (Math.random() - 0.5) * jag,
+      from.z + (to.z - from.z) * u + (Math.random() - 0.5) * jag,
+    );
   }
-  attr.needsUpdate = true;
-  c.line.visible = true;
 }

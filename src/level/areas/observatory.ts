@@ -231,10 +231,7 @@ export const celebration: AreaScript = {
       fx: [{ kind: 'fireworks', at: 'CEL_SKY', atBeat: 0.3, scale: 1.3 }],
     }),
     talk('celebration-orin-1', C, ['end-1', 'end-2'], { attention: 'ending' }),
-    reveal('celebration-warden', C, 'CEL_GATHER', ['CEL_WARDEN_BALCONY'], 1.8, 2.0, {
-      attention: 'ending',
-      fx: [{ kind: 'fireworks', at: 'CEL_WARDEN_BALCONY', atBeat: 0.4, scale: 1.4 }],
-    }),
+    // (No turn to the balcony fireworks here: owner, 2026-10-08, it was distracting mid-conversation.)
     talk('celebration-banter', C, ['end-4', 'end-6'], { attention: 'ending' }),
     travel('celebration-final', C, ['CEL_GATHER', 'CEL_FINAL'], 5, {
       reducedMotion: 'glide',

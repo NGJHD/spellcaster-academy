@@ -59,6 +59,7 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   burntGround: { texture: 'burned_ground_01', tileMetres: 4, tint: '#c8b0a4' },
   crackedRedGround: { texture: 'cracked_red_ground', tileMetres: 3, tint: '#e0b0a0' },
   rockGround: { texture: 'rock_ground_02', tileMetres: 3, tint: '#b8aca8' },
+  earth: { texture: 'farm_soil', tileMetres: 3, tint: '#e8c8a0' },
   volcanicStone: { texture: 'volcanic_rock_tiles', tileMetres: 2.5, tint: '#8a8088', normalScale: 1.2 },
   ironPlate: { texture: 'metal_plate', tileMetres: 2, tint: '#5a5a62' },
 };
@@ -167,10 +168,11 @@ export function worldCylinder(rTop: number, rBottom: number, h: number, segments
 }
 
 /** Open cylinder seen from inside (round towers, stairwells): reversed winding, inward normals, metre UVs. */
-export function insideCylinder(radius: number, h: number, segments = 48): BufferGeometry {
-  return cached(`incyl:${radius}:${h}:${segments}`, () => {
-    const g = new CylinderGeometry(radius, radius, h, segments, 1, true);
-    scaleUv(g, Math.PI * 2 * radius, h);
+export function insideCylinder(radius: number, h: number, segments = 48, thetaStart = 0, thetaLength = Math.PI * 2): BufferGeometry {
+  return cached(`incyl:${radius}:${h}:${segments}:${thetaStart}:${thetaLength}`, () => {
+    // thetaStart/thetaLength leave a gap for a doorway (CylinderGeometry angles: x = r sin θ, z = r cos θ).
+    const g = new CylinderGeometry(radius, radius, h, segments, 1, true, thetaStart, thetaLength);
+    scaleUv(g, thetaLength * radius, h);
     const index = g.getIndex();
     if (index) {
       for (let i = 0; i < index.count; i += 3) {
@@ -187,7 +189,8 @@ export function insideCylinder(radius: number, h: number, segments = 48): Buffer
   });
 }
 
-function scaleUv(g: BufferGeometry, su: number, sv: number): void {
+/** Scales a geometry's UVs so its texture repeats every metre (su × sv metres across the 0–1 range). */
+export function scaleUv(g: BufferGeometry, su: number, sv: number): void {
   const uv = g.getAttribute('uv') as BufferAttribute;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * su, uv.getY(i) * sv);
   uv.needsUpdate = true;

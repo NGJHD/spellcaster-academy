@@ -28,6 +28,8 @@ export const ASSETS = {
     redactor: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.4, height: 2.4 }, wordAnchor: [0, 2.8, 0], budget: 'enemy', height: [2.2, 2.6] },
     scribble_imp: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.25, height: 0.8 }, wordAnchor: [0, 1.2, 0], budget: 'enemy', height: [0.7, 0.9] },
     vellum_wyrm: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 2.6, height: 6 }, wordAnchor: [0, 6.6, 0], budget: 'boss', height: [5.5, 6.5] },
+    // 2026-10-08: the page dragon on all fours with spread wings (replaces the coiled wyrm on the roof).
+    vellum_dragon: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 3, height: 11 }, wordAnchor: [0, 12.5, 0], budget: 'boss', height: [10, 13] },
     ink_wisp: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.25, height: 1.0 }, wordAnchor: [0, 1.35, 0], budget: 'enemy', height: [0.85, 1.25] },
     armour_guardian: { animations: ['Idle', 'Move', 'Attack', 'Hit', 'Dispel'], collision: { shape: 'capsule', radius: 0.45, height: 2.0 }, wordAnchor: [0, 2.35, 0], budget: 'hero', height: [1.8, 2.3] },
     ward_warden: { animations: [], collision: { shape: 'capsule', radius: 1.0, height: 3.6 }, wordAnchor: [0, 4.2, 0], budget: 'boss', height: [3.0, 4.0] },

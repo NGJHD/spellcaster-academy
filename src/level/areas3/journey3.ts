@@ -8,7 +8,7 @@
  *   8 m up and 12 m along −Z each; a wall of fire races up behind; the great doors at the top.
  */
 import type { Vec3 } from '../rail/railTypes';
-import { checkpoint, fade, fight, hold, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
+import { checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, hound, knight } from '../areas2/hush';
 import type { EncounterDef } from '../levelTypes';
 import { colour, correctionMoth, fireTide, fireball, foreman, memoryPage, pathWord, redactor } from './blank';
@@ -27,6 +27,11 @@ export const SHIP_BEATS = ['l3-ps-enter', 'l3-ps-sail-1', 'l3-ps-to-fleet', 'l3-
 export const GALLEONS: readonly Vec3[] = [S(-16, 0, -112), S(0, 0, -124), S(16, 0, -112)];
 export const FORGE_LINES = [-8, 0, 8] as const;
 export const FLIGHTS = [0, 1, 2, 3].map((i) => C(0, i * 8, -i * 12));
+/**
+ * Where a flight's written chunk `i` (0–2) sits, relative to its flight base. Owner (2026-10-16): the
+ * stairs ended under the landings; each flight now climbs right up to the front edge of its landing.
+ */
+export const flightChunk = (i: number): { dy: number; dz: number } => ({ dy: 1 + i * 2.4, dz: 0.6 - i * 3 });
 
 /** A colour target streaming past the ship (paper islands, a lighthouse, a whale outline). */
 const streaming = (id: string, side: number, word = len(3, 4)) => colour(id, S(0, 0, 0), word, `l3-${id}`, { follow: { ahead: 4.6, side, up: 0.1 }, leaveAfterSec: 5 });
@@ -39,6 +44,10 @@ export const sea: AreaScript = {
     PS_START: { position: S(0, 2.4, 40), lookAt: S(0, 0.6, 0) },
     PS_MID: { position: S(0, 2.4, -40), lookAt: S(0, 0.6, -90) },
     PS_FLEET: { position: S(0, 2.4, -84), lookAt: S(0, 6, -118) },
+    // Through the gap between the middle and right-hand galleons, not through their hulls (owner: "how
+    // did we sail through the ships?"). Hulls run along z, about 5 m wide, at x −16, 0 and 16.
+    PS_GAP_IN: { position: S(8.5, 2.4, -102), lookAt: S(8.5, 2.4, -140) },
+    PS_GAP_OUT: { position: S(8.5, 2.4, -138), lookAt: S(2, 3, -170) },
     PS_STORM: { position: S(0, 2.4, -150), lookAt: S(0, 4, -190) },
     PS_END: { position: S(0, 2.4, -210), lookAt: S(0, 8, -260) },
   },
@@ -59,12 +68,13 @@ export const sea: AreaScript = {
     }),
     travel('l3-ps-to-fleet', P, ['PS_MID', 'PS_FLEET'], 4, { music: 'citadel-battle', barks: ['l3-fleet'] }),
     fight('l3-ps-galleons', P),
-    travel('l3-ps-to-storm', P, ['PS_FLEET', 'PS_STORM'], 5, { fx: [{ kind: 'lightning', at: 'PS_FLEET_MID', atBeat: 0.6 }] }),
+    travel('l3-ps-to-storm', P, ['PS_FLEET', 'PS_GAP_IN', 'PS_GAP_OUT', 'PS_STORM'], 7, { fx: [{ kind: 'lightning', at: 'PS_FLEET_MID', atBeat: 0.6 }] }),
     fight('l3-ps-storm', P, { barks: ['l3-storm'] }),
     travel('l3-ps-to-end', P, ['PS_STORM', 'PS_END'], 5, {
       chase: [{ at: 0.4, target: memoryPage('sea-page', S(0, 0, 0), 'wave', 'memory-8', { follow: { ahead: 4.4, side: 1.3, up: 0.6 } }) }],
     }),
-    reveal('l3-citadel-looms', P, 'PS_END', ['PS_CITADEL'], 1, 1.5, { attention: 'spectacle', barks: ['l3-citadel-looms'] }),
+    // Holds on the Citadel until Pip has said it (it was said inside the forge).
+    reveal('l3-citadel-looms', P, 'PS_END', ['PS_CITADEL'], 1, 1.5, { barks: ['l3-citadel-looms'] }),
     checkpoint('l3-ps-checkpoint', P, 'paper-sea-crossed', { objective: 'l3-forge' }),
   ],
   encounters: [
@@ -140,6 +150,7 @@ export const forge: AreaScript = {
   },
   lookPoints: {
     FG_HAMMERS: F(0, 14, -34),
+    FG_DOOR: F(19.6, 2, -2),
   },
   beats: [
     fade('l3-forge-enter', K, 'FG_START', { music: 'citadel-battle', objective: 'l3-forge', barks: ['l3-forge-1'] }),
@@ -150,7 +161,10 @@ export const forge: AreaScript = {
     fight('l3-forge-line-3', K, { barks: ['l3-forge-foreman'] }),
     checkpoint('l3-forge-checkpoint', K, 'forge-stopped', { barks: ['l3-forge-done'], objective: 'l3-citadel' }),
     // Owner: "lead with the fire is coming, let's climb the stairs" — never just appear at the stairs.
-    hold('l3-forge-escape', K, 'FG_POST', 2.2, {
+    // Owner (2026-10-16): "To the stairs!" named stairs nobody had seen; the camera turns to the door
+    // out of the forge that leads up to them.
+    reveal('l3-forge-escape', K, 'FG_POST', ['FG_DOOR'], 0.7, 1.5, {
+      returnToNode: false,
       barks: ['l3-forge-run'],
       fx: [
         { kind: 'shake', scale: 1.2 },
@@ -172,7 +186,7 @@ const flight = (n: number, words: readonly [string, string, string]): EncounterD
       {
         id: 'steps',
         sequential: true,
-        targets: words.map((word, i) => pathWord(`flight${n}-${i + 1}`, [base[0], base[1] + 1.6 + i * 2.4, base[2] - 3 - i * 3], word, `l3-flight-${n}-${i + 1}`, { erased: n >= 3 })),
+        targets: words.map((word, i) => pathWord(`flight${n}-${i + 1}`, [base[0], base[1] + flightChunk(i).dy + 0.6, base[2] + flightChunk(i).dz], word, `l3-flight-${n}-${i + 1}`)),
       },
     ],
   };

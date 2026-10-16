@@ -1,6 +1,9 @@
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
-import { CatmullRomCurve3, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
+import { AdditiveBlending, CatmullRomCurve3, Color, SpriteMaterial, Vector3, type Group, type MeshStandardMaterial, type Object3D, type Sprite } from 'three';
+import { glintTexture, glowTexture } from '../scene/glow';
+import type { SpellId } from '../game/types';
+import { useRunStore } from '../state/runStore';
 import { MAT } from '../scene/materials';
 import { useParts } from '../scene/partsGlb';
 
@@ -73,6 +76,83 @@ export function Wand() {
           <ArmGLB rig={rig} />
         </Suspense>
       </group>
+      <WandAura root={root} />
+    </group>
+  );
+}
+
+/** Colour of the power-up swirl for each newly learned spell. */
+const AURA_COLOURS: Record<SpellId, string> = {
+  'spark-bolt': '#ffd36a',
+  'frost-thread': '#9fe8ff',
+  'chain-spark': '#7ff7ff',
+  starfall: '#fff0a0',
+  'bright-quill': '#ffb0f0',
+};
+const AURA_SEC = 6;
+const AURA_PARTICLES = 44;
+const auraLocal = new Vector3();
+
+/**
+ * Owner (2026-10-08): a new spell should show on the wand. When a spell is learned, glowing motes in
+ * its colour spiral up the wand to the tip for a few seconds (gold sparks, swirling ice, cyan arcs).
+ */
+function WandAura({ root }: { root: RefObject<Group | null> }) {
+  const group = useRef<Group>(null);
+  const motes = useRef<(Sprite | null)[]>([]);
+  const tipGlow = useRef<Sprite>(null);
+  const seen = useRef(useRunStore.getState().powerUp?.key ?? -1);
+  const t = useRef(AURA_SEC);
+  // Twinkling star sparks and a soft glow at the tip (owner: no blocky circles).
+  const material = useMemo(() => new SpriteMaterial({ map: glintTexture(), color: '#ffffff', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
+  const glowMaterial = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: '#ffffff', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
+  const colour = useMemo(() => new Color(), []);
+  useFrame((_, delta) => {
+    const g = group.current;
+    const r = root.current;
+    if (!g || !r) return;
+    const p = useRunStore.getState().powerUp;
+    if (p && p.key !== seen.current) {
+      seen.current = p.key;
+      t.current = 0;
+      material.color.copy(colour.set(AURA_COLOURS[p.spell]));
+      glowMaterial.color.copy(colour);
+    }
+    t.current += delta;
+    const live = t.current < AURA_SEC;
+    g.visible = live;
+    if (!live) return;
+    // Fade in fast, hold, fade out over the last second.
+    material.opacity = Math.min(1, t.current * 4, AURA_SEC - t.current);
+    glowMaterial.opacity = material.opacity * 0.8;
+    material.rotation = t.current * 3;
+    // The tip in the wand's own space; the wand runs back from the tip towards the hand.
+    auraLocal.copy(wandTip);
+    r.worldToLocal(auraLocal);
+    const time = t.current;
+    motes.current.forEach((m, i) => {
+      if (!m) return;
+      const phase = i / AURA_PARTICLES;
+      const along = (phase + time * 0.45) % 1;
+      const angle = phase * Math.PI * 10 + time * 7;
+      const radius = 0.03 + 0.03 * Math.sin(along * Math.PI);
+      m.position.set(auraLocal.x + Math.cos(angle) * radius, auraLocal.y + Math.sin(angle) * radius, auraLocal.z + 0.3 * (1 - along));
+      // Each spark twinkles: it swells and shrinks quickly as it climbs.
+      m.scale.setScalar((0.018 + 0.03 * along) * (0.4 + 0.6 * Math.abs(Math.sin(time * 9 + i * 1.7))));
+    });
+    // A pulsing glow at the tip, in the same colour.
+    const glow = tipGlow.current;
+    if (glow) {
+      glow.position.copy(auraLocal);
+      glow.scale.setScalar(0.09 + 0.03 * Math.sin(time * 9));
+    }
+  });
+  return (
+    <group ref={group} visible={false}>
+      <sprite ref={tipGlow} material={glowMaterial} />
+      {Array.from({ length: AURA_PARTICLES }, (_, i) => (
+        <sprite key={i} ref={(m) => void (motes.current[i] = m)} material={material} />
+      ))}
     </group>
   );
 }

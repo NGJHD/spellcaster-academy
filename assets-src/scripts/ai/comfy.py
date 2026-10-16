@@ -166,8 +166,11 @@ def ui_to_api(workflow, object_info, drop=("Preview3D", "Note", "MarkdownNote"))
     return graph
 
 
-def mesh(name, seed=12345):
-    """Concept PNG -> TRELLIS.2 textured GLB (and the untextured white mesh) in assets-src/ai-meshes."""
+def mesh(name, seed=12345, cascade=True):
+    """
+    Concept PNG -> TRELLIS.2 textured GLB (and the untextured white mesh) in assets-src/ai-meshes.
+    cascade=False decodes the 512 shape directly (skips the 1024 cascade), which fits the 10 GB RTX 3080.
+    """
     object_info = json.loads(get(TRELLIS, "/object_info"))
     with open(TRELLIS_WORKFLOW, encoding="utf-8") as f:
         workflow = json.load(f)
@@ -190,6 +193,15 @@ def mesh(name, seed=12345):
         del graph[key]
     for key in [k for k, n in graph.items() if n["class_type"] == "Trellis2ExportMesh" and n["inputs"].get("trimesh", [None])[0] not in graph]:
         del graph[key]
+    if not cascade:
+        cascades = [k for k, n in graph.items() if n["class_type"] == "Trellis2ShapeCascadeGenerator"]
+        for key in cascades:
+            source = graph[key]["inputs"].get("shape_slat") or next((v for v in graph[key]["inputs"].values() if isinstance(v, list) and v and graph.get(v[0], {}).get("class_type") == "Trellis2ShapeGenerator"), None)
+            for node in graph.values():
+                for k2, v in node["inputs"].items():
+                    if isinstance(v, list) and v and v[0] == key and source:
+                        node["inputs"][k2] = [source[0], v[1]]
+            del graph[key]
     image = upload_image(TRELLIS, os.path.join(CONCEPTS, f"{name}.png"))
     stamp = f"spellcaster_{name}_{int(time.time())}"
     for node in graph.values():
@@ -326,7 +338,7 @@ if __name__ == "__main__":
         for path in clean(args[1], seed_arg or 12345):
             print(path)
     elif args and args[0] == "mesh":
-        for path in mesh(args[1], seed_arg or 12345):
+        for path in mesh(args[1], seed_arg or 12345, cascade="--no-cascade" not in args):
             print(path)
     else:
         print(__doc__)

@@ -39,6 +39,7 @@ export function SceneCreature({
   goneFlag,
   fallback,
   rearing,
+  flying,
 }: {
   file: string;
   position: Vec3;
@@ -48,6 +49,8 @@ export function SceneCreature({
   goneFlag: string;
   fallback: ReactNode;
   rearing?: () => boolean;
+  /** While true the creature plays its Move clip (the dragon's wingbeats). */
+  flying?: () => boolean;
 }) {
   const shown = useReached(fromBeat);
   const group = useRef<Group>(null);
@@ -59,6 +62,7 @@ export function SceneCreature({
     p.time += dt;
     const gone = getRun()?.flags.has(goneFlag) ?? false;
     p.windup += ((rearing?.() ? 1 : 0) - p.windup) * (1 - Math.exp(-4 * dt));
+    p.moving = flying?.() ?? false;
     fade.current += ((gone ? 0 : 1) - fade.current) * (1 - Math.exp(-5 * dt));
     const g = group.current;
     if (!g) return;
@@ -225,6 +229,7 @@ export function StoneHall({
   bay = 8,
   windows = true,
   ends = true,
+  noWindowAt = [],
 }: {
   half: number;
   z0: number;
@@ -234,6 +239,8 @@ export function StoneHall({
   bay?: number;
   windows?: boolean;
   ends?: boolean;
+  /** Bays (side, window z) left without a window, e.g. over a tall door. */
+  noWindowAt?: readonly (readonly [number, number])[];
 }) {
   const length = z1 - z0;
   const mid = (z0 + z1) / 2;
@@ -270,7 +277,7 @@ export function StoneHall({
             <Column key={z} position={[side * (half - 0.35), 0, z]} height={height - 0.5} radius={0.42} />
           ))}
           {windows &&
-            bays.slice(0, -1).map((z) => (
+            bays.slice(0, -1).filter((z) => !noWindowAt.some(([s, wz]) => s === side && wz === z + bay / 2)).map((z) => (
               <WindowPane key={`w${z}`} position={[side * (half - 0.02), height * 0.55, z + bay / 2]} size={[1.8, 4]} rotationY={side < 0 ? Math.PI / 2 : -Math.PI / 2} night />
             ))}
         </group>

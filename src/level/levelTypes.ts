@@ -280,11 +280,6 @@ export interface TargetSpawn {
    */
   readonly counter?: boolean;
   /**
-   * Erased letters (LEVEL3_DESIGN L3-4): some letters are faded (by difficulty); the player still types
-   * the whole word. Never the first letter.
-   */
-  readonly erased?: boolean;
-  /**
    * Only a perfect word breaks this target (the Perfect Warden's shell, L3-11). An imperfect word
    * counts half, so the fight never stalls; on Gentle every word counts.
    */

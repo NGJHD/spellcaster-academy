@@ -7,7 +7,7 @@
  */
 import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, hold, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
 import { anchorBlast } from './courtyard';
 
 const A = 'whispering-library';
@@ -51,14 +51,17 @@ export const library: AreaScript = {
     LIB_ENTRY: { position: L(0, 1.6, 2), lookAt: L(0, 3, -10) },
     LIB_REVEAL: { position: L(0, 2.0, -3), lookAt: L(0, 4.5, -14) },
     LIB_COMBAT: { position: L(0, 1.6, -5), lookAt: L(0, 2.4, -14) },
-    LIB_CLUE_VIEW: { position: L(-4, 1.6, -9), lookAt: L(-11.8, 2.6, -13) },
+    // Down the aisle between the free-standing stacks, square on to the mosaic (owner: the camera stared
+    // at a bookshelf while Pip described the picture).
+    LIB_CLUE_AISLE: { position: L(-3, 1.7, -12.6), lookAt: L(-11.4, 2.4, -13) },
+    LIB_CLUE_VIEW: { position: L(-7.6, 1.8, -13), lookAt: L(-11.4, 2.5, -13) },
     LIB_GRIMOIRE_ARENA: { position: L(0, 1.6, -11), lookAt: GRIMOIRE_CENTRE },
     LIB_ANCHOR: { position: L(4.5, 1.6, -20.5), lookAt: L(8, 1.4, -26) },
   },
   lookPoints: {
     LIB_GRIMOIRE: L(0, 1.6, -20),
     LIB_BALCONY_PAGE: L(9.5, 5.4, -12),
-    LIB_MOSAIC: L(-11.8, 2.6, -13),
+    LIB_MOSAIC: L(-11.4, 2.5, -13),
     LIB_FLYING_BOOKS: L(0, 5.5, -10),
     LIB_INKWELL: INKWELL_POSITION,
     LIB_TOPPLE_SHELF: L(5.2, 1.2, -16),
@@ -82,10 +85,12 @@ export const library: AreaScript = {
     travel('library-to-combat', A, ['LIB_REVEAL', 'LIB_COMBAT'], 3, { reducedMotion: 'glide' }),
     fight('library-l1', A),
     fight('library-l2', A, { barks: ['lib-wisps'] }),
-    travel('library-to-clue', A, ['LIB_COMBAT', 'LIB_CLUE_VIEW'], 4),
-    // Look at the mosaic while Pip talks about it, then pan across to the balcony star page.
-    reveal('library-balcony-pan', A, 'LIB_CLUE_VIEW', ['LIB_MOSAIC', 'LIB_BALCONY_PAGE'], 1.4, 3.0, {
-      barks: ['lib-mosaic', 'lib-mosaic-2'],
+    travel('library-to-clue', A, ['LIB_COMBAT', 'LIB_CLUE_AISLE', 'LIB_CLUE_VIEW'], 5),
+    // Look at the mosaic while Pip and Mira talk about it (owner: the lines played while the camera
+    // looked at the balcony shelf)...
+    reveal('library-mosaic', A, 'LIB_CLUE_VIEW', ['LIB_MOSAIC'], 1.4, 3.0, { barks: ['lib-mosaic', 'lib-mosaic-2'] }),
+    // ...then pan across to the balcony star page (skipped when collectibles are off).
+    reveal('library-balcony-pan', A, 'LIB_CLUE_VIEW', ['LIB_BALCONY_PAGE'], 1.0, 1.5, {
       bonus: target('bonus-page-balcony', 'star-page', L(9.5, 5.1, -12), ['shelf'], {
         optional: true,
         labelHeight: 0.45,
@@ -112,15 +117,17 @@ export const library: AreaScript = {
     fight('grimoire-g1', A, { barks: ['lib-grim-clasps'] }),
     fight('grimoire-g2', A, { barks: ['lib-grim-pages'] }),
     fight('grimoire-g3', A, { barks: ['lib-grim-sentence'] }),
+    // Pip hears its whisper while still looking at it (owner: said as the camera turned away).
+    hold('library-grimoire-calm', A, 'LIB_GRIMOIRE_ARENA', 1, { barks: ['lib-grim-done'], music: 'library-mystery' }),
     travel('library-to-anchor', A, ['LIB_GRIMOIRE_ARENA', 'LIB_ANCHOR'], 4, {
-      barks: ['lib-grim-done'],
-      music: 'library-mystery',
       objective: 'library-anchor',
     }),
     // The anchor's instructions play over its words (§1B: dialogue plays over typing).
     fight('library-anchor', A, { barks: ['lib-anchor-intro'] }),
     reveal('library-anchor-pillar', A, 'LIB_ANCHOR', ['LIB_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('library-power', A, { barks: ['power-frost'] }),
+    // Where next and why, before the walk to the Hall of Portraits.
+    hold('library-exit', A, 'LIB_ANCHOR', 1, { barks: ['lib-exit'] }),
     checkpoint('library-checkpoint', A, 'library-restored', { objective: 'portraits' }),
   ],
   encounters: [

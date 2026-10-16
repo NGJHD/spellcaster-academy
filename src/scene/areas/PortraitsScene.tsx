@@ -3,10 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import type { Mesh } from 'three';
 import { PLAQUE_POSITIONS, PORTRAITS_ORIGIN } from '../../level/areas/portraits';
-import { Arch, Box, KitModel, Portrait, Rug, Slab, WallLamp, WindowPane } from '../kit';
+import { Arch, Box, KitModel, Portrait, Rug, Slab, WallLamp } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { StaticWarden } from '../props';
+import { CastleDoor } from '../CastleDoor';
 import { Prop } from '../Prop';
 
 const W = 3;
@@ -34,13 +35,13 @@ export function PortraitsScene() {
       ))}
       <Slab x={[-W - 0.3, W + 0.3]} y={[H, H + 0.3]} z={[-41, 2]} material={MAT.darkOak} />
       <Slab x={[-W, W]} y={[0, H]} z={[-41.3, -41]} material={MAT.academyStone} />
-      <WindowPane position={[0, 2.8, -40.95]} size={[2.4, 4]} />
       {Array.from({ length: 8 }, (_, i) => -2 - i * 5).map((z) => (
         <Arch key={z} position={[0, H - 0.2, z]} width={W * 2} thickness={0.25} material={MAT.darkOak} />
       ))}
       {Array.from({ length: 7 }, (_, i) => -3 - i * 5.2).map((z, i) => (
         <group key={z}>
-          <Portrait position={[-W + 0.05, 2.5, z]} rotationY={Math.PI / 2} painting={LEFT[i]} />
+          {/* The Warden's portrait and the empty frame hang at z −21…−23 (no painting there: they overlapped) */}
+          {i !== 4 && <Portrait position={[-W + 0.05, 2.5, z]} rotationY={Math.PI / 2} painting={LEFT[i]} />}
           {i !== 2 && i !== 5 && (
             <Portrait
               position={[W - 0.05, 2.5, z - 2]}
@@ -68,7 +69,11 @@ export function PortraitsScene() {
       ))}
       <KitModel id="gallery_bench" position={[-2.2, 0, -16]} rotationY={Math.PI / 2} />
       <KitModel id="gallery_bench" position={[2.2, 0, -24]} rotationY={-Math.PI / 2} />
-      <Prop id="gothic_statue" position={[0, 0, -39.6]} height={2.3} />
+      {/* The oak door to the greenhouse (it was a window with a statue in front of it) */}
+      <group position={[0, 0, -41]}>
+        <CastleDoor height={3.6} />
+      </group>
+      <Prop id="gothic_statue" position={[-2.3, 0, -38.6]} height={2.3} rotationY={0.5} />
       <Prop id="potted_plant_02" position={[-2.4, 0, -35]} height={1.3} />
       <Prop id="potted_plant_02" position={[2.4, 0, -6]} height={1.3} rotationY={2} />
       <Prop id="brass_candleholders" position={[2.2, 0.9, -13.2]} height={0.3} />
@@ -133,3 +138,4 @@ function CommunicationMirror() {
     </group>
   );
 }
+

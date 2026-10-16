@@ -1,0 +1,2 @@
+seed: 63
+prompt: A single long old wooden rowing oar lying flat, a round worn handle and a long flat paddle blade, dark weathered oak with iron bands, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

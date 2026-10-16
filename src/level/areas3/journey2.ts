@@ -23,8 +23,22 @@ const I = origin(FALLS_ORIGIN);
 const L = origin(MARGIN_ORIGIN);
 const Y = origin(GALLERY3_ORIGIN);
 export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
-export const SLIDE_SECTIONS: readonly Vec3[] = [I(0, 14, -96), I(0, 9, -106), I(0, 4, -116)];
-export const WALKWAYS: readonly Vec3[] = [L(0, 0, -4), L(0, 0, -12), L(0, 0, -20)];
+/**
+ * The written slide down the broken drop: from the basin's edge (z −88, y 19.8) down into the pool
+ * (z −120, y 1). Owner (2026-10-08): the slides pointed upwards and we slid down behind them.
+ */
+export const SLIDE_TOP: Vec3 = I(0, 19.8, -88);
+export const SLIDE_BOTTOM: Vec3 = I(0, 1, -120);
+/** Downward pitch of the slide (radians) and the length of each of its three sections. */
+export const SLIDE_PITCH = Math.atan2(SLIDE_TOP[1] - SLIDE_BOTTOM[1], SLIDE_TOP[2] - SLIDE_BOTTOM[2]);
+export const SLIDE_SECTION_LENGTH = Math.hypot(SLIDE_TOP[1] - SLIDE_BOTTOM[1], SLIDE_TOP[2] - SLIDE_BOTTOM[2]) / 3;
+const slideAt = (u: number): Vec3 => [0 + FALLS_ORIGIN[0], SLIDE_TOP[1] + (SLIDE_BOTTOM[1] - SLIDE_TOP[1]) * u, SLIDE_TOP[2] + (SLIDE_BOTTOM[2] - SLIDE_TOP[2]) * u];
+export const SLIDE_SECTIONS: readonly Vec3[] = [slideAt(1 / 6), slideAt(3 / 6), slideAt(5 / 6)];
+/** Where the page raft waits on the ink at the top, before the hop (same place the ride puts it). */
+export const RAFT_WAITING: Vec3 = I(0, 40.5, 0);
+/** Three written sections spanning the whole chasm, from our floor's edge (z 2) to the far side (z −24). */
+export const WALKWAY_LENGTH = 26 / 3;
+export const WALKWAYS: readonly Vec3[] = [0, 1, 2].map((i) => L(0, 0, 2 - WALKWAY_LENGTH * (i + 0.5)));
 export const JOURNAL: Vec3 = L(0, 2, -40);
 export const PERFECT_WARDEN: Vec3 = Y(0, 0, -20);
 const PW_CORE = Y(0, 3.6, -19);
@@ -32,7 +46,6 @@ const PW_CORE = Y(0, 3.6, -19);
 const wisp = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'wisp', path[0] ?? L(0, 0, -20), [len(3, 5), len(4, 6)], {
     shield: true,
-    erased: true,
     movement: { kind: 'approach', path, speed: 0.9 },
     attack: { kind: 'ranged', windupSec: 1.3, recoverSec: 0.7, intervalSec: 7, damage: 8 },
     labelHeight: 1.35,
@@ -45,38 +58,51 @@ const greyPage = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}):
     movement: { kind: 'patrol', path, speed: 1.8 },
     labelHeight: 0.35,
     weak: true,
-    erased: true,
     defeatFx: { kind: 'burst', scale: 0.7, color: '#ffe6a0' },
     ...options,
   });
 
 export const inkfall: AreaScript = {
   nodes: {
+    // On the rocky bank, looking down at the page raft waiting on the ink.
+    IF_BANK: { position: I(0, 42.2, 6.5), lookAt: I(0, 40.2, -1.5) },
+    IF_HOP: { position: I(0, 42.9, 2.6), lookAt: I(0, 38.5, -14) },
     IF_TOP: { position: I(0, 41.6, 0), lookAt: I(0, 36, -24) },
-    IF_S1: { position: I(0, 31.6, -30), lookAt: I(0, 28, -50) },
-    IF_BASIN: { position: I(0, 21.6, -60), lookAt: I(0, 20, -80) },
-    IF_DROP: { position: I(0, 16.6, -88), lookAt: I(0, 4, -112) },
+    // Owner (2026-10-16): the raft sailed straight down through the ink. It now rides each terrace to its
+    // lip, then tips over and drops to the next.
+    IF_RUN1: { position: I(0, 41.6, -18), lookAt: I(0, 38, -40) },
+    IF_LIP1: { position: I(0, 41.5, -27.5), lookAt: I(0, 30, -42) },
+    IF_S1: { position: I(0, 31.6, -30.5), lookAt: I(0, 28, -50) },
+    IF_RUN2: { position: I(0, 31.6, -48), lookAt: I(0, 28, -70) },
+    IF_LIP2: { position: I(0, 31.5, -57.5), lookAt: I(0, 20, -72) },
+    IF_BASIN: { position: I(0, 21.6, -60.5), lookAt: I(0, 20, -80) },
+    // At the basin's edge, then riding the slide surface (raft 1.1 m below the eye) into the pool.
+    IF_DROP: { position: I(0, 21.6, -86), lookAt: I(0, 6, -112) },
+    IF_SLIDE_A: { position: [SLIDE_SECTIONS[0]?.[0] ?? 0, (SLIDE_SECTIONS[0]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[0]?.[2] ?? 0], lookAt: I(0, 2, -122) },
+    IF_SLIDE_B: { position: [SLIDE_SECTIONS[2]?.[0] ?? 0, (SLIDE_SECTIONS[2]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[2]?.[2] ?? 0], lookAt: I(0, 1.2, -140) },
     IF_POOL: { position: I(0, 1.6, -126), lookAt: I(0, 1.4, -142) },
   },
   lookPoints: {
     IF_FALLS: I(0, 10, -100),
   },
   beats: [
-    fade('l3-if-enter', F, 'IF_TOP', { music: 'citadel-battle', objective: 'l3-inkfall', barks: ['l3-raft'] }),
+    // Owner (2026-10-08): see the page raft first, then jump onto it.
+    fade('l3-if-enter', F, 'IF_BANK', { music: 'citadel-battle', objective: 'l3-inkfall', barks: ['l3-raft'] }),
+    travel('l3-raft-board', F, ['IF_BANK', 'IF_HOP', 'IF_TOP'], 2.2, { easing: 'easeInOutSine' }),
     // Owner (2026-10-07): "won't we burn to death?" A frost bubble keeps the fire off the paper raft.
     hold('l3-shield-up', F, 'IF_TOP', 1, {
       barks: ['l3-shield'],
       chase: [{ at: 0.05, target: pathWord('raft-shield', I(0, 41.4, -4), 'shield', 'l3-shield-on', { defeatBark: 'l3-shield-on', defeatFx: { kind: 'shockwave', scale: 1.2, color: '#9fd8ff' } }) }],
     }),
-    travel('l3-raft-1', F, ['IF_TOP', 'IF_S1'], 6, {
+    travel('l3-raft-1', F, ['IF_TOP', 'IF_RUN1', 'IF_LIP1', 'IF_S1'], 6, {
       chase: [{ at: 0.4, target: memoryPage('falls-page', I(0, 0, 0), 'drift', 'memory-3', { follow: { ahead: 4.4, side: 1.3, up: 0.6 } }) }],
     }),
     fight('l3-if-s1', F),
-    travel('l3-raft-2', F, ['IF_S1', 'IF_BASIN'], 4),
+    travel('l3-raft-2', F, ['IF_S1', 'IF_RUN2', 'IF_LIP2', 'IF_BASIN'], 4.5),
     fight('l3-tide-1', F, { barks: ['l3-tide-tip'] }),
     travel('l3-raft-3', F, ['IF_BASIN', 'IF_DROP'], 4, { barks: ['l3-broken-drop'] }),
     fight('l3-if-slide', F),
-    travel('l3-raft-slide', F, ['IF_DROP', 'IF_POOL'], 5, { easing: 'easeInOutCubic', fx: [{ kind: 'geyser', at: 'IF_FALLS', atBeat: 0.9, scale: 1.6, color: '#ff3a1a' }] }),
+    travel('l3-raft-slide', F, ['IF_DROP', 'IF_SLIDE_A', 'IF_SLIDE_B', 'IF_POOL'], 6, { easing: 'easeInOutCubic', fx: [{ kind: 'geyser', at: 'IF_FALLS', atBeat: 0.9, scale: 1.6, color: '#ff3a1a' }] }),
     fight('l3-if-pool', F),
     checkpoint('l3-if-checkpoint', F, 'inkfall-descended', { barks: ['l3-mira-raft'], objective: 'l3-margin' }),
   ],
@@ -194,9 +220,10 @@ export const margin: AreaScript = {
           id: 'memories',
           sequential: true,
           targets: ([['orb', 'memory-4', 'l3-mem-4'], ['quill', 'memory-5', 'l3-mem-5'], ['flee', 'memory-6', 'l3-mem-6']] as const).map(([word, page, bark], i) =>
-            target(`journal-page-${i + 1}`, 'star-page', L(-2 + i * 2, 5 + i, -38), [word], {
+            // Low enough to stay well inside the view (owner, 2026-10-16: "orb" was too high to see).
+            target(`journal-page-${i + 1}`, 'star-page', L(-2 + i * 2, 3 + i * 0.4, -38), [word], {
               labelHeight: 0.4,
-              movement: { kind: 'patrol', path: [L(-3 + i * 2, 4 + i, -39), L(-1 + i * 2, 6 + i, -38)], speed: 0.8 },
+              movement: { kind: 'patrol', path: [L(-3 + i * 2, 2.6 + i * 0.4, -39), L(-1 + i * 2, 3.4 + i * 0.4, -38)], speed: 0.8 },
               reward: { starPage: page },
               defeatBark: bark,
               defeatFx: { kind: 'flash', scale: 1, color: '#ffe6a0' },
@@ -266,7 +293,9 @@ export const gallery3: AreaScript = {
     fight('l3-pw-1', G, { barks: ['l3-pw-mirror'] }),
     fight('l3-pw-2', G, { barks: ['l3-pw-perfect'] }),
     fight('l3-pw-3', G, { barks: ['l3-pw-together'] }),
-    checkpoint('l3-g3-checkpoint', G, 'perfect-warden-defeated', { barks: ['l3-pw-done', 'l3-pw-after'], objective: 'l3-sea' }),
+    // Said in the gallery, with our Warden still in view (they played out at sea).
+    hold('l3-g3-after', G, 'G3_ARENA', 1, { barks: ['l3-pw-done', 'l3-pw-after'] }),
+    checkpoint('l3-g3-checkpoint', G, 'perfect-warden-defeated', { objective: 'l3-sea' }),
   ],
   encounters: [
     {
@@ -300,14 +329,14 @@ export const gallery3: AreaScript = {
         {
           id: 'plates-1',
           sequential: true,
-          targets: [0, 1, 2].map((i) => marker(`pw-plate-${i + 1}`, Y(-1.5 + i * 1.5, 3 + (i % 2) * 1.6, -19), len(5, 6), { labelHeight: 0.3, erased: true, defeatFx: { kind: 'debris', scale: 1, color: '#2a2a30' } })),
+          targets: [0, 1, 2].map((i) => marker(`pw-plate-${i + 1}`, Y(-1.5 + i * 1.5, 3 + (i % 2) * 1.6, -19), len(5, 6), { labelHeight: 0.3, defeatFx: { kind: 'debris', scale: 1, color: '#2a2a30' } })),
         },
         {
           id: 'arcs',
           targets: [
             fireball('pw-arc-1', PW_CORE, Y(-0.6, 1.7, 2.6)),
-            marker('pw-plate-4', Y(-1, 5.6, -19), len(5, 6), { labelHeight: 0.3, erased: true }),
-            marker('pw-plate-5', Y(1.2, 2.2, -19), len(5, 6), { labelHeight: 0.3, erased: true, delaySec: 1 }),
+            marker('pw-plate-4', Y(-1, 5.6, -19), len(5, 6), { labelHeight: 0.3 }),
+            marker('pw-plate-5', Y(1.2, 2.2, -19), len(5, 6), { labelHeight: 0.3, delaySec: 1 }),
             fireball('pw-arc-2', PW_CORE, Y(0.6, 1.8, 2.6), { delaySec: 2 }),
           ],
         },

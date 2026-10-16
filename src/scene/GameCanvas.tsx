@@ -29,6 +29,10 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       shadows={quality === 'low' ? false : { type: PCFShadowMap }}
       dpr={[...DPR[quality]]}
       camera={{ fov: 62, near: 0.05, far: 900, position: [0, 24, 95] }}
+      // Per-material clipping: half-erased creatures in Level 3 (see Restorable `erased`).
+      onCreated={({ gl }) => {
+        gl.localClippingEnabled = true;
+      }}
       gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
     >
       <RunDriver fadeRef={fadeRef} />

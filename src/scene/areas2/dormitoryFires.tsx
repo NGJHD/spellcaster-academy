@@ -25,7 +25,7 @@ export function DormitoryFires() {
               {/* A carved oak door (CC0 model; its base sits 1.13 m below its origin at full size) */}
               <ModelBoundary fallback={<Box position={[door[0], floor + 1.3, door[2]]} size={[1.4, 2.6, 0.16]} rotation={[0, -a - Math.PI / 2, 0]} material={MAT.darkOak} />}>
                 <Suspense fallback={null}>
-                  <Prop id="large_castle_door" position={[door[0], floor + 1.13 * (2.6 / 4.07), door[2]]} height={2.6} rotationY={-a - Math.PI / 2} />
+                  <Prop id="large_castle_door" position={[door[0], floor + 0.02, door[2]]} height={2.6} rotationY={-a - Math.PI / 2} />
                 </Suspense>
               </ModelBoundary>
             </Restorable>

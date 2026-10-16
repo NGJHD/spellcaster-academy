@@ -724,7 +724,9 @@ export function FireballModel({ pose }: { pose: PoseRef }) {
     }
   });
   return (
+    // Twice the old size, so it reads as a fireball from far away (owner: "where are the fireballs?").
     <group ref={core}>
+      <group scale={2}>
       <sprite material={haloMat} scale={2.2} />
       <sprite ref={flameB} material={flameMatB} scale={1.25} />
       <sprite ref={flameA} material={flameMatA} scale={0.95} />
@@ -733,6 +735,7 @@ export function FireballModel({ pose }: { pose: PoseRef }) {
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <sprite key={i} material={emberMat} scale={0.1} />
         ))}
+      </group>
       </group>
     </group>
   );

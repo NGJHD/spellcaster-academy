@@ -321,6 +321,8 @@ export interface CameoKey {
   readonly position: Vec3;
   /** Arm raised towards something (drives the attack pose). */
   readonly arm?: number;
+  /** Facing (radians about Y); defaults to the cameo's `rotationY`. */
+  readonly yaw?: number;
 }
 
 /**
@@ -330,13 +332,14 @@ export interface CameoKey {
 export function WardenCameo({ beatId, keys, scale = 1, rotationY = 0 }: { beatId: string; keys: readonly CameoKey[]; scale?: number; rotationY?: number }) {
   const group = useRef<Group>(null);
   const state = useRef<WardenState>({ rise: 1, shellOpen: 0, core: 0.6, calm: 0, attack: 0, bow: 0 });
-  const beat = useBeatIndex();
   const index = getRun()?.level.beatIndexOf(beatId) ?? beatIndexOf(beatId);
   useFrame(() => {
     const g = group.current;
     const run = getRun();
     if (!g || !run) return;
-    g.visible = beat === index;
+    // The live beat, not React's copy: that lags a frame, and for that frame the cameo was drawn at the
+    // start of its path using the next beat's progress (owner: the Warden "flashed" after leaving).
+    g.visible = run.director.currentIndex === index;
     if (!g.visible) return;
     const t = run.beatProgress();
     let i = 0;
@@ -349,6 +352,8 @@ export function WardenCameo({ beatId, keys, scale = 1, rotationY = 0 }: { beatId
     const e = u * u * (3 - 2 * u);
     g.position.set(a.position[0] + (b.position[0] - a.position[0]) * e, a.position[1] + (b.position[1] - a.position[1]) * e, a.position[2] + (b.position[2] - a.position[2]) * e);
     state.current.attack = (a.arm ?? 0) + ((b.arm ?? 0) - (a.arm ?? 0)) * e;
+    const yawA = a.yaw ?? rotationY;
+    g.rotation.y = yawA + ((b.yaw ?? rotationY) - yawA) * e;
   });
   return (
     <group ref={group} visible={false} rotation={[0, rotationY, 0]}>

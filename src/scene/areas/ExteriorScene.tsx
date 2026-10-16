@@ -46,6 +46,9 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
       <EastHall />
       {celebration && <CelebrationDressing />}
       <WardDome celebration={celebration} />
+      {/* The crack in the ward above the Moon Tower, from the moment it breaks until the Warden fight
+          (owner: "look at the sky, it's cracking" but the sky looked fine). */}
+      {!celebration && <Seam points={[[-14, 58, -78], [-4, 72, -84], [6, 66, -86], [18, 84, -90]]} radius={0.8} fromBeat={FRACTURE_BEAT} wideUntilBeat={OBSERVATORY_RESTORED_BEAT} />}
       {/* The seam lingers faintly over the celebration (LD-21). */}
       {celebration && <Seam points={[[-60, 95, -150], [-25, 108, -160], [0, 100, -165], [30, 112, -158], [65, 102, -148]]} radius={0.5} strength={0.55} />}
       {/* The Warden floats down to greet the apprentice, then waits for the "hi". */}
@@ -53,21 +56,35 @@ export function ExteriorScene({ celebration }: { celebration: boolean }) {
         beatId="arrival-warden-hello"
         scale={1.1}
         keys={[
-          { t: 0, position: [0, 9, -2] },
-          { t: 0.35, position: [...WARDEN_HELLO_POSITION] },
+          { t: 0, position: [0, 12, -4] },
+          { t: 0.45, position: [...WARDEN_HELLO_POSITION] },
           { t: 1, position: [...WARDEN_HELLO_POSITION], arm: 0.6 },
         ]}
       />
-      {/* LD-0: the Warden dashes up and holds the cracking ward from the tower top. */}
+      {/* The blast at the tower: the Warden turns to look, rising, before it says where it is going. */}
+      <WardenCameo
+        beatId="arrival-warden-boom"
+        scale={1.1}
+        keys={[
+          { t: 0, position: [...WARDEN_HELLO_POSITION] },
+          { t: 0.15, position: [...WARDEN_HELLO_POSITION] },
+          { t: 0.6, position: [0, 3.4, 5.4], yaw: Math.PI },
+          { t: 1, position: [0, 3.6, 5.2], yaw: Math.PI },
+        ]}
+      />
+      {/* It flies to the tower at a pace you can follow, then holds the cracking ward from the top. */}
       <WardenCameo
         beatId="arrival-ward-fracture"
-        scale={1.5}
+        scale={1.3}
+        rotationY={Math.PI}
         keys={[
-          { t: 0, position: [0, 4, 6] },
-          { t: 0.12, position: [0, 38, -57] },
-          { t: 0.3, position: [0, 44, -57], arm: 1 },
-          { t: 0.7, position: [0, 44, -57], arm: 1 },
-          { t: 1, position: [0, 52, -62] },
+          // Straight up first, then over the academy roofs (ridge about 24 m), never through them.
+          { t: 0, position: [0, 3.6, 5.2] },
+          { t: 0.22, position: [0, 30, 3] },
+          { t: 0.45, position: [0, 40, -24] },
+          { t: 0.62, position: [0, 46, -55] },
+          { t: 0.7, position: [0, 44, -57], arm: 1, yaw: 0 },
+          { t: 1, position: [0, 44, -57], arm: 1, yaw: 0 },
         ]}
       />
     </group>
@@ -209,7 +226,7 @@ function ArrivalGate() {
         <Banner key={s} position={[3.95 * s, 8.6, GATE_Z + 1.24]} height={3.6} />
       ))}
       <GateDoors />
-      {(['left', 'centre', 'right'] as const).map((k, i) => (
+      {(['left', 'right'] as const).map((k, i) => (
         <ProgressCrystal key={k} position={CRYSTAL_POSITIONS[k]} encounterId="arrival-crystals" index={i} />
       ))}
       {[-14, -11.5, -9, -6.5, 6.5, 9, 11.5, 14].map((x, i) => (
@@ -300,19 +317,21 @@ function Courtyard({ celebration }: { celebration: boolean }) {
       {[-12, -4, 4, 12].map((z) => (
         <WallLamp key={z} position={[-13.9, 3.2, z]} rotationY={Math.PI / 2} />
       ))}
-      {/* LD-0: the Warden crash-lands in the courtyard, raises an arm at the anchor, then leaps away. */}
+      {/* LD-0: the Warden crash-lands in the courtyard, points at the broken anchor, then leaps back to the tower. */}
       <WardenCameo
         beatId="courtyard-warden-sighting"
         scale={0.8}
         rotationY={0.5}
         keys={[
           { t: 0, position: [3, 26, -14] },
-          { t: 0.22, position: [3, 0.2, -10] },
-          { t: 0.34, position: [3, 0.2, -10] },
-          { t: 0.46, position: [3, 0.2, -10], arm: 1 },
+          { t: 0.15, position: [3, 0.2, -10] },
+          { t: 0.25, position: [3, 0.2, -10] },
+          { t: 0.35, position: [3, 0.2, -10], arm: 1 },
           { t: 0.72, position: [3, 0.2, -10], arm: 1 },
           { t: 0.8, position: [3, 0.2, -10] },
-          { t: 1, position: [-2, 34, -24] },
+          // Leaps straight up clear of the facade (17 m) before heading back to the tower.
+          { t: 0.9, position: [3, 22, -10] },
+          { t: 1, position: [-2, 36, -28] },
         ]}
       />
     </group>
@@ -485,6 +504,7 @@ function CelebrationDressing() {
 // ---------- Ward dome over the campus ----------
 
 const FRACTURE_BEAT = beatIndexOf('arrival-ward-fracture');
+const OBSERVATORY_RESTORED_BEAT = beatIndexOf('observatory-restored');
 
 function WardDome({ celebration }: { celebration: boolean }) {
   const material = useRef<MeshBasicMaterial>(null);

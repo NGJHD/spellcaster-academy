@@ -55,6 +55,8 @@ export const BEAT_ALIASES: Readonly<Record<string, string>> = {
   'arrival-gate-intro': 'arrival-crystals',
   'arrival-fracture-talk': 'arrival-checkpoint',
   'courtyard-c1-talk': 'courtyard-c1',
+  'courtyard-to-c1': 'courtyard-c1',
+  'celebration-warden': 'celebration-banter',
   'courtyard-c2-talk': 'courtyard-c2',
   'east-hall-walk': 'east-hall-door',
   'east-hall-mira': 'east-hall-door',

@@ -140,11 +140,12 @@ export function BossBar() {
   const name = strings.bosses[boss.id]?.name ?? '';
   return (
     <div className="boss-bar" role="meter" aria-label={name} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(boss.health * 100)}>
-      <div className="boss-bar__name">{name}</div>
       <div className="boss-bar__track">
         <span className="boss-bar__trail" style={{ transform: `scaleX(${boss.health})` }} />
         <span className="boss-bar__fill" style={{ transform: `scaleX(${boss.health})` }} />
       </div>
+      {/* Owner (2026-10-08): the boss's name sits under its HP bar. */}
+      <div className="boss-bar__name">{name}</div>
     </div>
   );
 }

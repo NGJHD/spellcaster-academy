@@ -12,7 +12,6 @@ export const correctionMoth = (id: string, path: Vec3[], options: Partial<Target
     movement: { kind: 'patrol', path, speed: 1.6 },
     attack: HUSH_ATTACKS.mothDust,
     labelHeight: 0.9,
-    erased: true,
     weak: true,
     entrance: { kind: 'sparks', scale: 0.8, color: '#ff8a3a' },
     // Bursts into embers and leaves a bright butterfly behind (M3-1).
@@ -26,7 +25,6 @@ export const redactor = (id: string, path: Vec3[], options: Partial<TargetSpawn>
     attack: { kind: 'contact', windupSec: 2.2, recoverSec: 1.2, intervalSec: 5, damage: 10 },
     labelHeight: 2.6,
     priority: true,
-    erased: true,
     entrance: { kind: 'geyser', scale: 0.8, color: '#140808' },
     defeatFx: { kind: 'pillar', scale: 0.8, color: '#ffe6a0' },
     ...options,

@@ -11,7 +11,7 @@ import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/gre
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
 import { DORM_DOOR, LAWN_ORIGIN, STALL_POSITIONS } from '../../level/areas2/lawn';
 import { LADDERS, RAMPART_BEACON, RAMPART_ORIGIN, RAMPART_WARDEN } from '../../level/areas2/ramparts';
-import { AFTERMATH_ORIGIN, ROOF_ORIGIN, WYRM_HEAD } from '../../level/areas2/towerRoof';
+import { AFTERMATH_ORIGIN, DRAGON_STAND, ROOF_ORIGIN } from '../../level/areas2/towerRoof';
 import { FURNACE_POSITION, WORKSHOP_ORIGIN } from '../../level/areas2/workshops';
 import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -212,6 +212,10 @@ export function BridgeScene() {
       {/* Gorge walls and the far floor */}
       <Slab x={[-60, -6]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
       <Slab x={[6, 60]} y={[-80, -2]} z={[-80, 20]} material={MAT.rockGround} />
+      {/* The far bank the bridge reaches: a rocky cliff topped with earth, where the burning castle
+          stands (owner, 2026-10-16: the buildings looked like they were floating on water) */}
+      <Slab x={[-160, 160]} y={[-80, -0.6]} z={[-260, -64]} material={MAT.rockGround} />
+      <Slab x={[-160, 160]} y={[-0.6, 0]} z={[-260, -64]} material={MAT.earth} />
       {/* Belfry: a stone tower straddling the bridge, the great bell hanging inside */}
       <group position={[0, 0, bell[2]]}>
         {[-1, 1].map((s) => (
@@ -234,7 +238,8 @@ export function BridgeScene() {
         <Fire key={z} position={[i % 2 ? 2 : -2, 4.2, z]} size={2} count={3} spread={1.5} />
       ))}
       <Fire position={[-10, -30, -30]} size={8} count={4} spread={8} smoke={false} />
-      <BurningSkyline position={[0, -10, -110]} seed={3} />
+      {/* On the ground, not sunk 10 m into it (owner: the castle behind the bell looked half sunken). */}
+      <BurningSkyline position={[0, 0, -110]} seed={3} />
     </group>
   );
 }
@@ -263,7 +268,7 @@ export function HallScene() {
       <HallDressing />
       <Slab x={[-9.5, 9.5]} y={[-0.2, 0]} z={[-48, 8]} material={MAT.paving} />
       {/* The gallery's stone, columns and windows, under a plastered barrel vault (no gap to the sky) */}
-      <StoneHall half={9.5} z0={-48} z1={8} height={11} />
+      <StoneHall half={9.5} z0={-48} z1={8} height={11} noWindowAt={[[1, -20]]} />
       {/* Long tables pushed into barricades in front of the camera */}
       {[[-4, -9, 0.3], [0.5, -10, -0.2], [4.5, -9, 0.4]].map(([x, z, r], i) => (
         <Prop key={i} id="WoodenTable_01" position={[x ?? 0, 0, z ?? 0]} rotationY={r ?? 0} height={0.85} />
@@ -274,29 +279,34 @@ export function HallScene() {
         return (
           <group key={i} position={[l[0] + 0.55, 0, l[2]]}>
             {/* Carved oak door (CC0; its base sits 1.13 m below its origin at full size) */}
-            <Prop id="large_castle_door" position={[0, 1.13 * (3.6 / 4.07), 0]} height={3.6} rotationY={Math.PI / 2} />
+            <Prop id="large_castle_door" position={[0, 0.02, 0]} height={3.6} rotationY={Math.PI / 2} />
             <Fire position={[0.3, 0, 0]} size={1.4} count={3} spread={2} light={i === 1} />
           </group>
         );
       })}
       {/* East doors, blasted off their hinges by the Herald */}
-      {!doorsBlown && <Prop id="large_castle_door" position={[8.9, 1.13 * (5.2 / 4.07), -22]} height={5.2} rotationY={-Math.PI / 2} />}
-      {doorsBlown && <Fire position={[8.4, 0, -22]} size={2.4} count={4} spread={3} light />}
-      {/* Idris's barrier and the students behind it */}
-      <group position={[0, 0, -42]}>
+      {/* Between two columns, with no window over it (owner, 2026-10-16: check the door positions) */}
+      {!doorsBlown && <Prop id="large_castle_door" position={[8.9, 0.02, -20]} height={5.2} rotationY={-Math.PI / 2} />}
+      {doorsBlown && <Fire position={[8.4, 0, -20]} size={2.4} count={4} spread={3} light />}
+      {/* Idris's barrier and the students behind it, close enough to see when he speaks (owner: the hall
+          looked empty while Idris talked and Pip said the students were safe there) */}
+      <group position={[0, 0, -26]}>
         <WardBarrier width={18} height={7} />
       </group>
       {[-6, -3.5, -1, 1.5, 4, 6.5].map((x, i) => (
-        <Student key={x} position={[x, 0, -45 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} />
+        <Student key={x} position={[x, 0, -28.5 - (i % 2)]} rotationY={0} height={1.3 + (i % 3) * 0.08} />
       ))}
-      <Student position={[0, 0, -41]} rotationY={Math.PI} robe={MAT.greenLeather} height={1.7} />
-      {/* Banners along the walls, two of them burning */}
-      {[-30, -18, -6].map((z, i) => (
+      <Student position={[-3, 0, -24.6]} rotationY={0} robe={MAT.greenLeather} height={1.75} />
+      {/* Banners along the walls, two of them burning. Each hangs between a window and a column, clear
+          of the doors (owner, 2026-10-16: a door had a banner behind it). */}
+      {[-30, -38, -46].map((z, i) => (
         <group key={z}>
           <Banner position={[-8.8, 5, z]} rotationY={Math.PI / 2} />
-          <Banner position={[8.8, 5, z + 6]} rotationY={-Math.PI / 2} />
           {i !== 1 && <Fire position={[-8.6, 3.4, z]} size={1.6} count={2} spread={0.6} smoke={false} />}
         </group>
+      ))}
+      {[-6, -30, -38].map((z) => (
+        <Banner key={z} position={[8.8, 5, z]} rotationY={-Math.PI / 2} />
       ))}
       <SceneCreature
         file="grey_herald.glb"
@@ -462,11 +472,11 @@ export function LakeScene() {
       {/* Oarsby's boat moored at the end of the jetty, then carried with the camera. The camera sits
           at the stern, so the bow and Oarsby are in view ahead (owner: "I can't tell we are on a boat"). */}
       <OnBeats beats={MOORED_BEATS}>
-        <group position={[LAKE_ORIGIN[0], 0.4, LAKE_ORIGIN[2] + 20]}>
+        <group position={[LAKE_ORIGIN[0], 0.62, LAKE_ORIGIN[2] + 20]}>
           <OarsbyBoat />
         </group>
       </OnBeats>
-      <Carried beats={BOAT_BEATS} drop={1.0}>
+      <Carried beats={BOAT_BEATS} drop={0.78}>
         <OarsbyBoat />
       </Carried>
       <Carried beats={LIFT_BEATS_L2} drop={1.6}>
@@ -485,6 +495,46 @@ const BOAT_STERN_Z = 0.9;
  * close). Each section is a rounded U from gunwale to keel to gunwale; the beam narrows to a sharp bow
  * and a square-ish stern. UVs are in metres so the plank texture keeps its size.
  */
+/** Half the hull's width at height `y` (hull-local) at a station `t` (0 stern → 1 bow). */
+function hullHalfWidth(t: number, y: number): number {
+  const beam = 0.82 * Math.pow(Math.sin(Math.PI * (0.18 + t * 0.82)), 0.7) * (t > 0.85 ? 1 - (t - 0.85) * 2.2 : 1);
+  const depth = 0.62 - t * 0.12;
+  const sheer = 0.08 * Math.pow(t, 3) + 0.03 * (1 - t);
+  const s = Math.min(1, Math.max(0, (sheer - y) / depth));
+  return Math.max(0.04, beam) * Math.sqrt(Math.max(0, 1 - Math.pow(s, 2 / 1.4)));
+}
+
+/** Height of the floorboards inside the hull (hull-local), above the waterline when afloat. */
+const FLOORBOARDS_Y = -0.36;
+
+/**
+ * Floorboards laid inside the hull (owner: the boat looked "full of water" because the lake showed
+ * through the open hull). A flat deck following the hull's width at FLOORBOARDS_Y.
+ */
+function boatFloor(): BufferGeometry {
+  const ALONG = 24;
+  const pos: number[] = [];
+  const uv: number[] = [];
+  for (let i = 0; i <= ALONG; i++) {
+    const t = 0.02 + (i / ALONG) * 0.9;
+    const z = BOAT_STERN_Z - t * BOAT_LENGTH;
+    const w = hullHalfWidth(t, FLOORBOARDS_Y) * 0.98;
+    pos.push(-w, FLOORBOARDS_Y, z, w, FLOORBOARDS_Y, z);
+    uv.push(-w, z, w, z);
+  }
+  const idx: number[] = [];
+  for (let i = 0; i < ALONG; i++) {
+    const a = i * 2;
+    idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
 function boatHull(): BufferGeometry {
   const ALONG = 28;
   const AROUND = 18;
@@ -528,6 +578,7 @@ function boatHull(): BufferGeometry {
 /** Oarsby's rowing boat with Oarsby at the oars and a lantern on the bow; origin at the stern seat. */
 function OarsbyBoat() {
   const hull = useMemo(() => boatHull(), []);
+  const floor = useMemo(() => boatFloor(), []);
   // Cloned at render time, after the photo-scanned plank texture has been attached to the shared material.
   const hullMaterial = useMemo(() => {
     const m = MAT.lightOak.clone();
@@ -535,9 +586,11 @@ function OarsbyBoat() {
     return m;
   }, []);
   return (
-    // Gunwale about 0.3 m above the water: 1.1 m below the eye when carried (Carried drops 1.0 m).
+    // Gunwale about 0.55 m above the water, floorboards above the waterline (owner: the boat looked
+    // half sunk and full of water). Carried drops it 0.78 m below the eye.
     <group position={[0, -0.16, 0]}>
       <mesh geometry={hull} material={hullMaterial} castShadow receiveShadow />
+      <mesh geometry={floor} material={hullMaterial} receiveShadow />
       {/* Gunwale rails and the transom */}
       {[-1, 1].map((side) => (
         <mesh key={side} position={[side * 0.74, 0.06, BOAT_STERN_Z - BOAT_LENGTH * 0.42]} rotation={[0, side * 0.05, 0]} material={MAT.lightOak}>
@@ -619,12 +672,40 @@ export function LibraryFires() {
   const L = LIBRARY_ORIGIN;
   return (
     <group position={L}>
+      <LibraryWyrmPass />
       {[[-11, 2, -10], [11, 2, -14], [-11, 6.5, -20], [11, 6.5, -26], [-6, 0, -30], [8, 0, -8]].map((p, i) => (
         <Fire key={i} position={p as unknown as Vec3} size={2.2} count={3} spread={2} light={i < 2} />
       ))}
       {[1, 2, 3].map((n, i) => (
         <Fire key={n} position={[i === 1 ? 11 : -11, 1.2, i === 2 ? -22 : -16]} size={1.6} count={3} spread={2.4} untilFlag={`l2-shelf-${n}`} />
       ))}
+    </group>
+  );
+}
+
+/**
+ * The page dragon swoops through the burning library during the glimpse (owner: "it says is that a
+ * dragon made of pages, but I don't see any dragon"): it enters by the far windows on one side, sweeps
+ * across the hall high above the floor with pages streaming after it, and leaves by the other side.
+ */
+function LibraryWyrmPass() {
+  const group = useRef<Group>(null);
+  useFrame((state) => {
+    const g = group.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const on = run.director.currentBeat?.id === 'l2-wyrm-glimpse';
+    g.visible = on;
+    if (!on) return;
+    const u = Math.min(1, run.beatProgress() * 1.15);
+    const e = u * u * (3 - 2 * u);
+    g.position.set(-13 + 26 * e, 6.4 + Math.sin(e * Math.PI) * 1.2 + Math.sin(state.clock.elapsedTime * 2) * 0.2, -27 + Math.sin(e * Math.PI) * 4);
+  });
+  return (
+    <group ref={group} visible={false}>
+      {/* Smaller indoors, side-on and flying (wingbeats), heading the way it moves (+X). */}
+      <SceneCreature file="vellum_dragon.glb" position={[0, -2.5, 0]} rotationY={Math.PI / 2} scale={0.42} fromBeat="l2-lib-enter" goneFlag="l2-wyrm-defeated" fallback={<WyrmFallback />} flying={() => true} />
+      <Fire position={[-1.5, 0.2, 0]} size={1.4} count={2} spread={1} smoke={false} />
     </group>
   );
 }
@@ -682,7 +763,9 @@ function RoofBase() {
       <mesh position={[0, -30, 0]} material={MAT.academyStone} geometry={worldCylinder(9, 9.6, 60, 64)} castShadow receiveShadow />
       <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.paving} geometry={worldCircle(9, 64)} receiveShadow />
       {/* Parapet ring, inside and out, with a walkway lip */}
-      <mesh position={[0, 0.55, 0]} material={MAT.academyStoneDark} geometry={worldCylinder(9.2, 9.2, 1.1, 64)} />
+      {/* Open-ended: a capped cylinder put a solid lid over the whole roof at parapet height, sinking
+          everyone on it to the chest (seen in the aftermath). */}
+      <mesh position={[0, 0.55, 0]} material={MAT.academyStoneDark} geometry={worldCylinder(9.2, 9.2, 1.1, 64, true)} />
       <mesh position={[0, 0.55, 0]} material={MAT.academyStoneDark} geometry={insideCylinder(8.7, 1.1, 64)} />
       <mesh position={[0, 1.14, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.academyStone}>
         <ringGeometry args={[8.65, 9.25, 64]} />
@@ -705,7 +788,7 @@ function RoofBase() {
 }
 
 export function RoofScene() {
-  const head = sub(WYRM_HEAD, ROOF_ORIGIN);
+  const stand = sub(DRAGON_STAND, ROOF_ORIGIN);
   const wyrm = useRef<Group>(null);
   useFrame((state) => {
     const g = wyrm.current;
@@ -729,14 +812,17 @@ export function RoofScene() {
       ))}
       <StaticWarden position={[7, -8, 3]} scale={1.6} rotationY={-2.4} />
       <group ref={wyrm}>
+        {/* The page dragon (AI pipeline, 15 m wingspan): on all fours, wings spread, staring down at
+            the apprentice, its wings always beating. */}
         <SceneCreature
-          file="vellum_wyrm.glb"
-          position={[head[0], head[1] - 7, head[2] - 12]}
-          scale={3}
+          file="vellum_dragon.glb"
+          position={stand}
+          scale={1}
           fromBeat="l2-wyrm-rises"
           goneFlag="l2-wyrm-defeated"
           fallback={<WyrmFallback />}
-          rearing={() => (getRun()?.director.currentBeat?.id ?? '') === 'l2-wyrm-v1'}
+          // Owner (2026-10-16): its wings beat whenever it is in view.
+          flying={() => true}
         />
       </group>
       <BurningSkyline position={[0, -60, -90]} seed={6} />

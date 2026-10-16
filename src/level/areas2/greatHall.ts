@@ -2,9 +2,9 @@
  * LEVEL2_DESIGN L2-10: the Great Hall. Students shelter behind Prefect Idris's barrier at the far end;
  * the Hush push through three side doors (lanes). Then the Grey Herald blasts the main doors open and
  * reads the Unwriter's decree. Local layout (origin HALL_ORIGIN): hall along −Z from z = 6 to z = −46,
- * x ∈ [−9, 9]; lane doors on the west wall (x = −9) at z = −6, −16, −26; the barrier at z = −42; the
- * Herald enters through the main doors behind the camera's view to the north (z = −46 is the barrier,
- * so the Herald comes in from the east doors at x = 9, z = −22).
+ * x ∈ [−9, 9]; lane doors on the west wall (x = −9) at z = −4, −12, −20, each midway between two
+ * columns (owner, 2026-10-16: a door stood in front of a pillar); the barrier at z = −26; the Herald
+ * comes in from the east doors at x = 9, z = −20.
  */
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, hold, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
@@ -13,7 +13,7 @@ import { blotling, fireball, knight, scribbleImp } from './hush';
 const A = 'l2-great-hall';
 export const HALL_ORIGIN: Vec3 = [1100, 0, 0];
 const H = origin(HALL_ORIGIN);
-export const LANE_DOORS: readonly Vec3[] = [H(-9, 0, -6), H(-9, 0, -16), H(-9, 0, -26)];
+export const LANE_DOORS: readonly Vec3[] = [H(-9, 0, -4), H(-9, 0, -12), H(-9, 0, -20)];
 export const HERALD_POSITION: Vec3 = H(2, 0, -24);
 const HERALD_CHEST = H(2, 2.4, -24);
 
@@ -30,10 +30,10 @@ export const greatHall: AreaScript = {
     HALL_HERALD: { position: H(-1, 1.6, -6), lookAt: H(2, 2.6, -24) },
   },
   lookPoints: {
-    HALL_EAST_DOORS: H(9, 2.4, -22),
+    HALL_EAST_DOORS: H(9, 2.4, -20),
     HALL_HERALD_HEAD: H(2, 3.1, -24),
     HALL_HERALD_FLOOR: H(2, 0.1, -24),
-    HALL_BARRIER: H(0, 2, -42),
+    HALL_BARRIER: H(0, 2, -26),
   },
   beats: [
     fade('l2-hall-enter', A, 'HALL_ENTRY', { music: 'evacuation-hope', objective: 'l2-hall' }),
@@ -42,7 +42,8 @@ export const greatHall: AreaScript = {
     fight('l2-hall-knights', A, { barks: ['l2-knights'] }),
     travel('l2-hall-to-herald', A, ['HALL_POST', 'HALL_HERALD'], 2, { barks: ['l2-hall-rumble'] }),
     // Boss intro: the Herald blasts the east doors open and stalks in; the Voice speaks through it.
-    reveal('l2-herald-enters', A, 'HALL_HERALD', ['HALL_EAST_DOORS', 'HALL_HERALD_HEAD'], 0.8, 10, {
+    // Owner (2026-10-16): a long silence followed the Voice's line; the reveal now ends as it finishes.
+    reveal('l2-herald-enters', A, 'HALL_HERALD', ['HALL_EAST_DOORS', 'HALL_HERALD_HEAD'], 0.8, 1.6, {
       attention: 'boss-intro',
       music: 'siege-battle',
       barks: ['l2-voice-herald'],
@@ -74,7 +75,7 @@ export const greatHall: AreaScript = {
           targets: [
             blotling('hall-b4', lane(1, -1)),
             scribbleImp('hall-i3', lane(2, 1), { delaySec: 0.5, priority: true }),
-            fireball('hall-ink', H(-8, 1.4, -16), H(1.2, 1.7, -3.4), { delaySec: 1.4 }),
+            fireball('hall-ink', H(-8, 1.4, -12), H(1.2, 1.7, -3.4), { delaySec: 1.4 }),
             blotling('hall-b5', lane(0, -1), { delaySec: 2 }),
           ],
         },
@@ -88,8 +89,8 @@ export const greatHall: AreaScript = {
         {
           id: 'knights',
           targets: [
-            knight('hall-k1', [H(-9, 0, -16), H(-4, 0, -12), H(-1.6, 0, -8)]),
-            knight('hall-k2', [H(-9, 0, -26), H(-3, 0, -18), H(1.2, 0, -9)], undefined, { delaySec: 1.2 }),
+            knight('hall-k1', [H(-9, 0, -12), H(-4, 0, -12), H(-1.6, 0, -8)]),
+            knight('hall-k2', [H(-9, 0, -20), H(-3, 0, -18), H(1.2, 0, -9)], undefined, { delaySec: 1.2 }),
           ],
         },
       ],

@@ -93,6 +93,7 @@ export const portraits: AreaScript = {
     fight('portraits-constellations', A, { barks: ['por-const'] }),
     checkpoint('portraits-checkpoint', A, 'portrait-hall-complete'),
     travel('portraits-to-end', A, ['POR_PLAQUES', 'POR_END'], 4.5, {
+      barks: ['por-exit'],
       chase: [{ at: 0.2, target: target('portraits-exit-gem', 'gem', P(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
     }),
   ],

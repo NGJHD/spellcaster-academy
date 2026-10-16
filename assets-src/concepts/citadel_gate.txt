@@ -1,0 +1,2 @@
+seed: 61
+prompt: The front of a sinister dark fortress seen head-on: a massive curtain wall of black iron and charred volcanic stone, a huge pointed arched gate glowing with red fire in the middle, two thick flanking towers with sharp iron spires, crenellated battlements, riveted iron plates and red glowing arrow slits, wide and imposing, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

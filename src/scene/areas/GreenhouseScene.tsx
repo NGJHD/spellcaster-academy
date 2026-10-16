@@ -2,7 +2,8 @@
 import { placeStreak, STREAK_GEOMETRY, streakTexture } from '../glow';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
+import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { AdditiveBlending, CatmullRomCurve3, DoubleSide, Mesh, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
 import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } from '../../level/areas/greenhouse';
 import { beatIndexOf } from '../../level/level1Route';
@@ -37,6 +38,7 @@ export function GreenhouseScene() {
       <VineBridge />
       <Snapvine />
       <WardAnchor position={local(GREENHOUSE_ANCHOR_POSITION)} encounterId="greenhouse-anchor" theme="greenhouse" />
+      <AnchorVines position={local(GREENHOUSE_ANCHOR_POSITION)} />
       <WardenRescue />
       <ConvergingBeams />
     </group>
@@ -399,6 +401,38 @@ function ConvergingBeams() {
           <meshBasicMaterial map={streak} color={b.color} transparent opacity={0.95} blending={AdditiveBlending} depthWrite={false} toneMapped={false} fog={false} side={DoubleSide} />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+/**
+ * The vines tying up the greenhouse anchor (owner, 2026-10-08: "it's supposed to be covered in vines",
+ * AI-pipeline `vine_tangle`). Each knot untied loosens and lowers them; once the anchor is free they sink
+ * into the soil.
+ */
+function AnchorVines({ position }: { position: Vec3 }) {
+  const group = useRef<Group>(null);
+  const loose = useRef(0);
+  useFrame((_, delta) => {
+    const g = group.current;
+    const run = getRun();
+    if (!g || !run) return;
+    const done = run.progress.completedEncounterIds.includes('greenhouse-anchor');
+    const live = run.encounter?.def.id === 'greenhouse-anchor' ? run.encounter.totalDefeats : 0;
+    const goal = done ? 4 : live;
+    loose.current += (goal - loose.current) * (1 - Math.exp(-3 * Math.min(delta, 0.1)));
+    const k = loose.current;
+    g.visible = k < 3.95;
+    g.scale.set(1 + k * 0.12, Math.max(0.05, 1 - k * 0.24), 1 + k * 0.12);
+    g.position.set(position[0], position[1] - Math.max(0, k - 3) * 2.4, position[2]);
+  });
+  return (
+    <group ref={group} position={position}>
+      <ModelBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <Prop id="vine_tangle" position={[0, -0.05, 0]} height={2.5} />
+        </Suspense>
+      </ModelBoundary>
     </group>
   );
 }

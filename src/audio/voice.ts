@@ -20,6 +20,10 @@ interface Casting {
   readonly gender: 'female' | 'male';
   readonly pitch: number;
   readonly rate: number;
+  /** Loudness relative to the voice volume setting (some system voices are much quieter). */
+  readonly gain?: number;
+  /** How far the music dips while this character speaks (default 0.35; lower for soft voices). */
+  readonly duck?: number;
 }
 
 /**
@@ -27,23 +31,35 @@ interface Casting {
  * system has enough of them; pitch and rate keep them distinct when it does not.
  */
 const CASTING: Record<Speaker, Casting> = {
-  // The guide orb: bright and young.
-  pip: { prefer: ['Ana', 'Maisie', 'Molly', 'Emily', 'Google UK English Female'], gender: 'female', pitch: 1.3, rate: 1.22 },
+  // The guide orb: bright and young. Owner (2026-10-08): "pip is talking too fast. I barely caught
+  // what pip said" — normal speed, and a less squeaky pitch so the words stay clear.
+  pip: { prefer: ['Ana', 'Maisie', 'Molly', 'Emily', 'Google UK English Female'], gender: 'female', pitch: 1.2, rate: 1.0 },
   // Mira: a brave older student.
-  mira: { prefer: ['Libby', 'Sonia', 'Clara', 'Jenny', 'Aria', 'Hazel'], gender: 'female', pitch: 1.05, rate: 1.17 },
+  mira: { prefer: ['Libby', 'Sonia', 'Clara', 'Jenny', 'Aria', 'Hazel'], gender: 'female', pitch: 1.05, rate: 1.05, gain: 1.6 },
   // Keeper Orin: the warm old headmaster (also the game's narrator voice).
-  orin: { prefer: ['Ryan', 'George', 'Guy', 'Roger', 'David'], gender: 'male', pitch: 0.85, rate: 1.06 },
+  // Owner (2026-10-08): "Keeper Orin's voice is too soft" — louder, and a touch less deep.
+  orin: { prefer: ['Ryan', 'George', 'Guy', 'Roger', 'David'], gender: 'male', pitch: 0.92, rate: 1.06, gain: 1.6, duck: 0.12 },
   // The Ward Warden: deep and slow stone.
   warden: { prefer: ['Christopher', 'Davis', 'Eric', 'Steffan', 'William'], gender: 'male', pitch: 0.5, rate: 0.96 },
   // The Unwriter: cold and precise.
   unwriter: { prefer: ['Thomas', 'Brian', 'Connor', 'Mitchell', 'Google UK English Male'], gender: 'male', pitch: 0.7, rate: 1.0 },
   // Prefect Idris: a calm senior student.
   idris: { prefer: ['Andrew', 'Liam', 'Alfie', 'Elliot', 'Mark'], gender: 'male', pitch: 1.0, rate: 1.16 },
-  // Oarsby the boatman: gruff and cheerful.
-  oarsby: { prefer: ['Roger', 'Guy', 'William', 'Prabhat', 'James'], gender: 'male', pitch: 0.78, rate: 1.07 },
-  'portrait-1': { prefer: ['Steffan', 'Eric', 'Connor', 'Prabhat'], gender: 'male', pitch: 0.92, rate: 1.1 },
-  'portrait-2': { prefer: ['Michelle', 'Emma', 'Ava', 'Natasha', 'Susan'], gender: 'female', pitch: 1.15, rate: 1.12 },
+  // Oarsby the boatman: gruff and cheerful. Owner (2026-10-16): "oarsby voice is too soft" — louder,
+  // a less deep pitch (very low pitches come out quiet), and the music dips further under him.
+  oarsby: { prefer: ['Roger', 'Guy', 'William', 'Prabhat', 'James'], gender: 'male', pitch: 0.88, rate: 1.07, gain: 1.6, duck: 0.12 },
+  // Owner (2026-10-08): Mira and the portraits were too soft, like Orin.
+  'portrait-1': { prefer: ['Steffan', 'Eric', 'Connor', 'Prabhat'], gender: 'male', pitch: 0.92, rate: 1.1, gain: 1.6, duck: 0.12 },
+  'portrait-2': { prefer: ['Michelle', 'Emma', 'Ava', 'Natasha', 'Susan'], gender: 'female', pitch: 1.15, rate: 1.12, gain: 1.6 },
 };
+
+/**
+ * How far the music dips under a speaker. Owner (2026-10-08): Orin and the first portrait were still too
+ * soft at full speech volume (the browser caps it at 1), so the music drops much further for them.
+ */
+export function musicDuckFor(speaker: Speaker): number | undefined {
+  return CASTING[speaker].duck;
+}
 
 /** Order of assignment: main characters choose first. */
 const ORDER: readonly Speaker[] = ['pip', 'mira', 'orin', 'warden', 'unwriter', 'idris', 'oarsby', 'portrait-1', 'portrait-2'];
@@ -108,7 +124,7 @@ export function installBrowserVoice(settings: () => { enabled: boolean; volume: 
       u.lang = v?.lang ?? 'en-GB';
       u.pitch = c.pitch;
       u.rate = c.rate;
-      u.volume = s.volume;
+      u.volume = Math.min(1, s.volume * (c.gain ?? 1));
       let done = false;
       const finish = () => {
         if (done) return;

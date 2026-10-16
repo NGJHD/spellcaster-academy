@@ -687,6 +687,49 @@
     "bytes": 12742744,
     "source": "assets-src/scripts/creatures/vellum_wyrm.py"
   },
+  "vellum_dragon": {
+    "id": "vellum_dragon",
+    "file": "/assets/creatures/vellum_dragon.glb",
+    "unitScaleMeters": 1,
+    "animations": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Hit",
+      "Dispel"
+    ],
+    "collision": {
+      "shape": "capsule",
+      "radius": 3,
+      "height": 11
+    },
+    "wordAnchor": [
+      0,
+      12.5,
+      0
+    ],
+    "lodFiles": [
+      "/assets/creatures/vellum_dragon.glb"
+    ],
+    "textureSet": "vertex-colour + shared PBR",
+    "license": "original-project-asset",
+    "triangles": 70000,
+    "materials": 1,
+    "bounds": {
+      "min": [
+        -7.500583648681641,
+        -0.012493503279983997,
+        -7.468855857849121
+      ],
+      "max": [
+        7.4960246086120605,
+        11.661844253540039,
+        7.482632637023926
+      ]
+    },
+    "bytes": 12906280,
+    "source": "assets-src/scripts/creatures/vellum_dragon.py"
+  },
   "ink_wisp": {
     "id": "ink_wisp",
     "file": "/assets/creatures/ink_wisp.glb",

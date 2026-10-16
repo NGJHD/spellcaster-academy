@@ -85,6 +85,6 @@ describe('speech timing', () => {
       const t = useRunStore.getState().subtitle?.text;
       if (t && seen[seen.length - 1] !== t) seen.push(t);
     }
-    expect(seen.slice(0, 2)).toEqual([getLine('fracture-2')?.text, getLine('fracture-3')?.text]);
+    expect(seen.slice(0, 2)).toEqual([getLine('fracture-3')?.text, getLine('fracture-4')?.text]);
   });
 });

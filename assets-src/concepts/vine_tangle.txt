@@ -1,0 +1,2 @@
+seed: 64
+prompt: A thick tangle of twisted dark green thorny vines with big leaves, wound round and round into an upright hollow cage about as tall as a person, knotted in three places, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

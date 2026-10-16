@@ -40,7 +40,9 @@ export const library2: AreaScript = {
     L2LIB_PEDESTAL: { position: L(0, 1.6, -12), lookAt: L(0, 2.2, -20) },
   },
   lookPoints: {
-    L2LIB_SKY: L(0, 22, -60),
+    // High in the hall by the far windows, where the page dragon swoops through (owner: "I don't see
+    // any dragon"; the shot looked up at the ceiling).
+    L2LIB_SKY: L(0, 6.5, -26),
     L2LIB_SHELF: L(11, 2.5, -16),
   },
   beats: [
@@ -48,9 +50,10 @@ export const library2: AreaScript = {
     // Story beat: pages fly out of the window; the Vellum Wyrm coils around the Moon Tower.
     travel('l2-lib-to-window', A, ['L2LIB_ENTRY', 'L2LIB_WINDOW'], 3.5),
     reveal('l2-wyrm-glimpse', A, 'L2LIB_WINDOW', ['L2LIB_SKY'], 0.8, 8, {
-      attention: 'spectacle',
       barks: ['l2-our-books'],
       fx: [
+        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.2, scale: 2.6, color: '#f3ead2' },
+        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.45, scale: 2.2, color: '#f3ead2' },
         { kind: 'debris', at: 'L2LIB_SHELF', atBeat: 0.55, scale: 2, color: '#7a2f2a' },
         { kind: 'burst', at: 'L2LIB_SHELF', atBeat: 0.55, scale: 1.4, color: '#ff5a1a' },
         { kind: 'shake', atBeat: 0.55, scale: 1.2 },
@@ -58,8 +61,9 @@ export const library2: AreaScript = {
     }),
     travel('l2-lib-to-combat', A, ['L2LIB_WINDOW', 'L2LIB_COMBAT'], 2.5),
     fight('l2-lib-sprites', A, { music: 'siege-battle', barks: ['l2-lib-sprites'] }),
-    travel('l2-lib-to-pedestal', A, ['L2LIB_COMBAT', 'L2LIB_PEDESTAL'], 3, { barks: ['l2-grimoire-help'] }),
-    fight('l2-lib-grimoire', A),
+    travel('l2-lib-to-pedestal', A, ['L2LIB_COMBAT', 'L2LIB_PEDESTAL'], 3),
+    // Said as the imps rush the Grimoire (it was said before any were in view).
+    fight('l2-lib-grimoire', A, { barks: ['l2-grimoire-help'] }),
     fight('l2-lib-shelves', A, { barks: ['l2-shelves'] }),
     checkpoint('l2-lib-checkpoint', A, 'star-atlas-recovered', { barks: ['l2-atlas'], objective: 'l2-ramparts' }),
     hold('l2-lib-exit', A, 'L2LIB_PEDESTAL', 2.5, { barks: ['l2-to-ramparts'], journey: 'l2-ramparts' }),

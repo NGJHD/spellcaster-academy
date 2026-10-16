@@ -1,0 +1,2 @@
+seed: 65
+prompt: The floating wreck of a small burnt wooden sailing boat, its hull broken open and listing, charred black planks and curved ribs, a snapped mast leaning over with a torn scorched sail, glowing red embers in the cracks of the wood, highly detailed realistic 3D render of a single object, physically based materials, soft even studio lighting, plain light grey background, entire object in frame, centered, no people, no text

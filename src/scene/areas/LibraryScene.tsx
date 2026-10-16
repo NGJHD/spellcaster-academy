@@ -139,31 +139,70 @@ function ReadingArea() {
   );
 }
 
+/**
+ * The clue mosaic (lib-mosaic): the Warden below the arc of the sky-ward, holding it shut, and a man with
+ * a glowing pen locked outside it. A tall panel that fits the gap between the wall shelves (it was wide
+ * and hidden behind them).
+ */
 function Mosaic() {
+  const pale = { color: '#e2dccd', roughness: 0.5 } as const;
   return (
-    <group position={[-11.9, 2.6, -13]} rotation={[0, Math.PI / 2, 0]}>
-      <Box position={[0, 0, -0.02]} size={[3.4, 2.6, 0.05]} material={MAT.agedBrass} />
-      <mesh position={[0, 0, 0.02]}>
-        <planeGeometry args={[3.2, 2.4]} />
+    <group position={[-11.45, 2.55, -13]} rotation={[0, Math.PI / 2, 0]}>
+      <Box position={[0, 0, -0.03]} size={[1.36, 3.2, 0.05]} material={MAT.agedBrass} />
+      <mesh position={[0, 0, 0.0]}>
+        <planeGeometry args={[1.22, 3.06]} />
         <meshStandardMaterial color="#21365e" roughness={0.6} />
       </mesh>
-      {/* Warden silhouette shielding the academy from a storm. */}
-      <mesh position={[0, -0.1, 0.03]} scale={[1, 1.3, 1]}>
-        <circleGeometry args={[0.45, 24]} />
-        <meshStandardMaterial color="#e2dccd" roughness={0.5} />
-      </mesh>
-      <mesh position={[0, 0.65, 0.03]}>
-        <circleGeometry args={[0.2, 20]} />
-        <meshStandardMaterial color="#e2dccd" roughness={0.5} />
-      </mesh>
-      {[-0.8, 0, 0.8].map((x) => (
-        <mesh key={x} position={[x, 0.95, 0.035]} material={MAT.wardGold}>
-          <circleGeometry args={[0.09, 12]} />
+      {/* Stars in the sky above */}
+      {[[-0.4, 1.3], [0.35, 1.1], [-0.15, 0.95], [0.45, 1.4]].map(([x = 0, y = 0]) => (
+        <mesh key={`${x}${y}`} position={[x, y, 0.01]} material={MAT.wardGold}>
+          <circleGeometry args={[0.04, 8]} />
         </mesh>
       ))}
-      <mesh position={[0, -0.1, 0.031]} material={MAT.wardBlue}>
-        <torusGeometry args={[0.95, 0.03, 8, 48, Math.PI]} />
+      {/* The man with the pen, outside the ward: a dark cloaked figure holding up a glowing red quill */}
+      <mesh position={[0.05, 0.62, 0.012]} scale={[1, 1.5, 1]}>
+        <circleGeometry args={[0.17, 20]} />
+        <meshStandardMaterial color="#111018" roughness={0.7} />
       </mesh>
+      <mesh position={[0.05, 0.96, 0.013]}>
+        <circleGeometry args={[0.1, 16]} />
+        <meshStandardMaterial color="#111018" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.3, 0.92, 0.014]} rotation={[0, 0, -0.5]}>
+        <planeGeometry args={[0.045, 0.42]} />
+        <meshStandardMaterial color="#ff4a2a" emissive="#ff3a1a" emissiveIntensity={1.4} />
+      </mesh>
+      {/* The arc of the ward, sealing him out */}
+      <mesh position={[0, -0.1, 0.015]} material={MAT.wardBlue}>
+        <torusGeometry args={[0.55, 0.035, 8, 48, Math.PI]} />
+      </mesh>
+      {[-0.4, 0, 0.4].map((x) => (
+        <mesh key={x} position={[x, 0.36 - Math.abs(x) * 0.5, 0.016]} material={MAT.wardGold}>
+          <circleGeometry args={[0.05, 10]} />
+        </mesh>
+      ))}
+      {/* The Warden below it, arms raised, holding the ward shut */}
+      <mesh position={[0, -0.75, 0.012]} scale={[1, 1.35, 1]}>
+        <circleGeometry args={[0.24, 24]} />
+        <meshStandardMaterial {...pale} />
+      </mesh>
+      <mesh position={[0, -0.33, 0.012]}>
+        <circleGeometry args={[0.12, 20]} />
+        <meshStandardMaterial {...pale} />
+      </mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * 0.25, -0.33, 0.013]} rotation={[0, 0, s * -0.5]}>
+          <planeGeometry args={[0.07, 0.42]} />
+          <meshStandardMaterial {...pale} />
+        </mesh>
+      ))}
+      {/* The academy towers at the bottom */}
+      {[-0.35, 0, 0.35].map((x, i) => (
+        <mesh key={x} position={[x, -1.3 + (i === 1 ? 0.06 : 0), 0.012]}>
+          <planeGeometry args={[0.22, 0.4 + (i === 1 ? 0.12 : 0)]} />
+          <meshStandardMaterial color="#8a7a5c" roughness={0.8} />
+        </mesh>
+      ))}
     </group>
   );
 }

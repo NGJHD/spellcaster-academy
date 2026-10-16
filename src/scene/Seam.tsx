@@ -11,12 +11,29 @@ const REVEAL = beatIndexOf('observatory-seam');
 
 /**
  * A rendered split in the sky (see glow.tsx SkyTear) from the first to the last point; `radius` sets
- * how wide it gapes (the old tube radius, kept so callers read the same).
+ * how wide it gapes (the old tube radius, kept so callers read the same). It shows from `fromBeat`
+ * until `untilBeat` (exclusive), gaping twice as wide before `wideUntilBeat` (the open crack the
+ * Warden holds shut, before it is mended to a seam).
  */
-export function Seam({ points, radius = 0.25, fromBeat = REVEAL, strength = 1 }: { points: readonly [number, number, number][]; radius?: number; fromBeat?: number; strength?: number }) {
+export function Seam({
+  points,
+  radius = 0.25,
+  fromBeat = REVEAL,
+  untilBeat = -1,
+  wideUntilBeat = -1,
+  strength = 1,
+}: {
+  points: readonly [number, number, number][];
+  radius?: number;
+  fromBeat?: number;
+  untilBeat?: number;
+  wideUntilBeat?: number;
+  strength?: number;
+}) {
   const beat = useBeatIndex();
   const first = points[0] ?? [0, 0, 0];
   const last = points[points.length - 1] ?? first;
-  const on = fromBeat >= 0 && beat >= fromBeat;
-  return <SkyTear from={first} to={last} width={radius * 14} seed={Math.round(first[0] * 7 + last[1])} open={() => 0.55} opacity={() => (on ? strength : 0)} />;
+  const on = fromBeat >= 0 && beat >= fromBeat && (untilBeat < 0 || beat < untilBeat);
+  const wide = beat < wideUntilBeat;
+  return <SkyTear from={first} to={last} width={radius * 14} seed={Math.round(first[0] * 7 + last[1])} open={() => (wide ? 1 : 0.55)} opacity={() => (on ? strength : 0)} />;
 }

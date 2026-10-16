@@ -35,8 +35,9 @@ export const ramparts: AreaScript = {
     RP_DOME: R(0, 70, -60),
   },
   beats: [
-    fade('l2-rp-enter', A, 'RP_ENTRY', { music: 'siege-dread', objective: 'l2-ramparts', barks: ['l2-rp-1'] }),
-    travel('l2-rp-to-post', A, ['RP_ENTRY', 'RP_POST'], 4),
+    fade('l2-rp-enter', A, 'RP_ENTRY', { music: 'siege-dread', objective: 'l2-ramparts' }),
+    // Said once the wall and the Warden are in view, not during the fade.
+    travel('l2-rp-to-post', A, ['RP_ENTRY', 'RP_POST'], 4, { barks: ['l2-rp-1'] }),
     fight('l2-rp-lanes', A, { music: 'siege-battle', barks: ['l2-rp-lanes'] }),
     fight('l2-rp-warden', A, { barks: ['l2-rp-warden'] }),
     fight('l2-rp-captain', A, { barks: ['l2-rp-captain'] }),
@@ -101,8 +102,9 @@ export const ramparts: AreaScript = {
           id: 'beacon',
           sequential: true,
           targets: ['rampart', 'stand', 'together', 'dawn'].map((word, i) =>
-            // The words float over the beacon brazier; each one sends a burst of gold into its bowl.
-            marker(`rampart-word-${i + 1}`, [RAMPART_BEACON[0] - 1.6 + i * 1.1, RAMPART_BEACON[1] + 3.0 + (i % 2) * 0.35, RAMPART_BEACON[2]], word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 0.9, color: '#ffd27a' } }),
+            // The words float just over the beacon's bowl, so the brazier stays in view while they are
+            // typed (owner: "what are these words targeting? I only see the sky").
+            marker(`rampart-word-${i + 1}`, [RAMPART_BEACON[0] - 1.2 + i * 0.8, RAMPART_BEACON[1] + 2.1 + (i % 2) * 0.3, RAMPART_BEACON[2]], word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 0.9, color: '#ffd27a' } }),
           ),
         },
       ],

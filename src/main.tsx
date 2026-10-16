@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import { installHowlerAudio, musicDiagnostics } from './audio/HowlerAudio';
-import { installBrowserVoice } from './audio/voice';
+import { installBrowserVoice, musicDuckFor } from './audio/voice';
 import { audio } from './audio/AudioManager';
 import { useRunStore } from './state/runStore';
 import { getSettings } from './state/settingsStore';
@@ -11,7 +11,9 @@ import './styles/global.css';
 installHowlerAudio();
 // Soften the music whenever a line of dialogue is on screen (spoken or not).
 useRunStore.subscribe((state, prev) => {
-  if ((state.subtitle === null) !== (prev.subtitle === null)) audio.duckMusic(state.subtitle !== null);
+  if ((state.subtitle === null) !== (prev.subtitle === null) || state.subtitle?.speaker !== prev.subtitle?.speaker) {
+    audio.duckMusic(state.subtitle !== null, state.subtitle ? musicDuckFor(state.subtitle.speaker) : undefined);
+  }
 });
 installBrowserVoice(() => {
   const s = getSettings();
@@ -20,9 +22,13 @@ installBrowserVoice(() => {
 
 // Test hook for Playwright (`?test` only): read-only access to the live run.
 if (new URLSearchParams(window.location.search).has('test')) {
-  void Promise.all([import('./state/gameStore'), import('./player/RunDriver')]).then(([{ getRun }, { renderStats, debugScene, debugCamera }]) => {
+  void Promise.all([import('./state/gameStore'), import('./player/RunDriver'), import('./state/runStore')]).then(([{ getRun }, { renderStats, debugScene, debugCamera }, { useRunStore }]) => {
     (window as unknown as { __spellcaster: unknown }).__spellcaster = {
       beat: () => getRun()?.director.currentBeat?.id ?? null,
+      /** Words on screen, the subtitle and any choice (for scripted play-throughs). */
+      labels: () => useRunStore.getState().labels.map((l) => ({ id: l.id, word: l.word, locked: l.locked, done: l.locked ? l.correctLength : l.pendingPrefix })),
+      subtitle: () => useRunStore.getState().subtitle,
+      choice: () => useRunStore.getState().choice !== null,
       music: () => musicDiagnostics.read(),
       area: () => getRun()?.currentAreaId ?? null,
       focus: () => getRun()?.focus ?? null,

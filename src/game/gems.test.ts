@@ -56,10 +56,15 @@ describe('lines about switchable things', () => {
    */
   const STORY: ReadonlySet<string> = new Set([
     'court-chase', // the thief stole a page: an action chase, kept with collectibles off
+    'court-chase-caught', // the stolen page, half erased (a clue)
+    'por-5', // blank pages among the clues
+    'power-chain', // Chain Spark's sparks jumping off the wand
+    'gh-anchor-done', // the same sparks, as the last anchor lights
     'east-run-3', // the books' own pages going blank
     'lib-grim-pages', // the Grimoire's flying pages (boss attack)
     'l2-our-books', // the Wyrm made of library pages
     'l2-orin-ward', // the Lantern Ward (the shield), not a lantern pickup
+    'l2-orin-beacons', // the beacons raise the Lantern Ward
     'l2-wyrm-motto', // "every page has a place"
     'l3-raft', // a raft made of a page
     'l3-journal', // the burning journal pages are required story targets

@@ -8,7 +8,7 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { AdditiveBlending, CanvasTexture, Color, Mesh, MeshStandardMaterial, NormalBlending, SRGBColorSpace, type Group, type PointLight, type Sprite } from 'three';
+import { AdditiveBlending, Box3, CanvasTexture, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, NormalBlending, Plane, SRGBColorSpace, Vector3, type Group, type PointLight, type Sprite } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
 
@@ -262,32 +262,75 @@ const ASH = new Color('#55504c');
  * An object that burns to grey ash (with fire on it) until `flag` is set by its restore word, then
  * blazes back to full colour (LEVEL2_DESIGN A2-1). `burning` false keeps it ash without flames.
  */
-export function Restorable({ flag, children, fire, burning = true }: { flag: string; children: ReactNode; fire?: FireProps; burning?: boolean }) {
+/** The slant of the line that rubs out half of an `erased` creature (world space, normalised). */
+const ERASE_NORMAL = new Vector3(0.85, 0.45, 0.3).normalize();
+
+/**
+ * `erased` (Level 3 creatures, owner: "the deer is fully intact"): until restored, a slanted line cuts
+ * the model in half; the far half is gone except for a faint pencil ghost. Restoring sweeps the line
+ * across, drawing the rest of it back in.
+ */
+export function Restorable({ flag, children, fire, burning = true, erased = false }: { flag: string; children: ReactNode; fire?: FireProps; burning?: boolean; erased?: boolean }) {
   const group = useRef<Group>(null);
-  const mats = useRef<{ m: MeshStandardMaterial; color: Color; emissive: Color }[] | null>(null);
+  const mats = useRef<{ m: MeshStandardMaterial; color: Color; emissive: Color }[]>([]);
+  const seen = useRef(new Set<Mesh>());
   const level = useRef(0);
+  const erase = useRef<{ solid: Plane; ghost: Plane; ghostMat: MeshBasicMaterial; centre: Vector3; reach: number } | null>(null);
   useFrame((_, delta) => {
     const g = group.current;
     if (!g) return;
-    if (!mats.current) {
-      // Clone this object's materials once so the ash tint never leaks into shared kit materials.
-      const list: { m: MeshStandardMaterial; color: Color; emissive: Color }[] = [];
-      g.traverse((o) => {
-        if (o instanceof Mesh && o.material instanceof MeshStandardMaterial) {
-          const m = o.material.clone();
-          o.material = m;
-          list.push({ m, color: m.color.clone(), emissive: m.emissive.clone() });
+    // Clone each mesh's material once so the ash tint never leaks into shared kit materials. Meshes
+    // that appear later (a model replacing its loading stand-in) are picked up as they arrive.
+    const fresh: Mesh[] = [];
+    g.traverse((o) => {
+      if (o instanceof Mesh && o.name !== 'erased-ghost' && !seen.current.has(o) && o.material instanceof MeshStandardMaterial) fresh.push(o);
+    });
+    if (fresh.length > 0) {
+      for (const o of fresh) {
+        seen.current.add(o);
+        const m = (o.material as MeshStandardMaterial).clone();
+        o.material = m;
+        mats.current.push({ m, color: m.color.clone(), emissive: m.emissive.clone() });
+      }
+      if (erased) {
+        g.updateMatrixWorld(true);
+        const box = new Box3().setFromObject(g);
+        const centre = box.getCenter(new Vector3());
+        const reach = box.getSize(new Vector3()).length() / 2 + 0.2;
+        const e = erase.current ?? {
+          solid: new Plane(ERASE_NORMAL.clone().negate(), 0),
+          ghost: new Plane(ERASE_NORMAL.clone(), 0),
+          // The rubbed-out half: the same shape as a faint grey pencil ghost.
+          ghostMat: new MeshBasicMaterial({ color: '#d8d4cc', transparent: true, opacity: 0.16, depthWrite: false }),
+          centre,
+          reach,
+        };
+        e.ghostMat.clippingPlanes = [e.ghost];
+        e.centre.copy(centre);
+        e.reach = reach;
+        erase.current = e;
+        for (const { m } of mats.current) m.clippingPlanes = [e.solid];
+        for (const o of fresh) {
+          const copy = new Mesh(o.geometry, e.ghostMat);
+          copy.name = 'erased-ghost';
+          o.add(copy);
         }
-      });
-      if (list.length === 0) return;
-      mats.current = list;
+      }
     }
+    if (mats.current.length === 0) return;
     const restored = getRun()?.flags.has(flag) ?? false;
     level.current += ((restored ? 1 : 0) - level.current) * (1 - Math.exp(-2.4 * Math.min(delta, 0.1)));
     const ember = 1 - level.current;
     for (const { m, color, emissive } of mats.current) {
       m.color.copy(ASH).lerp(color, level.current);
       m.emissive.copy(emissive).lerp(new Color('#ff3a10'), ember * 0.12);
+    }
+    const e = erase.current;
+    if (e) {
+      // The cut sits at the middle while erased and sweeps out past the far side as it is restored.
+      const d = e.centre.dot(ERASE_NORMAL) + level.current * e.reach;
+      e.solid.constant = d;
+      e.ghost.constant = -d;
     }
   });
   return (

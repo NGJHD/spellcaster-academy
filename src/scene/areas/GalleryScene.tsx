@@ -5,6 +5,7 @@ import type { Group } from 'three';
 import { GALLERY_ORIGIN, GALLERY_ZONES, MIRA_GALLERY_POSITION } from '../../level/areas/gallery';
 import { getRun } from '../../state/gameStore';
 import { Arch, Column, Slab, StandingLamp, WindowPane } from '../kit';
+import { CastleDoor } from '../CastleDoor';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { Mira, Student } from '../props';
@@ -28,7 +29,6 @@ export function GalleryScene() {
       <Slab x={[W, W + 0.4]} y={[0, H]} z={[-63, 2]} material={MAT.academyStone} />
       <Slab x={[-W - 0.4, W + 0.4]} y={[H, H + 0.4]} z={[-63, 2]} material={MAT.darkOak} />
       <Slab x={[-W, W]} y={[0, H]} z={[-63.4, -63]} material={MAT.academyStone} />
-      <Slab x={[-1.6, 1.6]} y={[0, 4]} z={[-62.95, -62.9]} material={MAT.darkOak} />
       {Array.from({ length: 9 }, (_, i) => -2 - i * 7).map((z) => (
         <group key={z}>
           <Column position={[-W + 0.5, 0, z]} height={H} radius={0.35} />
@@ -74,6 +74,10 @@ export function GalleryScene() {
       <Prop id="WoodenTable_01" position={[-4.6, 0, -8.2]} height={0.85} />
       <Prop id="book_encyclopedia_set_01" position={[-4.9, 0.86, -8.2]} height={0.3} rotationY={0.4} />
       <Prop id="brass_candleholders" position={[-4.0, 0.86, -8.1]} height={0.35} />
+      {/* The door to the Moon Tower: the studded castle door (owner: the flat panel didn't read as a door) */}
+      <group position={[0, 0, -63]}>
+        <CastleDoor height={3.8} />
+      </group>
       <Mira position={mira} rotationY={0.8} />
       <pointLight position={[0, 7, -30]} color="#ffe9c8" intensity={40} distance={50} decay={2} />
     </group>

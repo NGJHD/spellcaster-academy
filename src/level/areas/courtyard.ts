@@ -77,12 +77,14 @@ export const courtyard: AreaScript = {
     COURTYARD_WARDEN_GROUND: [3, 0.1, -10],
   },
   beats: [
-    travel('courtyard-entry', A, ['ARRIVAL_WARD_FRACTURE', 'COURTYARD_ENTRY_01', 'COURTYARD_REVEAL_FOUNTAIN'], 6),
+    // Owner (2026-10-08): straight to the training dummies, no stop at the fountain.
+    travel('courtyard-entry', A, ['ARRIVAL_WARD_FRACTURE', 'COURTYARD_ENTRY_01', 'COURTYARD_COMBAT_C1'], 7, { barks: ['fracture-4'], easing: 'easeInOutCubic' }),
+    // The fountain's star page, only when collectibles are on (otherwise this pan is skipped).
     reveal(
       'courtyard-fountain-reveal',
       A,
-      'COURTYARD_REVEAL_FOUNTAIN',
-      ['COURTYARD_FOUNTAIN_RIM', 'COURTYARD_TRAINING_CIRCLE_WEST'],
+      'COURTYARD_COMBAT_C1',
+      ['COURTYARD_FOUNTAIN_RIM'],
       1.2,
       1.4,
       {
@@ -94,11 +96,7 @@ export const courtyard: AreaScript = {
         }),
       },
     ),
-    travel('courtyard-to-c1', A, ['COURTYARD_REVEAL_FOUNTAIN', 'COURTYARD_COMBAT_C1'], 3, {
-      easing: 'easeInOutCubic',
-      reducedMotion: 'glide',
-    }),
-    fight('courtyard-c1', A, { music: 'courtyard-action', barks: ['court-1', 'court-goal'] }),
+    fight('courtyard-c1', A, { music: 'courtyard-action', barks: ['court-1'] }),
     reveal('courtyard-planter-reveal', A, 'COURTYARD_COMBAT_C1', ['COURTYARD_PLANTER_NW'], 0.9, 0.4, {
       fx: [{ kind: 'leaves', at: 'COURTYARD_PLANTER_NW', scale: 1.2, atBeat: 0.5 }],
     }),
@@ -131,20 +129,20 @@ export const courtyard: AreaScript = {
         ],
       },
     ),
-    // The Warden crash-lands in the courtyard, raises an arm at the anchor, and leaps away.
-    reveal('courtyard-warden-sighting', A, 'COURTYARD_ROOF_END', ['COURTYARD_WARDEN_LAND'], 0.6, 8, {
-      barks: ['court-warden'],
+    // The Warden crash-lands in the courtyard, points at the broken anchor (it tells us about the
+    // three anchors), and leaps back to the tower. Long enough at Fast to see it land, point and go.
+    reveal('courtyard-warden-sighting', A, 'COURTYARD_ROOF_END', ['COURTYARD_WARDEN_LAND'], 0.6, 20, {
+      barks: ['court-warden-say', 'court-warden'],
       returnToNode: false,
-      attention: 'spectacle',
       fx: [
-        { kind: 'shockwave', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.22, scale: 1.4 },
-        { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.22, scale: 2.2 },
-        { kind: 'debris', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.22, scale: 1.2, color: '#b9a58a' },
-        { kind: 'shake', atBeat: 0.22, scale: 1.6 },
+        { kind: 'shockwave', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.4 },
+        { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 2.2 },
+        { kind: 'debris', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.2, color: '#b9a58a' },
+        { kind: 'shake', atBeat: 0.15, scale: 1.6 },
         // Pigeons scatter from the roofs and the paving as it lands.
-        { kind: 'birds', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.23, scale: 1.4 },
-        { kind: 'birds', at: 'COURTYARD_ROOF_WARDEN', atBeat: 0.2, scale: 1 },
-        { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.8, scale: 1.4 },
+        { kind: 'birds', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.16, scale: 1.4 },
+        { kind: 'birds', at: 'COURTYARD_ROOF_WARDEN', atBeat: 0.13, scale: 1 },
+        { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.82, scale: 1.4 },
       ],
     }),
     travel('courtyard-to-anchor', A, ['COURTYARD_ROOF_END', 'COURTYARD_MID_01', 'COURTYARD_ANCHOR'], 6, {
@@ -155,7 +153,8 @@ export const courtyard: AreaScript = {
     reveal('courtyard-anchor-pillar', A, 'COURTYARD_ANCHOR', ['COURTYARD_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('courtyard-power', A, { barks: ['power-spark'] }),
     checkpoint('courtyard-checkpoint', A, 'courtyard-restored', { objective: 'library-anchor' }),
-    travel('courtyard-exit', A, ['COURTYARD_ANCHOR', 'COURTYARD_EXIT_EAST_HALL'], 3.5, { reducedMotion: 'glide' }),
+    // Where next and why (owner: nobody just appears somewhere).
+    travel('courtyard-exit', A, ['COURTYARD_ANCHOR', 'COURTYARD_EXIT_EAST_HALL'], 3.5, { reducedMotion: 'glide', barks: ['court-exit', 'court-exit-2'] }),
   ],
   encounters: [
     // First use of Spark Bolt: a burst of sprites to blast.
@@ -186,7 +185,6 @@ export const courtyard: AreaScript = {
           targets: COURTYARD_DUMMY_POSITIONS.map((p, i) => dummy(`dummy-${i + 1}`, p, i * 1.3)),
         },
       ],
-      barks: [{ when: { on: 'defeats', count: 1 }, line: 'court-first' }],
     },
     {
       id: 'courtyard-c2',
@@ -220,7 +218,6 @@ export const courtyard: AreaScript = {
         },
       ],
       barks: [
-        { when: { on: 'wave-start', wave: 1 }, line: 'court-tab-tip' },
         { when: { on: 'focus-below', value: 50 }, line: 'court-breathe' },
       ],
     },

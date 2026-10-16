@@ -16,6 +16,7 @@ import { WardenModel, useBeatIndex, type WardenState } from '../props';
 const R = 14;
 const INTRO_BEAT = beatIndexOf('observatory-intro');
 const RESTORED_BEAT = beatIndexOf('observatory-restored');
+const ENTER_BEAT = beatIndexOf('observatory-enter');
 
 export function ObservatoryScene() {
   return (
@@ -24,8 +25,9 @@ export function ObservatoryScene() {
       <Instruments />
       <BossWarden />
       <WardDome />
-      {/* The torn seam across the dome (local coordinates; the dome is centred on the arena). */}
-      <Seam points={[[-1.5, 18, -40], [2.5, 30, -44], [-2.5, 42, -46], [2, 55, -45], [-1, 68, -42]]} radius={0.35} />
+      {/* The crack the Warden holds shut, open from the moment we walk in (owner: it only appeared in the
+          final frame); once the ward is mended it narrows to the seam (local coordinates). */}
+      <Seam points={[[-1.5, 18, -40], [2.5, 30, -44], [-2.5, 42, -46], [2, 55, -45], [-1, 68, -42]]} radius={0.35} fromBeat={ENTER_BEAT} wideUntilBeat={RESTORED_BEAT} />
       <ValueBeams />
     </group>
   );

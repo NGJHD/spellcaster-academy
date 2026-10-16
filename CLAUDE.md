@@ -1002,6 +1002,7 @@ When responding to an implementation request:
 13. Prefer deterministic encounter scripts over random spawning in every level.
 14. Do not add placeholder TODOs for requested core behaviour; implement the smallest complete version.
 15. If final art is unavailable, use a clearly labelled geometric placeholder and continue implementing gameplay.
+16. **Generate models; don't hand-build them from polygons** (owner, 2026-10-08). Make every visible object, creature or prop with Blender (`bpy` scripts) and the local ComfyUI pipeline (Flux 2 concept → TRELLIS.2 shape and colour → Blender build; `assets-src/scripts/ai`, `build_on_3080.sh` when only the RTX 3080 is free) whenever possible. Code-built boxes, cylinders and planes are only for invisible helpers, ground and wall surfaces, effects, or a short-lived placeholder kept as the `ModelBoundary` fallback while the generated model is made. Check every new model in the game from the camera's actual view.
 
 ### Commands
 

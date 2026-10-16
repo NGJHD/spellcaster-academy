@@ -78,6 +78,12 @@ CONFIG = {
     "academy_tower": dict(out="academy_tower", folder="props", rig="none", defeat="vanish", height=30, tris=20000, tex=2048, smooth_colours=2),
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
     "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
+    # 2026-10-08: the Cinder Citadel's front (owner: "the front of the cinder citadel looks blockish").
+    "vellum_dragon": dict(out="vellum_dragon", height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
+    "vine_tangle": dict(out="vine_tangle", folder="props", rig="none", defeat="vanish", height=2.4, tris=30000, tex=1024),
+    "wooden_oar": dict(out="wooden_oar", folder="props", rig="none", defeat="vanish", height=0.18, fit="width", width=2.8, tris=6000, tex=1024),
+    "burning_wreck": dict(out="burning_wreck", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=7, tris=20000, tex=1024),
+    "citadel_gate": dict(out="citadel_gate", folder="props", rig="none", defeat="vanish", height=36, fit="width", width=64, tris=40000, tex=2048),
     "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),
     "wardrobe": dict(out="wardrobe", folder="props", rig="none", defeat="vanish", height=2.2, tris=10000, tex=1024),
     "beacon_brazier": dict(out="beacon_brazier", folder="props", rig="none", defeat="vanish", height=2.6, tris=12000, tex=1024, metallic=0.5, roughness=0.5),
@@ -324,7 +330,7 @@ if cfg["rig"] != "none":
         BANDS = [("pelvis", 0.0, H)]
         joints = [J("pelvis", (0, 0, 0.5 * H), (0, 0, H))]
     else:
-        cut = {"biped": (0.3, 0.6, 0.8), "dummy": (0.18, 0.62, 0.82), "floater": (0.35, 0.62, 0.82), "plant": (0.25, 0.55, 0.72)}[cfg["rig"]]
+        cut = {"biped": (0.3, 0.6, 0.8), "dummy": (0.18, 0.62, 0.82), "floater": (0.35, 0.62, 0.82), "plant": (0.25, 0.55, 0.72), "dragon": (0.3, 0.55, 0.75)}[cfg["rig"]]
         z1, z2, z3 = (c * H for c in cut)
         BANDS = [("pelvis", 0.0, z1), ("spine", z1, z2), ("chest", z2, z3), ("head", z3, H)]
         joints = [
@@ -333,6 +339,12 @@ if cfg["rig"] != "none":
             J("chest", (0, 0, z2), (0, 0, z3), "spine"),
             J("head", (0, 0, z3), (0, 0, H), "chest"),
         ]
+        if cfg["rig"] == "dragon":
+            # A wing bone each side, from the shoulder out along the span (wings lie along ±X).
+            joints += [
+                J("wing_l", (-0.22 * W, 0, 0.62 * H), (-0.48 * W, 0, 0.8 * H), "chest"),
+                J("wing_r", (0.22 * W, 0, 0.62 * H), (0.48 * W, 0, 0.8 * H), "chest"),
+            ]
 
     arm_data = bpy.data.armatures.new(cfg["out"] + "Rig")
     rig = bpy.data.objects.new(cfg["out"] + "Rig", arm_data)
@@ -367,9 +379,25 @@ if cfg["rig"] != "none":
         return {k: v / total for k, v in out.items()}
 
 
+    if cfg["rig"] == "dragon":
+        groups["wing_l"] = body.vertex_groups.new(name="wing_l")
+        groups["wing_r"] = body.vertex_groups.new(name="wing_r")
+
+    def wing_share(co):
+        """How much a vertex belongs to a wing: out beyond the body's flanks and above the legs."""
+        if cfg["rig"] != "dragon" or co.z < 0.45 * H:
+            return 0.0
+        # The body spans about ±0.21 W (vellum_dragon concept); the wings start just outside it.
+        u = min(1.0, max(0.0, (abs(co.x) - 0.22 * W) / (0.1 * W)))
+        return u * u * (3 - 2 * u)
+
     for v in body.data.vertices:
+        wing = wing_share(v.co)
         for name, w in band_weights(v.co.z).items():
-            groups[name].add([v.index], w, "REPLACE")
+            if w * (1 - wing) > 0:
+                groups[name].add([v.index], w * (1 - wing), "REPLACE")
+        if wing > 0:
+            groups["wing_l" if v.co.x < 0 else "wing_r"].add([v.index], wing, "REPLACE")
     body.parent = rig
     mod = body.modifiers.new("Armature", "ARMATURE")
     mod.object = rig
@@ -386,6 +414,37 @@ if cfg["rig"] != "none":
         P(rig, "Attack", [(0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}}), (14, {"pelvis": {"rot": (-35, 0, 0), "loc": (0, 0.05 * H, -0.15 * H)}}), (20, {"pelvis": {"rot": (30, 0, 0), "loc": (0, -0.02 * H, 0.35 * H)}}), (30, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0)}})])
         P(rig, "Hit", [(0, {"pelvis": {"rot": (0, 0, 0)}}), (3, {"pelvis": {"rot": (-25, 15, 10)}}), (12, {"pelvis": {"rot": (0, 0, 0)}})])
         P(rig, "Dispel", [(0, {"pelvis": {"rot": (0, 0, 0), "scale": (1, 1, 1)}}), (15, {"pelvis": {"rot": (-40, 360, 0), "scale": (0.7, 0.7, 0.7)}}), (30, {"pelvis": {"rot": (-80, 720, 0), "scale": (0.05, 0.05, 0.05)}})])
+    elif style == "dragon":
+        # Wings: +X rotation lifts a wing (both sides). Idle breathes; Move is flight with full beats.
+        def wings(a):
+            return {"wing_l": (a, 0, 0), "wing_r": (a, 0, 0)}
+        P(rig, "Idle", [
+            (0, {**wings(6), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (40, {**wings(-4), "chest": (3, 0, 0), "head": (-4, 6, 0)}),
+            (80, {**wings(6), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        P(rig, "Move", [
+            (0, {**wings(38), "pelvis": {"loc": (0, 0, 0)}, "head": (-6, 0, 0)}),
+            (8, {**wings(-32), "pelvis": {"loc": (0, 0.05 * H, 0)}, "head": (4, 0, 0)}),
+            (16, {**wings(38), "pelvis": {"loc": (0, 0, 0)}, "head": (-6, 0, 0)}),
+        ])
+        # Rears up with wings raised, then lunges with a roar, wings sweeping forward.
+        P(rig, "Attack", [
+            (0, {**wings(0), "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (14, {**wings(40), "spine": (-14, 0, 0), "chest": (-12, 0, 0), "head": (18, 0, 0)}),
+            (20, {**wings(-20), "spine": (18, 0, 0), "chest": (14, 0, 0), "head": (-14, 0, 0)}),
+            (34, {**wings(0), "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        P(rig, "Hit", [
+            (0, {**wings(0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+            (3, {**wings(25), "chest": (-10, 0, 6), "head": (-18, 10, 0)}),
+            (14, {**wings(0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
+        ])
+        P(rig, "Dispel", [
+            (0, {"pelvis": {"rot": (0, 0, 0), "loc": (0, 0, 0), "scale": (1, 1, 1)}}),
+            (15, {"pelvis": {"rot": (0, 360, 0), "loc": (0, 0.1 * H, 0), "scale": (0.7, 0.7, 0.7)}}),
+            (30, {"pelvis": {"rot": (0, 720, 0), "loc": (0, 0.2 * H, 0), "scale": (0.05, 0.05, 0.05)}}),
+        ])
     else:
         sway = {"biped": 4, "dummy": 2, "floater": 6, "plant": 5}[style]
         P(rig, "Idle", [
@@ -447,3 +506,9 @@ if "--preview" in args:
     for frame, label in (((14, "windup"), (20, "strike")) if rig else ()):
         bpy.context.scene.frame_set(frame)
         C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_{label}"), H, views=((35, "three-quarter"),))
+    # Wing check for the dragon rig: the top and bottom of a wingbeat.
+    if rig and cfg["rig"] == "dragon":
+        rig.animation_data.action = bpy.data.actions.get("Move")
+        for frame, label in ((0, "wings_up"), (8, "wings_down")):
+            bpy.context.scene.frame_set(frame)
+            C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_{label}"), H, views=((0, "front"),))

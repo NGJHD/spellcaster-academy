@@ -130,7 +130,7 @@ export const cinderwood: AreaScript = {
     fade('l3-cw-enter', W, 'CW_START', { music: 'blank-wander', objective: 'l3-cinderwood', barks: ['l3-cw-1'] }),
     fight('l3-deer', W, { barks: ['l3-deer'] }),
     travel('l3-cw-follow-deer', W, ['CW_START', 'CW_MID'], 5, { barks: ['l3-deer-path'] }),
-    fight('l3-cw-moths', W, { music: 'citadel-battle', barks: ['l3-erased-tip'] }),
+    fight('l3-cw-moths', W, { music: 'citadel-battle' }),
     fight('l3-cw-redactors', W, { barks: ['l3-redactors'] }),
     fight('l3-flock', W),
     travel('l3-cw-to-tortoise', W, ['CW_MID', 'CW_END'], 4),
@@ -139,8 +139,10 @@ export const cinderwood: AreaScript = {
     travel('l3-tortoise-ride', W, ['CW_MOUNT', 'CW_RIDE'], 8, {
       barks: ['l3-tortoise-ride'],
       chase: [
-        { at: 0.3, target: colour('ride-colour-1', C(0, 0, 0), len(3, 4), 'l3-ride-1', { follow: { ahead: 4.4, side: -1.3, up: 0.2 } }) },
-        { at: 0.65, target: colour('ride-colour-2', C(0, 0, 0), len(3, 4), 'l3-ride-2', { follow: { ahead: 4.4, side: 1.3, up: 0.2 } }) },
+        // Spark gems flying beside the tortoise (owner, 2026-10-16: two words floated over bare trees with
+        // nothing to aim at).
+        { at: 0.3, target: target('ride-gem-1', 'gem', C(0, 0, 0), [len(3, 4)], { optional: true, labelHeight: 0.28, variant: '-1', follow: { ahead: 4.2, side: -1.25, up: 0.15 } }) },
+        { at: 0.65, target: target('ride-gem-2', 'gem', C(0, 0, 0), [len(3, 4)], { optional: true, labelHeight: 0.28, variant: '1', follow: { ahead: 4.2, side: 1.25, up: 0.15 } }) },
       ],
     }),
     checkpoint('l3-cw-checkpoint', W, 'cinderwood-coloured', { objective: 'l3-inkfall' }),

@@ -80,10 +80,10 @@ export const eastHall: AreaScript = {
         { at: 0.45, target: runaway('stampede-6', -0.9, -0.15, 5) },
       ],
     }),
-    // Pip throws up a ward: the stampede smashes into it.
+    // Pip throws up a ward: the stampede smashes into it. Mira says where the books came from, and
+    // the camera waits for it, so the walk into the library has a reason (owner, 2026-10-08).
     reveal('east-hall-slam', A, 'EAST_HALL_RUN_D', ['EAST_HALL_WARD_LINE'], 0.3, 4.5, {
-      barks: ['east-6'],
-      attention: 'spectacle',
+      barks: ['east-6', 'east-7'],
       fx: [
         { kind: 'shockwave', at: 'EAST_HALL_WARD_LINE', scale: 0.35, color: '#9fd8ff' },
         { kind: 'burst', at: 'EAST_HALL_WARD_LINE', scale: 1.6, color: '#bfe6ff' },

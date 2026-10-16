@@ -14,8 +14,12 @@ const A = 'l2-tower-roof';
 const E = 'l2-aftermath';
 export const ROOF_ORIGIN: Vec3 = [1600, 60, 0];
 const T = origin(ROOF_ORIGIN);
-export const WYRM_HEAD: Vec3 = T(0, 6, -14);
-const WYRM_HEART: Vec3 = T(0, 3.2, -11);
+// The page dragon stands at the far side of the roof, forelegs on the parapet, facing the camera
+// (owner, 2026-10-08: a big dragon on all fours staring down, not coiled). Head and chest:
+export const WYRM_HEAD: Vec3 = T(0, 6.2, -8.5);
+const WYRM_HEART: Vec3 = T(0, 3.8, -9.5);
+/** Where the dragon stands (the model's feet), facing +Z. */
+export const DRAGON_STAND: Vec3 = T(0, 0, -13);
 /** The aftermath is staged on the same roof, at dawn. */
 export const AFTERMATH_ORIGIN: Vec3 = ROOF_ORIGIN;
 const O = origin(AFTERMATH_ORIGIN);
@@ -34,6 +38,9 @@ export const towerRoof: AreaScript = {
     // the burning sky (the wall filled the whole view before).
     PALM_BASE: { position: T(7, -46, 21), lookAt: T(-2, 2, -4) },
     PALM_MID: { position: T(6, -22, 17), lookAt: T(-1, 8, -6) },
+    // Above the parapet and still outside the tower wall (r = 9.6): the hand rises all the way up,
+    // then sets us down on the roof (owner: it went through the tower).
+    PALM_HIGH: { position: T(2, 7, 14), lookAt: T(0, 3, -6) },
     PALM_TOP: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
     ROOF_FIGHT: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
     ROOF_ORBIT_A: { position: T(-6, 2.4, 3), lookAt: T(-10, 8, -16) },
@@ -52,7 +59,7 @@ export const towerRoof: AreaScript = {
   beats: [
     fade('l2-roof-enter', A, 'PALM_BASE', { music: 'siege-battle', objective: 'l2-wyrm', barks: ['l2-palm'] }),
     // Fast-rail set piece: up the burning tower on the Warden's palm.
-    travel('l2-palm-ride', A, ['PALM_BASE', 'PALM_MID', 'PALM_TOP'], 10, {
+    travel('l2-palm-ride', A, ['PALM_BASE', 'PALM_MID', 'PALM_HIGH', 'PALM_TOP'], 11, {
       easing: 'easeInOutCubic',
       chase: [
         { at: 0.12, target: fireball('palm-fb-1', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: 1, up: 1.4 }, movement: { kind: 'static' }, leaveAfterSec: 4 }) },
@@ -89,7 +96,7 @@ export const towerRoof: AreaScript = {
     checkpoint('l2-wyrm-checkpoint', A, 'wyrm-defeated'),
     // Ending (L2-16): the quill shard, Pip glitches, someone has to go through.
     fade('l2-after-enter', E, 'AFTER_OBS', { music: 'ward-repair', fadeOutSec: 1, holdSec: 0.6, fadeInSec: 1 }),
-    talk('l2-after-shard', E, ['l2-end-1', 'l2-end-2', 'l2-end-3'], { attention: 'ending' }),
+    talk('l2-after-shard', E, ['l2-end-0', 'l2-end-1', 'l2-end-2', 'l2-end-3'], { attention: 'ending' }),
     reveal('l2-after-rift', E, 'AFTER_OBS', ['AFTER_SHARD'], 0.6, 0.2, { attention: 'ending' }),
     talk('l2-after-through', E, ['l2-end-4', 'l2-end-5', 'l2-end-6'], { attention: 'ending' }),
     checkpoint('l2-complete', E, 'level-2-complete', { attention: 'ending' }),

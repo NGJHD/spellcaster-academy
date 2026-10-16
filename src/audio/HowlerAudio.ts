@@ -76,8 +76,8 @@ export function installHowlerAudio(): void {
       Howler.volume(v.master);
       applyMusicVolume();
     },
-    duckMusic(ducked) {
-      music.duck(ducked);
+    duckMusic(ducked, level) {
+      music.duck(ducked, level);
     },
     unlock() {
       load();

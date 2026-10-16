@@ -59,12 +59,12 @@ export const lawn: AreaScript = {
       areaId: A,
       kind: 'combat',
       waves: [
-        { id: 'first', targets: [fireball('fb-1', W(0, 30, -70), W(0, 1.7, 2.6), { words: ['ink'], movement: { kind: 'approach', path: [W(0, 30, -70), W(0, 1.7, 2.6)], speed: 1.4 } })] },
+        { id: 'first', targets: [fireball('fb-1', W(0, 16, -32), W(0, 1.7, 2.6), { words: ['ink'], movement: { kind: 'approach', path: [W(0, 16, -32), W(0, 1.7, 2.6)], speed: 1.4 } })] },
         {
           id: 'second',
           targets: [
-            fireball('fb-2', W(-20, 32, -70), W(-0.6, 1.8, 2.6), { words: ['run'] }),
-            fireball('fb-3', W(22, 30, -70), W(0.6, 1.6, 2.6), { delaySec: 1.2 }),
+            fireball('fb-2', W(-10, 16, -32), W(-0.6, 1.8, 2.6), { words: ['run'] }),
+            fireball('fb-3', W(11, 15, -32), W(0.6, 1.6, 2.6), { delaySec: 1.2 }),
           ],
         },
       ],

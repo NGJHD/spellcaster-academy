@@ -1,13 +1,16 @@
 /** PLACEHOLDER Moon Tower ascent (§14A.24): three round floors, warm below, moonlit above. */
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import { BackSide, Path, Shape, ShapeGeometry, Vector3, type Group } from 'three';
+import { Suspense, useMemo, useRef } from 'react';
+import { BackSide, Box3, CylinderGeometry, Path, Shape, ShapeGeometry, Vector3, type Group, type Object3D } from 'three';
+import { useGLTF } from '@react-three/drei';
+import { ModelBoundary } from '../../enemies/ModelBoundary';
+import { propUrl } from '../Prop';
 import { LIFT_BEATS, LIFT_SHAFT, TOWER_FLOOR_HEIGHT, TOWER_ORIGIN } from '../../level/areas/moonTower';
 import { getRun } from '../../state/gameStore';
-import { KitModel, Portrait, WallLamp, WindowPane } from '../kit';
+import { Box, KitModel, Portrait, WallLamp, WindowPane } from '../kit';
 import { Prop } from '../Prop';
 import { MAT } from '../materials';
-import { worldCircle, worldCylinder } from '../surfaces';
+import { scaleUv, worldCircle, worldCylinder } from '../surfaces';
 
 /** Inside face of the round tower wall (same textured stone, rendered from within). */
 let towerWall: import('three').MeshStandardMaterial | null = null;
@@ -41,19 +44,23 @@ function Floor({ floor }: { floor: number }) {
     <group position={[0, y, 0]}>
       {/* Floors above the ground and every ceiling have the lift shaft cut through them. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} material={floor === 2 ? MAT.paving : MAT.lightOak} geometry={floor === 0 ? worldCircle(R, 48) : shaftDisc(-1)} receiveShadow />
-      <mesh position={[0, 4.5, 0]} material={towerWallMaterial()} geometry={worldCylinder(R, R, 9, 48, true)} receiveShadow />
+      {/* The top floor's wall has a gap behind the observatory door, so the passage leads somewhere
+          (owner: "there is a wall behind the door"). */}
+      <mesh position={[0, 4.5, 0]} material={towerWallMaterial()} geometry={floor === 2 ? doorWall() : worldCylinder(R, R, 9, 48, true)} receiveShadow />
       <mesh position={[0, 9, 0]} rotation={[Math.PI / 2, 0, 0]} material={MAT.darkOak} geometry={shaftDisc(1)} />
       <mesh position={[LIFT_SHAFT.x, 9.5, LIFT_SHAFT.z]} material={MAT.agedBrass}>
         <cylinderGeometry args={[LIFT_SHAFT.radius, LIFT_SHAFT.radius, 1, 32, 1, true]} />
       </mesh>
-      {[0.6, 1.6, 2.6, 3.6, 4.6].map((a, i) => (
+      {/* The top floor has the observatory door where the 1.6 window would be (owner: a window showed
+          through the open door). */}
+      {[0.6, 1.6, 2.6, 3.6, 4.6].filter((a) => !(floor === 2 && a === 1.6)).map((a, i) => (
         <group key={i} rotation={[0, a, 0]}>
           <WindowPane position={[R - 0.02, 4.5, 0]} rotationY={-Math.PI / 2} size={[0.8, 3.4]} night={floor > 0} />
           <WallLamp position={[R - 0.05, 3, 1.2]} rotationY={-Math.PI / 2} />
         </group>
       ))}
-      {/* Hanging celestial instruments */}
-      <group position={[0, 6.5, -2]}>
+      {/* Hanging celestial instruments (off to the side on the top floor, clear of the door view) */}
+      <group position={floor === 2 ? [4, 7, 1] : [0, 6.5, -2]}>
         <mesh material={MAT.agedBrass}>
           <torusGeometry args={[1.2, 0.03, 8, 48]} />
         </mesh>
@@ -86,6 +93,34 @@ function Floor({ floor }: { floor: number }) {
   );
 }
 
+/**
+ * The observatory door: the studded `large_castle_door` model (owner: the plank leaves didn't read as a
+ * door), whose two leaves are separate nodes, so they swing open when the stone guard is calmed.
+ */
+const DOOR_HEIGHT = 3.4;
+function CastleDoorOpening() {
+  const { scene } = useGLTF(propUrl('large_castle_door'));
+  const { object, scale, leaves } = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new Box3().setFromObject(scene);
+    const size = box.getSize(new Vector3());
+    const found: { node: Object3D; base: number; dir: number }[] = [];
+    clone.traverse((o) => {
+      if (/door_left$/.test(o.name)) found.push({ node: o, base: o.rotation.y, dir: -1 });
+      if (/door_right$/.test(o.name)) found.push({ node: o, base: o.rotation.y, dir: 1 });
+    });
+    return { object: clone, scale: DOOR_HEIGHT / Math.max(size.y, 1e-3), leaves: found };
+  }, [scene]);
+  const amount = useRef(0);
+  useFrame((_, dt) => {
+    const open = getRun()?.flags.has('tower-door-open') ?? false;
+    amount.current += ((open ? 1 : 0) - amount.current) * (1 - Math.exp(-1.4 * Math.min(dt, 0.1)));
+    // Each leaf hinges at its outer edge; they swing in towards the room (+Z).
+    for (const l of leaves) l.node.rotation.y = l.base + l.dir * 1.3 * amount.current;
+  });
+  return <primitive object={object} scale={scale} position={[0.045 * scale, 0.02, 0.12]} />;
+}
+
 function Door() {
   const left = useRef<Group>(null);
   const right = useRef<Group>(null);
@@ -95,25 +130,99 @@ function Door() {
     if (left.current) left.current.rotation.y += ((open ? -1.4 : 0) - left.current.rotation.y) * k;
     if (right.current) right.current.rotation.y += ((open ? 1.4 : 0) - right.current.rotation.y) * k;
   });
-  const y = 2 * TOWER_FLOOR_HEIGHT;
-  return (
-    <group position={[0, y, -8.6]}>
+  // The old plank leaves, kept only as the stand-in while the castle door loads.
+  const plankLeaves = (
+    <>
       <group ref={left} position={[-1.2, 0, 0]}>
         <KitModel id="door_leaf" position={[0, 0, 0.06]} />
       </group>
       <group ref={right} position={[1.2, 0, 0]}>
-        {/* Mirrored leaf: hinge on the right */}
         <KitModel id="door_leaf" position={[0, 0, 0.06]} scale={[-1, 1, 1]} />
       </group>
-      <mesh position={[0, 3.6, 0.1]} material={MAT.agedBrass}>
-        <torusGeometry args={[0.5, 0.05, 8, 32]} />
-      </mesh>
-      <mesh position={[0, 1.6, -0.3]}>
+    </>
+  );
+  const y = 2 * TOWER_FLOOR_HEIGHT;
+  // Owner (2026-10-08): the open door showed a window, then a wall. It now opens onto a stone passage
+  // through a gap in the tower wall, with stairs climbing to a moonlit arch (the way to the observatory).
+  return (
+    // On the wall line (the round wall is at z ≈ −8.8 at the doorway's edges), so nothing sticks out.
+    <group position={[0, y, -8.75]}>
+      <ModelBoundary fallback={plankLeaves}>
+        <Suspense fallback={plankLeaves}>
+          <CastleDoorOpening />
+        </Suspense>
+      </ModelBoundary>
+
+      {/* Jambs, lintel and passage in the tower wall's own stone, set just behind the wall surface so the
+          wall runs right up to the door (owner: no lighter bricks around the door) */}
+      {/* The castle door is 2.29 m wide by 3.36 m to the top of its frame: the jambs close in on its frame
+          (owner: there were gaps between the wall and the door) and reach out to the wall's gap (±1.8). */}
+      {[-1, 1].map((s) => (
+        <Box key={s} position={[s * 1.49, 3, -4.4]} size={[0.7, 6.4, 8.6]} material={MAT.academyStone} />
+      ))}
+      <Box position={[0, 6.17, -0.35]} size={[3.6, 5.66, 0.4]} material={MAT.academyStone} />
+      {/* Wall stone filling the corners above the door's arched frame (dark gaps showed there) */}
+      <mesh position={[0, 0, 0.06]} geometry={archSpandrels()} material={MAT.academyStone} />
+      <Box position={[0, 6.3, -4.4]} size={[3.6, 0.4, 8.6]} material={MAT.academyStone} />
+      {/* Stairs climbing away from the door */}
+      {/* Stairs that read as stairs (owner: they looked like more wall): dark stone risers, oak treads with
+          a rounded nose, and a red runner up the middle */}
+      {Array.from({ length: 11 }, (_, i) => {
+        const top = 0.25 * (i + 1);
+        const z = -0.6 - i * 0.62;
+        return (
+          <group key={i}>
+            <Box position={[0, top / 2 - 0.03, z]} size={[2.6, top - 0.06, 0.62]} material={MAT.academyStoneDark} shadows={false} />
+            <Box position={[0, top - 0.03, z + 0.02]} size={[2.6, 0.06, 0.66]} material={MAT.lightOak} shadows={false} />
+            <mesh position={[0, top - 0.03, z + 0.35]} rotation={[0, 0, Math.PI / 2]} material={MAT.darkOak}>
+              <cylinderGeometry args={[0.04, 0.04, 2.6, 10]} />
+            </mesh>
+            <Box position={[0, top + 0.005, z + 0.02]} size={[1.2, 0.012, 0.66]} material={MAT.burgundyLeather} shadows={false} />
+          </group>
+        );
+      })}
+      {/* The top landing and a moonlit arch onto the observatory roof */}
+      <Box position={[0, 2.75, -7.9]} size={[2.6, 0.2, 0.8]} material={MAT.academyStone} />
+      <mesh position={[0, 4.4, -8.45]}>
         <planeGeometry args={[2.4, 3.2]} />
-        <meshBasicMaterial color="#9fbcff" />
+        <meshBasicMaterial color="#9fb8ff" />
       </mesh>
+      <Box position={[0, 3, -8.6]} size={[3.4, 6, 0.2]} material={MAT.academyStone} />
+      <pointLight position={[0, 4.4, -7.4]} color="#a9c4ff" intensity={10} distance={8} decay={2} />
+      <pointLight position={[0, 2.2, -2]} color="#a9c4ff" intensity={4} distance={6} decay={2} />
     </group>
   );
+}
+
+/** A 2.36 m × 1.2 m panel above the door's springing line with an arch cut out of it (metre UVs). */
+let spandrelGeometry: ShapeGeometry | null = null;
+function archSpandrels(): ShapeGeometry {
+  if (!spandrelGeometry) {
+    const shape = new Shape();
+    shape.moveTo(-1.18, 2.2);
+    shape.lineTo(1.18, 2.2);
+    shape.lineTo(1.18, 3.4);
+    shape.lineTo(-1.18, 3.4);
+    shape.lineTo(-1.18, 2.2);
+    const hole = new Path();
+    hole.absellipse(0, 2.2, 1.06, 1.08, 0, Math.PI, false);
+    shape.holes.push(hole);
+    spandrelGeometry = new ShapeGeometry(shape, 24);
+  }
+  return spandrelGeometry;
+}
+
+/** The top floor's round wall with an opening behind the observatory door (CylinderGeometry θ = π is −Z). */
+let doorWallGeometry: CylinderGeometry | null = null;
+function doorWall(): CylinderGeometry {
+  if (!doorWallGeometry) {
+    const half = Math.asin(1.8 / R);
+    const arc = Math.PI * 2 - half * 2;
+    doorWallGeometry = new CylinderGeometry(R, R, 9, 48, 1, true, Math.PI + half, arc);
+    // Metre UVs like every other wall (without this the stone was stretched once round the tower: blurry).
+    scaleUv(doorWallGeometry, arc * R, 9);
+  }
+  return doorWallGeometry;
 }
 
 /**

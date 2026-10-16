@@ -171,11 +171,14 @@ export class MusicEngine {
     this.timer ??= window.setInterval(() => this.schedule(), 100);
   }
 
-  /** Dip the music under dialogue: quick to soften, slower to swell back. */
-  duck(ducked: boolean): void {
+  /**
+   * Dip the music under dialogue: quick to soften, slower to swell back. `level` is the music's share
+   * while ducked (soft voices duck it further).
+   */
+  duck(ducked: boolean, level = DUCK_LEVEL): void {
     const now = this.ctx.currentTime;
     this.duckGain.gain.cancelScheduledValues(now);
-    this.duckGain.gain.setTargetAtTime(ducked ? DUCK_LEVEL : 1, now, ducked ? 0.08 : 0.35);
+    this.duckGain.gain.setTargetAtTime(ducked ? level : 1, now, ducked ? 0.08 : 0.35);
   }
 
   /** RMS level of the music output, for diagnostics and tests. */

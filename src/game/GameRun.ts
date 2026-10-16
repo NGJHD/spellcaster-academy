@@ -45,21 +45,6 @@ export const CHAIN_TARGETS = 2;
 /** Starfall (LEVEL2_DESIGN L2-4): an eight-word perfect streak. */
 export const STARFALL_STREAK = 8;
 
-/**
- * Erased letters by difficulty (LEVEL3_DESIGN L3-4): Gentle fades one letter lightly, Standard up to
- * two, Challenge also shows one as a blank slot in 6+ letter words. Never the first letter.
- */
-export function erasedLetters(word: string, difficulty: Difficulty): { erased: number[]; erasedBlank?: number } {
-  if (word.length < 3) return { erased: [] };
-  let h = 0;
-  for (const ch of word) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const first = 1 + (h % (word.length - 1));
-  const second = 1 + ((h >>> 5) % (word.length - 1));
-  if (difficulty === 'gentle') return { erased: [first] };
-  const erased = second !== first ? [first, second] : [first];
-  if (difficulty === 'challenge' && word.length >= 6) return { erased, erasedBlank: first };
-  return { erased };
-}
 const SHAKE_SEC = 0.35;
 
 export interface RunSettings {
@@ -102,6 +87,8 @@ export interface SpellEvent {
   readonly key: number;
   readonly kind: 'bolt' | 'frost' | 'chain';
   readonly to: Vector3;
+  /** Chain Spark: where the bolt jumps from (the foe that was hit); otherwise the wand. */
+  readonly from?: Vector3;
   readonly targetId: string;
   readonly shieldBreak: boolean;
   /** 0 (a thin bolt) to 1 (a blazing comet): grows with the combo (CLAUDE.md §1B). */
@@ -216,6 +203,8 @@ const GEM_AFTER_IDLE_SEC = 6;
 /** An ignored gem flies off after this long. */
 /** A queued line must start within this many seconds, or it is dropped rather than said late. */
 const LINE_FRESH_SEC = 4;
+/** Longest a fight waits for earlier story lines before it starts anyway. */
+const MAX_FIGHT_WAIT_SEC = 12;
 
 interface QueuedLine {
   readonly line: DialogueLine;
@@ -455,6 +444,26 @@ export class GameRun {
    * further out it is.
    */
   framingTarget(out: Vector3): number {
+    const goal = this.liveFraming(out);
+    const enc = this.encounter;
+    if (goal > 0) {
+      if (enc) this.heldFraming = { encounter: enc, goal, point: this.heldFraming?.point.copy(out) ?? out.clone() };
+      return goal;
+    }
+    // Owner (2026-10-16): between two words of the same encounter (the next one not shown yet) the camera
+    // stays where it was looking; it only eases back once the encounter is over.
+    const held = this.heldFraming;
+    if (held && enc && held.encounter === enc && (enc.state === 'active' || enc.state === 'wave-gap' || enc.state === 'intro')) {
+      out.copy(held.point);
+      return held.goal;
+    }
+    this.heldFraming = null;
+    return 0;
+  }
+
+  private heldFraming: { encounter: EncounterRunner; goal: number; point: Vector3 } | null = null;
+
+  private liveFraming(out: Vector3): number {
     const words = [...this.allTargets()].filter((t) => t.phase === 'active' && !t.defeated && !t.spawn.follow);
     let worst = 0;
     for (const t of words) worst = Math.max(worst, Math.min(this.centralityOf(t.id), 2));
@@ -562,6 +571,7 @@ export class GameRun {
 
     if (this.dialogue) this.updateDialogue(dt);
     this.updatePendingFx(dt);
+    this.updateDeferredFight(dt);
 
     // Never carry the camera away from a bonus word too soon or once the player has started it
     // (owner bugs: "gle" for "glint", then "glint is skipped entirely" after the pace-up). The camera
@@ -1155,9 +1165,10 @@ export class GameRun {
       .filter((t) => t.id !== sourceId && !t.defeated && t.phase === 'active' && t.spawn.weak)
       .slice(0, CHAIN_TARGETS);
     audio.playSfx('chain-spark');
+    const source = runner.targets.get(sourceId)?.position.clone();
     for (const v of victims) {
       if (runner.dispel(v.id)) {
-        this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), targetId: v.id, shieldBreak: false });
+        this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), from: source, targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 25;
         // Make it obvious the spell took this word (owner: "the 3rd disappeared on its own").
         this.popup('CHAIN SPARK!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
@@ -1180,7 +1191,8 @@ export class GameRun {
     for (const v of [...runner.targets.values()]) {
       if (v.id === sourceId || v.defeated || v.phase !== 'active' || !(v.spawn.weak || v.spawn.counter)) continue;
       if (runner.dispel(v.id)) {
-        this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), targetId: v.id, shieldBreak: false });
+        // Each star falls from the sky onto its foe.
+        this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), from: v.position.clone().add(new Vector3(0, 7, 0)), targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 40;
         this.popup('STARFALL!', 'cheer', v.position, v.spawn.labelHeight ?? 1);
       }
@@ -1282,7 +1294,14 @@ export class GameRun {
         break;
       }
       case 'encounter':
-        this.startEncounter(beat.id, beat.encounterId);
+        // Owner (2026-10-08): back-to-back fights stacked their lines ("A spell! Type it!" was said
+        // after the fight, over the next area). A fight that brings lines of its own waits while
+        // earlier story lines finish, so its instructions are heard as it starts.
+        if (this.bringsLines(beat) && this.earlierStoryPending(beatIndex)) {
+          this.deferredFight = { beatId: beat.id, encounterId: beat.encounterId, index: beatIndex, waited: 0 };
+        } else {
+          this.startEncounter(beat.id, beat.encounterId);
+        }
         break;
       case 'checkpoint':
         this.commitCheckpoint(beat);
@@ -1870,11 +1889,49 @@ export class GameRun {
   private holdForSpeech(): boolean {
     const beat = this.director.currentBeat;
     if (!beat || ('attention' in beat && (beat.attention === 'spectacle' || beat.attention === 'boss-intro'))) return false;
-    if (!this.speechPending(this.director.currentIndex)) return false;
+    const index = this.director.currentIndex;
     // Chrome playtest (2026-10-07): with real voices, lines that were allowed to carry on into the next
     // scene were said over the wrong thing ("a healing fountain!" while passing the paintings). A camera
     // move now waits at its end until its own lines have been said in full.
-    return true;
+    if (this.speechPending(index)) return true;
+    // Owner (2026-10-08): the fountain's line came after its droplets had floated away, queued behind
+    // the portraits' lines. Earlier story lines still being said hold the camera before a scene that
+    // brings lines of its own, so each scene's lines are heard in that scene.
+    const next = this.level.route.beats[index + 1];
+    return next !== undefined && this.bringsLines(next) && this.earlierStoryPending(index);
+  }
+
+  /** A fight waiting for earlier story lines to finish (see onBeatStart). */
+  private deferredFight: { beatId: string; encounterId: string; index: number; waited: number } | null = null;
+
+  private updateDeferredFight(dt: number): void {
+    const d = this.deferredFight;
+    if (!d) return;
+    if (this.director.currentIndex !== d.index) {
+      this.deferredFight = null;
+      return;
+    }
+    d.waited += dt;
+    // Never wait forever: a stuck voice must not stall the level.
+    if (this.earlierStoryPending(d.index) && d.waited < MAX_FIGHT_WAIT_SEC) return;
+    this.deferredFight = null;
+    this.startEncounter(d.beatId, d.encounterId);
+  }
+
+  /** True if a beat says something as it starts (its own lines, a conversation, or a fight's lines). */
+  private bringsLines(beat: LevelBeat): boolean {
+    if (beat.kind === 'dialogue') return beat.lines.length > 0;
+    const settings = this.settings();
+    return (beat.barks ?? []).some((id) => {
+      const needs = LINE_NEEDS[id];
+      return !(needs && settings[needs] === false);
+    });
+  }
+
+  /** A story line (not a fight's tip) from an earlier beat is being said or waiting to be said. */
+  private earlierStoryPending(beatIndex: number): boolean {
+    if (this.currentBark && this.currentBarkBeat < beatIndex) return true;
+    return this.barkQueue.some((q) => q.beat < beatIndex && !q.instruction);
   }
 
   /**
@@ -2076,7 +2133,6 @@ export class GameRun {
         danger: t.attackPhase === 'windup',
         tabHint: view.lockedId !== null && !locked,
         counter: t.spawn.counter === true,
-        ...(t.spawn.erased ? erasedLetters(word, this.difficulty) : {}),
       });
     }
     patchRunUi({ labels });

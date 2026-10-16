@@ -46,6 +46,25 @@ CONCEPTS = {
                       "glowing windows, flames at the top", 57),
     "journal_lectern": ("An ornate carved dark wood lectern holding a large old open leather journal with burning "
                         "edges", 58),
+    # 2026-10-08 owner: the coiled wyrm "looks weird"; a big dragon on all fours, wings spread wide.
+    "vellum_dragon": ("A huge fearsome dragon made of burnt parchment and old leather book bindings, its scales are "
+                      "layered yellowed book pages with faint ink lettering, standing on all four legs and crouching "
+                      "forward, head lowered and staring straight ahead, glowing red eyes, open fanged jaws, curved "
+                      "horns, enormous bat-like wings spread wide open to both sides with red glowing membranes, long "
+                      "spiked tail, seen from the front, symmetrical", 62),
+    # 2026-10-08 owner: the greenhouse anchor should look tied up in vines.
+    "vine_tangle": ("A thick tangle of twisted dark green thorny vines with big leaves, wound round and round "
+                    "into an upright hollow cage about as tall as a person, knotted in three places", 64),
+    "wooden_oar": ("A single long old wooden rowing oar lying flat, a round worn handle and a long flat paddle blade, "
+                   "dark weathered oak with iron bands", 63),
+    "citadel_gate": ("The front of a sinister dark fortress seen head-on: a massive curtain wall of black iron and "
+                     "charred volcanic stone, a huge pointed arched gate glowing with red fire in the middle, two "
+                     "thick flanking towers with sharp iron spires, crenellated battlements, riveted iron plates and "
+                     "red glowing arrow slits, wide and imposing", 61),
+    # 2026-10-16 owner: the burning blocks on the paper sea ("what are those?") become burning wrecks.
+    "burning_wreck": ("The floating wreck of a small burnt wooden sailing boat, its hull broken open and listing, "
+                      "charred black planks and curved ribs, a snapped mast leaning over with a torn scorched sail, "
+                      "glowing red embers in the cracks of the wood", 65),
 }
 
 if __name__ == "__main__":

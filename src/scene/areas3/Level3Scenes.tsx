@@ -5,20 +5,22 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, type ReactNode } from 'react';
-import { BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, type Group, type PointLight } from 'three';
+import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
-import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, SLIDE_SECTIONS, WALKWAYS } from '../../level/areas3/journey2';
-import { CITADEL_ORIGIN, FLIGHTS, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
+import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
+import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { Fire, Restorable } from '../Fire';
 import { Bookshelf, Box, KitModel, Slab } from '../kit';
+import { CastleDoor } from '../CastleDoor';
 import { MAT } from '../materials';
 import { Mira, StaticWarden } from '../props';
 import { Carried } from '../areas2/Level2Scenes';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
-import { Prop } from '../Prop';
+import { Prop, propUrl } from '../Prop';
+import { useGLTF } from '@react-three/drei';
 import { DeadForest } from '../DeadForest';
 import { moltenInk, useMoltenFlow } from '../molten';
 import { LightBeam } from '../glow';
@@ -179,6 +181,12 @@ export function ShoreScene() {
       {[[-20, -40], [14, -50], [-34, -30], [30, -36], [-12, -60]].map(([x, z], i) => (
         <BurntTree key={i} position={[x ?? 0, 0, z ?? 0]} height={7 + i} seed={i + 1} />
       ))}
+      {/* The edge of the Cinderwood: the same dense burnt forest starts here (owner: the shore looked
+          like a bare wasteland next to the forest that follows). */}
+      <Suspense fallback={null}>
+        <DeadForest pathX={() => 0} clear={14} depth={90} zRange={[-24, -200]} density={2.2} avoid={[[-5, -26, 3], [7, -28, 3], [-8, -22, 2]]} seed={5} />
+        <DeadForest pathX={() => 0} clear={18} depth={70} zRange={[60, 10]} density={1.4} seed={9} />
+      </Suspense>
       <AshRocks spots={[[-9, -20, 2.2], [11, -24, 3], [-16, -36, 4], [18, -44, 2.6], [-4, -52, 1.8], [24, -20, 5], [-28, -12, 4.5], [6, 14, 1.6], [-14, 12, 2.4]]} />
       <StaticWarden position={[6, 0, 2]} scale={1.1} rotationY={-0.5} />
       <Mira position={[-2, 0, 3]} rotationY={0.3} />
@@ -232,7 +240,7 @@ export function CinderwoodScene() {
         <DeadForest pathX={CINDERWOOD_PATH_X} clear={7} depth={70} zRange={[40, -230]} density={2.4} avoid={[[3, -40, 9], [-2.2, -8, 3]]} />
       </Suspense>
       {/* The half-drawn deer: grey until its words restore it (AI-pipeline model; boxes until it loads) */}
-      <Restorable flag="l3-deer-free" burning={false}>
+      <Restorable flag="l3-deer-free" burning={false} erased>
         <group position={deer}>
           <ModelBoundary fallback={<DeerFallback />}>
             <Suspense fallback={<DeerFallback />}>
@@ -243,7 +251,7 @@ export function CinderwoodScene() {
       </Restorable>
       {/* The great tortoise, half rubbed out until its words restore it; it then carries the party */}
       <OnBeatsL3 hide={TORTOISE_RIDE_BEATS}>
-        <Restorable flag="l3-tortoise-free" burning={false}>
+        <Restorable flag="l3-tortoise-free" burning={false} erased>
           <group position={tortoise}>
             <GiantTortoise />
           </group>
@@ -296,10 +304,83 @@ function OnBeatsL3({ hide, children }: { hide: readonly string[]; children: Reac
 
 // ---------- Inkfall Cascades ----------
 
+const RAFT_WAITING_BEATS = ['l3-if-enter', 'l3-raft-board'] as const;
+
+/** Shows its children only during the given beats. */
+function OnBeatsShow({ show, children }: { show: readonly string[]; children: ReactNode }) {
+  const group = useRef<Group>(null);
+  useFrame(() => {
+    const id = getRun()?.director.currentBeat?.id ?? '';
+    if (group.current) group.current.visible = show.includes(id);
+  });
+  return <group ref={group}>{children}</group>;
+}
+
+/** Handwriting across the raft page (owner: "a page with writings on it"). */
+let writingTexture: CanvasTexture | null = null;
+function pageWriting(): CanvasTexture {
+  if (writingTexture) return writingTexture;
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 768;
+  const g = c.getContext('2d');
+  if (g) {
+    g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = 'rgb(18, 26, 70)';
+    g.font = 'bold italic 40px Georgia, serif';
+    const lines = ['Once upon a time,', 'in a school of stars,', 'a young apprentice', 'learned that every', 'mistake is a step', 'towards something', 'wonderful. And when', 'the pages went blank,', 'they wrote them back,', 'one word at a time.'];
+    lines.forEach((text, i) => {
+      g.globalAlpha = i % 4 === 3 ? 0.45 : 1;
+      g.fillText(text, 36 + (i % 2) * 10, 70 + i * 68);
+    });
+  }
+  writingTexture = new CanvasTexture(c);
+  writingTexture.colorSpace = SRGBColorSpace;
+  return writingTexture;
+}
+
 /**
  * The raft: one giant page folded at its edges into a shallow tray (owner: the white box was a "plain
  * rectangle"), cream paper with faint ruled lines, its folds catching the firelight.
  */
+/**
+ * A generated wooden oar (AI pipeline `wooden_oar`; its long axis is along Z, turned here to X), scaled to `length` metres
+ * (owner, 2026-10-08: "generate and render proper oars for the raft").
+ */
+function Oar({ length = 2.8 }: { length?: number }) {
+  const { scene } = useGLTF(propUrl('wooden_oar'));
+  const { object, scale } = useMemo(() => {
+    const box = new Box3().setFromObject(scene);
+    const size = box.getSize(new Vector3());
+    return { object: scene.clone(true), scale: length / Math.max(size.x, size.y, size.z, 1e-3) };
+  }, [scene, length]);
+  return <primitive object={object} scale={scale} rotation={[0, Math.PI / 2, 0]} />;
+}
+
+/** Two oars stowed along the raft's sides, blades towards the bow (they stuck up like boards). */
+function RaftOars() {
+  const fallback = (
+    <mesh rotation={[0, 0, Math.PI / 2]} material={MAT.lightOak}>
+      <cylinderGeometry args={[0.035, 0.035, 2.8, 10]} />
+    </mesh>
+  );
+  return (
+    <>
+      {[-1, 1].map((side) => (
+        <group key={side} position={[side * 0.95, 0.08, -0.4]} rotation={[0, Math.PI / 2 + side * 0.06, 0]}>
+          <group>
+            <ModelBoundary fallback={fallback}>
+              <Suspense fallback={fallback}>
+                <Oar />
+              </Suspense>
+            </ModelBoundary>
+          </group>
+        </group>
+      ))}
+    </>
+  );
+}
+
 function PaperRaft() {
   const sheet = useMemo(() => {
     const m = surface('paper', [3, 4.4], 1.2);
@@ -315,18 +396,27 @@ function PaperRaft() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} material={sheet} receiveShadow>
         <planeGeometry args={[2.6, 4]} />
       </mesh>
-      {/* Folded-up edges */}
+      {/* A low folded-up rim (the old tall flaps looked like giant planks from the bank) */}
+      {/* (A plane stands upright by default: the side strips are laid along the raft first, then
+          tilted up into a rim.) */}
       {[-1, 1].map((side) => (
-        <mesh key={`s${side}`} position={[side * 1.38, 0.12, 0]} rotation={[0, 0, side * -1.05]} material={sheet}>
-          <planeGeometry args={[0.32, 4]} />
-        </mesh>
+        <group key={`s${side}`} position={[side * 1.3, 0.04, 0]} rotation={[0, 0, side * 1.1]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[side * 0.06, 0, 0]} material={sheet}>
+            <planeGeometry args={[0.12, 4]} />
+          </mesh>
+        </group>
       ))}
       {[-1, 1].map((end) => (
-        <mesh key={`e${end}`} position={[0, 0.12, end * 2.08]} rotation={[end * 1.05, 0, 0]} material={sheet}>
-          <planeGeometry args={[2.6, 0.32]} />
+        <mesh key={`e${end}`} position={[0, 0.05, end * 2.02]} rotation={[end * 0.45, 0, 0]} material={sheet}>
+          <planeGeometry args={[2.6, 0.12]} />
         </mesh>
       ))}
-      {/* Faint ruled lines across the page */}
+      <RaftOars />
+      {/* The writing on the page, then its faint ruled lines */}
+      <mesh position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[2.4, 3.6]} />
+        <meshBasicMaterial map={pageWriting()} transparent depthWrite={false} />
+      </mesh>
       {Array.from({ length: 9 }, (_, i) => (
         <mesh key={`l${i}`} position={[0, 0.004, -1.7 + i * 0.42]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[2.3, 0.012]} />
@@ -384,15 +474,24 @@ export function InkfallScene() {
           </group>
         ))}
         <AshRocks spots={[[-7.5, -12, 2.4], [7.5, -24, 2], [-7.8, -46, 2.8], [7.6, -70, 2.2], [-7.4, -100, 3], [7.8, -128, 2.6]]} />
-        {/* The broken drop: written into a slide of blue ink */}
+        {/* The broken drop: written into a slide sloping down from the basin into the pool */}
         {SLIDE_SECTIONS.map((p, i) => (
           <Written key={i} flag={`l3-slide-${i + 1}`}>
-            <group position={sub(p, FALLS_ORIGIN)} rotation={[0.45, 0, 0]}>
-              <WrittenPlanks width={4} length={10} />
+            <group position={sub(p, FALLS_ORIGIN)} rotation={[-SLIDE_PITCH, 0, 0]}>
+              <WrittenPlanks width={4} length={SLIDE_SECTION_LENGTH + 0.4} />
             </group>
           </Written>
         ))}
+        {/* The rocky bank at the top, where the raft is boarded */}
+        <Slab x={[-14, 14]} y={[-5, 40.3]} z={[1.3, 14]} material={MAT.rockGround} />
       </group>
+      {/* The page raft waiting on the ink with Mira aboard, until we hop on */}
+      <OnBeatsShow show={RAFT_WAITING_BEATS}>
+        <group position={RAFT_WAITING}>
+          <PaperRaft />
+          <Mira position={[0, 0.06, -2.4]} rotationY={0} />
+        </group>
+      </OnBeatsShow>
       <Carried beats={RAFT_BEATS} drop={1.1}>
         <PaperRaft />
         <Mira position={[0, 0.06, -2.4]} rotationY={Math.PI} />
@@ -502,7 +601,7 @@ export function MarginScene() {
       {WALKWAYS.map((p, i) => (
         <Written key={i} flag={`l3-walk-${i + 1}`}>
           <group position={sub(p, MARGIN_ORIGIN)}>
-            <WrittenPlanks width={3} length={8} />
+            <WrittenPlanks width={3} length={WALKWAY_LENGTH + 0.3} />
           </group>
         </Written>
       ))}
@@ -738,6 +837,21 @@ function OrigamiProw() {
   );
 }
 
+/** A burnt boat wreck listing in the paper sea, still burning. */
+function BurningWreck() {
+  const fallback = <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, 0, 0.3]} material={ashDarkFlat} />;
+  return (
+    <group>
+      <ModelBoundary fallback={fallback}>
+        <Suspense fallback={fallback}>
+          <Prop id="burning_wreck" position={[0, -0.8, 0]} height={4.2} rotationY={0} />
+        </Suspense>
+      </ModelBoundary>
+      <Fire position={[0, 1.2, 0]} size={2.2} count={3} spread={2.4} />
+    </group>
+  );
+}
+
 export function SeaScene() {
   return (
     <>
@@ -750,10 +864,11 @@ export function SeaScene() {
         <group position={[0, -6, -340]}>
           <CinderCitadel />
         </group>
+        {/* Burning wrecks of paper-sea boats drifting past (AI-pipeline `burning_wreck`; owner,
+            2026-10-16: the burning blocks were unreadable) */}
         {[[-20, -30], [24, -60], [-30, -140], [18, -190], [-10, -240]].map(([x, z], i) => (
-          <group key={i} position={[x ?? 0, 0, z ?? 0]}>
-            <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, i, 0.3]} material={ashDarkFlat} />
-            <Fire position={[0, 1.2, 0]} size={2.6} count={3} spread={3} />
+          <group key={i} position={[x ?? 0, 0, z ?? 0]} rotation={[0, i * 1.3, 0]}>
+            <BurningWreck />
           </group>
         ))}
       </group>
@@ -844,6 +959,10 @@ export function ForgeScene() {
         </group>
       ))}
       <AshRocks spots={[[-17, 8, 1.6], [16, 10, 1.4], [-18, -20, 2], [17, -24, 2.2]]} />
+      {/* The way out, up into the Citadel (the escape beat turns to it) */}
+      <group position={[19.9, 0, -2]} rotation={[0, -Math.PI / 2, 0]}>
+        <CastleDoor height={4} />
+      </group>
       <Hammer position={[-12, 0, -38]} phase={0} />
       <Hammer position={[12, 0, -40]} phase={0.5} />
       {[-30, -10, 10].map((z) => (
@@ -901,7 +1020,7 @@ export function CitadelScene() {
       {FLIGHTS.map((f, n) =>
         [0, 1, 2].map((i) => (
           <Written key={`${n}-${i}`} flag={`l3-flight-${n + 1}-${i + 1}`}>
-            <WrittenSteps position={[0, f[1] - CITADEL_ORIGIN[1] + 1 + i * 2.4, f[2] - CITADEL_ORIGIN[2] - 3 - i * 3]} />
+            <WrittenSteps position={[0, f[1] - CITADEL_ORIGIN[1] + flightChunk(i).dy, f[2] - CITADEL_ORIGIN[2] + flightChunk(i).dz]} />
           </Written>
         )),
       )}
@@ -915,9 +1034,20 @@ export function CitadelScene() {
           <Fire position={[-4, n * 8 + 1.2, -n * 12 + 2]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} light={n === 2} />
         </group>
       ))}
-      {/* The great doors to the Throne of Blank Pages */}
-      <Box position={[0, 36, -56.4]} size={[9, 11, 0.8]} material={MAT.volcanicStone} />
-      <Prop id="large_castle_door" position={[0, 31.4, -55.9]} height={8} />
+      {/* The top landing, from the last flight right up to the doors (owner: there was a gap between
+          the end of the stairs and the door) */}
+      <Box position={[0, 31.7, -50]} size={[10, 0.6, 14]} material={MAT.volcanicStone} />
+      {[-1, 1].map((s) => (
+        <group key={s}>
+          <mesh position={[s * 4, 32.6, -50]} material={MAT.ironPlate}>
+            <cylinderGeometry args={[0.6, 0.3, 1.2, 12]} />
+          </mesh>
+          <Fire position={[s * 4, 33.2, -50]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} />
+        </group>
+      ))}
+      {/* The great doors to the Throne of Blank Pages, standing on the landing */}
+      <Box position={[0, 36.5, -56.4]} size={[9, 10, 0.8]} material={MAT.volcanicStone} />
+      <Prop id="large_castle_door" position={[0, 32, -55.9]} height={8} />
       <Fire position={[0, 33, -55]} size={3} count={4} spread={8} light />
       <group ref={rising}>
         <Fire position={[0, 0, -20]} size={6} count={6} spread={14} light smoke={false} />

@@ -20,7 +20,7 @@ const base = `${import.meta.env.BASE_URL}assets/creatures/`;
  */
 export const BUILT_AI_MOBS: ReadonlySet<string> = new Set<string>(['hollow-knight', 'eraser-moth', 'correction-moth', 'foreman', 'blotling', 'smudgehound', 'redactor', 'scribble-imp']);
 /** Boss and set-piece model files built so far (scene creatures, not typing targets). */
-export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb', 'perfect_warden.glb', 'unwriter.glb', 'vellum_wyrm.glb']);
+export const BUILT_AI_FILES: ReadonlySet<string> = new Set<string>(['grey_herald.glb', 'perfect_warden.glb', 'unwriter.glb', 'vellum_wyrm.glb', 'vellum_dragon.glb']);
 const AI_MOB_KINDS = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman']);
 
 export function creatureUrl(kind: string, variant?: string): string | null {
@@ -108,15 +108,19 @@ export function CreatureModel({ url, pose, tint }: { url: string; pose: RefObjec
     return map;
   }, [gltf.animations, mixer]);
 
+  const state = useMemo(() => ({ current: 'Idle' as ClipName }), []);
+
   useEffect(() => {
+    // This also re-runs when a Suspense boundary above hides and re-shows the model (another asset
+    // loading); the clip tracker restarts with Idle so the next frame switches back to the wanted clip
+    // (the dragon used to freeze mid-flight, stuck in Idle while it thought it was flying).
     const idle = actions.get('Idle');
-    idle?.play();
+    idle?.reset().play();
+    state.current = 'Idle';
     return () => {
       mixer.stopAllAction();
     };
-  }, [actions, mixer]);
-
-  const state = useMemo(() => ({ current: 'Idle' as ClipName }), []);
+  }, [actions, mixer, state]);
 
   useFrame((_, dt) => {
     const p = pose.current;

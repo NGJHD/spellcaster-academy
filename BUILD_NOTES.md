@@ -389,6 +389,187 @@ The owner asked for a full play in real Chrome, fixing everything that looked wr
 - Owner decision: **"Ignore the 7s rule for now."** The 7-second attention test (`src/game/attention.report.test.ts`, which also holds the boss-intro and spectacle limits) is skipped while the script is rewritten. Lines are not shortened or moved just to fit it. Switch it back on when the owner asks.
 - Settings for spark gems and collectibles (star pages) exist and are both off for now (owner: gems broke the pacing). Lines that mention them only play when they are on.
 
+## Level 1 as a mystery from the player's side (2026-10-08)
+
+Owner: the story felt "chunky"; Pip told the player what was happening instead of wondering about it.
+"It should be a story from the player's point of view… let's get the story flowing and make this into
+a mystery and adventure." The 7-second rule and the 45-minute limit stay on hold while the story is fixed.
+
+- **Voice of the script:** characters notice something odd and ask about it before acting ("Huh? Why are
+  the training dummies moving on their own? Quick, calm them down!"). Each clue is a question, and the
+  clues build up: a scared sprite, dark crystals, the cracking ward, scratched anchor runes, a half-erased
+  page, books whose words vanish, the mosaic of a man with a pen, "Unwriter", an empty frame with its name
+  scratched out. Pip then puts them together ("is someone rubbing things out of our school?"), the Warden
+  holds the crack shut against "someone on the other side", and Keeper Orin introduces himself and names
+  the Unwriter at the end.
+- **Every move has a reason:** lines on leaving the courtyard (the library anchor), the East Hall (the
+  books ran from the library), the library (the greenhouse via the Hall of Portraits), the portraits and
+  the greenhouse (the crack is over the Moon Tower). Mira joins the party in the East Hall.
+- **Powers have a cause:** each anchor's light flows into the wand before its new spell is announced.
+- **Gate:** two crystals (left and right), since the young-typist trim keeps two words; the centre crystal
+  had no word.
+- **Warden:** it floats down visibly; a blast at the tower makes it turn, say where it is going, and fly
+  there at a pace you can follow (before, the flight took 0.2 s at Fast). In the courtyard it lands by the
+  broken anchor, says three anchors hold the ward, and leaps back to the tower. The three-anchors line no
+  longer plays over the dummies.
+- **Pip's voice:** speech rate 1.22 → 1.0 and pitch 1.3 → 1.2 (owner: "I barely caught what pip said");
+  Mira 1.17 → 1.05.
+- 12 WPM pacing: Level 1 12.9 → 14.3 min; campaign 40.7 min (limit 45).
+
+Second playtest (2026-10-08), fixed:
+- **Scenes keep their lines:** a camera move now also waits at its end when earlier story lines are still
+  being said and the next scene brings lines of its own (the fountain's line came after its droplets had
+  gone; the plaques' speed-round line was lost behind the clue lines).
+- **Library:** the mosaic lines play while looking at the mosaic; the balcony pan is a separate shot.
+- **The crack is visible:** a tear above the Moon Tower from the moment the ward cracks until the Warden
+  is helped, and the observatory crack is open from the moment you walk in (it narrows to the seam after).
+- **Gate:** the "look at the sky" shot is shorter; "Who would break it?" plays over the walk in.
+- **Stairwell:** "hop on the tea tray, we'll slide down the stairs" plays at the top, and the guards line on
+  the first slide. Spells hit the guards: guards 1 and 2 wait for the spell before stepping aside, and the
+  third guard's word sits on the guard (it was 1.9 m to its right).
+- **Lines matched to the screen:** the tower guardian "calmed down… the door is opening" (it never bowed);
+  Pip links the Unwriter to the man with the pen in the ending. The "no need to aim" and Tab tips are gone.
+- **Levels 2 and 3** given the same pass: Pip recognises the Unwriter's voice, wonders why imps trap the
+  dorm, why moths cover the bell, why the dragon steals pages; Orin names the Hush and sets up the
+  Lantern Ward; Starfall comes from the furnace beacon's fire; Pip spots the red crystal before Orin
+  explains it; in Level 3 Pip somehow knows the Citadel's name, the forge and journal are discovered,
+  not announced. Campaign at 12 WPM: 41.1 min.
+
+Chrome playthrough of all three levels (2026-10-08), every line checked against the screen:
+- **Engine:** a fight that brings lines of its own now waits (up to 12 s) while earlier story lines finish,
+  so back-to-back fights no longer stack their lines ("A spell! Type it!" was said in the next area).
+  The `?test` hook exposes the word labels, subtitle and choice for scripted play-throughs.
+- **Level 1:** the library mosaic is visible (it was hidden behind the shelves and showed no man with a
+  pen; it is now a tall panel with the Warden below the ward arc and a dark figure with a glowing pen
+  outside it, seen square on down the aisle); the Grimoire's whisper is said while looking at it; anchors
+  are "broken", not "dark" (they glow); lines that pointed at things not in view were reworded (the
+  greenhouse door, the crack over the Moon Tower, the tower door, mosslings "settling in flower pots"
+  while more leapt onto the lift).
+- **Level 2:** the bedroom window ends on the Rift while it is talked about; Idris, the barrier and the
+  students are close enough to see in the Great Hall; the tower roof's parapet was a capped cylinder
+  whose lid sat 1.1 m above the floor and sank Mira and Orin to the chest in the aftermath; the rampart
+  line waits until the wall is in view; the Knight Captain line explains when to type halt.
+- **Level 3:** the Perfect Warden lines are said in the gallery, not at sea; Mira's ship line fits being
+  aboard; the Citadel line waits on the Citadel; lines claiming things not shown (colour spreading, the
+  deer under attack, colour returning to the Blank) were matched to what is on screen.
+- 12 WPM campaign: 41.5 min.
+
+## Third playtest (2026-10-08)
+
+- **Spells:** Chain Spark is a bright bolt that jumps from the struck foe to the next and bursts on
+  arrival (it was a 1-px line from the wand); Starfall stars fall from above. A newly learned spell
+  swirls its colour up the wand for six seconds.
+- **Level 1:** the tea tray waits on the landing, a hop lands on it, and only its front half shows
+  while riding; the stairwell ends at an open arched doorway; windows sit above the stairs and the
+  handrail stops short of the door; the observatory door opens onto a moonlit stair passage (no window
+  or brass ring in front). The camera eases back after the last word (no snap after speed rounds).
+- **Level 2:** clearer transitions ("the Hush are attacking the students at the Great Hall", "the next
+  beacon is the furnace", "the library is in trouble again"); fireballs twice the size, launched closer,
+  their words above them; beaten knights burst instead of standing about; the bell bridge skyline sits on
+  the ground; Oarsby's boat floats with floorboards; the page dragon swoops through the library; the
+  Grimoire line names the imps as they attack; the rampart beacon words float just over the brazier;
+  the Warden's palm rises over the parapet instead of through the tower.
+- **Level 3:** a dense dead forest on the opening shore; the deer and tortoise are half rubbed out
+  (`Restorable erased`: a slanted clip plane with a pencil ghost, swept away on restore; the renderer
+  has `localClippingEnabled`); the page raft waits on the ink with handwriting and Mira aboard, then a hop;
+  the written slide slopes down from the basin into the pool and the raft rides on it; the walkway spans
+  the whole chasm; the ship sails through the gap between galleons; a top landing reaches the throne
+  doors; Pip's "three success rates" joke is gone; boss names sit under the HP bar.
+- **Generated models (3080 only):** `assets-src/scripts/ai/build_on_3080.sh` runs concept, shape (512,
+  no 1024 cascade: `comfy.py mesh --no-cascade`) and colour/build on the RTX 3080 alone, starting and
+  stopping each ComfyUI server. Built: `citadel_gate` (the Citadel's front: riveted iron curtain wall,
+  spired towers, burning arched gate; the ink rivers now lie along the slope). The book stampede uses the
+  generated `runaway_book`. New rule in CLAUDE.md §20.16: generate models, don't hand-build them.
+- **Page dragon** (`vellum_dragon`, owner: the coiled wyrm "looks weird"): a dragon of burnt pages on all
+  fours with a 15 m wingspan, built on the 3080 with a new `rig="dragon"` (height bands plus a bone per
+  wing; wings weighted outside ±0.22 W above 45 % height; Idle breathes, Move beats the wings, Attack
+  rears and lunges). It stands on the far parapet of the tower roof staring down (head/heart points moved
+  to it) and beats its wings while circling; a smaller one flies through the burning library.
+  `SceneCreature` takes `flying` to play Move. The coiled `vellum_wyrm` is no longer used.
+- **Oars** (`wooden_oar`): two stowed along the page raft; the raft's folded edges are now a low rim (they
+  were 4 m planes standing up, which read as giant planks or oars).
+- **Stairwell:** windows and lamps sit above the stairs at their own angle (two were below the treads);
+  the handrail stops at −236°, before the exit doorway it used to cross.
+
+Fourth playtest (2026-10-08):
+- Courtyard entry goes straight to the dummies (the fountain pan only exists with collectibles on).
+- Hall of Portraits: no painting overlaps the Warden's frame; the far end is an open arched doorway with
+  the statue moved aside (it was a window behind the statue).
+- Stairwell guards step aside only once their word is typed (they leapt away as the tray arrived); the
+  gold rings under them are gone.
+- The Moon Tower door opens through a gap in the top floor's wall onto a stone passage with stairs up to
+  a moonlit arch.
+- Spells are textured sprites: the projectile is a glowing core, star flare and streak flying straight to
+  the target (it was lobbed spheres); bursts use soft glows (they were square points); Chain Spark beads
+  and the wand's power-up swirl are glows and twinkling stars.
+- Celebration: no camera turn to the balcony fireworks mid-conversation.
+- Greenhouse anchor wrapped in a generated `vine_tangle` that loosens with each knot and sinks once free.
+- Doors: the greenhouse door (end of the Hall of Portraits) and the practice gallery door (foot of the
+  stairwell) are the existing `large_castle_door` model, closed, on the wall (`src/scene/CastleDoor.tsx`).
+  That model stands on its origin: the old `1.13 × h / 4.07` lift floated every use of it (Great Hall,
+  dormitory) by about a metre, now fixed.
+- Moon Tower top-floor wall: its doorway gap geometry lacked metre UVs, which smeared the stone (fixed).
+- No separate stone surround on any of the three doors: the wall's own stone runs to the door frame; the
+  Moon Tower door sits on the wall line with its jambs and lintel in the wall stone, set just behind it.
+- Scripted Warden cameos decide visibility from the live beat (`run.director.currentIndex`): React's copy
+  lags a frame, and for that frame the Warden was drawn at the start of its path (the "flash"). The gate
+  flight climbs straight up and crosses above the roofs; the courtyard leap rises clear of the facade first.
+- Moon Tower: the observatory door is the `large_castle_door` (its leaf nodes swing open); the stairs
+  beyond have dark stone risers, oak treads with rounded noses and a red runner.
+- Voices take a per-character `gain` (owner: too soft): Keeper Orin, Mira and both portraits 1.6×; Orin's
+  pitch 0.85 → 0.92. The practice gallery's door to the Moon Tower is the castle door (was a flat panel).
+- Speech volume is capped at 1 by the browser, so soft voices also get a deeper music dip (`duck`): Orin and
+  the first portrait drop the music to 12 % while they talk (others 35 %).
+
+## Fifth playtest (2026-10-16)
+
+Level 2:
+- Dormitory: the windows were 3 m tall and one stood in front of the first door and student. They are now
+  2.2 m, and the dormitory has its own window angles, clear of the doors. The handrail breaks ±8° around
+  each door; it used to run straight across them.
+- Bell Bridge: the far end now lands on a rocky cliff topped with packed earth (`MAT.earth`, CC0
+  `farm_soil`). The burning skyline used to stand over the empty gorge and looked as if it floated on water.
+- Great Hall:
+  - The lane doors are at z −4, −12 and −20, midway between columns. One door used to stand in front of a
+    pillar.
+  - The banners hang between windows and columns, away from the doors.
+  - The Herald's doors moved to z −20, and `StoneHall` gained `noWindowAt` so no window sits over them.
+- Herald intro: the reveal held for 10 s on each look (about 20 s in total), leaving a long silence after
+  the Voice's line. The hold is now 1.6 s.
+- Boss names: `strings.bosses` only listed the Level 1 bosses, so the Level 2 and 3 bosses had no name card
+  and no name under the HP bar. Added: THE GREY HERALD, THE PAGE DRAGON, THE PERFECT GUARDIAN and THE
+  UNWRITER. The objectives and Pip's lines now say "dragon" and "Perfect Guardian" to match.
+- Oarsby: gain 1.6, music duck 0.12, and pitch 0.78 → 0.88 (very low pitches sound quiet).
+- Dragon wings:
+  - The real bug was in `CreatureModel`. When a Suspense boundary above re-showed a model, its effect
+    stopped every action and replayed Idle, but the clip tracker still said "Move". The creature stayed
+    stuck in Idle until its state changed. This affected every creature.
+  - The effect now resets the tracker to Idle. The tower dragon always flies (wingbeats).
+  - Verified by sampling the wing bones in the browser.
+- Camera between sequential words: `GameRun.framingTarget` keeps the last framing until the encounter
+  ends. Before, after "stone" at the Warden the camera swung back to the beacon and then out to the Warden
+  again for "steady".
+
+Level 3:
+- Tortoise ride: the two words floated in front of trees with nothing to aim at. They are now spark gems
+  flying beside the tortoise.
+- Inkfall: the raft cut diagonally through each terrace. It now rides to the lip (`IF_RUN*`, `IF_LIP*`),
+  then drops.
+- Journal pages ("orb", "quill", "flee") were lowered from 5–7 m to about 3 m, so they sit inside the view.
+- Faded letters removed (owner: a child thought faded letters needn't be typed). The `erased` target option,
+  the label styling and Pip's "Some letters are faded" line are all gone.
+- Citadel stairs: each flight now ends at the front edge of its landing (`flightChunk`). Before, only the
+  last flight did; the others ran under their landings. The top landing reaches the last step.
+- Forge: Mira's "To the stairs!" named stairs nobody had seen. A castle door now stands on the forge's east
+  wall, the escape beat turns to it, and the line says "Through that door … it goes up into the Citadel!".
+- Paper sea: the burning dark boxes are now `burning_wreck`, an AI-pipeline model built on the RTX 3080 (Flux
+  concept → TRELLIS → Blender, 20k tris), still burning.
+- Citadel mount: the "two long strips of solid orange" were flat emissive boxes, and some floated off the
+  faceted rock.
+  - They are now winding ribbons of the textured molten ink that hug the rock (`mountSurface` accounts for
+    the facets).
+  - The mount uses metre-UV cylinders, so the rock texture no longer smears into stripes.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

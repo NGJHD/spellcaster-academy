@@ -147,14 +147,14 @@ export const strings = {
     'l2-lake': 'Cross the lake to the lighthouse',
     'l2-library': 'Save the star map',
     'l2-ramparts': 'Light the Rampart Beacon',
-    'l2-wyrm': 'Stop the Vellum Wyrm',
+    'l2-wyrm': 'Stop the Page Dragon',
     'l3-rift': 'Cross the Rift',
     'l3-shore': 'Write the path across the shore',
     'l3-cinderwood': 'Bring colour back to Cinderwood',
     'l3-inkfall': 'Ride down the Inkfall',
     'l3-margin': 'Find the truth in the Margin Library',
     'l3-gallery': 'Cross the Gallery of Unfinished Things',
-    'l3-perfect-warden': 'Defeat the Perfect Warden',
+    'l3-perfect-warden': 'Defeat the Perfect Guardian',
     'l3-sea': 'Sail the Paper Sea',
     'l3-forge': 'Shut down the Forge',
     'l3-citadel': 'Climb the Cinder Citadel',
@@ -207,6 +207,11 @@ export const strings = {
   bosses: {
     grimoire: { name: 'THE GREAT GRIMOIRE', title: 'Keeper of a Thousand Pages' },
     warden: { name: 'THE WARD WARDEN', title: 'Guardian of Asterfall' },
+    // Owner (2026-10-16): every boss's HP bar carries its name.
+    'grey-herald': { name: 'THE GREY HERALD', title: 'Voice of the Unwriter' },
+    'vellum-wyrm': { name: 'THE PAGE DRAGON', title: 'Thief of the Library' },
+    'perfect-warden': { name: 'THE PERFECT GUARDIAN', title: 'Keeper of the Unfinished Gallery' },
+    unwriter: { name: 'THE UNWRITER', title: 'Lord of the Blank' },
   } as Record<string, { name: string; title: string } | undefined>,
   journey: {
     title: 'BEACON MAP',

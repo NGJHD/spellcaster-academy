@@ -6,7 +6,7 @@
  */
 import type { EncounterDef, TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { ATTACKS, checkpoint, fade, fight, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
+import { ATTACKS, checkpoint, fade, fight, hold, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from './builders';
 import { anchorBlast } from './courtyard';
 
 const A = 'enchanted-greenhouse';
@@ -134,7 +134,6 @@ export const greenhouse: AreaScript = {
     reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_PAGE'], 2.0, 2.6, {
       barks: ['gh-warden'],
       music: 'greenhouse-wonder',
-      attention: 'spectacle',
       fx: [
         { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.08, scale: 2 },
         { kind: 'flash', atBeat: 0.08 },
@@ -160,6 +159,8 @@ export const greenhouse: AreaScript = {
     fight('greenhouse-anchor', A),
     reveal('greenhouse-anchor-pillar', A, 'GH_ANCHOR', ['GH_ANCHOR_SKY'], 0.8, 0.7, { attention: 'spectacle' }),
     fight('greenhouse-power', A, { barks: ['power-chain'] }),
+    // Where next and why: the crack is over the Moon Tower.
+    hold('greenhouse-exit', A, 'GH_ANCHOR', 1, { barks: ['gh-exit-1', 'gh-exit'] }),
     checkpoint('greenhouse-checkpoint', A, 'greenhouse-restored', { objective: 'reach-observatory' }),
   ],
   encounters: [

@@ -69,8 +69,9 @@ export const knight = (id: string, path: Vec3[], words: readonly WordSpec[] = [l
     attack: HUSH_ATTACKS.knightSweep,
     labelHeight: 2.5,
     entrance: { kind: 'dust', scale: 1.2, color: '#2a2220' },
+    // A beaten knight bursts apart; it used to stay standing and looked like a mob nobody could target
+    // (owner, 2026-10-08: "it just... exists").
     defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ff5a1a' },
-    persist: true,
     ...options,
   });
 
@@ -82,7 +83,8 @@ export const fireball = (id: string, from: Vec3, to: Vec3, options: Partial<Targ
   target(id, 'fireball', from, [len(3, 3)], {
     movement: { kind: 'approach', path: [from, to], speed: 2.4 },
     attack: HUSH_ATTACKS.fireball,
-    labelHeight: 0.6,
+    // The word floats above the fireball, never over it (owner: "where are the fireballs?").
+    labelHeight: 1.7,
     counter: true,
     weak: true,
     defeatFx: { kind: 'shockwave', scale: 0.4, color: '#9fd8ff' },

@@ -964,11 +964,6 @@ button {
   border-color: #9fd8ff;
 }
 
-/* Erased letters (Level 3): faded but still typed. */
-.word-label__erased {
-  opacity: 0.32;
-}
-
 .subtitle__speaker--unwriter {
   color: #ff5a3c;
   text-shadow: 0 0 8px rgba(255, 60, 30, 0.8);
@@ -1629,6 +1624,7 @@ kbd {
 }
 
 .boss-bar__name {
+  margin-top: 4px;
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.14em;
