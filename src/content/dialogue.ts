@@ -217,7 +217,7 @@ export const LINES = {
   'l2-atlas': line('pip', 'The Grimoire gave us its star map! It shows the last beacon, on the ramparts!'),
   'l2-rp-1': line('pip', 'The Warden is holding the wall! The Hush are climbing up the cliffs!'),
   'l2-rp-lanes': line('pip', 'Three ladders! The Warden can\'t cover them all!'),
-  'l2-rp-warden': line('pip', 'The inkfire is burning the Warden! Fix it, quick!'),
+  'l2-rp-warden': line('pip', 'The inkfire is burning the Warden! Put out the inkfire, quick!'),
   'l2-rp-captain': line('pip', 'A Knight Captain! When it hurls fire at us, type halt to block it!'),
   'l2-rp-beacon': line('pip', 'The last beacon! Three words!'),
   'l2-orin-ward': line('orin', 'The Lantern Ward holds! Every student is safe!'),
