@@ -16,6 +16,12 @@ const H = origin(HALL_ORIGIN);
 export const LANE_DOORS: readonly Vec3[] = [H(-9, 0, -4), H(-9, 0, -12), H(-9, 0, -20)];
 export const HERALD_POSITION: Vec3 = H(2, 0, -24);
 const HERALD_CHEST = H(2, 2.4, -24);
+/**
+ * Where its wisps gather before they rush the player (in front of its hood; the scene's HeraldWisps),
+ * and its open book (grey_herald.glb at 1.5×, turned −0.4 rad).
+ */
+const HERALD_WISPS = H(1.5, 4.3, -22.8);
+const HERALD_BOOK = H(1.7, 2.6, -23.2);
 
 /** From a lane door to the barricade line in front of the camera. */
 const lane = (n: 0 | 1 | 2, x = 0): Vec3[] => {
@@ -125,7 +131,7 @@ export const greatHall: AreaScript = {
         {
           id: 'blasts-1',
           targets: [
-            fireball('blast-1', HERALD_CHEST, H(-0.6, 1.7, -4.4)),
+            fireball('blast-1', HERALD_WISPS, H(-0.6, 1.7, -4.4)),
             scribbleImp('herald-imp-1', [H(4, 0, -22), H(1, 0, -12), H(0, 0, -7.6)], { delaySec: 0.6 }),
             scribbleImp('herald-imp-2', [H(0, 0, -22), H(-2, 0, -12), H(-1.6, 0, -7.6)], { delaySec: 1.2 }),
           ],
@@ -133,9 +139,9 @@ export const greatHall: AreaScript = {
         {
           id: 'blasts-2',
           targets: [
-            fireball('blast-2', HERALD_CHEST, H(-1.4, 1.6, -4.6)),
-            fireball('blast-3', HERALD_CHEST, H(-0.4, 1.8, -4.4), { delaySec: 1.6 }),
-            target('herald-horn', 'marker', H(2.6, 3.4, -23.4), [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ffd27a' } }),
+            fireball('blast-2', HERALD_WISPS, H(-1.4, 1.6, -4.6)),
+            fireball('blast-3', HERALD_WISPS, H(-0.4, 1.8, -4.4), { delaySec: 1.6 }),
+            target('herald-horn', 'marker', HERALD_BOOK, [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ffd27a' } }),
           ],
         },
       ],
@@ -153,7 +159,7 @@ export const greatHall: AreaScript = {
         },
       ],
       onComplete: { flags: ['l2-herald-gone'] },
-      // It bursts into a pillar of sparks and ash; the trumpet clatters to the floor.
+      // It bursts into a pillar of sparks and ash; its book falls shut on the floor.
       completeFx: [
         { kind: 'flash' },
         { kind: 'pillar', at: 'HALL_HERALD_FLOOR', scale: 1.6, color: '#ff7a2a' },

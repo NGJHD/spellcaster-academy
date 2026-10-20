@@ -14,6 +14,8 @@ const FOLLOW_RATE = 2.6;
 const goal = new Vector3();
 const offset = new Vector3();
 const carried = new Vector3();
+/** Where Pip is in the world this frame (the Unwriter aims his quill at it). */
+export const pipWorld = new Vector3();
 
 /**
  * PLACEHOLDER Pip (§14A.2): brass astrolabe rings around a warm opalescent core. Follows the camera
@@ -54,15 +56,12 @@ export function PipCompanion() {
       placed.current = true;
     }
     // Soft inertia: Pip lags behind camera moves and settles (never a rigid UI icon).
-    // Held in the thief's chest, Pip moves with it (no lag that would leave Pip trailing behind); seized
-    // from afar (the Unwriter's ring), Pip is dragged across visibly.
-    const rate = snatched ? (g.position.distanceTo(goal) < 1.5 ? 30 : 5) : FOLLOW_RATE;
-    const k = 1 - Math.exp(-rate * Math.min(delta, 0.1));
+    // Held in the thief's chest, Pip moves with it (no lag that would leave Pip trailing behind).
+    const k = 1 - Math.exp(-(snatched ? 30 : FOLLOW_RATE) * Math.min(delta, 0.1));
     g.position.lerp(goal, k);
     g.lookAt(state.camera.position);
-    // Held far off (in the Unwriter's ring), Pip is drawn larger so the player can see it struggle.
-    const far = snatched && goal.distanceTo(state.camera.position) > 4;
-    g.scale.setScalar(g.scale.x + ((far ? 2.6 : 0.85) - g.scale.x) * (1 - Math.exp(-4 * Math.min(delta, 0.1))));
+    pipWorld.copy(g.position);
+    run?.pipAt.copy(g.position);
 
     const speaking = useRunStore.getState().subtitle?.speaker === 'pip';
     for (const m of rig.current.core) {

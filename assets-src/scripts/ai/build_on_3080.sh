@@ -5,6 +5,7 @@
 #   3. prep_raw + TRELLIS.2 vertex colours (port 8190) + Blender build (pipeline.py)
 #
 #   sh assets-src/scripts/ai/build_on_3080.sh <name> [<name> ...]
+# Creatures take their concepts from another script: CONCEPTS=concepts_level23.py sh build_on_3080.sh <name>
 cd "$(dirname "$0")"
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 FLUX_DIR="C:/AI/ComfyUI"
@@ -24,10 +25,13 @@ stop_port() { # port: kill whatever listens on it
 }
 
 for n in "$@"; do
+  # Stop at a failed concept: the later stages would build the old concept image instead.
+  before=$(stat -c %Y "../../concepts/$n.png" 2>/dev/null || echo 0)
   echo "== $n concept"
   (cd "$FLUX_DIR" && USE_TF=0 ./venv/Scripts/python.exe main.py --cuda-device 1 --lowvram --port 8188 > "$TMP/flux_3080.log" 2>&1 &)
-  wait_up 8188 && python -u concepts_env23.py "$n" 2>&1 | tail -2
+  wait_up 8188 && python -u "${CONCEPTS:-concepts_env23.py}" "$n" 2>&1 | tail -2
   stop_port 8188
+  if [ "$(stat -c %Y "../../concepts/$n.png" 2>/dev/null || echo 0)" = "$before" ]; then echo "== $n concept failed, skipping"; continue; fi
 
   echo "== $n shape"
   (cd "$TRELLIS_DIR/ComfyUI" && ../venv/Scripts/python.exe main.py --cuda-device 1 --port 8189 > "$TMP/trellis_shape_3080.log" 2>&1 &)

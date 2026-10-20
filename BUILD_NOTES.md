@@ -772,6 +772,33 @@ Level 3:
   Pip, the point overrides attack animations, and the stream is thick with a bright core and embers.
 - Builder: `--preview` also renders three Idle frames for bosses with their own moves.
 
+## Eleventh playtest (2026-10-19)
+
+- Dormitory hound "under the stairs": its path ended a floor below the camera's landing, and the
+  close-in leg kept that height. Its path now climbs the stairs to within reach (no close-in leg).
+- Grey Herald, regenerated (owner's reference: a hooded reader over a glowing open book): Flux 2 concept
+  → TRELLIS.2 → Blender, a hooded figure of charred paper reading an open book held in both hands. No arm
+  bones (the hands hold the book); its Idle reads (head tracking down the page and lifting at each line,
+  swaying, breathing), its Attack draws up and lunges over the book.
+  - `HeraldWisps`: wisps rise one by one from the glowing pages to circle above its hood, faster as more
+    gather (with the arena attack's clock); when it attacks they draw together in front of it and rush
+    the player. Its fireballs now start where the wisps gather. Pip no longer mentions a trumpet or scroll.
+  - The 3080 build: `build_on_3080.sh` takes `CONCEPTS=concepts_level23.py` for creatures, and skips a
+    name whose concept did not update (a timed-out concept had gone on to build the old image). Flux
+    gets 90 minutes. It ran at 9–12 minutes a step while the owner's llama-server held both GPUs; alone
+    the whole pipeline took about 15 minutes.
+- Page dragon in the sky chase: it never attacked (it circled while fireballs came from empty sky). It
+  now hovers on one side facing the camera (`WYRM_HOVER_A`), then swoops to the other (`WYRM_HOVER_B`); the
+  gland words sit on its chest and belly and its fireballs come from its jaws with a breath blast.
+- Perfect Guardian (owner's reference: a levitating caster): it floats, arms spread, rising as its
+  attack builds; fire orbs appear one by one in front of it and circle faster until they blur into a
+  ring of fire, then it thrusts its palms and the ring blasts at the player as a stream (`GuardianOrbs`).
+  Its second phase gained an arena attack to build to (its first already had one).
+- Unwriter burning Pip's rings: Pip stays beside the apprentice. He turns to Pip and points the quill,
+  the stream of fire runs to Pip there (`pipWorld`), a small ring of burning script closes round Pip,
+  and the three ring words float beside Pip (`aroundPip`, placed from Pip's real position each frame
+  through `GameRun.pipAt`, since camera-relative words drift when the framing pans).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

@@ -20,6 +20,21 @@ export const WYRM_HEAD: Vec3 = T(0, 6.2, -8.5);
 const WYRM_HEART: Vec3 = T(0, 3.8, -9.5);
 /** Where the dragon stands (the model's feet), facing +Z. */
 export const DRAGON_STAND: Vec3 = T(0, 0, -13);
+
+/**
+ * In the sky chase the dragon hovers in front of the camera and attacks from there (owner, 2026-10-19:
+ * it only circled while fireballs came out of the empty sky). `at` is where the dragon (its feet) hovers,
+ * `yaw` turns it to face the camera; its jaws, chest and belly follow from vellum_dragon.glb's bind pose
+ * (mouth 0, 4.25, 7.1; chest 0, 3.5, 5.3; belly 0, 1.7, 2).
+ */
+const hover = (x: number, y: number, z: number, yaw: number) => {
+  const part = (h: number, f: number): Vec3 => T(x + Math.sin(yaw) * f, y + h, z + Math.cos(yaw) * f);
+  return { at: T(x, y, z), yaw, mouth: part(4.25, 7.1), chest: part(3.5, 5.3), belly: part(1.7, 2) };
+};
+export const WYRM_HOVER_A = hover(-11, 6, -24, Math.atan2(5, 27));
+export const WYRM_HOVER_B = hover(12, 6, -22, Math.atan2(-6, 25));
+/** Its jaws on the roof (fireballs come from there). */
+const WYRM_MOUTH: Vec3 = T(0, 4.25, -5.9);
 /** The aftermath is staged on the same roof, at dawn. */
 export const AFTERMATH_ORIGIN: Vec3 = ROOF_ORIGIN;
 const O = origin(AFTERMATH_ORIGIN);
@@ -43,8 +58,9 @@ export const towerRoof: AreaScript = {
     PALM_HIGH: { position: T(2, 7, 14), lookAt: T(0, 3, -6) },
     PALM_TOP: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
     ROOF_FIGHT: { position: T(0, 1.7, 5), lookAt: T(0, 4.5, -12) },
-    ROOF_ORBIT_A: { position: T(-6, 2.4, 3), lookAt: T(-10, 8, -16) },
-    ROOF_ORBIT_B: { position: T(6, 2.4, 3), lookAt: T(12, 9, -14) },
+    // Facing the dragon where it hovers (WYRM_HOVER_A/B), its chest in the middle of the view.
+    ROOF_ORBIT_A: { position: T(-6, 2.4, 3), lookAt: T(-10, 9, -19) },
+    ROOF_ORBIT_B: { position: T(6, 2.4, 3), lookAt: T(11, 9, -17) },
     AFTER_OBS: { position: O(0.3, 1.6, 3.4), lookAt: O(0, 1.25, 0) },
     AFTER_RIFT: { position: O(0, 2.2, 4), lookAt: O(-10, 40, -120) },
   },
@@ -122,7 +138,7 @@ export const towerRoof: AreaScript = {
           id: 'scales-2',
           targets: [
             scale('wyrm-scale-3', T(-1.5, 6.6, -14), len(5, 6)),
-            fireball('wyrm-fb-1', WYRM_HEAD, T(-0.6, 1.7, 4.2), { delaySec: 1.4 }),
+            fireball('wyrm-fb-1', WYRM_MOUTH, T(-0.6, 1.7, 4.2), { delaySec: 1.4 }),
           ],
         },
         {
@@ -143,9 +159,9 @@ export const towerRoof: AreaScript = {
         {
           id: 'gland-1',
           targets: [
-            target('wyrm-gland-1', 'marker', T(-12, 9, -18), [len(6, 7)], { labelHeight: 0.5, movement: { kind: 'patrol', path: [T(-14, 9, -18), T(-6, 10, -20)], speed: 1.2 } }),
-            fireball('storm-1', T(-10, 12, -18), T(-5.4, 2.2, 2.8), { delaySec: 1.6 }),
-            fireball('storm-2', T(-8, 12, -20), T(-6.4, 2.6, 2.6), { delaySec: 2.6 }),
+            target('wyrm-gland-1', 'marker', WYRM_HOVER_A.chest, [len(6, 7)], { labelHeight: 0.5 }),
+            fireball('storm-1', WYRM_HOVER_A.mouth, T(-5.4, 2.2, 2.8), { delaySec: 1.6 }),
+            fireball('storm-2', WYRM_HOVER_A.mouth, T(-6.4, 2.6, 2.6), { delaySec: 2.6 }),
           ],
         },
       ],
@@ -160,9 +176,9 @@ export const towerRoof: AreaScript = {
         {
           id: 'glands-2',
           targets: [
-            target('wyrm-gland-2', 'marker', T(12, 9, -16), [len(6, 7)], { labelHeight: 0.5, movement: { kind: 'patrol', path: [T(8, 10, -18), T(15, 9, -14)], speed: 1.2 } }),
-            target('wyrm-gland-3', 'marker', T(10, 7, -12), [len(6, 7)], { labelHeight: 0.5, delaySec: 1 }),
-            fireball('storm-3', T(12, 12, -16), T(5.6, 2.4, 2.8), { delaySec: 2 }),
+            target('wyrm-gland-2', 'marker', WYRM_HOVER_B.chest, [len(6, 7)], { labelHeight: 0.5 }),
+            target('wyrm-gland-3', 'marker', WYRM_HOVER_B.belly, [len(6, 7)], { labelHeight: 0.5, delaySec: 1 }),
+            fireball('storm-3', WYRM_HOVER_B.mouth, T(5.6, 2.4, 2.8), { delaySec: 2 }),
           ],
         },
       ],

@@ -3,11 +3,12 @@
  * and the Unwriter's Cinder Citadel. Path words draw the route in coloured ink; restored objects lose
  * their fire and regain colour. PLACEHOLDER geometry is kit-built; mobs and bosses are AI-pipeline models.
  */
-import { GuardianFists, UnwriterQuill } from '../bossFx';
+import { GuardianOrbs, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
-import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
+import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
+import { pipWorld } from '../../player/PipCompanion';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, RAFT_HOLD_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
 import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
@@ -712,11 +713,9 @@ export function Gallery3Scene() {
         fromBeat="l3-perfect-warden"
         goneFlag="l3-perfect-warden-gone"
         fallback={<IronGiant height={7} />}
-        // Owner (2026-10-17, 2026-10-19): it charges up (fists blazing), fidgets and paces, and flings
-        // its fire underhand when it attacks.
+        // Owner (2026-10-19): it levitates and channels a ring of fire orbs, then blasts it.
         threat
-        wander={1}
-        effects={(rig) => <GuardianFists rig={rig} />}
+        effects={(rig) => <GuardianOrbs rig={rig} />}
       />
     </group>
   );
@@ -1204,8 +1203,11 @@ export function ThroneScene() {
     grow.current?.scale.setScalar(size.current);
     const seized = (id === 'l3-pip-seized' || id === 'l3-u3') && !(run?.flags.has('l3-pip-free') ?? false);
     if (ring.current) {
+      // The ring of burning script closes round Pip, beside the apprentice (owner, 2026-10-19).
       ring.current.visible = seized;
-      ring.current.rotation.z = state.clock.elapsedTime * 2;
+      ring.current.position.set(pipWorld.x - THRONE_ORIGIN[0], pipWorld.y - THRONE_ORIGIN[1], pipWorld.z - THRONE_ORIGIN[2]);
+      ring.current.lookAt(state.camera.position);
+      ring.current.rotateZ(state.clock.elapsedTime * 2);
     }
     if (book.current) book.current.visible = run?.flags.has('l3-unwriter-sealed') ?? false;
   });
@@ -1215,7 +1217,6 @@ export function ThroneScene() {
     const id = run?.director.currentBeat?.id ?? '';
     return (id === 'l3-pip-seized' || id === 'l3-u3') && !(run?.flags.has('l3-pip-free') ?? false);
   };
-  const pip = sub(PIP_SEIZED, THRONE_ORIGIN);
   return (
     <group position={THRONE_ORIGIN}>
       <mesh position={[0, -0.2, 0]} material={MAT.ironPlate} receiveShadow>
@@ -1258,13 +1259,13 @@ export function ThroneScene() {
         // at Pip to burn Pip's rings.
         threat
         clip={() => (pipSeized() ? 'Point' : useRunStore.getState().subtitle?.speaker === 'unwriter' ? 'Laugh' : null)}
-        effects={(rig) => <UnwriterQuill rig={rig} pip={PIP_SEIZED} burning={pipSeized} />}
+        effects={(rig) => <UnwriterQuill rig={rig} burning={pipSeized} />}
       />
       </group>
-      {/* Pip held in a ring of burning red script */}
-      <group ref={ring} position={pip}>
+      {/* Pip caught in a ring of burning red script, beside the apprentice */}
+      <group ref={ring}>
         <mesh material={ironSeam}>
-          <torusGeometry args={[0.7, 0.05, 8, 32]} />
+          <torusGeometry args={[0.2, 0.014, 8, 32]} />
         </mesh>
       </group>
       {/* The Unwriter's own blank book, slammed shut with a gold seal */}

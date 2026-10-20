@@ -3,19 +3,19 @@
  * shows its own build-up of power while it idles, brighter as an attack winds up, with a flash as it
  * strikes, riding the moving body through `rigPoint`. They sit inside SceneCreature (model units).
  *
- * - Grey Herald: wisps of ember light circling it, drawn into the glow between its raised hands.
+ * - Grey Herald: wisps rising from its glowing book to circle its head, then rushing the player.
  * - Page dragon: fire gathering deep in its throat and a pulsing glow in its chest and belly.
- * - Perfect Guardian: fists blazing as it draws them back.
+ * - Perfect Guardian: floating up as fire orbs circle in front of it, faster, into a ring it blasts.
  * - Unwriter: the quill's nib glowing, and a burning stroke from it to Pip while Pip is seized.
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type PointLight, type Sprite } from 'three';
-import type { Vec3 } from '../level/rail/railTypes';
+import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type PointLight, type Sprite, type SpriteMaterial } from 'three';
+import { pipWorld } from '../player/PipCompanion';
 import { getRun } from '../state/gameStore';
 import { rigPoint, type CreatureRig } from './areas2/common';
 import { Fire } from './Fire';
-import { glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from './glow';
+import { fireballTexture, glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from './glow';
 
 /**
  * 0–1+ charge: builds slowly between attacks (so the boss is always visibly gathering power), races
@@ -41,71 +41,100 @@ function GlowSprite({ sprite, color, opacity = 1, depthTest = true }: { sprite: 
 
 // ---------- Grey Herald ----------
 
-const WISPS = 7;
+const WISPS = 10;
 const TRAIL = 6;
-const HERALD_ORB = new Vector3(0, 2.1, 0.6);
+/** The open book it reads from, and the circle above its hooded head (grey_herald.glb, 3 m tall). */
+const HERALD_BOOK = new Vector3(0, 1.75, 0.55);
+const HERALD_CROWN = new Vector3(0, 3.35, 0);
+/** How long the gathered wisps take to rush at the player when it attacks. */
+const RUSH_SEC = 0.9;
 
-interface WispOrbit {
-  phase: number;
-  radius: number;
-  height: number;
-  speed: number;
-  tilt: number;
-}
-
-/** Ember wisps circling the Herald as it channels, contracting into the orb between its hands. */
+/**
+ * The Grey Herald reads its book (owner, 2026-10-19): wisps of light rise from the glowing pages one
+ * by one and circle above its head, faster as more gather; when it attacks they draw together in front
+ * of it and rush at the player, and the reading starts again.
+ */
 export function HeraldWisps({ rig }: { rig: CreatureRig }) {
-  const orbits = useMemo<WispOrbit[]>(
-    () =>
-      Array.from({ length: WISPS }, (_, i) => ({
-        phase: (i / WISPS) * Math.PI * 2,
-        radius: 1.25 + ((i * 37) % 5) * 0.15,
-        height: 1.3 + ((i * 53) % 7) * 0.2,
-        speed: 1.1 + ((i * 29) % 4) * 0.25,
-        tilt: (((i * 71) % 9) - 4) * 0.08,
-      })),
-    [],
-  );
   const sprites = useRef<(Sprite | null)[]>([]);
-  const orb = useRef<Sprite | null>(null);
-  const orbAt = useMemo(() => new Vector3(), []);
+  const page = useRef<Sprite | null>(null);
+  const trails = useMemo(() => Array.from({ length: WISPS }, () => Array.from({ length: TRAIL }, () => new Vector3())), []);
+  const born = useMemo(() => new Float32Array(WISPS).fill(-1), []);
+  const book = useMemo(() => new Vector3(), []);
+  const crown = useMemo(() => new Vector3(), []);
+  const target = useMemo(() => new Vector3(), []);
+  const gather = useMemo(() => new Vector3(), []);
+  const pos = useMemo(() => new Vector3(), []);
+  const spin = useRef(0);
   const time = useRef(0);
-  useFrame((_, delta) => {
-    time.current += Math.min(delta, 0.1);
+  const level = useRef(0);
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
     const t = time.current;
-    const c = chargeLevel(t);
-    if (!rigPoint(rig, 'chest', HERALD_ORB, orbAt)) orbAt.copy(HERALD_ORB);
-    // Wind-up draws the wisps in towards the hands.
-    const pull = Math.min(1, Math.max(0, (c - 0.6) / 0.6));
-    orbits.forEach((o, i) => {
-      for (let k = 0; k < TRAIL; k++) {
-        const s = sprites.current[i * TRAIL + k];
-        if (!s) continue;
-        const tt = t - k * 0.045;
-        const a = o.phase + tt * o.speed * (1 + c * 0.8);
-        const r = o.radius * (1 - pull * 0.6);
-        const x = Math.cos(a) * r;
-        const z = Math.sin(a) * r * 0.85;
-        const y = o.height + Math.sin(a * 2 + o.phase) * 0.25 + x * o.tilt;
-        s.position.set(x + (orbAt.x - x) * pull * 0.4, y + (orbAt.y - y) * pull * 0.5, z + (orbAt.z - z) * pull * 0.4);
-        const size = (0.42 - k * 0.055) * (0.8 + c * 0.4);
-        s.scale.setScalar(Math.max(0.02, size));
-        (s.material as { opacity: number }).opacity = (1 - k / TRAIL) * (0.55 + c * 0.35);
+    const th = getRun()?.bossThreat();
+    const rushing = !!th && th.strikeAge < RUSH_SEC;
+    const build = !th ? 0.3 : th.build !== null ? th.build : Math.min(1, Math.max(0, (th.strikeAge - RUSH_SEC) / 5));
+    const goal = rushing ? 0 : Math.max(build, th && th.windup > 0 ? 1 : 0);
+    level.current = rushing ? 0 : level.current + (goal - level.current) * (1 - Math.exp(-2 * dt));
+    const count = rushing ? WISPS : Math.min(WISPS, Math.floor(1 + level.current * WISPS));
+    if (!rigPoint(rig, 'chest', HERALD_BOOK, book)) book.copy(HERALD_BOOK);
+    if (!rigPoint(rig, 'head', HERALD_CROWN, crown)) crown.copy(HERALD_CROWN);
+    spin.current += dt * (0.8 + count * 0.45);
+    const g = rig.group;
+    if (rushing && g && th) {
+      target.copy(state.camera.position);
+      g.worldToLocal(target);
+    }
+    gather.copy(crown).add(pos.set(0, -0.4, 0.9));
+    for (let i = 0; i < WISPS; i++) {
+      const trail = trails[i];
+      const head = trail?.[0];
+      if (!trail || !head) continue;
+      const alive = i < count;
+      if (alive && (born[i] ?? -1) < 0) born[i] = t;
+      if (!alive && !rushing) born[i] = -1;
+      const age = (born[i] ?? -1) >= 0 ? t - (born[i] ?? 0) : -1;
+      if (age < 0) {
+        head.copy(book);
+      } else if (rushing && th) {
+        // Draw together in front of it, then rush the player as one.
+        const k = th.strikeAge / RUSH_SEC;
+        if (k < 0.35) pos.copy(head).lerp(gather, k / 0.35);
+        else pos.copy(gather).lerp(target, Math.min(1, (k - 0.35) / 0.55));
+        head.copy(pos);
+      } else {
+        // Rising from the pages to the circle over its head, then circling it.
+        const a = spin.current + (i / WISPS) * Math.PI * 2;
+        const r = 0.75 + (i % 3) * 0.12;
+        pos.set(crown.x + Math.cos(a) * r, crown.y + Math.sin(a * 2 + i) * 0.12 + (i % 2) * 0.15, crown.z + Math.sin(a) * r);
+        const rise = Math.min(1, age / 0.9);
+        head.copy(book).lerp(pos, rise * rise * (3 - 2 * rise));
       }
-    });
-    const o = orb.current;
-    if (o) {
-      o.position.copy(orbAt);
-      o.scale.setScalar(0.35 + c * 0.75 + Math.sin(t * 9) * 0.06);
-      (o.material as { opacity: number }).opacity = Math.min(1, 0.4 + c * 0.6);
+      // Trails: each point eases after the one ahead of it.
+      for (let k = TRAIL - 1; k > 0; k--) trail[k]?.lerp(trail[k - 1] ?? head, Math.min(1, dt * 22));
+      for (let k = 0; k < TRAIL; k++) {
+        const sp = sprites.current[i * TRAIL + k];
+        const p = trail[k];
+        if (!sp || !p) continue;
+        sp.visible = age >= 0;
+        sp.position.copy(p);
+        sp.scale.setScalar(Math.max(0.03, (0.34 - k * 0.045) * (rushing ? 1.4 : 1)));
+        (sp.material as { opacity: number }).opacity = (1 - k / TRAIL) * 0.9;
+      }
+    }
+    const pg = page.current;
+    if (pg) {
+      pg.position.copy(book);
+      pg.scale.setScalar(0.8 + level.current * 0.9 + Math.sin(t * 7) * 0.08);
+      (pg.material as { opacity: number }).opacity = 0.45 + level.current * 0.5;
     }
   });
   return (
     <group>
       {Array.from({ length: WISPS * TRAIL }, (_, i) => (
-        <GlowSprite key={i} sprite={(s) => void (sprites.current[i] = s)} color={i % TRAIL === 0 ? '#ffd0a0' : '#ff7a3a'} />
+        <GlowSprite key={i} sprite={(sp) => void (sprites.current[i] = sp)} color={i % TRAIL === 0 ? '#ffd0a0' : '#ff7a3a'} />
       ))}
-      <GlowSprite sprite={(s) => void (orb.current = s)} color="#ff6a2a" />
+      <GlowSprite sprite={(sp) => void (page.current = sp)} color="#ff6a2a" />
     </group>
   );
 }
@@ -217,46 +246,101 @@ export function DragonFireCharge({ rig }: { rig: CreatureRig }) {
 
 // ---------- Perfect Guardian ----------
 
-/** Its fists in the bind pose (perfect_warden.glb: the arm bones end at the hands). */
-const GUARDIAN_FISTS: readonly [string, Vector3][] = [
-  ['arm_l', new Vector3(-0.63, 1.55, 0.05)],
-  ['arm_r', new Vector3(0.63, 1.55, 0.05)],
-];
+/** Centre of the ring of fire orbs, in front of the Guardian's chest (perfect_warden.glb, 4 m tall). */
+const GUARDIAN_RING = new Vector3(0, 2.6, 1.1);
+const ORBS = 6;
+const RING_SPARKS = 28;
 
-/** Fists blazing red as the Guardian draws them back to charge; a flare as it smashes. */
-export function GuardianFists({ rig }: { rig: CreatureRig }) {
-  const glows = useRef<(Sprite | null)[]>([]);
-  const cores = useRef<(Sprite | null)[]>([]);
-  const at = useMemo(() => new Vector3(), []);
+/**
+ * The Perfect Guardian channels (owner, 2026-10-19: "too nonchalant"; reference: levitating with arms
+ * spread): it floats up off the floor, rising higher as its attack builds, while orbs of fire appear one
+ * by one in front of it and circle faster and faster until they blur into a ring of fire; then it
+ * thrusts its palms and the ring blasts at the player as a stream, it sinks, and it starts again.
+ */
+export function GuardianOrbs({ rig }: { rig: CreatureRig }) {
+  const orbs = useRef<(Sprite | null)[]>([]);
+  const sparks = useRef<(Sprite | null)[]>([]);
+  const jet = useRef<Mesh>(null);
+  const jetHead = useRef<Sprite | null>(null);
+  const centre = useMemo(() => new Vector3(), []);
+  const aim = useMemo(() => new Vector3(), []);
+  const fire = useMemo(() => fireballTexture(), []);
+  const streak = useMemo(() => streakTexture(), []);
+  const level = useRef(0);
+  const spin = useRef(0);
+  const lift = useRef(0);
+  const baseY = useRef<number | null>(null);
   const time = useRef(0);
-  useFrame((_, delta) => {
-    time.current += Math.min(delta, 0.1);
-    const t = time.current;
-    const c = chargeLevel(t);
-    GUARDIAN_FISTS.forEach(([bone, bind], i) => {
-      const ok = rigPoint(rig, bone, bind, at);
-      const flicker = 1 + Math.sin(t * 13 + i * 2) * 0.08;
-      for (const [list, size, alpha] of [
-        [glows.current, 0.7 + c * 1.1, 0.35 + c * 0.5],
-        [cores.current, 0.25 + c * 0.35, 0.7 + c * 0.3],
-      ] as const) {
-        const s = list[i];
-        if (!s) continue;
-        s.visible = ok;
-        s.position.copy(at);
-        s.scale.setScalar(size * flicker);
-        (s.material as { opacity: number }).opacity = Math.min(1, alpha);
-      }
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
+    const g = rig.group;
+    const th = getRun()?.bossThreat();
+    const blasting = !!th && th.strikeAge < BLAST_SEC;
+    const build = !th ? 0 : th.build !== null ? th.build : Math.min(1, Math.max(0, (th.strikeAge - BLAST_SEC) / 5));
+    const goal = blasting ? 0 : Math.max(build * 0.85, th && th.windup > 0 ? 0.85 + th.windup * 0.15 : 0);
+    level.current = blasting ? Math.max(0, level.current - dt * 3) : level.current + (goal - level.current) * (1 - Math.exp(-2.5 * dt));
+    const c = level.current;
+    // It floats: a little off the floor at rest, rising as it charges, sinking back after the blast.
+    if (g) {
+      if (baseY.current === null) baseY.current = g.position.y;
+      lift.current += (0.5 + c * 1.8 - lift.current) * (1 - Math.exp(-(blasting ? 3 : 1.2) * dt));
+      g.position.y = baseY.current + lift.current + Math.sin(time.current * 1.4) * 0.12;
+    }
+    spin.current += dt * (1.2 + c * c * 14);
+    const ok = rigPoint(rig, 'chest', GUARDIAN_RING, centre);
+    const radius = 1.3 - c * 0.2;
+    const shown = blasting ? 0 : Math.min(ORBS, Math.floor(1 + c * ORBS));
+    orbs.current.forEach((o, i) => {
+      if (!o) return;
+      const a = spin.current + (i / ORBS) * Math.PI * 2;
+      o.visible = ok && i < shown;
+      o.position.set(centre.x + Math.cos(a) * radius, centre.y + Math.sin(a) * radius, centre.z);
+      o.scale.setScalar(0.8 + c * 0.35);
+      (o.material as SpriteMaterial).rotation = time.current * 4 + i;
     });
+    // The orbs blur into a ring of fire as they race round.
+    const ring = blasting ? 0 : Math.min(1, Math.max(0, (c - 0.55) / 0.35));
+    sparks.current.forEach((p, i) => {
+      if (!p) return;
+      const a = spin.current * 1.3 + (i / RING_SPARKS) * Math.PI * 2;
+      p.visible = ok && ring > 0.02;
+      p.position.set(centre.x + Math.cos(a) * radius, centre.y + Math.sin(a) * radius, centre.z);
+      p.scale.setScalar(0.55);
+      (p.material as SpriteMaterial).opacity = ring * 0.85;
+    });
+    // The release: the ring streams at the player.
+    const b = jet.current;
+    const h = jetHead.current;
+    const show = blasting && ok && !!g && !!th;
+    if (b) b.visible = show;
+    if (h) h.visible = show;
+    if (show && b && h && g && th) {
+      const k = th.strikeAge / BLAST_SEC;
+      aim.copy(state.camera.position);
+      g.worldToLocal(aim);
+      aim.lerp(centre, 0.25);
+      const reach = aim.sub(centre).multiplyScalar(Math.min(1, k * 2.2)).add(centre);
+      placeStreak(b, centre, reach, 1.2 * (1 - k * 0.5), state.camera.position);
+      h.position.copy(reach);
+      h.scale.setScalar(2.4 + k * 2);
+      (h.material as SpriteMaterial).opacity = 1 - k;
+    }
   });
   return (
     <group>
-      {GUARDIAN_FISTS.map(([bone], i) => (
-        <group key={bone}>
-          <GlowSprite sprite={(s) => void (glows.current[i] = s)} color="#ff3a14" />
-          <GlowSprite sprite={(s) => void (cores.current[i] = s)} color="#ffd08a" />
-        </group>
+      {Array.from({ length: ORBS }, (_, i) => (
+        <sprite key={i} ref={(o) => void (orbs.current[i] = o)}>
+          <spriteMaterial map={fire} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
+        </sprite>
       ))}
+      {Array.from({ length: RING_SPARKS }, (_, i) => (
+        <GlowSprite key={i} sprite={(p) => void (sparks.current[i] = p)} color="#ff6a1a" />
+      ))}
+      <mesh ref={jet} geometry={STREAK_GEOMETRY} visible={false} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color="#ff5a14" transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
+      </mesh>
+      <GlowSprite sprite={(p) => void (jetHead.current = p)} color="#ffb040" />
     </group>
   );
 }
@@ -269,11 +353,11 @@ const QUILL_TIP = new Vector3(-1.05, 3.27, 0.82);
 const EMBERS = 10;
 
 /**
- * The quill's nib glows as he gathers power. While `burning()` (Pip seized) he turns to face Pip and
- * a thick stream of red fire pours from the nib to Pip, embers racing along it (owner, 2026-10-17 and
+ * The quill's nib glows as he gathers power. While `burning()` he turns to face Pip, beside the
+ * apprentice, points the quill and a thick stream of red fire pours from the nib to Pip, embers racing along it (owner, 2026-10-17 and
  * 2026-10-19: "I don't see him pointing the quill at Pip, nor the stream of fire").
  */
-export function UnwriterQuill({ rig, pip, burning }: { rig: CreatureRig; pip: Vec3; burning: () => boolean }) {
+export function UnwriterQuill({ rig, burning }: { rig: CreatureRig; burning: () => boolean }) {
   const nib = useRef<Sprite | null>(null);
   const flare = useRef<Sprite | null>(null);
   const beam = useRef<Mesh>(null);
@@ -296,7 +380,7 @@ export function UnwriterQuill({ rig, pip, burning }: { rig: CreatureRig; pip: Ve
     // He turns to face Pip while burning Pip's rings, and back to the player after.
     if (g) {
       g.getWorldPosition(at);
-      const yaw = on ? Math.atan2(pip[0] - at.x, pip[2] - at.z) : 0;
+      const yaw = on ? Math.atan2(pipWorld.x - at.x, pipWorld.z - at.z) : 0;
       g.rotation.y += (yaw - g.rotation.y) * (1 - Math.exp(-3 * dt));
     }
     const ok = rigPoint(rig, 'arm_l', QUILL_TIP, tip);
@@ -316,7 +400,7 @@ export function UnwriterQuill({ rig, pip, burning }: { rig: CreatureRig; pip: Ve
     if (f) f.visible = show;
     embers.current.forEach((e) => e && (e.visible = show));
     if (!show || !b || !k || !f || !g) return;
-    target.set(...pip);
+    target.copy(pipWorld);
     g.worldToLocal(target);
     const flicker = Math.sin(t * 23) * 0.04 + Math.sin(t * 37) * 0.03;
     placeStreak(b, tip, target, 0.42 + flicker, state.camera.position);

@@ -359,6 +359,8 @@ export const gallery3: AreaScript = {
       areaId: G,
       kind: 'combat',
       bossPhase: 'pw-shell',
+      // Its blast of fire (the scene's GuardianOrbs builds up to each one).
+      hazard: { attacks: ['pulse'], firstDelaySec: 6, intervalSec: 9, windupSec: 1.8, damage: 10 },
       assistAfterFailures: 2,
       waves: [
         {

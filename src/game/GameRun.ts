@@ -11,7 +11,6 @@ import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { closeInEncounter } from '../level/encounters/closeIn';
 import { LevelDirector } from '../level/LevelDirector';
-import { PIP_HELD } from '../level/areas3/finale';
 import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
 import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
@@ -719,6 +718,11 @@ export class GameRun {
     const up = this.camUp.crossVectors(right, fwd).normalize();
     const decay = Math.exp(-4 * dt);
     for (const t of this.allTargets()) {
+      const around = t.spawn.aroundPip;
+      if (around && t.phase !== 'waiting' && t.phase !== 'gone') {
+        t.position.copy(this.pipAt).addScaledVector(right, around.side).addScaledVector(up, around.up);
+        continue;
+      }
       const f = t.spawn.follow;
       if (!f || t.phase === 'waiting' || t.phase === 'gone') continue;
       const side = Math.sign(f.side || 1);
@@ -832,6 +836,8 @@ export class GameRun {
     }
   }
 
+  /** Where Pip is in the world (PipCompanion writes it each frame), for words that float beside Pip. */
+  readonly pipAt = new Vector3();
   private bossStrikeAt = -Infinity;
   private bossWindupSec = 1;
 
@@ -861,11 +867,6 @@ export class GameRun {
       out.copy(t.position);
       out.y += SNATCH_CHEST;
       out.addScaledVector(this.camForward.copy(this.director.pose.position).sub(out).normalize(), 0.12);
-      return true;
-    }
-    const beat = this.director.currentBeat?.id ?? '';
-    if ((PIP_HELD.beats as readonly string[]).includes(beat) && !this.flags.has(PIP_HELD.untilFlag)) {
-      out.set(...PIP_HELD.at);
       return true;
     }
     return false;

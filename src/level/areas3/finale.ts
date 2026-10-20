@@ -17,11 +17,6 @@ export const THRONE_ORIGIN: Vec3 = [2800, 80, 0];
 const O = origin(THRONE_ORIGIN);
 export const UNWRITER: Vec3 = O(0, 0, -12);
 export const PIP_SEIZED: Vec3 = O(-3, 3.2, -6);
-/**
- * While the Unwriter holds Pip in his ring of burning script, Pip really is there (owner, 2026-10-19:
- * the quill and its fire pointed at an empty ring while Pip still floated beside the player).
- */
-export const PIP_HELD = { at: PIP_SEIZED, beats: ['l3-pip-seized', 'l3-u3'], untilFlag: 'l3-pip-free' } as const;
 // The nib of the quill in his raised hand (his right hand, on our left as he faces us; unwriter.glb at 1.6×).
 const QUILL = O(-1.8, 5.6, -10.6);
 const CHEST = O(0, 3.6, -11.4);
@@ -65,7 +60,8 @@ export const throne: AreaScript = {
     }),
     fight('l3-u1', A, { barks: ['l3-pip-learning', 'l3-u-mistakes'] }),
     fight('l3-u2', A, { barks: ['l3-u-copies'] }),
-    reveal('l3-pip-seized', A, 'TH_POS', ['TH_HEAD'], 0.6, 0.6, { barks: ['l3-u-correct-pip'], fx: [{ kind: 'burst', at: PIP_SEIZED, atBeat: 0.2, scale: 1.6, color: '#ff3a10' }] }),
+    // Pip stays beside the apprentice (owner, 2026-10-19); the burst flares in front of the camera, round Pip.
+    reveal('l3-pip-seized', A, 'TH_POS', ['TH_HEAD'], 0.6, 0.6, { barks: ['l3-u-correct-pip'], fx: [{ kind: 'burst', atBeat: 0.2, scale: 1.6, color: '#ff3a10' }] }),
     fight('l3-u3', A, { barks: ['l3-save-pip'] }),
     talk('l3-pip-free', A, ['l3-pip-staying']),
     fight('l3-u4', A, { barks: ['l3-final-spell'] }),
@@ -135,7 +131,8 @@ export const throne: AreaScript = {
         {
           id: 'rings',
           targets: [
-            marker('pip-brave', [PIP_SEIZED[0] - 0.6, PIP_SEIZED[1] + 0.6, PIP_SEIZED[2]], 'brave', { labelHeight: 0.2, defeatFlag: 'l3-pip-ring-1', defeatBark: 'l3-pip-ring-1', defeatFx: { kind: 'burst', scale: 1.2, color: '#ffd24a' } }),
+            // Pip's ring words float round Pip, beside the apprentice, where the Unwriter's fire is burning.
+            marker('pip-brave', PIP_SEIZED, 'brave', { labelHeight: 0.2, aroundPip: { side: -0.35, up: 0.3 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-1', defeatBark: 'l3-pip-ring-1', defeatFx: { kind: 'burst', scale: 1.2, color: '#ffd24a' } }),
             knight('allies-k1', [O(6, 0, -4), O(5, 0, -2)], [len(5, 6)], { movement: { kind: 'static' }, optional: true, leaveAfterSec: 20 }),
             fireball('pip-stroke-1', QUILL, O(-0.8, 1.7, 5.4), { delaySec: 1.6 }),
           ],
@@ -143,13 +140,13 @@ export const throne: AreaScript = {
         {
           id: 'rings-2',
           targets: [
-            marker('pip-curious', [PIP_SEIZED[0] + 0.6, PIP_SEIZED[1] + 0.2, PIP_SEIZED[2]], 'curious', { labelHeight: 0.2, defeatFlag: 'l3-pip-ring-2', defeatBark: 'l3-pip-ring-2', defeatFx: { kind: 'burst', scale: 1.2, color: '#4ab8ff' } }),
+            marker('pip-curious', PIP_SEIZED, 'curious', { labelHeight: 0.2, aroundPip: { side: 0.4, up: 0.1 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-2', defeatBark: 'l3-pip-ring-2', defeatFx: { kind: 'burst', scale: 1.2, color: '#4ab8ff' } }),
             fireTide('pip-tide', O(0, 1, -10), O(0, 1.7, 5.2), ['hold', 'on'], { delaySec: 1.8 }),
           ],
         },
         {
           id: 'rings-3',
-          targets: [marker('pip-kind', [PIP_SEIZED[0], PIP_SEIZED[1] - 0.5, PIP_SEIZED[2]], 'kind', { labelHeight: 0.2, defeatFlag: 'l3-pip-ring-3', defeatBark: 'l3-pip-ring-3', defeatFx: { kind: 'pillar', scale: 1, color: '#9fd8ff' } })],
+          targets: [marker('pip-kind', PIP_SEIZED, 'kind', { labelHeight: 0.2, aroundPip: { side: 0, up: -0.35 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-3', defeatBark: 'l3-pip-ring-3', defeatFx: { kind: 'pillar', scale: 1, color: '#9fd8ff' } })],
         },
       ],
       onComplete: { flags: ['l3-pip-free'] },

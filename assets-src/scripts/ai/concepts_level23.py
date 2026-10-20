@@ -34,10 +34,12 @@ CONCEPTS = {
         "Full body of an empty suit of spiked blackened iron armour, red fire burning inside the visor slit and glowing "
         "through the joints, heavy and menacing, no face, no weapons, standing facing the camera with arms slightly away "
         "from the body", 25),
+    # Owner (2026-10-19): it reads from a book (reference: a hooded reader over a glowing open book).
     "grey_herald": (
-        "Full body of a tall faceless herald figure made of charred black paper with glowing red edges, long tattered "
-        "paper robes, holding a flaming brass trumpet in one hand and a burning scroll in the other, formal and "
-        "threatening, standing facing the camera", 26),
+        "Full body of a tall faceless hooded herald figure in long tattered robes of charred black paper with glowing "
+        "red edges, holding a large open ancient spellbook with both hands in front of its chest, reading it with its "
+        "hooded head bowed over the pages, the open pages glowing with red fire light, sinister, standing facing the "
+        "camera", 26),
     "vellum_wyrm": (
         "A huge serpentine dragon made of burning book pages and leather book spines, a horned head made from an open "
         "book with blazing red eyes and a mouth full of fire, a black crystal heart glowing red between rib-like book "

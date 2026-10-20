@@ -38,7 +38,10 @@ function landing(index: 1 | 2 | 3, extra: boolean): EncounterDef {
           scribbleImp(`dorm-imp-${index}b`, [at(d + 12, 0, 8.6), at(d + 4, 0, 7.2)], { delaySec: 0.7 }),
           ...(extra
             ? [
-                hound(`dorm-hound`, [at(d - 30, 0, 8.4), at(d - 14, 0, 7.6), at(d - 6, 0, 6.6)], { delaySec: 1.6, words: [len(4, 6)] }),
+                // It climbs the stairs to the camera (owner, 2026-10-19: "why is the dog under the stairs?" Its
+                // path ended below the landing, and the close-in leg kept that height, under the steps). Points
+                // every few degrees follow the stair's rise; it passes inside the trapped student's flames.
+                hound(`dorm-hound`, [at(d - 30, 0, 8.4), at(d - 20, 0, 8), at(d - 10, 0, 7.2), at(d, 0, 6.5), at(d + 8, 0, 6.5), at(d + 16, 0, 7.4)], { delaySec: 1.6, words: [len(4, 6)] }),
                 fireball(`dorm-ember`, at(d + 20, 2.4, 8.4), at(d - 26, 1.6, RIDE), { delaySec: 3 }),
               ]
             : []),

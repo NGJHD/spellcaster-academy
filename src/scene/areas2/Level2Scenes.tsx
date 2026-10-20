@@ -12,7 +12,7 @@ import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/gre
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
 import { DORM_DOOR, LAWN_ORIGIN, STALL_POSITIONS } from '../../level/areas2/lawn';
 import { LADDERS, RAMPART_BEACON, RAMPART_ORIGIN, RAMPART_WARDEN } from '../../level/areas2/ramparts';
-import { AFTERMATH_ORIGIN, DRAGON_STAND, ROOF_ORIGIN } from '../../level/areas2/towerRoof';
+import { AFTERMATH_ORIGIN, DRAGON_STAND, ROOF_ORIGIN, WYRM_HOVER_A, WYRM_HOVER_B } from '../../level/areas2/towerRoof';
 import { FURNACE_POSITION, WORKSHOP_ORIGIN } from '../../level/areas2/workshops';
 import { LIBRARY_ORIGIN } from '../../level/areas/library';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -1026,17 +1026,32 @@ function RoofBase() {
 
 export function RoofScene() {
   const stand = sub(DRAGON_STAND, ROOF_ORIGIN);
+  const hoverA = sub(WYRM_HOVER_A.at, ROOF_ORIGIN);
+  const hoverB = sub(WYRM_HOVER_B.at, ROOF_ORIGIN);
   const wyrm = useRef<Group>(null);
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const g = wyrm.current;
     if (!g) return;
-    const id = getRun()?.director.currentBeat?.id ?? '';
-    const flying = id.startsWith('l2-wyrm-v2') || id === 'l2-wyrm-orbit' || id === 'l2-wyrm-takeoff';
+    const run = getRun();
+    const id = run?.director.currentBeat?.id ?? '';
     const t = state.clock.elapsedTime;
-    // Circles the tower during the sky chase; rears and sways on the roof otherwise.
-    const target = flying ? { x: Math.sin(t * 0.5) * 14, y: 6 + Math.sin(t) * 2 } : { x: Math.sin(t * 0.7) * 0.6, y: Math.sin(t * 1.3) * 0.3 };
-    g.position.x += (target.x - g.position.x) * 0.03;
-    g.position.y += (target.y - g.position.y) * 0.03;
+    // On the roof it rears and sways; in the sky chase it takes off to hover in front of the camera on
+    // one side and attacks from there, swoops across to the other side, then dives back to the roof.
+    let goal: readonly number[] = stand;
+    let yaw = 0;
+    if (id === 'l2-wyrm-takeoff' || id === 'l2-wyrm-v2a') {
+      goal = hoverA;
+      yaw = WYRM_HOVER_A.yaw;
+    } else if (id === 'l2-wyrm-orbit' || id === 'l2-wyrm-v2b') {
+      goal = hoverB;
+      yaw = WYRM_HOVER_B.yaw;
+    }
+    const k = 1 - Math.exp(-(goal === stand ? 2 : 1.6) * Math.min(delta, 0.1));
+    const bob = goal === stand ? 0.3 : 0.8;
+    g.position.x += ((goal[0] ?? 0) + Math.sin(t * 0.7) * 0.6 - g.position.x) * k;
+    g.position.y += ((goal[1] ?? 0) + Math.sin(t * 1.3) * bob - g.position.y) * k;
+    g.position.z += ((goal[2] ?? 0) - g.position.z) * k;
+    g.rotation.y += (yaw - g.rotation.y) * k;
   });
   return (
     <group position={ROOF_ORIGIN}>
@@ -1048,12 +1063,12 @@ export function RoofScene() {
         <Fire key={y} position={[7, y, 6]} size={4} count={3} spread={3} />
       ))}
       <StaticWarden position={[7, -8, 3]} scale={1.6} rotationY={-2.4} />
-      <group ref={wyrm}>
+      <group ref={wyrm} position={stand}>
         {/* The page dragon (AI pipeline, 15 m wingspan): on all fours, wings spread, staring down at
             the apprentice, its wings always beating. */}
         <SceneCreature
           file="vellum_dragon.glb"
-          position={stand}
+          position={[0, 0, 0]}
           scale={1}
           // On the roof from the start of the climb (owner, 2026-10-16: an empty roof, then the dragon
           // suddenly appeared).

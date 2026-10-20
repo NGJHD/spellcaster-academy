@@ -96,7 +96,8 @@ def flux_graph(prompt, seed, width, height, prefix):
 
 
 def concept(name, prompt, seed=1, size=1024):
-    entry = run(FLUX, flux_graph(prompt, seed, size, size, f"spellcaster/{name}"))
+    # On the 3080 alone Flux 2 runs partly offloaded and can take most of an hour (2026-10-20).
+    entry = run(FLUX, flux_graph(prompt, seed, size, size, f"spellcaster/{name}"), timeout=5400)
     images = [img for node in entry["outputs"].values() for img in node.get("images", [])]
     out = os.path.join(CONCEPTS, f"{name}.png")
     download(FLUX, images[0], out)

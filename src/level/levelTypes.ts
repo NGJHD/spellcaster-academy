@@ -277,6 +277,8 @@ export interface TargetSpawn {
   readonly defeatFx?: FxCue;
   /** Pip is held by this target until it is beaten (the opening cold open). */
   readonly carriesPip?: boolean;
+  /** Floats beside Pip, wherever Pip is on screen (metres across and up from Pip, facing the camera). */
+  readonly aroundPip?: { readonly side: number; readonly up: number };
   /**
    * Counter-word (LEVEL2_DESIGN L2-4): an incoming attack with a short word that takes the lock even
    * mid-word; typing it raises a Ward Shield and deflects the attack.

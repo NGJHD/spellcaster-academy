@@ -52,11 +52,9 @@ CONFIG = {
     "hollow_knight": dict(out="hollow_knight", height=2.2, tris=34000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
     # moves: a boss's own Idle and Attack (owner, 2026-10-17: bosses stood "doing nothing", and every
     # boss must move differently). The Herald channels with its hands already raised.
-    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish", moves="herald",
-                        # Its raised arms (sleeve, hand and the horn or candle), so it channels with its hands
-                        # (owner, 2026-10-19: "the body like a statue"). A wide blend: the sleeves join the robe.
-                        limbs=[dict(bone="arm_l", side=-1, x=0.25, z=(0.45, 0.95), head=(0.2, 0.74), tail=(0.37, 0.8), ramp=0.05),
-                               dict(bone="arm_r", side=1, x=0.25, z=(0.45, 0.95), head=(0.2, 0.74), tail=(0.37, 0.8), ramp=0.05)]),
+    # The Herald reads from an open book held in both hands (owner, 2026-10-19), so its arms stay with
+    # the body: it reads with its head, shoulders and body while its wisps gather (in the game).
+    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish", moves="herald"),
     "vellum_wyrm": dict(out="vellum_wyrm", height=6.0, tris=60000, tex=2048, rig="plant", defeat="vanish"),
     # Level 3: the Blank and the Cinder Citadel.
     "correction_moth": dict(out="correction_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
@@ -627,72 +625,57 @@ def replace_action(name, keys):
 # Attacks keep the runtime's timing: 30 frames, the wind-up peaking at frame 14 (CreatureModel scrubs it).
 moves = cfg.get("moves")
 if rig and moves == "herald":
-    # Channelling: hovering a little, swaying, the chest opening and the hooded head bowing over the
-    # raised hands as it gathers power (wisps circle it in the game).
-    def ch(rise, sway, open_, bow):
-        return {"pelvis": {"loc": (0, rise * H, 0)}, "spine": (0, sway, sway * 0.7), "chest": (-open_, sway * 0.8, 0), "head": (bow, -sway * 1.5, sway)}
-    # The hands weave the spell: each pushes forward and up, draws a circle and pulls back in turn,
-    # while the body sways and heaves (owner, 2026-10-19: the wisps moved but the body was a statue).
-    def hands(l, r):
-        return {"arm_l": nudge("arm_l", *l), "arm_r": nudge("arm_r", *r)}
+    # Reading: the hooded head bowed over the book, tracking down the page line by line and lifting at
+    # the end of each line, the body swaying and breathing as it chants (the wisps rise from the book).
+    def read(line, sway, breath, rise=0.0):
+        return {
+            "pelvis": {"loc": (0, rise * H, 0)},
+            "spine": (2 + breath, sway, sway * 0.6),
+            "chest": (4 + breath * 1.5, sway * 0.8, 0),
+            "head": (14 + line * 10, -sway * 1.2, sway * 0.5),
+        }
     replace_action("Idle", [
-        (0, {**ch(0, 0, 4, 8), **hands((0, 0, 0), (0, 0, 0))}),
-        (15, {**ch(0.02, 6, 10, 14), **hands((0.25, -0.6, 0.35), (-0.1, 0.25, -0.2))}),
-        (30, {**ch(0.04, 3, 14, 6), **hands((0.1, -0.35, 0.7), (0.15, -0.25, 0.25))}),
-        (45, {**ch(0.05, 0, 16, 2), **hands((-0.15, -0.5, 0.5), (0.15, -0.5, 0.5))}),
-        (60, {**ch(0.04, -3, 14, 6), **hands((-0.15, -0.25, 0.25), (-0.1, -0.35, 0.7))}),
-        (75, {**ch(0.02, -6, 10, 14), **hands((0.1, 0.25, -0.2), (-0.25, -0.6, 0.35))}),
-        (90, {**ch(0, 0, 4, 8), **hands((0, 0, 0), (0, 0, 0))}),
+        (0, read(0, 0, 0)),
+        (12, read(0.5, 2, 1, 0.005)),
+        (24, read(1, 3, 2, 0.01)),
+        (30, read(-0.4, 3, 0, 0.012)),
+        (42, read(0.4, 0, 1.5, 0.008)),
+        (54, read(1, -3, 2.5, 0.004)),
+        (60, read(-0.4, -3, 0, 0)),
+        (75, read(0.5, -1.5, 1, 0.006)),
+        (90, read(0, 0, 0)),
     ])
-    # The trumpet blast: hands thrown high as it draws itself up to breathe in, then both thrust forward
-    # as it pitches forward and blasts.
+    # The command: it straightens up, lifts its head and draws back, then lunges forward over the book
+    # as it sends its gathered wisps at the player.
     replace_action("Attack", [
-        (0, {**ch(0, 0, 4, 8), **hands((0, 0, 0), (0, 0, 0))}),
-        (14, {"pelvis": {"loc": (0, 0.05 * H, 0)}, "spine": (-10, 0, 0), "chest": (-20, 0, 0), "head": (-12, 0, 0), **hands((0.3, 0.2, 0.9), (-0.3, 0.2, 0.9))}),
-        (19, {"pelvis": {"loc": (0, 0.01 * H, 0.04 * H)}, "spine": (12, 0, 0), "chest": (22, 0, 0), "head": (12, 0, 0), **hands((-0.2, -1.1, 0.2), (0.2, -1.1, 0.2))}),
-        (23, {"pelvis": {"loc": (0, 0.01 * H, 0.04 * H)}, "spine": (10, 0, 2), "chest": (18, 0, -2), "head": (16, 0, 3), **hands((-0.15, -1.0, 0.1), (0.15, -1.0, 0.1))}),
-        (30, {**ch(0, 0, 4, 8), **hands((0, 0, 0), (0, 0, 0))}),
+        (0, read(0, 0, 0)),
+        (14, {"pelvis": {"loc": (0, 0.04 * H, -0.02 * H)}, "spine": (-10, 0, 0), "chest": (-16, 0, 0), "head": (-18, 0, 0)}),
+        (19, {"pelvis": {"loc": (0, 0.01 * H, 0.05 * H)}, "spine": (14, 0, 0), "chest": (20, 0, 0), "head": (6, 0, 0)}),
+        (23, {"pelvis": {"loc": (0, 0.01 * H, 0.05 * H)}, "spine": (12, 0, 2), "chest": (18, 0, -2), "head": (10, 0, 2)}),
+        (30, read(0, 0, 0)),
     ])
 elif rig and moves == "guardian":
-    # Charging: crouched, fists drawn back and out, chest pushed forward, breathing hard.
-    def charge(k):
+    # Levitating to channel (owner, 2026-10-19, with a "Mystic Ascension" reference): arms spread out
+    # and down, palms turned forward, the chest lifted and the head raised, the body slowly rising
+    # and falling as the fire orbs circle in front of it (the rise and the orbs are in the game).
+    def channel(k, sway=0.0):
         return {
-            "arm_l": aim_bone("arm_l", (-0.45 - 0.05 * k, 0.45 + 0.15 * k, -0.77 + 0.12 * k)),
-            "arm_r": aim_bone("arm_r", (0.45 + 0.05 * k, 0.45 + 0.15 * k, -0.77 + 0.12 * k)),
-            "pelvis": {"loc": (0, -(0.01 + 0.015 * k) * H, 0)},
-            "spine": (6 + 3 * k, 0, 0),
-            "chest": (6 + 4 * k, 0, 0),
-            "head": (-4 - 3 * k, 0, 0),
+            "arm_l": aim_bone("arm_l", (-0.78 - 0.06 * k, -0.25 - 0.1 * k, -0.57 + 0.12 * k)),
+            "arm_r": aim_bone("arm_r", (0.78 + 0.06 * k, -0.25 - 0.1 * k, -0.57 + 0.12 * k)),
+            "pelvis": {"loc": (0, 0.015 * k * H, 0), "rot": (0, sway * 0.4, 0)},
+            "spine": (-3 - 2 * k, sway, 0),
+            "chest": (-6 - 3 * k, sway * 0.6, 0),
+            "head": (-6 - 4 * k, -sway, 0),
         }
-    # Restless (owner, 2026-10-19: still "target practice"): it shifts its weight from foot to foot,
-    # twists, looks about, flexes one fist then the other and rolls its shoulders, never in step.
-    def fidget(shift, twist, look, l, r, crouch=0.0):
-        return {
-            "arm_l": nudge("arm_l", *l),
-            "arm_r": nudge("arm_r", *r),
-            "pelvis": {"loc": (shift * H, -crouch * H, 0), "rot": (0, twist * 0.3, -shift * 60)},
-            "spine": (6, twist, shift * 40),
-            "chest": (5 + crouch * 60, twist * 0.8, 0),
-            "head": (-4, look, -look * 0.2),
-        }
-    replace_action("Idle", [
-        (0, fidget(0, 0, 0, (0, 0, 0), (0, 0, 0), 0.01)),
-        (25, fidget(0.02, 5, 18, (-0.25, -0.45, 0.25), (0.05, 0.25, 0.0), 0.02)),
-        (50, fidget(0.025, 4, 6, (-0.1, -0.2, 0.1), (0.3, -0.5, 0.35), 0.015)),
-        (75, fidget(-0.02, -5, -20, (-0.35, 0.3, 0.1), (0.1, -0.15, 0.05), 0.025)),
-        (100, fidget(-0.025, -4, -6, (0.15, -0.6, 0.5), (0.25, 0.35, -0.05), 0.01)),
-        (125, fidget(0.01, 3, 10, (-0.05, 0.15, 0.0), (0.4, -0.3, 0.6), 0.02)),
-        (150, fidget(0, 0, 0, (0, 0, 0), (0, 0, 0), 0.01)),
-    ])
-    # The underhand throw: it turns side-on, swings its right hand down and back, then scoops it
-    # forward and up, flinging the fire at the player like a bowler. The other arm stays as a guard.
-    rest = fidget(0, 0, 0, (0, 0, 0), (0, 0, 0), 0.01)
+    replace_action("Idle", [(0, channel(0, 0)), (40, channel(1, 3)), (80, channel(0.4, -3)), (120, channel(0, 0))])
+    # The release: hands drawn back and in to gather the ring of fire, then both palms thrust at the
+    # player to fire it as a stream.
     replace_action("Attack", [
-        (0, rest),
-        (14, {**rest, "arm_r": aim_bone("arm_r", (0.3, 0.8, -0.5)), "arm_l": nudge("arm_l", -0.2, -0.5, 0.4), "pelvis": {"loc": (0, -0.03 * H, 0), "rot": (0, -20, 0)}, "spine": (12, -30, 0), "chest": (10, -15, 0), "head": (-6, 30, 0)}),
-        (20, {**rest, "arm_r": aim_bone("arm_r", (0.1, -0.85, 0.5)), "arm_l": nudge("arm_l", -0.1, 0.3, 0.0), "pelvis": {"loc": (0, -0.01 * H, 0.03 * H), "rot": (0, 12, 0)}, "spine": (4, 18, 0), "chest": (-4, 12, 0), "head": (-4, -12, 0)}),
-        (24, {**rest, "arm_r": aim_bone("arm_r", (0.1, -0.7, 0.7)), "arm_l": nudge("arm_l", -0.1, 0.3, 0.0), "pelvis": {"loc": (0, 0, 0.03 * H), "rot": (0, 12, 0)}, "spine": (2, 16, 0), "chest": (-6, 10, 0), "head": (-4, -10, 0)}),
-        (30, rest),
+        (0, channel(0)),
+        (14, {**channel(1), "arm_l": aim_bone("arm_l", (-0.45, 0.55, -0.7)), "arm_r": aim_bone("arm_r", (0.45, 0.55, -0.7)), "spine": (-8, 0, 0), "chest": (-12, 0, 0), "head": (-10, 0, 0)}),
+        (20, {**channel(1), "arm_l": aim_bone("arm_l", (-0.12, -0.98, 0.15)), "arm_r": aim_bone("arm_r", (0.12, -0.98, 0.15)), "spine": (10, 0, 0), "chest": (12, 0, 0), "head": (0, 0, 0)}),
+        (24, {**channel(1), "arm_l": aim_bone("arm_l", (-0.12, -0.97, 0.2)), "arm_r": aim_bone("arm_r", (0.12, -0.97, 0.2)), "spine": (8, 0, 0), "chest": (10, 0, 0), "head": (0, 0, 0)}),
+        (30, channel(0)),
     ])
 elif rig and moves == "foreman":
     # The hammer: swung up over its shoulder, then smashed down in front of it.
@@ -719,9 +702,9 @@ elif rig and moves == "unwriter":
         shake.append((frame, {**still, "arm_l": (4, 0, 0), "pelvis": {"loc": (0, (0.012 if up else 0) * H, 0)}, "spine": (-4, 0, 0), "chest": (-3 if up else -9, 0, 0), "head": (-22 if up else -16, 0, 0)}))
     C.pose_action(rig, "Laugh", shake)
     # Pointing the quill straight at someone (at Pip, before he burns Pip's rings).
-    # Straight ahead and a little down: the scene turns him to face Pip as he points.
-    point = aim_bone("arm_l", (0.05, -0.99, -0.08))
-    jab = aim_bone("arm_l", (0.06, -0.99, 0.0))
+    # At Pip, beside the apprentice: ahead, a little across and down (the scene turns him to face Pip).
+    point = aim_bone("arm_l", (0.12, -0.96, -0.25))
+    jab = aim_bone("arm_l", (0.13, -0.97, -0.18))
     C.pose_action(rig, "Point", [
         (0, {**still, "arm_l": point, "spine": (6, 0, 0), "chest": (6, 0, 0), "head": (6, 0, 0)}),
         (20, {**still, "arm_l": jab, "spine": (9, 0, 0), "chest": (9, 0, 0), "head": (8, 0, 0)}),
