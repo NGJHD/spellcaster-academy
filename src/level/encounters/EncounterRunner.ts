@@ -93,6 +93,15 @@ export class EncounterRunner {
     return this.hazardWindup;
   }
 
+  /** 0–1 of the way to the next arena attack's wind-up (1 while winding up); null without a hazard. */
+  get hazardBuild(): number | null {
+    const h = this.def.hazard;
+    if (!h || this.def.kind !== 'combat') return null;
+    if (this.hazardWindup) return 1;
+    const threshold = this.hazardIndex === 0 ? h.firstDelaySec : h.intervalSec;
+    return threshold > 0 ? Math.min(1, this.hazardTimer / threshold) : 0;
+  }
+
   /** Completed / total required targets in the current wave, for scene progress (anchors, plates). */
   get waveProgress(): { done: number; total: number } {
     const wave = this.wave;

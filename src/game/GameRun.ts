@@ -11,6 +11,7 @@ import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { closeInEncounter } from '../level/encounters/closeIn';
 import { LevelDirector } from '../level/LevelDirector';
+import { PIP_HELD } from '../level/areas3/finale';
 import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
 import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
@@ -48,25 +49,43 @@ export const STARFALL_STREAK = 8;
 
 const SHAKE_SEC = 0.35;
 
-/** The Pip thief reaches Pip this long after it appears (its swoop in from the corner). */
-const SNATCH_GRAB_SEC = 0.85;
-/** Then it carries Pip off to its chase position over this long. */
-const SNATCH_CARRY_SEC = 1.1;
-/** Camera-relative [ahead, side, up]: off screen at a top corner, and where Pip floats (PipCompanion OFFSET_CALM, carried 0.35 m below). */
-const SNATCH_FROM = [2.2, -3.6, 2.0] as const;
-const SNATCH_GRAB = [1.7, 0.85, 0.3] as const;
+/** The Pip thief flies through Pip this long after it appears (its swoop in from the corner). */
+const SNATCH_GRAB_SEC = 0.75;
+/** Then it carries Pip on and round to its chase position over this long. */
+const SNATCH_CARRY_SEC = 1.2;
+/** Height of the sprite's chest above its origin (mischief_sprite.glb, 0.75 m tall): Pip rides there. */
+const SNATCH_CHEST = 0.42;
+/**
+ * Camera-relative [ahead, side, up]: off screen at a top corner, and the point that puts the sprite's
+ * chest on Pip (PipCompanion OFFSET_CALM: 1.7 ahead, 0.85 aside, 0.05 below the eye).
+ */
+const SNATCH_FROM = [2.4, -3.6, 1.8] as const;
+const SNATCH_GRAB = [1.7, 0.85, -0.05 - SNATCH_CHEST] as const;
 
-/** The thief's camera-relative point at `age`, and how far (0–1) it has blended to its follow position. */
-function snatchPath(age: number): readonly [number, number, number, number] {
+/**
+ * The thief's camera-relative point at `age` (owner, 2026-10-19: "let the sprite go through Pip, then
+ * Pip is held in the chest"): it dives along a straight line, accelerating, right through the spot
+ * where Pip floats without stopping, and its momentum carries it on before it curves round to `follow`.
+ */
+function snatchPath(age: number, follow: { ahead: number; side: number; up: number }): readonly [number, number, number] {
+  const dir = [SNATCH_GRAB[0] - SNATCH_FROM[0], SNATCH_GRAB[1] - SNATCH_FROM[1], SNATCH_GRAB[2] - SNATCH_FROM[2]] as const;
   if (age < SNATCH_GRAB_SEC) {
     const k = age / SNATCH_GRAB_SEC;
-    const e = k * k * (3 - 2 * k);
-    // A diving arc: it drops faster than it crosses, so it swoops down onto Pip.
-    const drop = Math.sqrt(e);
-    return [SNATCH_FROM[0] + (SNATCH_GRAB[0] - SNATCH_FROM[0]) * e, SNATCH_FROM[1] + (SNATCH_GRAB[1] - SNATCH_FROM[1]) * e, SNATCH_FROM[2] + (SNATCH_GRAB[2] - SNATCH_FROM[2]) * drop, 0];
+    const e = k * k * (2 - k); // speeds up and arrives still moving (slope 1 at the grab)
+    return [SNATCH_FROM[0] + dir[0] * e, SNATCH_FROM[1] + dir[1] * e, SNATCH_FROM[2] + dir[2] * e];
   }
-  const k = Math.min(1, Math.max(0, (age - SNATCH_GRAB_SEC - 0.15) / SNATCH_CARRY_SEC));
-  return [SNATCH_GRAB[0], SNATCH_GRAB[1], SNATCH_GRAB[2], k * k * (3 - 2 * k)];
+  // A quadratic curve from the grab: its control point carries on along the dive (the follow-through).
+  const k = Math.min(1, (age - SNATCH_GRAB_SEC) / SNATCH_CARRY_SEC);
+  const u = 1 - (1 - k) * (1 - k);
+  const end = [follow.ahead, follow.side, follow.up] as const;
+  const out = [0, 0, 0];
+  for (let i = 0; i < 3; i++) {
+    const a = SNATCH_GRAB[i] ?? 0;
+    const c = a + (dir[i] ?? 0) * 0.35;
+    const b = end[i] ?? 0;
+    out[i] = (1 - u) * (1 - u) * a + 2 * (1 - u) * u * c + u * u * b;
+  }
+  return [out[0] ?? 0, out[1] ?? 0, out[2] ?? 0];
 }
 
 export interface RunSettings {
@@ -712,15 +731,12 @@ export class GameRun {
       if (t.phase === 'leaving') offset.addScaledVector(right, side * 7 * dt).addScaledVector(fwd, 4 * dt);
       let { ahead, side: across, up: lift } = f;
       if (t.spawn.carriesPip) {
-        // Owner (2026-10-17): the thief swoops in from a top corner of the screen, grabs Pip where Pip floats
-        // and carries Pip off, instead of appearing ahead with Pip zooming to it.
+        // Owner (2026-10-17, 2026-10-19): the thief swoops in from a top corner of the screen, flies
+        // through Pip and carries Pip off in its chest, instead of appearing ahead with Pip zooming to it.
         const age = (this.carryAge.get(t) ?? 0) + dt;
         this.carryAge.set(t, age);
         if (t.phase !== 'leaving') offset.set(0, 0, 0);
-        const p = snatchPath(age);
-        ahead = p[0] + (f.ahead - p[0]) * p[3];
-        across = p[1] + (f.side - p[1]) * p[3];
-        lift = p[2] + (f.up - p[2]) * p[3];
+        [ahead, across, lift] = snatchPath(age, f);
       }
       // Camera-relative placement, so a pitched camera still sees the target where it was authored.
       t.position
@@ -824,22 +840,32 @@ export class GameRun {
    * stood still "like target practice"). `windup` 0–1 while an arena attack is charging; `strikeAge`
    * is seconds since it last struck (a hazard landing or a fireball hurled), Infinity if never.
    */
-  bossThreat(): { windup: number; strikeAge: number } {
+  bossThreat(): { windup: number; strikeAge: number; build: number | null } {
     const runner = this.encounter;
-    const t = runner?.def.bossPhase && runner.state !== 'complete' ? runner.hazardTelegraph : null;
+    const boss = !!runner?.def.bossPhase && runner.state !== 'complete';
+    const t = boss ? runner.hazardTelegraph : null;
     const total = this.bossWindupSec;
     const windup = t && total > 0 ? Math.min(1, Math.max(0, 1 - t.remaining / total)) : 0;
-    return { windup, strikeAge: (performance.now() - this.bossStrikeAt) / 1000 };
+    // `build`: how far the boss is towards its next arena attack (null when it has none), so a charge
+    // can grow from nothing to the blast.
+    return { windup, strikeAge: (performance.now() - this.bossStrikeAt) / 1000, build: boss ? runner.hazardBuild : null };
   }
 
   /** Point Pip is being carried to, if a target is holding Pip (the opening cold open). */
   pipCarrier(out: Vector3): boolean {
     for (const t of this.allTargets()) {
       if (!t.spawn.carriesPip || t.defeated || t.phase === 'waiting' || t.phase === 'gone' || t.phase === 'leaving') continue;
-      // Pip stays put until the thief's claws reach it.
+      // Pip stays put until the thief flies into it, then rides in its chest (owner, 2026-10-19).
       if ((this.carryAge.get(t) ?? 0) < SNATCH_GRAB_SEC) continue;
+      // In its chest, a touch towards the camera so Pip shows in front of its body.
       out.copy(t.position);
-      out.y -= 0.35;
+      out.y += SNATCH_CHEST;
+      out.addScaledVector(this.camForward.copy(this.director.pose.position).sub(out).normalize(), 0.12);
+      return true;
+    }
+    const beat = this.director.currentBeat?.id ?? '';
+    if ((PIP_HELD.beats as readonly string[]).includes(beat) && !this.flags.has(PIP_HELD.untilFlag)) {
+      out.set(...PIP_HELD.at);
       return true;
     }
     return false;

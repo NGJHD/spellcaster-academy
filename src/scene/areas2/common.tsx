@@ -82,6 +82,7 @@ export function SceneCreature({
   threat = false,
   clip,
   effects,
+  wander = 0,
 }: {
   file: string;
   position: Vec3;
@@ -99,6 +100,8 @@ export function SceneCreature({
   clip?: () => string | null;
   /** Effects in the creature's own space (wisps, charging glows); `rig` gives its live bones. */
   effects?: (rig: CreatureRig) => ReactNode;
+  /** Paces restlessly this far (metres) either side of its spot, turning a little as it steps. */
+  wander?: number;
 }) {
   const shown = useReached(fromBeat);
   const group = useRef<Group>(null);
@@ -113,18 +116,27 @@ export function SceneCreature({
     rig.group = group.current;
     const run = getRun();
     const gone = run?.flags.has(goneFlag) ?? false;
-    const th = threat && run ? run.bossThreat() : null;
+    const override = clip?.() ?? null;
+    // An extra clip (the Unwriter pointing at Pip) wins over the attack animations.
+    const th = threat && run && !override ? run.bossThreat() : null;
     const striking = !!th && th.strikeAge < STRIKE_SEC && th.windup === 0;
     const wantWindup = rearing?.() ? 1 : th ? th.windup : 0;
     p.windup += (wantWindup - p.windup) * (1 - Math.exp(-4 * dt));
     // The strike plays at once (CreatureModel holds the wind-up pose while any wind-up remains).
     if (striking || p.windup < 0.02) p.windup = wantWindup > 0 && !striking ? p.windup : 0;
     p.recovering = striking;
-    p.override = clip?.() ?? null;
+    p.override = override;
     p.moving = flying?.() ?? false;
     fade.current += ((gone ? 0 : 1) - fade.current) * (1 - Math.exp(-5 * dt));
     const g = group.current;
     if (!g) return;
+    if (wander > 0) {
+      // Two slow, unrelated swings, so the pacing never looks like a metronome.
+      const dx = Math.sin(p.time * 0.37) * wander + Math.sin(p.time * 0.83 + 1) * wander * 0.35;
+      const vx = Math.cos(p.time * 0.37) * 0.37 * wander + Math.cos(p.time * 0.83 + 1) * 0.83 * wander * 0.35;
+      g.position.set(position[0] + dx, position[1], position[2] + Math.sin(p.time * 0.29 + 2) * wander * 0.3);
+      g.rotation.y = rotationY + Math.max(-0.5, Math.min(0.5, vx * 0.6));
+    }
     g.visible = fade.current > 0.02;
     g.scale.setScalar(scale * (0.4 + 0.6 * fade.current));
   });

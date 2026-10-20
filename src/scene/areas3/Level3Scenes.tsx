@@ -712,8 +712,10 @@ export function Gallery3Scene() {
         fromBeat="l3-perfect-warden"
         goneFlag="l3-perfect-warden-gone"
         fallback={<IronGiant height={7} />}
-        // Owner (2026-10-17): it charges up (fists blazing) and smashes when it attacks.
+        // Owner (2026-10-17, 2026-10-19): it charges up (fists blazing), fidgets and paces, and flings
+        // its fire underhand when it attacks.
         threat
+        wander={1}
         effects={(rig) => <GuardianFists rig={rig} />}
       />
     </group>

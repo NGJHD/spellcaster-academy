@@ -118,7 +118,15 @@ const DRAGON_THROAT = new Vector3(0, 4.5, 5.9);
 const DRAGON_CHEST = new Vector3(0, 3.5, 5.3);
 const DRAGON_BELLY = new Vector3(0, 1.7, 2.0);
 
-/** Fire gathering in the dragon's throat; its chest and belly pulse brighter as the breath builds. */
+/** How long the fire breath blast lasts after the dragon attacks. */
+const BLAST_SEC = 0.7;
+
+/**
+ * The dragon's fire breath, built up from nothing (owner, 2026-10-19: not fire in its mouth all the
+ * time): after each attack its throat is dark. A glow kindles deep in the throat, its chest and then its
+ * belly start to glow and pulse faster, flames lick from its jaws as the attack winds up, then it
+ * looses a blast of fire at the player and the build-up starts again.
+ */
 export function DragonFireCharge({ rig }: { rig: CreatureRig }) {
   const mouth = useRef<Sprite | null>(null);
   const throat = useRef<Sprite | null>(null);
@@ -126,43 +134,82 @@ export function DragonFireCharge({ rig }: { rig: CreatureRig }) {
   const belly = useRef<Sprite | null>(null);
   const flames = useRef<Group>(null);
   const light = useRef<PointLight>(null);
+  const breath = useRef<Mesh>(null);
+  const breathHead = useRef<Sprite | null>(null);
   const at = useMemo(() => new Vector3(), []);
+  const jaws = useMemo(() => new Vector3(), []);
+  const aim = useMemo(() => new Vector3(), []);
+  const streak = useMemo(() => streakTexture(), []);
+  const level = useRef(0);
   const time = useRef(0);
-  useFrame((_, delta) => {
-    time.current += Math.min(delta, 0.1);
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
     const t = time.current;
-    const c = chargeLevel(t);
-    // A slow heartbeat of fire in the belly, quickening as it charges.
-    const beat = 0.5 + 0.5 * Math.sin(t * (2.5 + c * 6));
+    const th = getRun()?.bossThreat();
+    const blasting = !!th && th.strikeAge < BLAST_SEC;
+    // Towards the next attack (the arena attack's clock), or a slow build between fireballs.
+    const build = !th ? 0 : th.build !== null ? Math.pow(th.build, 1.6) : Math.pow(Math.min(1, Math.max(0, (th.strikeAge - BLAST_SEC) / 4)), 1.6);
+    const goal = blasting ? 0 : Math.max(build * 0.8, th && th.windup > 0 ? 0.8 + th.windup * 0.2 : 0);
+    // It builds slowly and is spent at once.
+    level.current = blasting ? 0 : level.current + (goal - level.current) * (1 - Math.exp(-(goal > level.current ? 2.5 : 6) * dt));
+    const c = level.current;
+    const beat = 0.5 + 0.5 * Math.sin(t * (2 + c * 9));
+    const ramp = (lo: number, hi: number) => Math.min(1, Math.max(0, (c - lo) / (hi - lo)));
     const place = (s: Sprite | null, bone: string, bind: Vector3, size: number, opacity: number) => {
       if (!s) return;
-      s.visible = rigPoint(rig, bone, bind, at);
+      s.visible = opacity > 0.01 && rigPoint(rig, bone, bind, at);
       s.position.copy(at);
-      s.scale.setScalar(size);
+      s.scale.setScalar(Math.max(0.01, size));
       (s.material as { opacity: number }).opacity = Math.min(1, opacity);
     };
-    place(mouth.current, 'spine', DRAGON_MOUTH, 0.8 + c * 1.6, 0.35 + c * 0.6);
-    place(throat.current, 'spine', DRAGON_THROAT, 1.2 + c * 1.8, (0.15 + c * 0.45) * (0.7 + beat * 0.3));
-    place(chest.current, 'spine', DRAGON_CHEST, 1.8 + c * 2.2, (0.12 + c * 0.4) * (0.6 + beat * 0.4));
-    place(belly.current, 'pelvis', DRAGON_BELLY, 2.4 + c * 2.4, (0.1 + c * 0.35) * (0.5 + beat * 0.5));
-    if (flames.current && rigPoint(rig, 'spine', DRAGON_MOUTH, at)) {
-      flames.current.position.copy(at);
-      flames.current.scale.setScalar(0.25 + c * 0.9);
+    place(throat.current, 'spine', DRAGON_THROAT, 0.6 + c * 2.4, ramp(0, 0.4) * (0.25 + c * 0.45) * (0.7 + beat * 0.3));
+    place(chest.current, 'spine', DRAGON_CHEST, 1 + c * 3, ramp(0.25, 0.65) * (0.15 + c * 0.4) * (0.5 + beat * 0.5));
+    place(belly.current, 'pelvis', DRAGON_BELLY, 1.5 + c * 3.4, ramp(0.45, 0.85) * (0.15 + c * 0.35) * (0.4 + beat * 0.6));
+    place(mouth.current, 'spine', DRAGON_MOUTH, 0.4 + c * 2, ramp(0.55, 0.9) * (0.4 + c * 0.6));
+    const ok = rigPoint(rig, 'spine', DRAGON_MOUTH, jaws);
+    if (flames.current) {
+      const lick = ramp(0.7, 1);
+      flames.current.visible = ok && lick > 0.02;
+      flames.current.position.copy(jaws);
+      flames.current.scale.setScalar(Math.max(0.01, lick * 1.1));
+    }
+    // The blast: a roaring jet of fire from its jaws towards the player.
+    const g = rig.group;
+    const b = breath.current;
+    const head = breathHead.current;
+    const showBlast = blasting && ok && !!g;
+    if (b) b.visible = showBlast;
+    if (head) head.visible = showBlast;
+    if (showBlast && b && head && g && th) {
+      const k = th.strikeAge / BLAST_SEC;
+      aim.copy(state.camera.position);
+      g.worldToLocal(aim);
+      aim.lerp(jaws, 0.25);
+      const reach = aim.clone().sub(jaws).multiplyScalar(Math.min(1, k * 2.2)).add(jaws);
+      placeStreak(b, jaws, reach, 2.2 * (1 - k * 0.5), state.camera.position);
+      head.position.copy(reach);
+      head.scale.setScalar(4 + k * 3);
+      (head.material as { opacity: number }).opacity = 1 - k;
     }
     if (light.current) {
-      light.current.position.copy(at);
-      light.current.intensity = 20 + c * 160 * (0.8 + beat * 0.2);
+      light.current.position.copy(jaws);
+      light.current.intensity = showBlast ? 400 : c * 160 * (0.8 + beat * 0.2);
     }
   });
   return (
     <group>
-      <GlowSprite sprite={(s) => void (mouth.current = s)} color="#ffcf6a" />
       <GlowSprite sprite={(s) => void (throat.current = s)} color="#ff7a20" depthTest={false} />
       <GlowSprite sprite={(s) => void (chest.current = s)} color="#ff5a14" />
       <GlowSprite sprite={(s) => void (belly.current = s)} color="#ff4a10" />
-      <group ref={flames}>
+      <GlowSprite sprite={(s) => void (mouth.current = s)} color="#ffcf6a" />
+      <group ref={flames} visible={false}>
         <Fire position={[0, 0, 0]} size={1.4} count={3} spread={0.6} smoke={false} kind="warm" />
       </group>
+      <mesh ref={breath} geometry={STREAK_GEOMETRY} visible={false} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color="#ff7a20" transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
+      </mesh>
+      <GlowSprite sprite={(s) => void (breathHead.current = s)} color="#ffb040" />
       <pointLight ref={light} color="#ff7a2a" intensity={0} distance={18} decay={2} />
     </group>
   );
@@ -219,46 +266,71 @@ export function GuardianFists({ rig }: { rig: CreatureRig }) {
 /** The nib of the quill in his raised hand (unwriter.glb, bound to the quill arm). */
 const QUILL_TIP = new Vector3(-1.05, 3.27, 0.82);
 
+const EMBERS = 10;
+
 /**
- * The quill's nib glows as he gathers power. While `burning()` (Pip seized), a stroke of red fire
- * runs from the nib to Pip (owner, 2026-10-17: "he's burning Pip's rings" but nothing showed).
+ * The quill's nib glows as he gathers power. While `burning()` (Pip seized) he turns to face Pip and
+ * a thick stream of red fire pours from the nib to Pip, embers racing along it (owner, 2026-10-17 and
+ * 2026-10-19: "I don't see him pointing the quill at Pip, nor the stream of fire").
  */
 export function UnwriterQuill({ rig, pip, burning }: { rig: CreatureRig; pip: Vec3; burning: () => boolean }) {
   const nib = useRef<Sprite | null>(null);
   const flare = useRef<Sprite | null>(null);
   const beam = useRef<Mesh>(null);
+  const core = useRef<Mesh>(null);
+  const embers = useRef<(Sprite | null)[]>([]);
   const tip = useMemo(() => new Vector3(), []);
   const target = useMemo(() => new Vector3(), []);
+  const at = useMemo(() => new Vector3(), []);
   const streak = useMemo(() => streakTexture(), []);
-  const beamColor = useMemo(() => new Color('#ff4a14'), []);
+  const beamColor = useMemo(() => new Color('#ff3a0a'), []);
+  const coreColor = useMemo(() => new Color('#ffd27a'), []);
   const time = useRef(0);
   useFrame((state, delta) => {
-    time.current += Math.min(delta, 0.1);
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
     const t = time.current;
     const on = burning();
     const c = on ? 1.1 : chargeLevel(t);
+    const g = rig.group;
+    // He turns to face Pip while burning Pip's rings, and back to the player after.
+    if (g) {
+      g.getWorldPosition(at);
+      const yaw = on ? Math.atan2(pip[0] - at.x, pip[2] - at.z) : 0;
+      g.rotation.y += (yaw - g.rotation.y) * (1 - Math.exp(-3 * dt));
+    }
     const ok = rigPoint(rig, 'arm_l', QUILL_TIP, tip);
     const n = nib.current;
     if (n) {
       n.visible = ok;
       n.position.copy(tip);
-      n.scale.setScalar(0.3 + c * 0.6 + Math.sin(t * 11) * 0.04);
+      n.scale.setScalar(0.3 + c * 0.7 + Math.sin(t * 11) * 0.05);
       (n.material as { opacity: number }).opacity = Math.min(1, 0.5 + c * 0.5);
     }
     const b = beam.current;
+    const k = core.current;
     const f = flare.current;
-    const g = rig.group;
-    if (b && f && g) {
-      b.visible = on && ok;
-      f.visible = b.visible;
-      if (b.visible) {
-        target.set(...pip);
-        g.worldToLocal(target);
-        placeStreak(b, tip, target, 0.12 + Math.sin(t * 23) * 0.03, state.camera.position);
-        f.position.copy(target);
-        f.scale.setScalar(0.9 + Math.sin(t * 17) * 0.15);
-      }
-    }
+    const show = on && ok && !!g;
+    if (b) b.visible = show;
+    if (k) k.visible = show;
+    if (f) f.visible = show;
+    embers.current.forEach((e) => e && (e.visible = show));
+    if (!show || !b || !k || !f || !g) return;
+    target.set(...pip);
+    g.worldToLocal(target);
+    const flicker = Math.sin(t * 23) * 0.04 + Math.sin(t * 37) * 0.03;
+    placeStreak(b, tip, target, 0.42 + flicker, state.camera.position);
+    placeStreak(k, tip, target, 0.13 + flicker * 0.5, state.camera.position);
+    f.position.copy(target);
+    f.scale.setScalar(1.6 + Math.sin(t * 17) * 0.25);
+    // Embers pouring down the stream from the nib to Pip.
+    embers.current.forEach((e, i) => {
+      if (!e) return;
+      const u = (t * 1.6 + i / EMBERS) % 1;
+      e.position.lerpVectors(tip, target, u);
+      e.position.y += Math.sin(t * 9 + i * 2.1) * 0.12;
+      e.scale.setScalar(0.35 * (1 - u * 0.4));
+    });
   });
   return (
     <group>
@@ -266,6 +338,12 @@ export function UnwriterQuill({ rig, pip, burning }: { rig: CreatureRig; pip: Ve
       <mesh ref={beam} geometry={STREAK_GEOMETRY} visible={false} frustumCulled={false}>
         <meshBasicMaterial map={streak} color={beamColor} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
       </mesh>
+      <mesh ref={core} geometry={STREAK_GEOMETRY} visible={false} frustumCulled={false}>
+        <meshBasicMaterial map={streak} color={coreColor} transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
+      </mesh>
+      {Array.from({ length: EMBERS }, (_, i) => (
+        <GlowSprite key={i} sprite={(s) => void (embers.current[i] = s)} color="#ff8a3a" />
+      ))}
       <GlowSprite sprite={(s) => void (flare.current = s)} color="#ff6a2a" />
     </group>
   );

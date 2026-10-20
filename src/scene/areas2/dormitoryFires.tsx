@@ -25,7 +25,7 @@ export function DormitoryFires() {
         const a = (d.deg * Math.PI) / 180;
         return (
           <group key={d.id}>
-            <Restorable flag={`l2-dorm-door-${d.id}`} fire={{ position: [door[0] * 0.97, floor, door[2] * 0.97], size: 2.2, count: 4, spread: 1.4, light: true }}>
+            <Restorable flag={`l2-dorm-door-${d.id}`} fire={{ position: [door[0] * 0.995, floor, door[2] * 0.995], size: 2.2, count: 4, spread: 0.6, light: true }}>
               {/* A carved oak door (CC0 model; its base sits 1.13 m below its origin at full size) */}
               <ModelBoundary fallback={<Box position={[door[0], floor + 1.3, door[2]]} size={[1.4, 2.6, 0.16]} rotation={[0, -a - Math.PI / 2, 0]} material={MAT.darkOak} />}>
                 <Suspense fallback={null}>
@@ -33,6 +33,7 @@ export function DormitoryFires() {
                 </Suspense>
               </ModelBoundary>
             </Restorable>
+            {/* The door model stands about 4° round from its anchor: the student backs against it. */}
             <TrappedStudent deg={d.deg + 4} flag={`l2-dorm-door-${d.id}`} />
             <TrapFires deg={d.deg + 4} flag={`l2-dorm-door-${d.id}`} />
           </group>
@@ -45,27 +46,32 @@ export function DormitoryFires() {
   );
 }
 
-/**
- * A ring of inkfire round each trapped first-year (owner, 2026-10-17: more fire, so they look trapped):
- * tall flames either side and behind, low ones in front so the student stays in view. They go out with
- * the door's restore word.
- */
-const TRAP_RING: readonly { dDeg: number; r: number; size: number }[] = [
-  { dDeg: -7, r: 8.7, size: 1.7 },
-  { dDeg: 8, r: 8.7, size: 1.7 },
-  { dDeg: -4, r: 9.15, size: 1.5 },
-  { dDeg: 4, r: 9.2, size: 1.4 },
-  { dDeg: -5, r: 7.95, size: 0.8 },
-  { dDeg: 0, r: 7.75, size: 0.65 },
-  { dDeg: 5, r: 7.95, size: 0.8 },
-];
+/** Where a trapped first-year stands: backed against their burning door. */
+const TRAPPED_RADIUS = 8.75;
+/** The fire's half-ring round them, and how many flames make it. */
+const TRAP_RING_RADIUS = 1.35;
+const TRAP_FLAMES = 7;
 
+/**
+ * A half-ring of tall inkfire round each trapped first-year, from the wall on one side, round in front
+ * of them, to the wall on the other, so they are cornered against their door (owner, 2026-10-19: the
+ * flames sat under the student and made no sense). It goes out with the door's word.
+ */
 function TrapFires({ deg, flag }: { deg: number; flag: string }) {
+  const a = (deg * Math.PI) / 180;
+  const centre = { x: TRAPPED_RADIUS * Math.cos(a), z: TRAPPED_RADIUS * Math.sin(a) };
+  const out = { x: Math.cos(a), z: Math.sin(a) };
+  const along = { x: -Math.sin(a), z: Math.cos(a) };
   return (
     <>
-      {TRAP_RING.map(({ dDeg, r, size }) => {
-        const at = deg + dDeg;
-        return <Fire key={`${dDeg}:${r}`} position={local(spiral(at, stairFloor(at) + 0.05, r))} size={size} count={size > 1 ? 3 : 2} spread={0.6} smoke={size > 1} untilFlag={flag} />;
+      {Array.from({ length: TRAP_FLAMES }, (_, i) => {
+        const th = (i / (TRAP_FLAMES - 1)) * Math.PI;
+        const x = centre.x + TRAP_RING_RADIUS * (Math.cos(th) * along.x - Math.sin(th) * out.x);
+        const z = centre.z + TRAP_RING_RADIUS * (Math.cos(th) * along.z - Math.sin(th) * out.z);
+        const at = (Math.atan2(z, x) * 180) / Math.PI;
+        // Unwrap to the door's turn of the spiral before reading the stair height.
+        const d = at + Math.round((deg - at) / 360) * 360;
+        return <Fire key={i} position={[x, stairFloor(d) + 0.05, z]} size={1.7 + (i % 2) * 0.25} count={3} spread={0.5} smoke={i % 3 === 0} untilFlag={flag} />;
       })}
     </>
   );
@@ -104,7 +110,7 @@ function TrappedStudent({ deg, flag }: { deg: number; flag: string }) {
     } else if (walk > 0 && walk < 1) {
       lift = Math.abs(Math.sin(s * 9)) * 0.04;
     }
-    const p = local(spiral(at, stairFloor(at) + lift, free ? 8.6 - walk * 0.5 : 8.6));
+    const p = local(spiral(at, stairFloor(at) + lift, free ? TRAPPED_RADIUS - walk * 0.6 : TRAPPED_RADIUS));
     g.position.set(p[0], p[1], p[2]);
     // Facing in towards the stairs while trapped; facing down the stairs while walking away.
     g.rotation.y = walk > 0 ? Math.atan2(Math.sin(a), -Math.cos(a)) : -a - Math.PI / 2;

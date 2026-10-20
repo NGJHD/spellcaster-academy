@@ -46,17 +46,23 @@ export function PipCompanion() {
     const snatched = run?.pipCarrier(carried) ?? false;
     if (snatched) {
       goal.copy(carried);
-      goal.x += Math.sin(time.current * 13) * 0.08;
-      goal.y += Math.sin(time.current * 17) * 0.06;
+      goal.x += Math.sin(time.current * 13) * 0.03;
+      goal.y += Math.sin(time.current * 17) * 0.02;
     }
     if (!placed.current) {
       g.position.copy(goal);
       placed.current = true;
     }
     // Soft inertia: Pip lags behind camera moves and settles (never a rigid UI icon).
-    const k = 1 - Math.exp(-(snatched ? 9 : FOLLOW_RATE) * Math.min(delta, 0.1));
+    // Held in the thief's chest, Pip moves with it (no lag that would leave Pip trailing behind); seized
+    // from afar (the Unwriter's ring), Pip is dragged across visibly.
+    const rate = snatched ? (g.position.distanceTo(goal) < 1.5 ? 30 : 5) : FOLLOW_RATE;
+    const k = 1 - Math.exp(-rate * Math.min(delta, 0.1));
     g.position.lerp(goal, k);
     g.lookAt(state.camera.position);
+    // Held far off (in the Unwriter's ring), Pip is drawn larger so the player can see it struggle.
+    const far = snatched && goal.distanceTo(state.camera.position) > 4;
+    g.scale.setScalar(g.scale.x + ((far ? 2.6 : 0.85) - g.scale.x) * (1 - Math.exp(-4 * Math.min(delta, 0.1))));
 
     const speaking = useRunStore.getState().subtitle?.speaker === 'pip';
     for (const m of rig.current.core) {

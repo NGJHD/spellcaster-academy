@@ -17,6 +17,11 @@ export const THRONE_ORIGIN: Vec3 = [2800, 80, 0];
 const O = origin(THRONE_ORIGIN);
 export const UNWRITER: Vec3 = O(0, 0, -12);
 export const PIP_SEIZED: Vec3 = O(-3, 3.2, -6);
+/**
+ * While the Unwriter holds Pip in his ring of burning script, Pip really is there (owner, 2026-10-19:
+ * the quill and its fire pointed at an empty ring while Pip still floated beside the player).
+ */
+export const PIP_HELD = { at: PIP_SEIZED, beats: ['l3-pip-seized', 'l3-u3'], untilFlag: 'l3-pip-free' } as const;
 // The nib of the quill in his raised hand (his right hand, on our left as he faces us; unwriter.glb at 1.6×).
 const QUILL = O(-1.8, 5.6, -10.6);
 const CHEST = O(0, 3.6, -11.4);

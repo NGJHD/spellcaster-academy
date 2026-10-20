@@ -747,6 +747,31 @@ Level 3:
   (`l3-g3-to-breach`) before the ship.
 - The foreman walks at 1.8 m/s (was 0.8).
 
+## Tenth playtest (2026-10-19)
+
+- Pip snatch: the sprite dives straight through the spot where Pip floats without stopping, and Pip
+  rides in its chest (`SNATCH_CHEST`), carried on by its momentum before it curves to its chase spot.
+- Snapvine: six uneven strands (four of different thickness, twisting at uneven rates and drifting apart
+  and together, plus two thin tendrils that peel off and curl) instead of an even three-strand rope.
+- Trapped first-years: each backs against their door inside a half-ring of seven tall flames, wall to
+  wall round the front of them; the door's own fire now sits flush with the door.
+- Grey Herald: arm bones (sleeve, hand and horn or candle; a wide blend into the robe), so its hands weave
+  while it channels (push forward, circle, draw back, in turn) and thrust forward in its blast.
+- Smudgehound: rigid creatures take a `sway` factor; the hound rolls and pitches a quarter as much.
+- Page dragon: the fire builds from nothing. `bossThreat().build` follows the arena attack's clock
+  (`EncounterRunner.hazardBuild`; each word typed restarts it, so typing keeps the fire down). The throat
+  kindles, then the chest and belly glow and pulse faster, flames lick from the jaws at the wind-up,
+  then a jet of fire breath blasts at the player and it goes dark again.
+- Perfect Guardian: a restless 5 s Idle (weight shifts, twists, looking about, flexing one fist then
+  the other), pacing a metre either side of its spot (`SceneCreature wander`), and an underhand throw for
+  its Attack (side-on, the right hand swung back low, then scooped forward and up).
+- Foreman: an arm bone for its hammer arm; its Attack swings the hammer over its shoulder and down
+  (it was the default lunge, which read as a headbutt).
+- Unwriter burning Pip's rings: Pip really is held in the ring now (`PIP_HELD` in finale.ts; Pip is
+  drawn 3× larger while held that far away). The quill pointed at an empty ring before. He turns to face
+  Pip, the point overrides attack animations, and the stream is thick with a bright core and embers.
+- Builder: `--preview` also renders three Idle frames for bosses with their own moves.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

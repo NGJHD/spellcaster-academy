@@ -280,9 +280,30 @@ const toCamera = new Vector3();
  * with Idle and Attack clips) on a long stem rising out of the channel. It sways in a coil, then
  * lunges at the spot the camera has just left and snaps shut on empty air (scripted, never a hit).
  */
-/** Strands twisted together into the snapvine's stem. */
-const STRANDS = 3;
-const STRAND_RADIUS = 0.14;
+/**
+ * The snapvine's stem: uneven strands wound loosely together, each its own thickness, twisting at its
+ * own uneven rate, bulging apart and pinching back in, plus two thin tendrils that peel off and curl
+ * (owner, 2026-10-19: the even three-strand rope was "twisted too nicely").
+ */
+interface StrandSpec {
+  readonly radius: number;
+  /** Distance from the stem's centre line. */
+  readonly sep: number;
+  /** Whole turns round the stem from root to head. */
+  readonly turns: number;
+  readonly phase: number;
+  /** Tendrils only: where along the stem it peels off (0–1) and how far along it runs. */
+  readonly from?: number;
+  readonly span?: number;
+}
+const STRAND_SPECS: readonly StrandSpec[] = [
+  { radius: 0.16, sep: 0.09, turns: 1.4, phase: 0 },
+  { radius: 0.12, sep: 0.15, turns: 2.3, phase: 2.1 },
+  { radius: 0.1, sep: 0.13, turns: 0.9, phase: 4.2 },
+  { radius: 0.06, sep: 0.2, turns: 3.1, phase: 1.1 },
+  { radius: 0.035, sep: 0.2, turns: 0, phase: 0.6, from: 0.22, span: 0.28 },
+  { radius: 0.03, sep: 0.18, turns: 0, phase: 3.6, from: 0.52, span: 0.24 },
+];
 const STEM_SAMPLES = 36;
 
 /**
@@ -331,20 +352,34 @@ const frameB = new Vector3();
 const tangent = new Vector3();
 const worldUp = new Vector3(0, 1, 0);
 
-/** Points of strand `i` twisting round `centre`, thinning a little towards the head. */
+/** Points of strand `i` winding round `centre`, irregularly, or a tendril curling away from it. */
 function strandPoints(centre: CatmullRomCurve3, i: number, out: Vector3[]): void {
+  const spec = STRAND_SPECS[i];
+  if (!spec) return;
   for (let s = 0; s < STEM_SAMPLES; s++) {
-    const u = s / (STEM_SAMPLES - 1);
-    centre.getPointAt(u, strandPoint);
-    centre.getTangentAt(u, tangent);
+    const k = s / (STEM_SAMPLES - 1);
+    const tendril = spec.from !== undefined;
+    const u = tendril ? (spec.from ?? 0) + k * (spec.span ?? 0) : k;
+    centre.getPointAt(Math.min(1, u), strandPoint);
+    centre.getTangentAt(Math.min(1, u), tangent);
     frameN.crossVectors(tangent, worldUp);
     if (frameN.lengthSq() < 1e-4) frameN.set(1, 0, 0);
     frameN.normalize();
     frameB.crossVectors(tangent, frameN).normalize();
-    const a = (i / STRANDS) * Math.PI * 2 + u * Math.PI * 5;
-    const r = STRAND_RADIUS * (1.15 - u * 0.4);
+    let a: number;
+    let r: number;
+    if (tendril) {
+      // Peels away from the stem and coils into a spiral at its tip.
+      a = spec.phase + k * k * 7;
+      r = spec.sep + k * 0.55 * (1 - k * 0.45);
+    } else {
+      // An uneven twist (faster here, slower there) and strands that drift apart and pinch together.
+      a = spec.phase + u * spec.turns * Math.PI * 2 + Math.sin(u * 7.3 + i * 1.7) * 0.9 + Math.sin(u * 13.1 + i * 0.6) * 0.45;
+      r = spec.sep * (0.55 + 0.55 * (0.5 + 0.5 * Math.sin(u * 5.1 + i * 2.3)) + 0.25 * Math.sin(u * 11 + i)) * (1.1 - u * 0.35);
+    }
     const p = out[s] ?? (out[s] = new Vector3());
     p.copy(strandPoint).addScaledVector(frameN, Math.cos(a) * r).addScaledVector(frameB, Math.sin(a) * r);
+    if (tendril) p.addScaledVector(tangent, k * 0.15);
   }
 }
 
@@ -353,7 +388,7 @@ function Snapvine() {
   const head = useRef<Group>(null);
   const strands = useRef<(Mesh | null)[]>([]);
   const skin = useMemo(() => vineSkin(), []);
-  const strandCurves = useMemo(() => Array.from({ length: STRANDS }, () => new CatmullRomCurve3(Array.from({ length: STEM_SAMPLES }, () => new Vector3()))), []);
+  const strandCurves = useMemo(() => Array.from({ length: STRAND_SPECS.length }, () => new CatmullRomCurve3(Array.from({ length: STEM_SAMPLES }, () => new Vector3()))), []);
   const time = useRef(0);
   const striking = useRef(false);
   const { scene, animations } = useGLTF(SNAPVINE_URL);
@@ -427,7 +462,7 @@ function Snapvine() {
       strandPoints(curve, i, c.points);
       c.updateArcLengths();
       m.geometry.dispose();
-      m.geometry = new TubeGeometry(c, 64, STRAND_RADIUS, 10, false);
+      m.geometry = new TubeGeometry(c, 64, STRAND_SPECS[i]?.radius ?? 0.1, (STRAND_SPECS[i]?.radius ?? 0.1) > 0.05 ? 10 : 6, false);
     });
   });
   return (
