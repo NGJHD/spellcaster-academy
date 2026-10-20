@@ -5,8 +5,8 @@
  */
 import { GuardianOrbs, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, Quaternion, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
+import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, Quaternion, SRGBColorSpace, Vector3, type Group, type PointLight, type Sprite } from 'three';
 import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
 import { pipWorld } from '../../player/PipCompanion';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
@@ -15,7 +15,7 @@ import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEO
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
-import { Fire, Restorable } from '../Fire';
+import { Fire, FLAME_FRAMES, flameTexture, Restorable } from '../Fire';
 import { Bookshelf, Box, KitModel, Slab } from '../kit';
 import { CastleDoor } from '../CastleDoor';
 import { MAT } from '../materials';
@@ -1159,35 +1159,40 @@ function ThroneBoxes() {
   );
 }
 
-/** The rings binding the Warden: height, radius, tilt (radians), spin direction. */
+/** The burning rings binding the Warden, tight round it: height, radius, tilt (radians), spin direction. */
 const BINDINGS: readonly (readonly [number, number, number, number])[] = [
-  [0.9, 1.25, 0.25, 1],
-  [1.9, 1.45, -0.3, -1],
-  [2.9, 1.35, 0.2, 1],
-  [3.7, 1.0, -0.15, -1],
+  [0.95, 0.42, 0.12, 1],
+  [1.65, 0.5, -0.1, -1],
+  [2.3, 0.66, 0.08, 1],
+  [2.85, 0.62, -0.12, -1],
 ];
+/** Flames licking up from each ring. */
+const RING_FLAMES = 11;
 const STAKES: readonly Vec3[] = [[2.2, 0, 1.2], [-2, 0, 1.4], [0.4, 0, -2.3]];
 
 /**
  * The Warden at the Throne, bound by the Unwriter's burning script (owner, 2026-10-20: it stood at the
- * side doing nothing). Glowing rings clamp it, chains of fire pin it to stakes in the floor, and it
- * strains against them; they break when the Unwriter is sealed, and it carries everyone home.
+ * side doing nothing; "make the burning rings tighter and render a proper burning ring"). Rings of fire
+ * clamp it round the legs, waist, pinned arms and chest, chains of fire pin it to stakes in the floor,
+ * and it strains against them; they break when the Unwriter is sealed, and it carries everyone home.
  */
 function BoundWarden({ position }: { position: Vec3 }) {
   const body = useRef<Group>(null);
   const rings = useRef<(Group | null)[]>([]);
+  const flames = useRef<(Sprite | null)[]>([]);
   const bonds = useRef<Group>(null);
   const time = useRef(0);
+  const textures = useMemo(() => BINDINGS.map(() => flameTexture('ink')), []);
+  useEffect(() => () => textures.forEach((t) => t.dispose()), [textures]);
   const chains = useMemo(
     () =>
       STAKES.map((stake) => {
-        const from = new Vector3(stake[0] * 0.5, 2.2, stake[2] * 0.5);
+        const from = new Vector3(stake[0] * 0.2, 1.65, stake[2] * 0.2);
         const to = new Vector3(...stake);
         const mid = from.clone().add(to).multiplyScalar(0.5);
         const length = from.distanceTo(to);
         const dir = to.clone().sub(from).normalize();
-        const tilt = new Vector3(0, 1, 0);
-        return { mid: mid.toArray() as unknown as Vec3, length, quaternion: new Quaternion().setFromUnitVectors(tilt, dir) };
+        return { mid: mid.toArray() as unknown as Vec3, length, quaternion: new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir) };
       }),
     [],
   );
@@ -1197,17 +1202,32 @@ function BoundWarden({ position }: { position: Vec3 }) {
     const t = time.current;
     const free = getRun()?.flags.has('l3-unwriter-sealed') ?? false;
     if (bonds.current) bonds.current.visible = !free;
+    if (free) {
+      if (body.current) body.current.rotation.set(0, 0, 0);
+      return;
+    }
     // Straining against the bonds: a shudder, then a heave.
     if (body.current) {
-      const heave = free ? 0 : Math.max(0, Math.sin(t * 0.9)) ** 6;
-      body.current.rotation.z = free ? 0 : Math.sin(t * 23) * 0.012 + heave * 0.05 * Math.sin(t * 3);
-      body.current.rotation.x = free ? 0 : heave * -0.06;
+      const heave = Math.max(0, Math.sin(t * 0.9)) ** 6;
+      body.current.rotation.z = Math.sin(t * 23) * 0.012 + heave * 0.05 * Math.sin(t * 3);
+      body.current.rotation.x = heave * -0.06;
     }
     rings.current.forEach((r, i) => {
       if (!r) return;
       const [, , tilt, dir] = BINDINGS[i] ?? [0, 1, 0, 1];
-      r.rotation.set(tilt, t * 1.4 * dir, 0);
-      r.scale.setScalar(1 + Math.sin(t * 5 + i) * 0.04);
+      r.rotation.set(tilt, t * 0.8 * dir, 0);
+    });
+    textures.forEach((tex, i) => {
+      tex.offset.x = (Math.floor(t * 14 + i * 3) % FLAME_FRAMES) / FLAME_FRAMES;
+    });
+    flames.current.forEach((sp, j) => {
+      if (!sp) return;
+      const k = j % RING_FLAMES;
+      // Uneven, overlapping tongues of flame, each flaring at its own pace.
+      const tall = 0.45 + ((k * 7 + Math.floor(j / RING_FLAMES) * 3) % 5) * 0.09;
+      const h = tall * (1 + Math.sin(t * (6 + (k % 3) * 2.5) + j * 1.7) * 0.22 + Math.sin(t * 19 + j) * 0.06);
+      sp.scale.set(h * 0.95, h, 1);
+      sp.position.y = h * 0.38;
     });
   });
   return (
@@ -1218,14 +1238,27 @@ function BoundWarden({ position }: { position: Vec3 }) {
       <group ref={bonds}>
         {BINDINGS.map(([y, radius], i) => (
           <group key={i} position={[0, y, 0]} ref={(g) => void (rings.current[i] = g)}>
+            {/* The white-hot band of script, and the flames licking up from it */}
             <mesh material={ironSeam} rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[radius, 0.07, 10, 48]} />
+              <torusGeometry args={[radius, 0.05, 8, 48]} />
             </mesh>
+            {Array.from({ length: RING_FLAMES }, (_, k) => {
+              const a = (k / RING_FLAMES) * Math.PI * 2;
+              return (
+                <group key={k} position={[Math.cos(a) * radius, 0, Math.sin(a) * radius]}>
+                  <sprite ref={(sp) => void (flames.current[i * RING_FLAMES + k] = sp)}>
+                    {/* Normal blending: additive flames vanished against the Warden's white body */}
+                    <spriteMaterial map={textures[i]} transparent opacity={0.9} depthWrite={false} toneMapped={false} fog={false} />
+                  </sprite>
+                </group>
+              );
+            })}
           </group>
         ))}
+        <pointLight position={[0, 1.9, 0.8]} color="#ff5a2a" intensity={40} distance={6} decay={2} />
         {chains.map((c, i) => (
           <mesh key={i} position={c.mid} quaternion={c.quaternion} material={ironSeam}>
-            <cylinderGeometry args={[0.05, 0.05, c.length, 8]} />
+            <cylinderGeometry args={[0.04, 0.04, c.length, 8]} />
           </mesh>
         ))}
         {STAKES.map((p, i) => (
@@ -1233,7 +1266,7 @@ function BoundWarden({ position }: { position: Vec3 }) {
             <mesh position={[0, 0.3, 0]} material={MAT.ironPlate}>
               <cylinderGeometry args={[0.08, 0.14, 0.6, 8]} />
             </mesh>
-            <Fire position={[0, 0.6, 0]} size={0.6} count={1} spread={0.2} smoke={false} light={i === 0} />
+            <Fire position={[0, 0.6, 0]} size={0.6} count={1} spread={0.2} smoke={false} />
           </group>
         ))}
       </group>

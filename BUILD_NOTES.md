@@ -826,6 +826,9 @@ Level 3:
 - Throne: the Warden no longer stands idle at the side. The Unwriter has bound it in rings of burning
   script with chains of fire to stakes; it strains against them, and they vanish when he is sealed
   (it still carries everyone home). Pip says "Oh no, he's chained up our Warden! It's up to us!".
+  Owner: "make the burning rings tighter and render a proper burning ring": four bands hug its legs,
+  waist, pinned arms and chest, each a thin glowing band with uneven tongues of flame from the fire
+  flipbook (`flameTexture`, normal blending; additive flames vanished against the white Warden).
 - Test hook: `__spellcaster.targets()` lists the live encounter's targets and positions.
 
 ## Known limitations / next steps

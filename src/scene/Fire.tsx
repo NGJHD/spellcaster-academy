@@ -168,6 +168,16 @@ function sheets() {
   return { flames: flameSheets, smoke: smokeTexture };
 }
 
+/** Frames in a flame flipbook texture (`flameTexture`): show frame f with `offset.x = f / FLAME_FRAMES`. */
+export const FLAME_FRAMES = FRAMES;
+
+/** A flame flipbook of its own (a clone sharing the painted image), for fires drawn elsewhere. */
+export function flameTexture(kind: 'ink' | 'warm' = 'ink'): CanvasTexture {
+  const t = sheets().flames[kind].clone();
+  t.needsUpdate = true;
+  return t;
+}
+
 export interface FireProps {
   readonly position: Vec3;
   /** Height of the flames in metres. */
