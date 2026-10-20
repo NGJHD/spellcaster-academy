@@ -22,6 +22,7 @@ const HERALD_CHEST = H(2, 2.4, -24);
  */
 const HERALD_WISPS = H(2.2, 3.4, -22.9);
 const HERALD_BOOK = H(0.7, 3.4, -24);
+const BESIDE_BOOK = H(-1, 3.4, -23.6);
 
 /** From a lane door to the barricade line in front of the camera. */
 const lane = (n: 0 | 1 | 2, x = 0): Vec3[] => {
@@ -111,8 +112,9 @@ export const greatHall: AreaScript = {
         {
           id: 'decree',
           sequential: true,
+          // Its decrees float out to either side of it, never over it (owner, 2026-10-20: words blocked it).
           targets: [0, 1, 2, 3].map((i) =>
-            marker(`decree-${i + 1}`, H(2 + (i - 1.5) * 0.5, 3.2 - i * 0.35, -23.4), len(4, 6), {
+            marker(`decree-${i + 1}`, H(i % 2 === 0 ? -1.4 : 5.2, 4 - i * 0.45, -23.4), len(4, 6), {
               labelHeight: 0.3,
               defeatFx: { kind: 'burst', scale: 1, color: '#ff8a3a' },
             }),
@@ -141,7 +143,8 @@ export const greatHall: AreaScript = {
           targets: [
             fireball('blast-2', HERALD_WISPS, H(-1.4, 1.6, -4.6)),
             fireball('blast-3', HERALD_WISPS, H(-0.4, 1.8, -4.4), { delaySec: 1.6 }),
-            target('herald-horn', 'marker', HERALD_BOOK, [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ffd27a' } }),
+            // The word sits beside its book, outside its body; the shockwave still bursts on the book.
+            target('herald-horn', 'marker', BESIDE_BOOK, [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'shockwave', at: HERALD_BOOK, scale: 0.8, color: '#ffd27a' } }),
           ],
         },
       ],
@@ -155,7 +158,7 @@ export const greatHall: AreaScript = {
       waves: [
         {
           id: 'last-word',
-          targets: [target('herald-phrase', 'marker', H(2, 3.4, -23.6), ['not', 'on', 'my', 'watch'], { labelHeight: 0.5, phrase: true })],
+          targets: [target('herald-phrase', 'marker', H(2, 5.6, -23.6), ['not', 'on', 'my', 'watch'], { labelHeight: 0.5, phrase: true })],
         },
       ],
       onComplete: { flags: ['l2-herald-gone'] },

@@ -831,6 +831,18 @@ Level 3:
   flipbook (`flameTexture`, normal blending; additive flames vanished against the white Warden).
 - Test hook: `__spellcaster.targets()` lists the live encounter's targets and positions.
 
+## Thirteenth playtest (2026-10-20)
+
+- Grey Herald: its hand rises and falls at half the speed (Idle 240 frames). Its words no longer cover
+  it: the decree words float to either side, the book word sits beside the book (its shockwave still
+  bursts on the book, `defeatFx.at`), and the last phrase floats above its head.
+- The Warden's bonds are ropes of fire, not glowing bands ("still looks like rubber band"): Flux painted
+  a burning braided rope on black (seed 3, `assets-src/concepts/fire_rope.png`); a seamless strip of it,
+  black turned to transparency, is `public/assets/textures/fx/fire_rope.png`. `FireRope` draws it as a
+  camera-facing ribbon along a ring or a line (flames always up, the texture crawling along it).
+- Owner allowed the 5060 Ti again for higher-quality builds (1024 shape cascade, denser prep mesh,
+  `normal_map=True` bakes the detailed surface into a normal map on the game mesh).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

@@ -1,0 +1,3 @@
+seed: 3
+size: 1536x512 (Flux 2 Klein, RTX 3080)
+prompt: A single thick twisted rope made entirely of living fire, running perfectly straight and horizontally across the whole image from the left edge to the right edge, braided strands of glowing orange and yellow flame twisting around a white-hot core, small tongues of fire and sparks licking upward off it, isolated on a pure black background, nothing else in the image, magical, high detail

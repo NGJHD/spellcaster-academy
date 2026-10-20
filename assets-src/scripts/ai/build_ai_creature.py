@@ -73,7 +73,7 @@ CONFIG = {
     # TRELLIS.2 painted it 75% red (its fire reflected in the black armour): graded down to dark iron with
     # red seams, and its faceted surface relaxed.
     "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45, moves="guardian",
-                           saturation=0.95, value=0.62, smooth_shape=3,
+                           saturation=0.95, value=0.62, smooth_shape=3, normal_map=True,
                            limbs=[dict(bone="arm_l", side=-1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05),
                                   dict(bone="arm_r", side=1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05)]),
     "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
@@ -337,6 +337,30 @@ nt.links.new(color_node.outputs["Color"], bsdf.inputs["Base Color"])
 if size > cfg["tex"]:
     color_img.scale(int(cfg["tex"]), int(cfg["tex"]))
 color_img.pack()
+if cfg.get("normal_map"):
+    # The detailed TRELLIS surface as a tangent-space normal map on the decimated game mesh (§14.3 step 6),
+    # so plates, seams and folds survive the cut to the triangle budget.
+    normal_img = bpy.data.images.new(f"{cfg['out']}_normal", size, size, float_buffer=False)
+    normal_img.colorspace_settings.name = "Non-Color"
+    normal_node = nt.nodes.new("ShaderNodeTexImage")
+    normal_node.image = normal_img
+    for n in nt.nodes:
+        n.select = False
+    normal_node.select = True
+    nt.nodes.active = normal_node
+    bpy.ops.object.select_all(action="DESELECT")
+    high.select_set(True)
+    low.select_set(True)
+    bpy.context.view_layer.objects.active = low
+    bpy.ops.object.bake(type="NORMAL", normal_space="TANGENT")
+    nmap = nt.nodes.new("ShaderNodeNormalMap")
+    nmap.inputs["Strength"].default_value = 1.0
+    nt.links.new(normal_node.outputs["Color"], nmap.inputs["Color"])
+    nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+    if size > cfg["tex"]:
+        normal_img.scale(int(cfg["tex"]), int(cfg["tex"]))
+    normal_img.pack()
+    print("BAKED normal map")
 bpy.data.objects.remove(high, do_unlink=True)
 body = low
 lo, hi = bbox(body)
@@ -666,14 +690,15 @@ if rig and moves == "herald":
             "chest": (4 - lift * 3, sway * 0.8, -lift * 3),
             "head": (14 + line * 10 - lift * 8, -sway * 1.2, sway * 0.5),
         }
+    # Half the pace it first had (owner, 2026-10-20): each raise and lower takes about 1.3 s.
     replace_action("Idle", [
         (0, preach(0, 0)),
-        (20, preach(1, 2, 0.5)),
-        (40, preach(0, 3, 1)),
-        (60, preach(1, -2, 0.3)),
-        (80, preach(0, -3, 0.8)),
-        (100, preach(0.9, 1, 0.4)),
-        (120, preach(0, 0)),
+        (40, preach(1, 2, 0.5)),
+        (80, preach(0, 3, 1)),
+        (120, preach(1, -2, 0.3)),
+        (160, preach(0, -3, 0.8)),
+        (200, preach(0.9, 1, 0.4)),
+        (240, preach(0, 0)),
     ])
     # The command: it draws its hand back and up, then straightens its arm and points its hand at the
     # player like a blade (the fingers together, the palm turned on its side) as the wisps rush in.
