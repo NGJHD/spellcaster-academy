@@ -837,13 +837,14 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
   return (
     <group position={position}>
       <group ref={ship}>
-        {/* Black galleon with torn sails (AI-pipeline prop) */}
+        {/* Black galleon with torn sails (AI-pipeline prop), sitting down in the paper up to its lower hull
+            (owner, 2026-10-20: ships floated on top of the water) */}
         <ModelBoundary fallback={fallback}>
           <Suspense fallback={fallback}>
-            <Prop id="black_galleon" position={[0, -1.2, 0]} height={16} rotationY={index === 2 ? Math.PI : 0} />
+            <Prop id="black_galleon" position={[0, -2.8, 0]} height={16} rotationY={index === 2 ? Math.PI : 0} />
           </Suspense>
         </ModelBoundary>
-        <Fire position={[0, 3, 8]} size={2} count={3} spread={1} light={index === 2} />
+        <Fire position={[0, 1.4, 8]} size={2} count={3} spread={1} light={index === 2} />
         <Fire position={[0, 9, 0]} size={3} count={4} spread={5} smoke fromFlag={`l3-mast-${index}-down`} />
       </group>
     </group>
@@ -930,17 +931,23 @@ function OrigamiProw() {
   );
 }
 
-/** A burnt boat wreck listing in the paper sea, still burning. */
+/**
+ * A burnt boat wreck listing in the paper sea, still burning. Half sunk (owner, 2026-10-20: they sat on
+ * top of the water): the keel 2.4 m under the paper (mean surface about −0.7 m), rolled onto one side
+ * and down by the bow, so only the upper hull, the broken mast and the flames show.
+ */
 function BurningWreck() {
   const fallback = <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, 0, 0.3]} material={ashDarkFlat} />;
   return (
     <group>
-      <ModelBoundary fallback={fallback}>
-        <Suspense fallback={fallback}>
-          <Prop id="burning_wreck" position={[0, -0.8, 0]} height={4.2} rotationY={0} />
-        </Suspense>
-      </ModelBoundary>
-      <Fire position={[0, 1.2, 0]} size={2.2} count={3} spread={2.4} />
+      <group position={[0, -2.4, 0]} rotation={[0.16, 0, 0.32]}>
+        <ModelBoundary fallback={fallback}>
+          <Suspense fallback={fallback}>
+            <Prop id="burning_wreck" position={[0, 0, 0]} height={4.2} rotationY={0} />
+          </Suspense>
+        </ModelBoundary>
+      </group>
+      <Fire position={[0.3, -0.2, 0]} size={2.2} count={3} spread={2.4} />
     </group>
   );
 }

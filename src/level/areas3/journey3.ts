@@ -86,8 +86,9 @@ export const sea: AreaScript = {
         id: `galleon-${i + 1}`,
         targets: [
           mast(`mast-${i + 1}`, [g[0], 9, g[2]]),
-          fireball(`cannon-${i + 1}`, [g[0], 2, g[2]], S(i - 1, 2.6, -81.4), { delaySec: 1.6 }),
-          knight(`deck-k${i + 1}`, [[g[0] + 2, 1.5, g[2] + 4], [g[0] + 1, 1.5, g[2] + 5]], [len(5, 6)], { movement: { kind: 'static' }, delaySec: 0.6 }),
+          // The galleons sit 1.6 m lower in the paper (owner, 2026-10-20): the cannon and the deck knight with them.
+          fireball(`cannon-${i + 1}`, [g[0], 0.4, g[2]], S(i - 1, 2.6, -81.4), { delaySec: 1.6 }),
+          knight(`deck-k${i + 1}`, [[g[0] + 2, -0.1, g[2] + 4], [g[0] + 1, -0.1, g[2] + 5]], [len(5, 6)], { movement: { kind: 'static' }, delaySec: 0.6 }),
         ],
       })),
       onComplete: { flags: ['l3-fleet-sunk'] },

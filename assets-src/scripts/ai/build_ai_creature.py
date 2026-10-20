@@ -126,6 +126,9 @@ for a in args[1:]:
         k, v = a.split("=", 1)
         cfg[k] = float(v)
 H = cfg["height"]
+# A one-off triangle budget for comparisons (TRIS=200000 blender ... build_ai_creature.py -- <name>).
+if os.environ.get("TRIS"):
+    cfg["tris"] = int(os.environ["TRIS"])
 
 
 def bbox(obj):
