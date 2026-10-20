@@ -282,6 +282,7 @@ export const LINES = {
   'l3-mira-say-wrong': line('mira', 'Pip! Say something wrong!'),
   'l3-pip-soup': line('pip', 'The moon is made of… SOUP!'),
   'l3-u-intro': line('unwriter', 'Little orb. You came home. I can fix you now.'),
+  'l3-warden-bound': line('pip', "Oh no, he's chained up our Warden! It's up to us!"),
   'l3-pip-learning': line('pip', 'I\'m not broken. I\'m LEARNING!'),
   'l3-u-mistakes': line('unwriter', 'So many mistakes in every word you type. Let me take them away.'),
   'l3-u-copies': line('unwriter', 'Remember these? I made them perfect.'),

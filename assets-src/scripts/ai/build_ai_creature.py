@@ -18,7 +18,7 @@ import sys
 
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Quaternion, Vector
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".deps"))
@@ -54,7 +54,10 @@ CONFIG = {
     # boss must move differently). The Herald channels with its hands already raised.
     # The Herald reads from an open book held in both hands (owner, 2026-10-19), so its arms stay with
     # the body: it reads with its head, shoulders and body while its wisps gather (in the game).
-    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish", moves="herald"),
+    # (2026-10-20) The book is held in one hand; the other arm, out to the side with the palm up, preaches
+    # and points (its bone runs from the shoulder to the hand; the sleeve hanging below it goes with it).
+    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish", moves="herald",
+                        limbs=[dict(bone="arm_r", side=1, x=0.17, z=(0.42, 0.77), head=(0.15, 0.72), tail=(0.45, 0.71), ramp=0.04)]),
     "vellum_wyrm": dict(out="vellum_wyrm", height=6.0, tris=60000, tex=2048, rig="plant", defeat="vanish"),
     # Level 3: the Blank and the Cinder Citadel.
     "correction_moth": dict(out="correction_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
@@ -64,9 +67,15 @@ CONFIG = {
                     limbs=[dict(bone="arm_l", side=-1, x=0.22, z=(0.22, 0.68), head=(0.25, 0.72), tail=(0.36, 0.42))]),
     # limbs: extra bones for limbs that stand clear of the body (fractions of W and H, measured): the
     # Guardian's hanging arms, and the Unwriter's raised quill arm (forearm, hand and quill).
+    # The Guardian is generated in the owner's "Mystic Ascension" pose (2026-10-20): arms straight, spread
+    # 45 degrees down with the palms forward, one leg crossed behind the other. Bending the old model's
+    # arms broke them at the elbow, so each straight arm is one bone from the shoulder to the hand.
+    # TRELLIS.2 painted it 75% red (its fire reflected in the black armour): graded down to dark iron with
+    # red seams, and its faceted surface relaxed.
     "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45, moves="guardian",
-                           limbs=[dict(bone="arm_l", side=-1, x=0.31, z=(0.36, 0.64), head=(0.29, 0.72), tail=(0.35, 0.40)),
-                                  dict(bone="arm_r", side=1, x=0.31, z=(0.36, 0.64), head=(0.29, 0.72), tail=(0.35, 0.40))]),
+                           saturation=0.95, value=0.62, smooth_shape=3,
+                           limbs=[dict(bone="arm_l", side=-1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05),
+                                  dict(bone="arm_r", side=1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05)]),
     "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
                      limbs=[dict(bone="arm_l", side=-1, x=0.31, z=(0.64, 1.01), head=(0.31, 0.64), tail=(0.38, 0.82))]),
     # Level 2/3 environment set pieces (static props).
@@ -333,6 +342,12 @@ body = low
 lo, hi = bbox(body)
 W = hi.x - lo.x
 D = hi.y - lo.y
+if os.environ.get("MEASURE"):
+    # Where the body is, slice by slice (fractions of W across, H up), for placing limbs.
+    for i in range(40):
+        z0, z1 = lo.z + H * i / 40, lo.z + H * (i + 1) / 40
+        xs = [v.co.x / W for v in body.data.vertices if z0 <= v.co.z < z1]
+        print(f"MEASURE {i / 40:.3f} " + "".join("#" if any(b * 0.02 - 0.5 <= x < b * 0.02 - 0.48 for x in xs) else "." for b in range(50)))
 
 
 # Static props (rig="none") skip the skeleton and clips.
@@ -364,10 +379,11 @@ if cfg["rig"] != "none":
                 J("arm_l", (-(ax + 0.02) * W, 0, 0.76 * H), (-(ax + 0.06) * W, 0, 0.4 * H), "chest"),
                 J("arm_r", ((ax + 0.02) * W, 0, 0.76 * H), ((ax + 0.06) * W, 0, 0.4 * H), "chest"),
             ]
-        for limb in cfg.get("limbs", ()):
+        # Parents first (a forearm hangs from its upper arm), though limbs are listed child-first for weights.
+        for limb in sorted(cfg.get("limbs", ()), key=lambda limb: limb.get("parent", "chest") not in ("chest", "pelvis")):
             hx, hz = limb["head"]
             tx, tz = limb["tail"]
-            joints.append(J(limb["bone"], (limb["side"] * hx * W, 0, hz * H), (limb["side"] * tx * W, 0, tz * H), "chest"))
+            joints.append(J(limb["bone"], (limb["side"] * hx * W, 0, hz * H), (limb["side"] * tx * W, 0, tz * H), limb.get("parent", "chest")))
         if cfg["rig"] == "dragon":
             # A wing bone each side, from the shoulder out along the span (wings lie along ±X).
             joints += [
@@ -440,8 +456,11 @@ if cfg["rig"] != "none":
     for limb in cfg.get("limbs", ()):
         groups[limb["bone"]] = body.vertex_groups.new(name=limb["bone"])
 
-    def limb_share(co):
-        """(bone, share) of the limb a vertex belongs to: beyond its x line on its side, inside its height band."""
+    def limb_shares(co):
+        """[(bone, share)] of the limbs a vertex belongs to: beyond each limb's x line on its side, inside its
+        height band. Limbs are listed child-first: a forearm takes its share and its upper arm the rest."""
+        out = []
+        left = 1.0
         for limb in cfg.get("limbs", ()):
             if co.x * limb["side"] <= 0:
                 continue
@@ -449,18 +468,21 @@ if cfg["rig"] != "none":
             f = co.z / H
             z_lo, z_hi = limb["z"]
             zw = min(1.0, max(0.0, (f - (z_lo - 0.03)) / 0.03)) * min(1.0, max(0.0, ((z_hi + 0.03) - f) / 0.03))
-            w = u * u * (3 - 2 * u) * zw
+            w = u * u * (3 - 2 * u) * zw * left
             if w > 0:
-                return limb["bone"], w
-        return None, 0.0
+                out.append((limb["bone"], w))
+                left -= w
+        return out
 
     for v in body.data.vertices:
-        limb_bone, limb_w = limb_share(v.co)
-        if limb_bone:
+        shares = limb_shares(v.co)
+        if shares:
+            limb_w = sum(w for _, w in shares)
             for name, w in band_weights(v.co.z).items():
                 if w * (1 - limb_w) > 0:
                     groups[name].add([v.index], w * (1 - limb_w), "REPLACE")
-            groups[limb_bone].add([v.index], limb_w, "REPLACE")
+            for limb_bone, w in shares:
+                groups[limb_bone].add([v.index], w, "REPLACE")
             continue
         wing = max(wing_share(v.co), arm_share(v.co))
         for name, w in band_weights(v.co.z).items():
@@ -597,11 +619,21 @@ if cfg["rig"] != "none":
                 (30, {"pelvis": {"loc": (0, 0, 0), "scale": (1.08, 0.82, 1.08)}, "spine": (30, 0, 0), "chest": (22, 0, 0), "head": (28, 0, 0)}),
             ])
 
-def aim_bone(bone_name, direction):
-    """Euler (degrees) turning a bone from its rest direction to point along `direction` (armature space)."""
+def aim_bone(bone_name, direction, roll=0.0, parent=None, along=None):
+    """Euler (degrees) turning a bone from its rest direction to point along `direction` (armature space),
+    then twisting it `roll` degrees about its own length. `parent`: the Euler already posed on its parent
+    limb, so the direction stays in armature space. `along`: aim this rest vector (armature space; say,
+    from the elbow to the tip of a held quill) instead of the bone itself."""
     bone = rig.data.bones[bone_name]
-    local = bone.matrix_local.to_3x3().inverted() @ Vector(direction).normalized()
-    return tuple(math.degrees(a) for a in Vector((0.0, 1.0, 0.0)).rotation_difference(local).to_euler("XYZ"))
+    d = Vector(direction).normalized()
+    if parent is not None:
+        rest = bone.parent.matrix_local.to_3x3()
+        turn = rest @ Euler(tuple(math.radians(a) for a in parent), "XYZ").to_matrix() @ rest.inverted()
+        d = turn.inverted() @ d
+    m = bone.matrix_local.to_3x3().inverted()
+    ref = (m @ Vector(along)).normalized() if along is not None else Vector((0.0, 1.0, 0.0))
+    q = ref.rotation_difference(m @ d) @ Quaternion((0.0, 1.0, 0.0), math.radians(roll))
+    return tuple(math.degrees(a) for a in q.to_euler("XYZ"))
 
 
 def nudge(bone_name, dx, dy, dz):
@@ -625,56 +657,57 @@ def replace_action(name, keys):
 # Attacks keep the runtime's timing: 30 frames, the wind-up peaking at frame 14 (CreatureModel scrubs it).
 moves = cfg.get("moves")
 if rig and moves == "herald":
-    # Reading: the hooded head bowed over the book, tracking down the page line by line and lifting at
-    # the end of each line, the body swaying and breathing as it chants (the wisps rise from the book).
-    def read(line, sway, breath, rise=0.0):
+    # Preaching from its book (owner, 2026-10-20): the head bowed over the page, the free hand, palm up,
+    # rising and falling as it chants (the wisps rise and gather in the game), the body swaying.
+    def preach(lift, sway, line=0.0):
         return {
-            "pelvis": {"loc": (0, rise * H, 0)},
-            "spine": (2 + breath, sway, sway * 0.6),
-            "chest": (4 + breath * 1.5, sway * 0.8, 0),
-            "head": (14 + line * 10, -sway * 1.2, sway * 0.5),
+            "arm_r": aim_bone("arm_r", (0.9 - 0.35 * lift, -0.3 - 0.1 * lift, -0.3 + 0.95 * lift)),
+            "spine": (2 + lift * 2, sway, sway * 0.6),
+            "chest": (4 - lift * 3, sway * 0.8, -lift * 3),
+            "head": (14 + line * 10 - lift * 8, -sway * 1.2, sway * 0.5),
         }
     replace_action("Idle", [
-        (0, read(0, 0, 0)),
-        (12, read(0.5, 2, 1, 0.005)),
-        (24, read(1, 3, 2, 0.01)),
-        (30, read(-0.4, 3, 0, 0.012)),
-        (42, read(0.4, 0, 1.5, 0.008)),
-        (54, read(1, -3, 2.5, 0.004)),
-        (60, read(-0.4, -3, 0, 0)),
-        (75, read(0.5, -1.5, 1, 0.006)),
-        (90, read(0, 0, 0)),
+        (0, preach(0, 0)),
+        (20, preach(1, 2, 0.5)),
+        (40, preach(0, 3, 1)),
+        (60, preach(1, -2, 0.3)),
+        (80, preach(0, -3, 0.8)),
+        (100, preach(0.9, 1, 0.4)),
+        (120, preach(0, 0)),
     ])
-    # The command: it straightens up, lifts its head and draws back, then lunges forward over the book
-    # as it sends its gathered wisps at the player.
+    # The command: it draws its hand back and up, then straightens its arm and points its hand at the
+    # player like a blade (the fingers together, the palm turned on its side) as the wisps rush in.
     replace_action("Attack", [
-        (0, read(0, 0, 0)),
-        (14, {"pelvis": {"loc": (0, 0.04 * H, -0.02 * H)}, "spine": (-10, 0, 0), "chest": (-16, 0, 0), "head": (-18, 0, 0)}),
-        (19, {"pelvis": {"loc": (0, 0.01 * H, 0.05 * H)}, "spine": (14, 0, 0), "chest": (20, 0, 0), "head": (6, 0, 0)}),
-        (23, {"pelvis": {"loc": (0, 0.01 * H, 0.05 * H)}, "spine": (12, 0, 2), "chest": (18, 0, -2), "head": (10, 0, 2)}),
-        (30, read(0, 0, 0)),
+        (0, preach(0, 0)),
+        (14, {**preach(1, 0), "arm_r": aim_bone("arm_r", (0.55, 0.45, 0.7), 40), "spine": (-6, -8, 0), "chest": (-10, -8, 0), "head": (-12, 6, 0)}),
+        (19, {**preach(0, 0), "arm_r": aim_bone("arm_r", (0.12, -0.98, 0.12), 90), "spine": (8, 10, 0), "chest": (10, 8, 0), "head": (-4, -4, 0)}),
+        (25, {**preach(0, 0), "arm_r": aim_bone("arm_r", (0.12, -0.98, 0.1), 90), "spine": (8, 10, 0), "chest": (10, 8, 0), "head": (-4, -4, 0)}),
+        (30, preach(0, 0)),
     ])
 elif rig and moves == "guardian":
-    # Levitating to channel (owner, 2026-10-19, with a "Mystic Ascension" reference): arms spread out
-    # and down, palms turned forward, the chest lifted and the head raised, the body slowly rising
-    # and falling as the fire orbs circle in front of it (the rise and the orbs are in the game).
+    # Levitating to channel (owner, 2026-10-19/20, with a "Mystic Ascension" reference): the arms held
+    # out and down, palms forward (its generated pose), the chest lifted and the head raised, slowly
+    # rising and falling as the fire orbs circle in front of it (the rise and the orbs are in the game).
+    def arms(direction_l):
+        """Both arms along `direction_l` (the left arm; the right one mirrored)."""
+        return {"arm_l": aim_bone("arm_l", direction_l), "arm_r": aim_bone("arm_r", (-direction_l[0], direction_l[1], direction_l[2]))}
+
     def channel(k, sway=0.0):
         return {
-            "arm_l": aim_bone("arm_l", (-0.78 - 0.06 * k, -0.25 - 0.1 * k, -0.57 + 0.12 * k)),
-            "arm_r": aim_bone("arm_r", (0.78 + 0.06 * k, -0.25 - 0.1 * k, -0.57 + 0.12 * k)),
+            **arms((-0.72 - 0.06 * k, -0.08 - 0.06 * k, -0.69 + 0.14 * k)),
             "pelvis": {"loc": (0, 0.015 * k * H, 0), "rot": (0, sway * 0.4, 0)},
             "spine": (-3 - 2 * k, sway, 0),
             "chest": (-6 - 3 * k, sway * 0.6, 0),
             "head": (-6 - 4 * k, -sway, 0),
         }
     replace_action("Idle", [(0, channel(0, 0)), (40, channel(1, 3)), (80, channel(0.4, -3)), (120, channel(0, 0))])
-    # The release: hands drawn back and in to gather the ring of fire, then both palms thrust at the
+    # The release: hands drawn back and up to gather the ring of fire, then both palms thrust at the
     # player to fire it as a stream.
     replace_action("Attack", [
         (0, channel(0)),
-        (14, {**channel(1), "arm_l": aim_bone("arm_l", (-0.45, 0.55, -0.7)), "arm_r": aim_bone("arm_r", (0.45, 0.55, -0.7)), "spine": (-8, 0, 0), "chest": (-12, 0, 0), "head": (-10, 0, 0)}),
-        (20, {**channel(1), "arm_l": aim_bone("arm_l", (-0.12, -0.98, 0.15)), "arm_r": aim_bone("arm_r", (0.12, -0.98, 0.15)), "spine": (10, 0, 0), "chest": (12, 0, 0), "head": (0, 0, 0)}),
-        (24, {**channel(1), "arm_l": aim_bone("arm_l", (-0.12, -0.97, 0.2)), "arm_r": aim_bone("arm_r", (0.12, -0.97, 0.2)), "spine": (8, 0, 0), "chest": (10, 0, 0), "head": (0, 0, 0)}),
+        (14, {**channel(1), **arms((-0.6, 0.45, -0.66)), "spine": (-8, 0, 0), "chest": (-12, 0, 0), "head": (-10, 0, 0)}),
+        (20, {**channel(1), **arms((-0.2, -0.97, 0.05)), "spine": (10, 0, 0), "chest": (12, 0, 0), "head": (0, 0, 0)}),
+        (24, {**channel(1), **arms((-0.2, -0.96, 0.1)), "spine": (8, 0, 0), "chest": (10, 0, 0), "head": (0, 0, 0)}),
         (30, channel(0)),
     ])
 elif rig and moves == "foreman":
@@ -701,14 +734,26 @@ elif rig and moves == "unwriter":
         up = i % 2 == 1
         shake.append((frame, {**still, "arm_l": (4, 0, 0), "pelvis": {"loc": (0, (0.012 if up else 0) * H, 0)}, "spine": (-4, 0, 0), "chest": (-3 if up else -9, 0, 0), "head": (-22 if up else -16, 0, 0)}))
     C.pose_action(rig, "Laugh", shake)
-    # Pointing the quill straight at someone (at Pip, before he burns Pip's rings).
-    # At Pip, beside the apprentice: ahead, a little across and down (the scene turns him to face Pip).
-    point = aim_bone("arm_l", (0.12, -0.96, -0.25))
-    jab = aim_bone("arm_l", (0.13, -0.97, -0.18))
+    # Burning Pip's rings (owner, 2026-10-20: "raise his arm and point at Pip"): the quill raised high
+    # over his head, then thrust out at Pip at arm's length and held there, jabbing, before he raises it
+    # again for the next stroke (the scene turns him to face Pip, beside the apprentice).
+    # From the elbow to the quill's nib (unwriter.glb bind pose: nib -1.05, 3.27, 0.82 in glTF).
+    quill = Vector((-1.05, -0.82, 3.27)) - rig.data.bones["arm_l"].head_local
+    high = aim_bone("arm_l", (-0.15, -0.2, 0.97), along=quill)
+    point = aim_bone("arm_l", (0.08, -0.99, 0.1), along=quill)
+    jab = aim_bone("arm_l", (0.08, -0.995, 0.03), along=quill)
+    lean = {"spine": (8, 0, 0), "chest": (10, 0, 0), "head": (8, 0, 0)}
+    # The whole arm lifts as he points (the elbow up to his shoulder and out in front of him).
+    lift = tuple(rig.data.bones["arm_l"].matrix_local.to_3x3().inverted() @ Vector((0.02 * H, -0.06 * H, 0.1 * H)))
+
+    def arm(rot, k=1.0):
+        return {"rot": rot, "loc": tuple(c * k for c in lift)}
     C.pose_action(rig, "Point", [
-        (0, {**still, "arm_l": point, "spine": (6, 0, 0), "chest": (6, 0, 0), "head": (6, 0, 0)}),
-        (20, {**still, "arm_l": jab, "spine": (9, 0, 0), "chest": (9, 0, 0), "head": (8, 0, 0)}),
-        (40, {**still, "arm_l": point, "spine": (6, 0, 0), "chest": (6, 0, 0), "head": (6, 0, 0)}),
+        (0, {**still, "arm_l": arm(high, 0.6), "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
+        (9, {**still, "arm_l": arm(point), **lean}),
+        (30, {**still, "arm_l": arm(jab, 1.1), **lean}),
+        (48, {**still, "arm_l": arm(point), **lean}),
+        (60, {**still, "arm_l": arm(high, 0.6), "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
     ])
     # The quill stroke: the arm sweeps up and back, then slashes down across the body.
     replace_action("Attack", [
@@ -737,7 +782,13 @@ if "--preview" in args:
         rig.animation_data.action = bpy.data.actions.get("Idle")
         for frame in (15, 45, 75):
             bpy.context.scene.frame_set(frame)
-            C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_idle{frame}"), H, views=((35, "three-quarter"),))
+            C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_idle{frame}"), H, views=((0, "front"), (35, "three-quarter")))
+    # Point check (the Unwriter at Pip): raised, then thrust out.
+    if rig and bpy.data.actions.get("Point"):
+        rig.animation_data.action = bpy.data.actions.get("Point")
+        for frame in (0, 20):
+            bpy.context.scene.frame_set(frame)
+            C.render_previews(os.path.join(ROOT, "assets-src", "previews", f"{cfg['out']}_point{frame}"), H, views=((0, "front"), (35, "three-quarter")))
     # Wing check for the dragon rig: the top and bottom of a wingbeat.
     if rig and cfg["rig"] == "dragon":
         rig.animation_data.action = bpy.data.actions.get("Move")

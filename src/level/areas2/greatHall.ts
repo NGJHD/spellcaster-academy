@@ -17,11 +17,11 @@ export const LANE_DOORS: readonly Vec3[] = [H(-9, 0, -4), H(-9, 0, -12), H(-9, 0
 export const HERALD_POSITION: Vec3 = H(2, 0, -24);
 const HERALD_CHEST = H(2, 2.4, -24);
 /**
- * Where its wisps gather before they rush the player (in front of its hood; the scene's HeraldWisps),
- * and its open book (grey_herald.glb at 1.5×, turned −0.4 rad).
+ * Where its wisps gather before they rush the player (at the hand it points with; the scene's
+ * HeraldWisps), and the open book in its other hand (grey_herald.glb at 1.5×, turned −0.4 rad).
  */
-const HERALD_WISPS = H(1.5, 4.3, -22.8);
-const HERALD_BOOK = H(1.7, 2.6, -23.2);
+const HERALD_WISPS = H(2.2, 3.4, -22.9);
+const HERALD_BOOK = H(0.7, 3.4, -24);
 
 /** From a lane door to the barricade line in front of the camera. */
 const lane = (n: 0 | 1 | 2, x = 0): Vec3[] => {

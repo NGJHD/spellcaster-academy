@@ -1545,6 +1545,8 @@ export class GameRun {
         case 'hit':
           this.applyDamage(e.damage);
           if (e.source?.spawn.kind === 'imp') patchRunUi({ splatKey: nextKey() });
+          // A fireball bursts on the apprentice before it bounces back for another go.
+          if (e.source?.spawn.kind === 'fireball') this.emitFx({ kind: 'burst', scale: 1.4, color: '#ff5a1a' }, e.source.position);
           break;
         case 'hazard-hit': {
           this.bossStrikeAt = performance.now();

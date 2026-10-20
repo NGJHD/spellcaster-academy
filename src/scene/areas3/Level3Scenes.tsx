@@ -6,7 +6,7 @@
 import { GuardianOrbs, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
+import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, Quaternion, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
 import { pipWorld } from '../../player/PipCompanion';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
@@ -1159,6 +1159,88 @@ function ThroneBoxes() {
   );
 }
 
+/** The rings binding the Warden: height, radius, tilt (radians), spin direction. */
+const BINDINGS: readonly (readonly [number, number, number, number])[] = [
+  [0.9, 1.25, 0.25, 1],
+  [1.9, 1.45, -0.3, -1],
+  [2.9, 1.35, 0.2, 1],
+  [3.7, 1.0, -0.15, -1],
+];
+const STAKES: readonly Vec3[] = [[2.2, 0, 1.2], [-2, 0, 1.4], [0.4, 0, -2.3]];
+
+/**
+ * The Warden at the Throne, bound by the Unwriter's burning script (owner, 2026-10-20: it stood at the
+ * side doing nothing). Glowing rings clamp it, chains of fire pin it to stakes in the floor, and it
+ * strains against them; they break when the Unwriter is sealed, and it carries everyone home.
+ */
+function BoundWarden({ position }: { position: Vec3 }) {
+  const body = useRef<Group>(null);
+  const rings = useRef<(Group | null)[]>([]);
+  const bonds = useRef<Group>(null);
+  const time = useRef(0);
+  const chains = useMemo(
+    () =>
+      STAKES.map((stake) => {
+        const from = new Vector3(stake[0] * 0.5, 2.2, stake[2] * 0.5);
+        const to = new Vector3(...stake);
+        const mid = from.clone().add(to).multiplyScalar(0.5);
+        const length = from.distanceTo(to);
+        const dir = to.clone().sub(from).normalize();
+        const tilt = new Vector3(0, 1, 0);
+        return { mid: mid.toArray() as unknown as Vec3, length, quaternion: new Quaternion().setFromUnitVectors(tilt, dir) };
+      }),
+    [],
+  );
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1);
+    time.current += dt;
+    const t = time.current;
+    const free = getRun()?.flags.has('l3-unwriter-sealed') ?? false;
+    if (bonds.current) bonds.current.visible = !free;
+    // Straining against the bonds: a shudder, then a heave.
+    if (body.current) {
+      const heave = free ? 0 : Math.max(0, Math.sin(t * 0.9)) ** 6;
+      body.current.rotation.z = free ? 0 : Math.sin(t * 23) * 0.012 + heave * 0.05 * Math.sin(t * 3);
+      body.current.rotation.x = free ? 0 : heave * -0.06;
+    }
+    rings.current.forEach((r, i) => {
+      if (!r) return;
+      const [, , tilt, dir] = BINDINGS[i] ?? [0, 1, 0, 1];
+      r.rotation.set(tilt, t * 1.4 * dir, 0);
+      r.scale.setScalar(1 + Math.sin(t * 5 + i) * 0.04);
+    });
+  });
+  return (
+    <group position={position}>
+      <group ref={body}>
+        <StaticWarden position={[0, 0, 0]} scale={1.2} rotationY={-1.0} />
+      </group>
+      <group ref={bonds}>
+        {BINDINGS.map(([y, radius], i) => (
+          <group key={i} position={[0, y, 0]} ref={(g) => void (rings.current[i] = g)}>
+            <mesh material={ironSeam} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[radius, 0.07, 10, 48]} />
+            </mesh>
+          </group>
+        ))}
+        {chains.map((c, i) => (
+          <mesh key={i} position={c.mid} quaternion={c.quaternion} material={ironSeam}>
+            <cylinderGeometry args={[0.05, 0.05, c.length, 8]} />
+          </mesh>
+        ))}
+        {STAKES.map((p, i) => (
+          <group key={i} position={p}>
+            <mesh position={[0, 0.3, 0]} material={MAT.ironPlate}>
+              <cylinderGeometry args={[0.08, 0.14, 0.6, 8]} />
+            </mesh>
+            <Fire position={[0, 0.6, 0]} size={0.6} count={1} spread={0.2} smoke={false} light={i === 0} />
+          </group>
+        ))}
+      </group>
+    </group>
+  );
+}
+
 /** PLACEHOLDER Unwriter: a towering figure in charred paper robes, a cracked white mask with a burning line. */
 function UnwriterFallback() {
   const quill = useRef<Group>(null);
@@ -1273,7 +1355,7 @@ export function ThroneScene() {
         <Box position={[0, 0, 0]} size={[1.6, 0.4, 2.2]} material={MAT.burgundyLeather} />
         <Box position={[0, 0.21, 0]} size={[0.6, 0.02, 0.6]} material={MAT.wardGold} />
       </group>
-      <StaticWarden position={[13, 0, -10]} scale={1.2} rotationY={-1.0} />
+      <BoundWarden position={[13, 0, -10]} />
       <Mira position={[4, 0, 3]} rotationY={-0.8} />
     </group>
   );

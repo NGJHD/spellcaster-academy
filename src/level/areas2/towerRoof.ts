@@ -159,12 +159,16 @@ export const towerRoof: AreaScript = {
         {
           id: 'gland-1',
           targets: [
+            // Its fireballs fly at the camera and burst just in front of it (2 m ahead, in view) if not answered.
             target('wyrm-gland-1', 'marker', WYRM_HOVER_A.chest, [len(6, 7)], { labelHeight: 0.5 }),
-            fireball('storm-1', WYRM_HOVER_A.mouth, T(-5.4, 2.2, 2.8), { delaySec: 1.6 }),
-            fireball('storm-2', WYRM_HOVER_A.mouth, T(-6.4, 2.6, 2.6), { delaySec: 2.6 }),
+            fireball('storm-1', WYRM_HOVER_A.mouth, T(-6.3, 2.6, 1.1), { delaySec: 1.6, movement: { kind: 'approach', path: [WYRM_HOVER_A.mouth, T(-6.3, 2.6, 1.1)], speed: 3.4 } }),
+            fireball('storm-2', WYRM_HOVER_A.mouth, T(-5.9, 2.8, 1.2), { delaySec: 2.6, movement: { kind: 'approach', path: [WYRM_HOVER_A.mouth, T(-5.9, 2.8, 1.2)], speed: 3.4 } }),
           ],
         },
       ],
+      // It keeps breathing fire at the apprentice until its glands are hit (owner, 2026-10-20: it
+      // stopped attacking once its fireballs were answered).
+      hazard: { attacks: ['pulse'], firstDelaySec: 4, intervalSec: 6, windupSec: 1.6, damage: 10 },
     },
     {
       id: 'l2-wyrm-v2b',
@@ -178,10 +182,11 @@ export const towerRoof: AreaScript = {
           targets: [
             target('wyrm-gland-2', 'marker', WYRM_HOVER_B.chest, [len(6, 7)], { labelHeight: 0.5 }),
             target('wyrm-gland-3', 'marker', WYRM_HOVER_B.belly, [len(6, 7)], { labelHeight: 0.5, delaySec: 1 }),
-            fireball('storm-3', WYRM_HOVER_B.mouth, T(5.6, 2.4, 2.8), { delaySec: 2 }),
+            fireball('storm-3', WYRM_HOVER_B.mouth, T(6.4, 2.6, 1.2), { delaySec: 2, movement: { kind: 'approach', path: [WYRM_HOVER_B.mouth, T(6.4, 2.6, 1.2)], speed: 3.4 } }),
           ],
         },
       ],
+      hazard: { attacks: ['pulse'], firstDelaySec: 4, intervalSec: 6, windupSec: 1.6, damage: 10 },
     },
     {
       id: 'l2-wyrm-v3',

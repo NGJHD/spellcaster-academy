@@ -12,8 +12,12 @@ export const HUSH_ATTACKS = {
   houndLunge: { kind: 'contact', windupSec: 0.9, recoverSec: 0.9, intervalSec: 1.2, damage: 10 },
   knightSweep: { kind: 'contact', windupSec: 1.6, recoverSec: 1.2, intervalSec: 4.5, damage: 14 },
   impScratch: { kind: 'contact', windupSec: 1.1, recoverSec: 0.8, intervalSec: 1.6, damage: 5 },
-  /** A fireball reaching the camera if its counter-word is not typed. */
-  fireball: { kind: 'contact', windupSec: 0.8, recoverSec: 0.3, intervalSec: 99, damage: 8 },
+  /**
+   * A fireball reaching the camera if its counter-word is not typed. It strikes as soon as it arrives,
+   * then bounces back and comes again until the word is typed (owner, 2026-10-20: it waited 99 s, so
+   * fireballs hung in front of the camera and never hit).
+   */
+  fireball: { kind: 'contact', windupSec: 0.8, recoverSec: 0.3, intervalSec: 0.3, damage: 8 },
 } satisfies Record<string, AttackSpec>;
 
 const SPARKS: FxCue = { kind: 'burst', scale: 0.9, color: '#ff7a2a' };

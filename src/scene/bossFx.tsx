@@ -43,16 +43,20 @@ function GlowSprite({ sprite, color, opacity = 1, depthTest = true }: { sprite: 
 
 const WISPS = 10;
 const TRAIL = 6;
-/** The open book it reads from, and the circle above its hooded head (grey_herald.glb, 3 m tall). */
-const HERALD_BOOK = new Vector3(0, 1.75, 0.55);
-const HERALD_CROWN = new Vector3(0, 3.35, 0);
+/**
+ * The open book in its left hand, the circle above its hooded head, and its free (preaching, pointing)
+ * hand (grey_herald.glb, 3 m tall, bind pose).
+ */
+const HERALD_BOOK = new Vector3(-0.81, 2.27, 0.34);
+const HERALD_CROWN = new Vector3(-0.06, 3.35, -0.1);
+const HERALD_HAND = new Vector3(0.82, 2.11, 0.26);
 /** How long the gathered wisps take to rush at the player when it attacks. */
 const RUSH_SEC = 0.9;
 
 /**
- * The Grey Herald reads its book (owner, 2026-10-19): wisps of light rise from the glowing pages one
- * by one and circle above its head, faster as more gather; when it attacks they draw together in front
- * of it and rush at the player, and the reading starts again.
+ * The Grey Herald preaches from its book (owner, 2026-10-19/20): wisps of light rise from the glowing
+ * pages one by one and circle above its head, faster as more gather; when it points at the player they
+ * draw together at its pointing hand and rush at the player, and the reading starts again.
  */
 export function HeraldWisps({ rig }: { rig: CreatureRig }) {
   const sprites = useRef<(Sprite | null)[]>([]);
@@ -63,6 +67,7 @@ export function HeraldWisps({ rig }: { rig: CreatureRig }) {
   const crown = useMemo(() => new Vector3(), []);
   const target = useMemo(() => new Vector3(), []);
   const gather = useMemo(() => new Vector3(), []);
+  const hand = useMemo(() => new Vector3(), []);
   const pos = useMemo(() => new Vector3(), []);
   const spin = useRef(0);
   const time = useRef(0);
@@ -85,7 +90,9 @@ export function HeraldWisps({ rig }: { rig: CreatureRig }) {
       target.copy(state.camera.position);
       g.worldToLocal(target);
     }
-    gather.copy(crown).add(pos.set(0, -0.4, 0.9));
+    // They gather at the hand it points at the player (owner, 2026-10-20), then rush along its aim.
+    if (rigPoint(rig, 'arm_r', HERALD_HAND, hand)) gather.copy(hand).add(pos.set(0, 0.1, 0.3));
+    else gather.copy(crown).add(pos.set(0, -0.4, 0.9));
     for (let i = 0; i < WISPS; i++) {
       const trail = trails[i];
       const head = trail?.[0];
@@ -403,8 +410,9 @@ export function UnwriterQuill({ rig, burning }: { rig: CreatureRig; burning: () 
     target.copy(pipWorld);
     g.worldToLocal(target);
     const flicker = Math.sin(t * 23) * 0.04 + Math.sin(t * 37) * 0.03;
-    placeStreak(b, tip, target, 0.42 + flicker, state.camera.position);
-    placeStreak(k, tip, target, 0.13 + flicker * 0.5, state.camera.position);
+    // A thin, bright stroke, so his pointing arm and quill stay visible behind it (owner, 2026-10-20).
+    placeStreak(b, tip, target, 0.2 + flicker * 0.5, state.camera.position);
+    placeStreak(k, tip, target, 0.06 + flicker * 0.25, state.camera.position);
     f.position.copy(target);
     f.scale.setScalar(1.6 + Math.sin(t * 17) * 0.25);
     // Embers pouring down the stream from the nib to Pip.

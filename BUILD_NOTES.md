@@ -799,6 +799,35 @@ Level 3:
   and the three ring words float beside Pip (`aroundPip`, placed from Pip's real position each frame
   through `GameRun.pipAt`, since camera-relative words drift when the framing pans).
 
+## Twelfth playtest (2026-10-20)
+
+- Grey Herald: regenerated holding the book in one hand, the other arm out with the palm up (concept
+  seed 26, new prompt). Its free arm is a limb bone: in Idle the hand rises and falls like a preacher
+  while the wisps rise from the book and circle above its hood; its Attack draws the hand back, then
+  straightens the arm and points the hand at the player like a blade. The wisps gather at that hand
+  (`HERALD_HAND`, rigPoint on `arm_r`) and rush the player; its fireballs start there (`HERALD_WISPS`).
+- Fireballs never hit anyone: their attack waited `intervalSec: 99` after arriving, so an unanswered
+  fireball hovered in front of the camera forever ("always pending owl"). It now strikes on arrival
+  (0.3 s), bursts on the apprentice and bounces back to come again until its word is typed. This
+  applies to every fireball in Levels 2 and 3.
+- Page dragon in the sky chase: its fireballs fly faster (3.4 m/s) and burst 2 m in front of the camera
+  (they ended beside it, out of view), and both chase fights have a breath-attack hazard, so it keeps
+  attacking until its glands are hit (it stopped once the fireballs were answered).
+- Perfect Guardian: bending the old model's arms down broke them at the elbows ("looks like crap"), so it
+  was regenerated in the owner's "Mystic Ascension" pose (arms straight, 45 degrees down, palms
+  forward, one leg crossed behind). Each arm is one bone from shoulder to hand. TRELLIS.2 painted it 75%
+  red, so it is graded darker (`saturation`/`value`) and lightly relaxed (`smooth_shape=3`; 10 made
+  spikes). The builder's limbs gained `parent` (chains) and child-first shared weights, and `aim_bone`
+  gained `roll`, `parent` and `along` (aim a held prop instead of the bone).
+- Unwriter: his Point clip raises the quill overhead, then lifts the whole arm and thrusts the quill out
+  at Pip at shoulder height (aimed along elbow-to-nib), jabbing, every 2 s. The camera steps in
+  (`TH_CLOSE`) for the last phases so he reads larger, the stroke of fire is thinner so his arm shows,
+  and the first fireball waits 3 s so the point is seen first.
+- Throne: the Warden no longer stands idle at the side. The Unwriter has bound it in rings of burning
+  script with chains of fire to stakes; it strains against them, and they vanish when he is sealed
+  (it still carries everyone home). Pip says "Oh no, he's chained up our Warden! It's up to us!".
+- Test hook: `__spellcaster.targets()` lists the live encounter's targets and positions.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

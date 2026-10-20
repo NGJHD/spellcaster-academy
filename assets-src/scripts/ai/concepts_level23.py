@@ -37,9 +37,10 @@ CONCEPTS = {
     # Owner (2026-10-19): it reads from a book (reference: a hooded reader over a glowing open book).
     "grey_herald": (
         "Full body of a tall faceless hooded herald figure in long tattered robes of charred black paper with glowing "
-        "red edges, holding a large open ancient spellbook with both hands in front of its chest, reading it with its "
-        "hooded head bowed over the pages, the open pages glowing with red fire light, sinister, standing facing the "
-        "camera", 26),
+        "red edges, holding a large open ancient spellbook in its left hand only at chest height, reading it with its "
+        "hooded head bowed over the pages, the open pages glowing with red fire light, its other arm held out to the "
+        "side well away from its body with the hand open and the palm facing up like a preacher, sinister, standing "
+        "facing the camera, full arms visible", 26),
     "vellum_wyrm": (
         "A huge serpentine dragon made of burning book pages and leather book spines, a horned head made from an open "
         "book with blazing red eyes and a mouth full of fire, a black crystal heart glowing red between rib-like book "
@@ -57,7 +58,10 @@ CONCEPTS = {
     "perfect_warden": (
         "Full body of a tall floating stone-and-iron guardian made of polished black iron plates held together by red "
         "fire, a faceless mask with a burning red light seam, a ring halo behind its head, red fire burning through its "
-        "seams and chest core, cold and perfect, facing the camera", 34),
+        "seams and chest core, cold and perfect, levitating in the air like a mystic, both arms held straight and "
+        "spread out to the sides angled 45 degrees downward away from its body with open hands and the palms facing "
+        "forward, one leg crossed behind the other with the toes pointing down, arms and legs clearly separated from "
+        "the body, facing the camera", 34),
     "unwriter": (
         "Full body of a tall imposing dark wizard villain in long robes of charred black paper with glowing ember edges, "
         "a cracked white porcelain mask with a burning red line across it, hands of dripping black ink with small "

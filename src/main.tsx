@@ -32,6 +32,8 @@ if (new URLSearchParams(window.location.search).has('test')) {
       music: () => musicDiagnostics.read(),
       area: () => getRun()?.currentAreaId ?? null,
       focus: () => getRun()?.focus ?? null,
+      /** The live encounter's targets (id, phase, world position). */
+      targets: () => [...(getRun()?.encounter?.targets.values() ?? [])].map((t) => ({ id: t.id, phase: t.phase, at: t.position.toArray().map((v) => Math.round(v * 10) / 10), attack: t.attackPhase })),
       render: () => ({ ...renderStats }),
       scene: () => debugScene.current,
       camera: () => debugCamera.current,

@@ -349,7 +349,7 @@ export function HallScene() {
         fromBeat="l2-herald-enters"
         goneFlag="l2-herald-gone"
         fallback={<HeraldFallback />}
-        // Channels power between its raised hands, wisps circling it, and blasts as it attacks.
+        // Preaches from its book with one hand while its wisps gather, then points and sends them at the player.
         threat
         effects={(rig) => <HeraldWisps rig={rig} />}
       />

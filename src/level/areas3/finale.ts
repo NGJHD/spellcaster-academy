@@ -37,6 +37,8 @@ export const throne: AreaScript = {
     TH_DOOR: { position: O(0, 1.7, 14), lookAt: O(0, 3, -10) },
     TH_POS: { position: O(0, 1.7, 6), lookAt: O(0, 4.5, -12) },
     TH_PIP: { position: O(1, 1.7, 5), lookAt: O(-2, 3, -6) },
+    // Closer for the last phases, so his raised arm and quill read as he points at Pip (owner, 2026-10-20).
+    TH_CLOSE: { position: O(0.5, 1.8, -0.5), lookAt: O(-0.5, 4.2, -12) },
   },
   lookPoints: {
     TH_THRONE: O(0, 2, -12),
@@ -50,7 +52,7 @@ export const throne: AreaScript = {
     travel('l3-throne-walk', A, ['TH_DOOR', 'TH_POS'], 3),
     reveal('l3-unwriter-rises', A, 'TH_POS', ['TH_THRONE', 'TH_HEAD'], 0.8, 7.5, {
       attention: 'boss-intro',
-      barks: ['l3-u-intro'],
+      barks: ['l3-u-intro', 'l3-warden-bound'],
       fx: [
         { kind: 'pillar', at: 'TH_THRONE', atBeat: 0.05, scale: 2.2, color: '#ff3a10' },
         { kind: 'flash', atBeat: 0.05, color: '#ff3a10' },
@@ -61,12 +63,13 @@ export const throne: AreaScript = {
     fight('l3-u1', A, { barks: ['l3-pip-learning', 'l3-u-mistakes'] }),
     fight('l3-u2', A, { barks: ['l3-u-copies'] }),
     // Pip stays beside the apprentice (owner, 2026-10-19); the burst flares in front of the camera, round Pip.
-    reveal('l3-pip-seized', A, 'TH_POS', ['TH_HEAD'], 0.6, 0.6, { barks: ['l3-u-correct-pip'], fx: [{ kind: 'burst', atBeat: 0.2, scale: 1.6, color: '#ff3a10' }] }),
+    travel('l3-step-in', A, ['TH_POS', 'TH_CLOSE'], 1.4),
+    reveal('l3-pip-seized', A, 'TH_CLOSE', ['TH_HEAD'], 0.6, 0.6, { barks: ['l3-u-correct-pip'], fx: [{ kind: 'burst', atBeat: 0.2, scale: 1.6, color: '#ff3a10' }] }),
     fight('l3-u3', A, { barks: ['l3-save-pip'] }),
     talk('l3-pip-free', A, ['l3-pip-staying']),
     fight('l3-u4', A, { barks: ['l3-final-spell'] }),
     talk('l3-sealed', A, ['l3-pip-done'], { attention: 'ending' }),
-    reveal('l3-colour-returns', A, 'TH_POS', ['TH_SKY'], 1.2, 3, {
+    reveal('l3-colour-returns', A, 'TH_CLOSE', ['TH_SKY'], 1.2, 3, {
       attention: 'ending',
       music: 'homecoming',
       barks: ['l3-colour'],
@@ -134,14 +137,15 @@ export const throne: AreaScript = {
             // Pip's ring words float round Pip, beside the apprentice, where the Unwriter's fire is burning.
             marker('pip-brave', PIP_SEIZED, 'brave', { labelHeight: 0.2, aroundPip: { side: -0.35, up: 0.3 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-1', defeatBark: 'l3-pip-ring-1', defeatFx: { kind: 'burst', scale: 1.2, color: '#ffd24a' } }),
             knight('allies-k1', [O(6, 0, -4), O(5, 0, -2)], [len(5, 6)], { movement: { kind: 'static' }, optional: true, leaveAfterSec: 20 }),
-            fireball('pip-stroke-1', QUILL, O(-0.8, 1.7, 5.4), { delaySec: 1.6 }),
+            // He shows the point first; the stroke flies a moment later and bursts just in front of the camera.
+            fireball('pip-stroke-1', QUILL, O(0.3, 2, -2.4), { delaySec: 3 }),
           ],
         },
         {
           id: 'rings-2',
           targets: [
             marker('pip-curious', PIP_SEIZED, 'curious', { labelHeight: 0.2, aroundPip: { side: 0.4, up: 0.1 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-2', defeatBark: 'l3-pip-ring-2', defeatFx: { kind: 'burst', scale: 1.2, color: '#4ab8ff' } }),
-            fireTide('pip-tide', O(0, 1, -10), O(0, 1.7, 5.2), ['hold', 'on'], { delaySec: 1.8 }),
+            fireTide('pip-tide', O(0, 1, -10), O(0.4, 1.7, -1.4), ['hold', 'on'], { delaySec: 1.8 }),
           ],
         },
         {
