@@ -841,7 +841,10 @@ Level 3:
   black turned to transparency, is `public/assets/textures/fx/fire_rope.png`. `FireRope` draws it as a
   camera-facing ribbon along a ring or a line (flames always up, the texture crawling along it).
 - Owner allowed the 5060 Ti again for higher-quality builds (1024 shape cascade, denser prep mesh,
-  `normal_map=True` bakes the detailed surface into a normal map on the game mesh).
+  `normal_map=True` bakes the detailed surface into a normal map on the game mesh). The Perfect
+  Guardian was rebuilt that way from the same concept (scratchpad `hq_gpu0.sh`: shape on cuda 0 with
+  the cascade, then `pipeline.py --tris=400000` against a texture server on cuda 0): black iron plates
+  with clean red seams instead of a faceted, mostly red body. About 10 minutes in all.
 
 ## Known limitations / next steps
 
