@@ -846,6 +846,21 @@ Level 3:
   the cascade, then `pipeline.py --tris=400000` against a texture server on cuda 0): black iron plates
   with clean red seams instead of a faceted, mostly red body. About 10 minutes in all.
 
+## High-quality rebuilds (2026-10-20)
+
+- Which models were made at 512 without the 1024 cascade: every raw TRELLIS shape from the 3080-only
+  path (2026-10-08 to 10-20) has almost exactly 500,000 triangles and is dated in that window:
+  `vellum_dragon`, `grey_herald`, `citadel_gate`, `vine_tangle`, `burning_wreck`, `lift_cage`,
+  `wooden_oar`, `oak_door_leaf` (unused). Everything from 10-04 to 10-07 had the cascade on the 5060 Ti.
+  Owner: rebuild only the Unwriter, the page dragon and the burning wreck; the rest are fine.
+- Unwriter: the old one fell apart (a floating mask over a robe full of holes; 5,293 islands), and a
+  full-quality rebuild of the same concept did not help. New concept (seed 35): a hooded head behind
+  the mask, a solid robe with ember cracks, no drips or loose flames, the quill arm held out from the
+  shoulder. `prep_raw.py` no longer voxel-remeshes it (the voxel shell shattered the robe into 11,385
+  pieces and the cleanup kept only the hood); the octree path keeps it whole. Its arm is one bone from
+  the shoulder aimed along the real shoulder-to-hand line (`along=reach`): Point raises it overhead and
+  thrusts it at Pip; the nib (`QUILL_TIP`, finale `QUILL`) moved to the new hand.
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

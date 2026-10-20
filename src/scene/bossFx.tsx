@@ -354,8 +354,8 @@ export function GuardianOrbs({ rig }: { rig: CreatureRig }) {
 
 // ---------- Unwriter ----------
 
-/** The nib of the quill in his raised hand (unwriter.glb, bound to the quill arm). */
-const QUILL_TIP = new Vector3(-1.05, 3.27, 0.82);
+/** The glowing nib of the quill in his outstretched hand (unwriter.glb bind pose, bound to the quill arm). */
+const QUILL_TIP = new Vector3(-0.8, 2.78, 0.5);
 
 const EMBERS = 10;
 

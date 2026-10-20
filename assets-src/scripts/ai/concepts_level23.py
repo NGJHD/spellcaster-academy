@@ -62,11 +62,16 @@ CONCEPTS = {
         "spread out to the sides angled 45 degrees downward away from its body with open hands and the palms facing "
         "forward, one leg crossed behind the other with the toes pointing down, arms and legs clearly separated from "
         "the body, facing the camera", 34),
+    # Made for a clean 3D build (2026-10-20: the first one fell apart into a floating mask and a robe full
+    # of holes): a solid hooded head behind the mask, an unbroken robe, no drips or loose flames, and
+    # the quill arm raised clear of the body.
     "unwriter": (
-        "Full body of a tall imposing dark wizard villain in long robes of charred black paper with glowing ember edges, "
-        "a cracked white porcelain mask with a burning red line across it, hands of dripping black ink with small "
-        "flames, holding a long black quill pen burning with red fire, menacing, standing facing the camera, "
-        "no skeleton, no gore", 35),
+        "Full body of a tall imposing dark wizard villain, a heavy black hood over his head and a smooth cracked "
+        "white porcelain mask with a burning red line across it covering his whole face, long thick solid robes of "
+        "charred black paper with thin glowing ember cracks, a solid unbroken silhouette with no holes, his right "
+        "arm raised up and held out to the side away from his body, elbow bent, his gloved hand gripping a long "
+        "black quill pen that points upward with a glowing red nib, his other arm hanging at his side, menacing, "
+        "standing facing the camera, plain grey background, no drips, no smoke, no loose flames, no gore", 35),
 }
 
 if __name__ == "__main__":

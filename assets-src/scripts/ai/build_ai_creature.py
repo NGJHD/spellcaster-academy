@@ -76,8 +76,10 @@ CONFIG = {
                            saturation=0.95, value=0.62, smooth_shape=3, normal_map=True,
                            limbs=[dict(bone="arm_l", side=-1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05),
                                   dict(bone="arm_r", side=1, x=0.17, z=(0.42, 0.72), head=(0.15, 0.70), tail=(0.48, 0.47), ramp=0.05)]),
-    "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
-                     limbs=[dict(bone="arm_l", side=-1, x=0.31, z=(0.64, 1.01), head=(0.31, 0.64), tail=(0.38, 0.82))]),
+    # (2026-10-20) Regenerated with his quill arm held out from the shoulder: the whole arm, sleeve, hand
+    # and quill is one bone, so he can raise it overhead and point it straight at Pip.
+    "unwriter": dict(out="unwriter", normal_map=True, height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
+                     limbs=[dict(bone="arm_l", side=-1, x=0.15, z=(0.55, 1.0), head=(0.13, 0.72), tail=(0.33, 0.77), ramp=0.04)]),
     # Level 2/3 environment set pieces (static props).
     "festival_stall": dict(out="festival_stall", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=3.2, tris=16000, tex=1024),
     "boathouse": dict(out="boathouse", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=10, tris=24000, tex=2048),
@@ -104,11 +106,11 @@ CONFIG = {
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
     "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
     # 2026-10-08: the Cinder Citadel's front (owner: "the front of the cinder citadel looks blockish").
-    "vellum_dragon": dict(out="vellum_dragon", height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
+    "vellum_dragon": dict(out="vellum_dragon", normal_map=True, height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
     "vine_tangle": dict(out="vine_tangle", folder="props", rig="none", defeat="vanish", height=2.4, tris=30000, tex=1024),
     "wooden_oar": dict(out="wooden_oar", folder="props", rig="none", defeat="vanish", height=0.18, fit="width", width=2.8, tris=6000, tex=1024),
     "lift_cage": dict(out="lift_cage", folder="props", rig="none", defeat="vanish", height=1.25, fit="width", width=2.8, tris=20000, tex=1024),
-    "burning_wreck": dict(out="burning_wreck", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=7, tris=20000, tex=1024),
+    "burning_wreck": dict(out="burning_wreck", normal_map=True, folder="props", rig="none", defeat="vanish", height=3, fit="width", width=7, tris=20000, tex=1024),
     "citadel_gate": dict(out="citadel_gate", folder="props", rig="none", defeat="vanish", height=36, fit="width", width=64, tris=40000, tex=2048),
     "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),
     "wardrobe": dict(out="wardrobe", folder="props", rig="none", defeat="vanish", height=2.2, tris=10000, tex=1024),
@@ -747,7 +749,13 @@ elif rig and moves == "foreman":
     ])
 elif rig and moves == "unwriter":
     still = {"arm_l": (0, 0, 0), "pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}
-    # Brooding: the quill turning slowly in his raised hand, his head tilting as he watches.
+    # His real arm, from the shoulder to the hand gripping the quill (it reaches forward as well as out;
+    # unwriter.glb bind pose: hand at -0.75, 2.6, 0.53 in glTF).
+    reach = Vector((-0.75, -0.53, 2.6)) - rig.data.bones["arm_l"].head_local
+
+    def arm(direction):
+        return aim_bone("arm_l", direction, along=reach)
+    # Brooding: the quill held out, turning slowly, his head tilting as he watches.
     replace_action("Idle", [
         (0, still),
         (40, {**still, "arm_l": (6, 0, -5), "spine": (0, 4, 0), "chest": (2, 4, 0), "head": (-4, 8, 3)}),
@@ -759,33 +767,26 @@ elif rig and moves == "unwriter":
         up = i % 2 == 1
         shake.append((frame, {**still, "arm_l": (4, 0, 0), "pelvis": {"loc": (0, (0.012 if up else 0) * H, 0)}, "spine": (-4, 0, 0), "chest": (-3 if up else -9, 0, 0), "head": (-22 if up else -16, 0, 0)}))
     C.pose_action(rig, "Laugh", shake)
-    # Burning Pip's rings (owner, 2026-10-20: "raise his arm and point at Pip"): the quill raised high
-    # over his head, then thrust out at Pip at arm's length and held there, jabbing, before he raises it
-    # again for the next stroke (the scene turns him to face Pip, beside the apprentice).
-    # From the elbow to the quill's nib (unwriter.glb bind pose: nib -1.05, 3.27, 0.82 in glTF).
-    quill = Vector((-1.05, -0.82, 3.27)) - rig.data.bones["arm_l"].head_local
-    high = aim_bone("arm_l", (-0.15, -0.2, 0.97), along=quill)
-    point = aim_bone("arm_l", (0.08, -0.99, 0.1), along=quill)
-    jab = aim_bone("arm_l", (0.08, -0.995, 0.03), along=quill)
+    # Burning Pip's rings (owner, 2026-10-20: "raise his arm and point at Pip"): the arm raised high over
+    # his head, then thrust straight out at Pip and held there, jabbing, before he raises it again for the
+    # next stroke (the scene turns him to face Pip, beside the apprentice).
+    high = arm((-0.2, -0.15, 0.97))
+    point = arm((0.06, -0.99, 0.08))
+    jab = arm((0.06, -0.995, 0.02))
     lean = {"spine": (8, 0, 0), "chest": (10, 0, 0), "head": (8, 0, 0)}
-    # The whole arm lifts as he points (the elbow up to his shoulder and out in front of him).
-    lift = tuple(rig.data.bones["arm_l"].matrix_local.to_3x3().inverted() @ Vector((0.02 * H, -0.06 * H, 0.1 * H)))
-
-    def arm(rot, k=1.0):
-        return {"rot": rot, "loc": tuple(c * k for c in lift)}
     C.pose_action(rig, "Point", [
-        (0, {**still, "arm_l": arm(high, 0.6), "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
-        (9, {**still, "arm_l": arm(point), **lean}),
-        (30, {**still, "arm_l": arm(jab, 1.1), **lean}),
-        (48, {**still, "arm_l": arm(point), **lean}),
-        (60, {**still, "arm_l": arm(high, 0.6), "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
+        (0, {**still, "arm_l": high, "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
+        (9, {**still, "arm_l": point, **lean}),
+        (30, {**still, "arm_l": jab, **lean}),
+        (48, {**still, "arm_l": point, **lean}),
+        (60, {**still, "arm_l": high, "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
     ])
     # The quill stroke: the arm sweeps up and back, then slashes down across the body.
     replace_action("Attack", [
         (0, still),
-        (14, {**still, "arm_l": aim_bone("arm_l", (-0.25, 0.45, 0.86)), "spine": (-4, -14, 0), "chest": (-10, -8, 0), "head": (-6, 6, 0)}),
-        (20, {**still, "arm_l": aim_bone("arm_l", (0.25, -0.8, -0.55)), "spine": (8, 18, 0), "chest": (16, 10, 0), "head": (6, -6, 0)}),
-        (24, {**still, "arm_l": aim_bone("arm_l", (0.28, -0.75, -0.6)), "spine": (8, 18, 0), "chest": (14, 10, 0), "head": (6, -6, 0)}),
+        (14, {**still, "arm_l": arm((-0.35, 0.35, 0.87)), "spine": (-4, -14, 0), "chest": (-10, -8, 0), "head": (-6, 6, 0)}),
+        (20, {**still, "arm_l": arm((0.3, -0.8, -0.5)), "spine": (8, 18, 0), "chest": (16, 10, 0), "head": (6, -6, 0)}),
+        (24, {**still, "arm_l": arm((0.32, -0.75, -0.55)), "spine": (8, 18, 0), "chest": (14, 10, 0), "head": (6, -6, 0)}),
         (30, still),
     ])
 
