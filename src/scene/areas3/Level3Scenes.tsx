@@ -933,21 +933,22 @@ function OrigamiProw() {
 
 /**
  * A burnt boat wreck listing in the paper sea, still burning. Half sunk (owner, 2026-10-20: they sat on
- * top of the water): the keel 2.4 m under the paper (mean surface about −0.7 m), rolled onto one side
- * and down by the bow, so only the upper hull, the broken mast and the flames show.
+ * top of the water; then "too low, I barely saw the tip of the hull"): the keel 1.5 m under the paper
+ * (mean surface about −0.7 m), rolled a little onto one side and down by the bow, so about half the hull
+ * shows above the paper with the broken mast and the flames.
  */
 function BurningWreck() {
   const fallback = <Box position={[0, 0.6, 0]} size={[3, 1.2, 6]} rotation={[0, 0, 0.3]} material={ashDarkFlat} />;
   return (
     <group>
-      <group position={[0, -2.4, 0]} rotation={[0.16, 0, 0.32]}>
+      <group position={[0, -1.5, 0]} rotation={[0.1, 0, 0.2]}>
         <ModelBoundary fallback={fallback}>
           <Suspense fallback={fallback}>
             <Prop id="burning_wreck" position={[0, 0, 0]} height={4.2} rotationY={0} />
           </Suspense>
         </ModelBoundary>
       </group>
-      <Fire position={[0.3, -0.2, 0]} size={2.2} count={3} spread={2.4} />
+      <Fire position={[0.2, 0.4, 0]} size={2.2} count={3} spread={2.4} />
     </group>
   );
 }
