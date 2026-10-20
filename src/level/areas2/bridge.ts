@@ -96,7 +96,7 @@ export const bridge: AreaScript = {
           id: 'bell',
           sequential: true,
           targets: ['ring', 'bright', 'signal'].map((word, i) =>
-            marker(`bell-word-${i + 1}`, B(0, 5.2 + i * 0.5, -50), word, { labelHeight: 0.4, defeatFx: { kind: 'shockwave', at: 'BR_BELL', scale: 0.4 + i * 0.3, color: '#ffd27a' } }),
+            marker(`bell-word-${i + 1}`, B(0, 5.2 + i * 0.5, -50), word, { labelHeight: 0.4, defeatFx: { kind: 'shockwave', at: 'BR_BELL', scale: 0.4 + i * 0.3, color: '#ffd27a', sound: 'bell' } }),
           ),
         },
       ],
@@ -104,7 +104,7 @@ export const bridge: AreaScript = {
       // The bell booms: a huge shock wave and a gold beam into the sky.
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'BR_BELL', scale: 4, color: '#ffd27a' },
+        { kind: 'shockwave', at: 'BR_BELL', scale: 4, color: '#ffd27a', sound: 'bell' },
         { kind: 'pillar', at: 'BR_BELL', scale: 2, color: '#ffd27a' },
         { kind: 'shake', scale: 2 },
       ],

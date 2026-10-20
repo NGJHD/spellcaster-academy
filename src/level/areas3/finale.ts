@@ -17,7 +17,8 @@ export const THRONE_ORIGIN: Vec3 = [2800, 80, 0];
 const O = origin(THRONE_ORIGIN);
 export const UNWRITER: Vec3 = O(0, 0, -12);
 export const PIP_SEIZED: Vec3 = O(-3, 3.2, -6);
-const QUILL = O(1.6, 6.5, -11);
+// The nib of the quill in his raised hand (his right hand, on our left as he faces us; unwriter.glb at 1.6×).
+const QUILL = O(-1.8, 5.6, -10.6);
 const CHEST = O(0, 3.6, -11.4);
 
 /** One of the Unwriter's black-iron copies of a past foe: a short burst of words. */

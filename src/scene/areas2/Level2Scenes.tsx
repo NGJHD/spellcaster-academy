@@ -3,6 +3,7 @@
  * Each scene matches the local layout documented in its area script (src/level/areas2).
  * PLACEHOLDER geometry is kit-built; mobs and bosses are realistic AI-pipeline models.
  */
+import { DragonFireCharge, HeraldWisps } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
 import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, SpriteMaterial, Vector3, type Group, type PointLight } from 'three';
@@ -348,10 +349,9 @@ export function HallScene() {
         fromBeat="l2-herald-enters"
         goneFlag="l2-herald-gone"
         fallback={<HeraldFallback />}
-        rearing={() => {
-          const run = getRun();
-          return (run?.director.currentBeat?.id ?? '').startsWith('l2-herald-2');
-        }}
+        // Channels power between its raised hands, wisps circling it, and blasts as it attacks.
+        threat
+        effects={(rig) => <HeraldWisps rig={rig} />}
       />
     </group>
   );
@@ -436,22 +436,36 @@ export function WorkshopScene() {
 // ---------- Lantern Lake ----------
 
 /** The boat (and the lighthouse lift) carried under the camera during their rail beats. */
-export function Carried({ beats, children, drop }: { beats: readonly string[]; children: React.ReactNode; drop: number }) {
+const followAt = new Vector3();
+
+/**
+ * `hold`: beats where the ride stays put while the camera moves about on it (stepping to the bow to
+ * look over the edge); afterwards it eases back under the camera instead of jumping.
+ */
+export function Carried({ beats, children, drop, hold = [] }: { beats: readonly string[]; children: React.ReactNode; drop: number; hold?: readonly string[] }) {
   const group = useRef<Group>(null);
+  const settle = useRef(1);
   useBeatIndex();
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const run = getRun();
     const g = group.current;
     if (!g || !run) return;
     const id = run.director.currentBeat?.id ?? '';
-    const on = beats.includes(id);
+    const on = beats.includes(id) || hold.includes(id);
     g.visible = on;
     if (!on) return;
-    g.position.set(state.camera.position.x, state.camera.position.y - drop, state.camera.position.z);
+    if (hold.includes(id)) {
+      settle.current = 0;
+      return;
+    }
+    settle.current = Math.min(1, settle.current + Math.min(delta, 0.1) / 0.6);
+    const k = settle.current >= 1 ? 1 : 1 - Math.exp(-10 * Math.min(delta, 0.1));
+    g.position.lerp(followAt.set(state.camera.position.x, state.camera.position.y - drop, state.camera.position.z), k);
     // The camera's local +Z axis is column 3 of its world matrix; it looks along −Z. Turning the group by
     // atan2(z.x, z.z) puts the group's −Z (the bow) along the camera's view. (It was turned 180° before,
     // which hid every boat, ship and ride behind the camera.)
-    g.rotation.y = Math.atan2(state.camera.matrixWorld.elements[8] ?? 0, state.camera.matrixWorld.elements[10] ?? 1);
+    const yaw = Math.atan2(state.camera.matrixWorld.elements[8] ?? 0, state.camera.matrixWorld.elements[10] ?? 1);
+    g.rotation.y += Math.atan2(Math.sin(yaw - g.rotation.y), Math.cos(yaw - g.rotation.y)) * k;
   });
   return <group ref={group}>{children}</group>;
 }
@@ -1048,6 +1062,9 @@ export function RoofScene() {
           fallback={<WyrmFallback />}
           // Owner (2026-10-16): its wings beat whenever it is in view.
           flying={() => true}
+          // Owner (2026-10-17): fire charging in its throat, its chest and belly glowing, between attacks.
+          threat
+          effects={(rig) => <DragonFireCharge rig={rig} />}
         />
       </group>
       <BurningSkyline position={[0, -60, -90]} seed={6} />

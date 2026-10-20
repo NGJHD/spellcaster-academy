@@ -4,7 +4,7 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
-import { AdditiveBlending, CatmullRomCurve3, DoubleSide, Mesh, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
+import { AdditiveBlending, CanvasTexture, CatmullRomCurve3, DoubleSide, Mesh, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace, TubeGeometry, Vector3, type Group, type Object3D } from 'three';
 import { GREENHOUSE_ANCHOR_POSITION, GREENHOUSE_ORIGIN, ROOF_PANEL_POSITION } from '../../level/areas/greenhouse';
 import { beatIndexOf } from '../../level/level1Route';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -280,10 +280,80 @@ const toCamera = new Vector3();
  * with Idle and Attack clips) on a long stem rising out of the channel. It sways in a coil, then
  * lunges at the spot the camera has just left and snaps shut on empty air (scripted, never a hit).
  */
+/** Strands twisted together into the snapvine's stem. */
+const STRANDS = 3;
+const STRAND_RADIUS = 0.14;
+const STEM_SAMPLES = 36;
+
+/**
+ * A fibrous vine skin: lengthwise streaks of light and dark green with knotty bands, so the stem reads
+ * as a living plant like the generated head, not a plain green pipe (owner, 2026-10-17: "blockish").
+ */
+function vineSkin(): MeshStandardMaterial {
+  const W = 128;
+  const Hh = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = Hh;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // u (canvas x) runs along the stem, v (canvas y) around it.
+    ctx.fillStyle = '#3d6a26';
+    ctx.fillRect(0, 0, W, Hh);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 90; i++) {
+      const y = rnd() * Hh;
+      const light = rnd() > 0.5;
+      ctx.fillStyle = light ? `rgba(150, 196, 84, ${0.18 + rnd() * 0.25})` : `rgba(18, 44, 14, ${0.2 + rnd() * 0.3})`;
+      ctx.fillRect(0, y, W, 1 + rnd() * 4);
+    }
+    // Knots where leaves once grew.
+    for (let i = 0; i < 3; i++) {
+      const x = (i + 0.3) * (W / 3);
+      ctx.fillStyle = 'rgba(28, 52, 16, 0.55)';
+      ctx.fillRect(x, 0, 3, Hh);
+      ctx.fillStyle = 'rgba(170, 206, 104, 0.35)';
+      ctx.fillRect(x + 3, 0, 2, Hh);
+    }
+  }
+  const map = new CanvasTexture(canvas);
+  map.wrapS = RepeatWrapping;
+  map.wrapT = RepeatWrapping;
+  map.repeat.set(5, 1);
+  map.colorSpace = SRGBColorSpace;
+  return new MeshStandardMaterial({ map, roughness: 0.62, color: '#ffffff' });
+}
+
+const strandPoint = new Vector3();
+const frameN = new Vector3();
+const frameB = new Vector3();
+const tangent = new Vector3();
+const worldUp = new Vector3(0, 1, 0);
+
+/** Points of strand `i` twisting round `centre`, thinning a little towards the head. */
+function strandPoints(centre: CatmullRomCurve3, i: number, out: Vector3[]): void {
+  for (let s = 0; s < STEM_SAMPLES; s++) {
+    const u = s / (STEM_SAMPLES - 1);
+    centre.getPointAt(u, strandPoint);
+    centre.getTangentAt(u, tangent);
+    frameN.crossVectors(tangent, worldUp);
+    if (frameN.lengthSq() < 1e-4) frameN.set(1, 0, 0);
+    frameN.normalize();
+    frameB.crossVectors(tangent, frameN).normalize();
+    const a = (i / STRANDS) * Math.PI * 2 + u * Math.PI * 5;
+    const r = STRAND_RADIUS * (1.15 - u * 0.4);
+    const p = out[s] ?? (out[s] = new Vector3());
+    p.copy(strandPoint).addScaledVector(frameN, Math.cos(a) * r).addScaledVector(frameB, Math.sin(a) * r);
+  }
+}
+
 function Snapvine() {
   const root = useRef<Group>(null);
   const head = useRef<Group>(null);
-  const stem = useRef<Mesh>(null);
+  const strands = useRef<(Mesh | null)[]>([]);
+  const skin = useMemo(() => vineSkin(), []);
+  const strandCurves = useMemo(() => Array.from({ length: STRANDS }, () => new CatmullRomCurve3(Array.from({ length: STEM_SAMPLES }, () => new Vector3()))), []);
   const time = useRef(0);
   const striking = useRef(false);
   const { scene, animations } = useGLTF(SNAPVINE_URL);
@@ -291,7 +361,14 @@ function Snapvine() {
   const headPos = useMemo(() => new Vector3(...SNAPVINE_COIL), []);
   const goal = useMemo(() => new Vector3(), []);
   const curve = useMemo(
-    () => new CatmullRomCurve3([new Vector3(...SNAPVINE_ROOT), new Vector3(5.2, 1.2, -24), new Vector3(4.2, 2.6, -24.5), headPos.clone()]),
+    () =>
+      new CatmullRomCurve3([
+        new Vector3(...SNAPVINE_ROOT),
+        new Vector3(SNAPVINE_ROOT[0], SNAPVINE_ROOT[1] + 0.8, SNAPVINE_ROOT[2]),
+        new Vector3(4.6, 1.4, -24),
+        new Vector3(3.6, 0, -24.5),
+        headPos.clone(),
+      ]),
     [headPos],
   );
   useEffect(() => {
@@ -336,20 +413,28 @@ function Snapvine() {
       const look = lunge ? aim.set(lunge[0] - 2, lunge[1], lunge[2] + 2) : toCamera.copy(run.director.pose.position);
       h.rotation.y = Math.atan2(look.x - headPos.x, look.z - headPos.z);
     }
-    // Rebuild the stem along a curve from the roots to the model's base.
+    // Rebuild the stem from the roots to the model's base: it rises straight out of the water and
+    // enters the base upright (no elbow), as three strands twisted together.
     const pts = curve.points;
-    pts[3]?.set(headPos.x, headPos.y - SNAPVINE_JAW + 0.2, headPos.z);
-    pts[2]?.set((SNAPVINE_ROOT[0] + headPos.x) * 0.5 + 0.8, (SNAPVINE_ROOT[1] + headPos.y) * 0.5, (SNAPVINE_ROOT[2] + headPos.z) * 0.5);
-    if (stem.current) {
-      stem.current.geometry.dispose();
-      stem.current.geometry = new TubeGeometry(curve, 24, 0.3, 12, false);
-    }
+    const baseY = headPos.y - SNAPVINE_JAW + 0.25;
+    pts[4]?.set(headPos.x, baseY, headPos.z);
+    pts[3]?.set(headPos.x, baseY - 0.45, headPos.z);
+    pts[2]?.set((SNAPVINE_ROOT[0] + headPos.x) * 0.5 + 0.25, (SNAPVINE_ROOT[1] + 0.8 + baseY - 0.45) * 0.5, (SNAPVINE_ROOT[2] + headPos.z) * 0.5);
+    curve.updateArcLengths();
+    strands.current.forEach((m, i) => {
+      const c = strandCurves[i];
+      if (!m || !c) return;
+      strandPoints(curve, i, c.points);
+      c.updateArcLengths();
+      m.geometry.dispose();
+      m.geometry = new TubeGeometry(c, 64, STRAND_RADIUS, 10, false);
+    });
   });
   return (
     <group ref={root} visible={false}>
-      <mesh ref={stem} material={MAT.stem} castShadow>
-        <tubeGeometry args={[curve, 24, 0.3, 12, false]} />
-      </mesh>
+      {strandCurves.map((_, i) => (
+        <mesh key={i} ref={(m) => void (strands.current[i] = m)} material={skin} castShadow />
+      ))}
       <group ref={head} scale={SNAPVINE_SCALE}>
         <primitive object={scene} />
       </group>

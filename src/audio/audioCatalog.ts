@@ -22,6 +22,7 @@ export const SFX_IDS = [
   'boom',
   'crash',
   'firework',
+  'bell',
 ] as const;
 
 export type SfxId = (typeof SFX_IDS)[number];
@@ -50,4 +51,5 @@ export const SFX_CATEGORY: Record<SfxId, 'sfx' | 'ui'> = {
   crash: 'sfx',
   firework: 'sfx',
   dispel: 'sfx',
+  bell: 'sfx',
 };

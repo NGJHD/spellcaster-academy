@@ -5,7 +5,7 @@ Stylised-realistic robed humanoids (§14A.3 apprentice, ending cast): Mira, Keep
 
 Built from blended volumes (skull, jaw, nose, ears; negative volumes carve eye sockets), with seated
 eyeballs, hair clumps, robe with flared skirt, sleeves, hands and boots. Natural proportions, softly
-stylised; no exaggerated anime anatomy. Actions: Idle, Wave, TalkShort, Celebrate.
+stylised; no exaggerated anime anatomy. Actions: Idle, Wave, TalkShort, Celebrate, Run.
 """
 import math
 import os
@@ -231,15 +231,20 @@ C.pose_action(rig, "TalkShort", [
 ])
 
 
-def raise_arm(side, out=0.45):
-    """Euler (degrees) turning arm_<side> from hanging down to pointing straight up (a touch outward)."""
+def aim_arm(side, x, y, z):
+    """Euler (degrees) turning arm_<side> from hanging down to point along (x, y, z); x is mirrored for R."""
     from mathutils import Vector
 
     bone = rig.data.bones[f"arm_{side}"]
-    target = Vector(((out if side == "L" else -out), 0.0, 1.0)).normalized()
+    target = Vector(((x if side == "L" else -x), y, z)).normalized()
     local = bone.matrix_local.to_3x3().inverted() @ target
     euler = Vector((0.0, 1.0, 0.0)).rotation_difference(local).to_euler("XYZ")
     return tuple(math.degrees(a) for a in euler)
+
+
+def raise_arm(side, out=0.45):
+    """Euler (degrees) turning arm_<side> from hanging down to pointing straight up (a touch outward)."""
+    return aim_arm(side, out, 0.0, 1.0)
 
 
 # Both hands straight up in the air, spread apart (owner, 2026-10-16).
@@ -250,6 +255,23 @@ C.pose_action(rig, "Celebrate", [
     (20, {**cheer, "hips": {"loc": (0, 0, 0)}}),
     (30, {**cheer, "hips": {"loc": (0, 0.05, 0)}}),
     (40, {"arm_L": (0, 0, 0), "arm_R": (0, 0, 0), "forearm_L": (0, 0, 0), "forearm_R": (0, 0, 0), "hips": {"loc": (0, 0, 0)}}),
+])
+
+# Running away (owner, 2026-10-17: Mira vanished when the books came; now she runs off). Arms pump
+# front and back, opposite each other, elbows bent; the body leans in and bobs twice a cycle.
+fore, back = (0.12, -0.75, -0.65), (0.12, 0.55, -0.83)
+bent = (-75, 0, 0)
+stride = [
+    {"arm_L": aim_arm("L", *fore), "arm_R": aim_arm("R", *back), "hips": {"loc": (0, 0.0, 0)}},
+    {"arm_L": aim_arm("L", *back), "arm_R": aim_arm("R", *fore), "hips": {"loc": (0, 0.0, 0)}},
+]
+lean = {"spine": (12, 0, 0), "chest": (6, 0, 0), "head": (-10, 0, 0), "forearm_L": bent, "forearm_R": bent}
+C.pose_action(rig, "Run", [
+    (0, {**lean, **stride[0], "hips": {"loc": (0, 0.0, 0)}}),
+    (5, {**lean, "arm_L": aim_arm("L", 0.12, -0.1, -1), "arm_R": aim_arm("R", 0.12, -0.1, -1), "hips": {"loc": (0, 0.05, 0)}}),
+    (10, {**lean, **stride[1], "hips": {"loc": (0, 0.0, 0)}}),
+    (15, {**lean, "arm_L": aim_arm("L", 0.12, -0.1, -1), "arm_R": aim_arm("R", 0.12, -0.1, -1), "hips": {"loc": (0, 0.05, 0)}}),
+    (20, {**lean, **stride[0], "hips": {"loc": (0, 0.0, 0)}}),
 ])
 
 os.makedirs(os.path.join(ROOT, "public", "assets", "characters"), exist_ok=True)

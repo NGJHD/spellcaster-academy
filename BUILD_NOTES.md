@@ -691,6 +691,62 @@ Level 3:
     Evil Approach (nene); Epic Endgame Cinematic (cynicmusic).
   - Celebrations: A Legend Will Rise (CodeManu); Victory Theme (cynicmusic).
 
+## Ninth playtest (2026-10-17)
+
+Level 1:
+- The opening snatch: the sprite swoops in from a top corner of the screen to where Pip floats, grabs
+  Pip (Pip stays put until then) and carries Pip off to its chase spot (`snatchPath` in `GameRun`).
+- East Hall: Mira no longer vanishes when the books come; she runs off down the hall to the library
+  doors and turns to hold the line. New `Run` clip in `humanoid.py` (arms pumping, body leaning in);
+  her talk gestures never interrupt it.
+- Greenhouse: the snapvine's stem was a plain green tube with an elbow. It is now three strands twisted
+  into a rope with a fibrous vine skin, rising straight from the water into the head.
+- The pre-observatory menu (Continue / Review controls / Change difficulty) is gone; saves on that beat
+  resume at the observatory.
+- The Level 1 courtyard crowd just stands around (`calm`); the Level 3 homecoming crowd cheers at random
+  (`cheering`: each student their own rhythm, skipping some cheers).
+
+Level 2:
+- Trapped first-years are ringed by inkfire (tall flames beside and behind, low ones in front), which
+  goes out with their door's word.
+- The Bell Bridge bell had no sound at all. A synthesised church-bell toll (`bell.wav`: hum, prime, tierce,
+  quint and nominal partials, soft-clipped loud) rings on each bell word and on the beacon. No CC0
+  toll was found; the OpenGameArt church bell is CC-BY-SA. FX cues can now carry their own `sound`.
+- Smudgehounds walked sideways: the generated model faced +X. `yaw` in `build_ai_creature.py` never
+  worked (glTF imports use quaternions, so `rotation_euler` was ignored); it now goes through the
+  matrix, and the hound is rebuilt with `yaw=-90`. The runaway book's dead `yaw=-90` was removed so a
+  rebuild keeps it as it is.
+
+Bosses (owner: "doing nothing during idling makes it seem like target practice"; every boss unique):
+- `GameRun.bossThreat()` reports an arena attack winding up (0–1) and seconds since the boss struck (a
+  hazard landing or a fireball hurled). `SceneCreature threat` scrubs the Attack wind-up with it and
+  plays the strike; `clip` plays a model's own extra clip; `effects` render in the creature's space,
+  following bones through `rigPoint` (the skinning transform of a bind-pose point).
+- Grey Herald: a channelling Idle (hovering, swaying, chest opening, head bowed over its raised hands), a
+  trumpet-blast Attack, and ember wisps with trails circling it, drawn into a glow between its hands.
+- Page dragon: fire gathering in its open mouth, a glow deep in its throat, and its chest and belly
+  pulsing brighter as the breath builds, flaring as it attacks.
+- Perfect Guardian: arm bones (`limbs` in the builder), a charging Idle (crouched, fists drawn back and
+  blazing) and a hammer-fist Attack (arms overhead, then a smash).
+- Unwriter: a quill-arm bone; a brooding Idle, a `Laugh` while he talks, a quill-stroke Attack, and
+  `Point` while Pip is seized, with a burning stroke of fire from the nib to Pip. The fireballs he
+  throws now start at the quill's actual position.
+- Builder: limb bones only connect when they start at their parent's tail (arms used to pivot at the
+  neck). A rebuild of the Warden or the dragon would now pivot their arms or wings at the shoulder.
+
+Level 3:
+- Dark Shrine Loop measured −22 LUFS against about −12 for the rest; it and Evil Approach are now
+  loudness-normalised to about −13 LUFS.
+- Fire tides were drawn as a fireball under Pip's "A wall of fire!". `FireWallModel`: three staggered
+  rows of flame columns, 22 m wide and up to 14 m high, over a glowing base.
+- Writing the slide: the raft hid it. The apprentice steps to the raft's bow (`l3-raft-peek`; the raft
+  holds still via `Carried hold`, Mira steps aside) and looks down over the edge as each section is
+  written; the raft eases back under the camera for the ride.
+- When the Perfect Guardian falls, the back wall breaks into blocks that topple out over the cliff,
+  revealing the paper sea below and the Citadel beyond; the camera walks to the gap
+  (`l3-g3-to-breach`) before the ship.
+- The foreman walks at 1.8 m/s (was 0.8).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

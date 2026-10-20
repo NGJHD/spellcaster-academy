@@ -15,7 +15,7 @@ import { LEVEL1_ENCOUNTERS, beatIndexOf } from '../level/level1Route';
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
-import { CharacterModel } from './CharacterModel';
+import { CharacterModel, type CharacterClip } from './CharacterModel';
 import { Guardian } from '../enemies/GuardianGLB';
 import { CreatureModel, creatureUrl } from '../enemies/CreatureModel';
 import { useKitGlow } from './kitGlb';
@@ -499,11 +499,22 @@ export const UP = new Vector3(0, 1, 0);
 
 // ---------- Characters (rigged GLBs with code-built fallbacks while streaming) ----------
 
-export function Mira({ position, rotationY = 0, waving = false }: { position: Vec3; rotationY?: number; waving?: boolean }) {
+export function Mira({
+  position,
+  rotationY = 0,
+  waving = false,
+  clip,
+}: {
+  position: Vec3;
+  rotationY?: number;
+  waving?: boolean;
+  /** Overrides the Idle/Wave choice (e.g. running off). */
+  clip?: CharacterClip | (() => CharacterClip);
+}) {
   return (
     <Suspense fallback={<MiraFallback position={position} rotationY={rotationY} waving={waving} />}>
       <group position={position} rotation={[0, rotationY, 0]}>
-        <CharacterModel id="mira" clip={waving ? 'Wave' : 'Idle'} speaker="mira" />
+        <CharacterModel id="mira" clip={clip ?? (waving ? 'Wave' : 'Idle')} speaker="mira" />
       </group>
     </Suspense>
   );
@@ -528,10 +539,56 @@ export const RAISE_CYCLE_SEC = 3.4;
  * (owner, 2026-10-16: cheering non-stop looked like exercising); `calm` just stands; otherwise it cheers
  * continuously (the celebrations).
  */
-export function Student({ position, rotationY = 0, robe = MAT.navyCloth, height = 1.45, raising = false, calm = false }: { position: Vec3; rotationY?: number; robe?: MeshStandardMaterial; height?: number; raising?: boolean; calm?: boolean }) {
+/** A repeatable 0–1 hash. */
+const hash01 = (n: number) => {
+  const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
+/**
+ * Cheering at random (owner, 2026-10-17: the finale crowd "look like cheerleaders" raising their hands
+ * in unison). Each student has their own rhythm, and skips some cheers, at a different moment in each.
+ */
+function cheerClip(seed: number): () => CharacterClip {
+  const cycle = 2.6 + hash01(seed) * 3.2;
+  const offset = hash01(seed + 1.7) * cycle;
+  return () => {
+    const t = performance.now() / 1000 + offset;
+    const n = Math.floor(t / cycle);
+    if (hash01(seed * 7.1 + n) > 0.65) return 'Idle';
+    const start = hash01(seed * 3.3 + n * 1.9) * (cycle - RAISE_SEC);
+    const into = t - n * cycle - start;
+    return into >= 0 && into < RAISE_SEC ? 'Celebrate' : 'Idle';
+  };
+}
+
+export function Student({
+  position,
+  rotationY = 0,
+  robe = MAT.navyCloth,
+  height = 1.45,
+  raising = false,
+  calm = false,
+  cheering = false,
+}: {
+  position: Vec3;
+  rotationY?: number;
+  robe?: MeshStandardMaterial;
+  height?: number;
+  raising?: boolean;
+  calm?: boolean;
+  /** Raises their hands now and then, at random (a celebrating crowd). */
+  cheering?: boolean;
+}) {
   const id = robe === MAT.navyCloth ? 'student_a' : 'student_b';
   const phase = position[0] * 0.9 + position[2] * 0.3;
-  const clip = calm ? 'Idle' : raising ? () => (((performance.now() / 1000 + phase) % RAISE_CYCLE_SEC + RAISE_CYCLE_SEC) % RAISE_CYCLE_SEC < RAISE_SEC ? 'Celebrate' : 'Idle') : 'Celebrate';
+  const clip = calm
+    ? 'Idle'
+    : cheering
+      ? cheerClip(phase)
+      : raising
+        ? () => (((performance.now() / 1000 + phase) % RAISE_CYCLE_SEC + RAISE_CYCLE_SEC) % RAISE_CYCLE_SEC < RAISE_SEC ? 'Celebrate' : 'Idle')
+        : 'Celebrate';
   return (
     <Suspense fallback={<StudentFallback position={position} rotationY={rotationY} robe={robe} height={height} />}>
       <group position={position} rotation={[0, rotationY, 0]} scale={height / (id === 'student_a' ? 1.4 : 1.5)}>

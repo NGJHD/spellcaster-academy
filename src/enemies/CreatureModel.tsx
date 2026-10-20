@@ -9,7 +9,7 @@ import type { TargetPose } from './TargetVisuals';
 const ATTACK_ANTICIPATION = 14 / 30;
 const FADE_SEC = 0.18;
 
-type ClipName = 'Idle' | 'Move' | 'Attack' | 'Hit' | 'Dispel';
+type ClipName = string;
 
 const base = `${import.meta.env.BASE_URL}assets/creatures/`;
 
@@ -59,10 +59,11 @@ export function creatureUrl(kind: string, variant?: string): string | null {
   }
 }
 
-function chooseClip(p: TargetPose): ClipName {
+function chooseClip(p: TargetPose, has: (name: string) => boolean): ClipName {
   if (p.defeated) return 'Dispel';
   if (p.windup > 0 || p.recovering) return 'Attack';
   if (p.hit > 0.5) return 'Hit';
+  if (p.override && has(p.override)) return p.override;
   return p.moving ? 'Move' : 'Idle';
 }
 
@@ -78,7 +79,18 @@ const TINTS: Readonly<Record<string, { color: string; emissive?: string; emissiv
   'book-green': { color: '#8fd09a' },
 };
 
-export function CreatureModel({ url, pose, tint }: { url: string; pose: RefObject<TargetPose>; tint?: string }) {
+export function CreatureModel({
+  url,
+  pose,
+  tint,
+  onScene,
+}: {
+  url: string;
+  pose: RefObject<TargetPose>;
+  tint?: string;
+  /** Hands over the model's own scene (bones for effects that follow the body), and null on unmount. */
+  onScene?: (scene: Object3D | null) => void;
+}) {
   const gltf = useGLTF(url);
   const scene = useMemo(() => {
     const s = cloneSkinned(gltf.scene) as Object3D;
@@ -122,9 +134,14 @@ export function CreatureModel({ url, pose, tint }: { url: string; pose: RefObjec
     };
   }, [actions, mixer, state]);
 
+  useEffect(() => {
+    onScene?.(scene);
+    return () => onScene?.(null);
+  }, [scene, onScene]);
+
   useFrame((_, dt) => {
     const p = pose.current;
-    const want = chooseClip(p);
+    const want = chooseClip(p, (name) => actions.has(name));
     const next = actions.get(want);
     if (want !== state.current && next) {
       const prev = actions.get(state.current);

@@ -86,7 +86,7 @@ export const moonTower: AreaScript = {
     travel('tower-to-door', A, ['TOW_F3', 'TOW_DOOR'], 4),
     talk('tower-pre-boss', A, ['tw-pre']),
     checkpoint('tower-checkpoint', A, 'observatory-door'),
-    { kind: 'choice', id: 'tower-pre-boss-choice', areaId: A, choiceId: 'pre-boss' },
+    // Owner (2026-10-17): no CONTINUE / REVIEW CONTROLS / CHANGE DIFFICULTY menu here; straight on.
   ],
   encounters: [
     {

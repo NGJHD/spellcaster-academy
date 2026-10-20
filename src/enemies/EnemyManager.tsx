@@ -23,6 +23,7 @@ import {
   GemModel,
   ImpModel,
   FireballModel,
+  FireWallModel,
   HushModel,
   WispModel,
   WispShield,
@@ -73,7 +74,7 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
     case 'imp':
       return <ImpModel pose={pose} variant={spawn.variant} />;
     case 'fireball':
-      return <FireballModel pose={pose} />;
+      return spawn.variant === 'wall' ? <FireWallModel pose={pose} /> : <FireballModel pose={pose} />;
     case 'blotling':
     case 'eraser-moth':
     case 'scribble-imp':

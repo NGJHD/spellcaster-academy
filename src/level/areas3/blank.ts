@@ -32,7 +32,8 @@ export const redactor = (id: string, path: Vec3[], options: Partial<TargetSpawn>
 
 export const foreman = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'foreman', path[0] ?? [0, 0, 0], [len(5, 7), len(5, 7), len(5, 7)], {
-    movement: { kind: 'approach', path, speed: 0.8 },
+    // Owner (2026-10-17): it took very long to reach us; over twice its old pace (0.8).
+    movement: { kind: 'approach', path, speed: 1.8 },
     attack: HUSH_ATTACKS.knightSweep,
     labelHeight: 3.1,
     entrance: { kind: 'dust', scale: 1.6, color: '#2a2220' },
@@ -87,6 +88,8 @@ export const fireTide = (id: string, from: Vec3, to: Vec3, words: readonly [stri
     movement: { kind: 'approach', path: [from, to], speed: 1.1 },
     attack: { kind: 'contact', windupSec: 1.5, recoverSec: 0.3, intervalSec: 99, damage: 14 },
     labelHeight: 0.8,
+    // Drawn as a towering wall of flame (FireWallModel), not a fireball.
+    variant: 'wall',
     defeatFx: { kind: 'shockwave', scale: 2.2, color: '#9fd8ff' },
     ...options,
   });

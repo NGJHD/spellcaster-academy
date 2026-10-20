@@ -48,6 +48,27 @@ export const STARFALL_STREAK = 8;
 
 const SHAKE_SEC = 0.35;
 
+/** The Pip thief reaches Pip this long after it appears (its swoop in from the corner). */
+const SNATCH_GRAB_SEC = 0.85;
+/** Then it carries Pip off to its chase position over this long. */
+const SNATCH_CARRY_SEC = 1.1;
+/** Camera-relative [ahead, side, up]: off screen at a top corner, and where Pip floats (PipCompanion OFFSET_CALM, carried 0.35 m below). */
+const SNATCH_FROM = [2.2, -3.6, 2.0] as const;
+const SNATCH_GRAB = [1.7, 0.85, 0.3] as const;
+
+/** The thief's camera-relative point at `age`, and how far (0–1) it has blended to its follow position. */
+function snatchPath(age: number): readonly [number, number, number, number] {
+  if (age < SNATCH_GRAB_SEC) {
+    const k = age / SNATCH_GRAB_SEC;
+    const e = k * k * (3 - 2 * k);
+    // A diving arc: it drops faster than it crosses, so it swoops down onto Pip.
+    const drop = Math.sqrt(e);
+    return [SNATCH_FROM[0] + (SNATCH_GRAB[0] - SNATCH_FROM[0]) * e, SNATCH_FROM[1] + (SNATCH_GRAB[1] - SNATCH_FROM[1]) * e, SNATCH_FROM[2] + (SNATCH_GRAB[2] - SNATCH_FROM[2]) * drop, 0];
+  }
+  const k = Math.min(1, Math.max(0, (age - SNATCH_GRAB_SEC - 0.15) / SNATCH_CARRY_SEC));
+  return [SNATCH_GRAB[0], SNATCH_GRAB[1], SNATCH_GRAB[2], k * k * (3 - 2 * k)];
+}
+
 export interface RunSettings {
   readonly rail: RailSettings;
   /** Spark gems (automatic and authored along the route). Absent means on. */
@@ -631,6 +652,8 @@ export class GameRun {
   private pendingFx: { cue: FxCue; inSec: number; origin: Vector3 | null }[] = [];
   private beatFx: { cue: FxCue; atBeat: number; beatId: string }[] = [];
   private readonly followOffsets = new WeakMap<TargetRuntime, Vector3>();
+  /** Seconds since a Pip thief appeared (its swoop, grab and carry). */
+  private readonly carryAge = new WeakMap<TargetRuntime, number>();
   private readonly camForward = new Vector3();
   private readonly camRight = new Vector3();
   private readonly camUp = new Vector3();
@@ -687,12 +710,24 @@ export class GameRun {
       }
       offset.multiplyScalar(decay);
       if (t.phase === 'leaving') offset.addScaledVector(right, side * 7 * dt).addScaledVector(fwd, 4 * dt);
+      let { ahead, side: across, up: lift } = f;
+      if (t.spawn.carriesPip) {
+        // Owner (2026-10-17): the thief swoops in from a top corner of the screen, grabs Pip where Pip floats
+        // and carries Pip off, instead of appearing ahead with Pip zooming to it.
+        const age = (this.carryAge.get(t) ?? 0) + dt;
+        this.carryAge.set(t, age);
+        if (t.phase !== 'leaving') offset.set(0, 0, 0);
+        const p = snatchPath(age);
+        ahead = p[0] + (f.ahead - p[0]) * p[3];
+        across = p[1] + (f.side - p[1]) * p[3];
+        lift = p[2] + (f.up - p[2]) * p[3];
+      }
       // Camera-relative placement, so a pitched camera still sees the target where it was authored.
       t.position
         .copy(pose.position)
-        .addScaledVector(fwd, f.ahead)
-        .addScaledVector(right, f.side)
-        .addScaledVector(up, f.up + Math.sin(t.clock * 2.2) * 0.08)
+        .addScaledVector(fwd, ahead)
+        .addScaledVector(right, across)
+        .addScaledVector(up, lift + Math.sin(t.clock * 2.2) * 0.08)
         .add(offset);
     }
   }
@@ -750,7 +785,8 @@ export class GameRun {
     this.fxEvents.push({ key: nextKey(), kind: cue.kind, position, scale, color: cue.color });
     if (this.fxEvents.length > 64) this.fxEvents.splice(0, this.fxEvents.length - 64);
     const sound = FX_SOUND[cue.kind];
-    if (sound) audio.playSfx(sound.id, { volume: sound.volume, rate: 0.9 + Math.random() * 0.2 });
+    if (cue.sound) audio.playSfx(cue.sound, { volume: 1 });
+    else if (sound) audio.playSfx(sound.id, { volume: sound.volume, rate: 0.9 + Math.random() * 0.2 });
     if (cue.kind === 'lightning' || cue.kind === 'shockwave') this.shakeTime = Math.max(this.shakeTime, SHAKE_SEC * Math.min(1.5, scale));
   }
 
@@ -780,10 +816,28 @@ export class GameRun {
     }
   }
 
+  private bossStrikeAt = -Infinity;
+  private bossWindupSec = 1;
+
+  /**
+   * What the current boss is doing, for its animation and charge effects (owner, 2026-10-17: bosses
+   * stood still "like target practice"). `windup` 0–1 while an arena attack is charging; `strikeAge`
+   * is seconds since it last struck (a hazard landing or a fireball hurled), Infinity if never.
+   */
+  bossThreat(): { windup: number; strikeAge: number } {
+    const runner = this.encounter;
+    const t = runner?.def.bossPhase && runner.state !== 'complete' ? runner.hazardTelegraph : null;
+    const total = this.bossWindupSec;
+    const windup = t && total > 0 ? Math.min(1, Math.max(0, 1 - t.remaining / total)) : 0;
+    return { windup, strikeAge: (performance.now() - this.bossStrikeAt) / 1000 };
+  }
+
   /** Point Pip is being carried to, if a target is holding Pip (the opening cold open). */
   pipCarrier(out: Vector3): boolean {
     for (const t of this.allTargets()) {
       if (!t.spawn.carriesPip || t.defeated || t.phase === 'waiting' || t.phase === 'gone' || t.phase === 'leaving') continue;
+      // Pip stays put until the thief's claws reach it.
+      if ((this.carryAge.get(t) ?? 0) < SNATCH_GRAB_SEC) continue;
       out.copy(t.position);
       out.y -= 0.35;
       return true;
@@ -1466,6 +1520,7 @@ export class GameRun {
           if (e.source?.spawn.kind === 'imp') patchRunUi({ splatKey: nextKey() });
           break;
         case 'hazard-hit': {
+          this.bossStrikeAt = performance.now();
           this.applyDamage(e.damage);
           patchRunUi({ hazard: null });
           const cues = runner.def.hazard?.fx;
@@ -1477,8 +1532,11 @@ export class GameRun {
         }
         case 'target-spawned':
           if (e.target.spawn.entrance) this.emitFx(e.target.spawn.entrance, e.target.position);
+          // A boss hurling a fireball: its attack animation plays (bossThreat).
+          if (runner.def.bossPhase && e.target.spawn.kind === 'fireball') this.bossStrikeAt = performance.now();
           break;
         case 'hazard-windup':
+          this.bossWindupSec = e.windupSec;
           audio.playSfx('enemy-telegraph');
           patchRunUi({ hazard: { key: nextKey(), attack: e.attack, windupSec: e.windupSec } });
           break;

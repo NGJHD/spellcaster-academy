@@ -3,8 +3,8 @@
  * burning-academy dressing (silhouette blocks of the academy on fire behind the action).
  */
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useMemo, useRef, type ReactNode } from 'react';
-import { CatmullRomCurve3, DoubleSide, MeshStandardMaterial, TubeGeometry, Vector3, type Group, type Texture } from 'three';
+import { Suspense, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { CatmullRomCurve3, DoubleSide, Matrix4, MeshStandardMaterial, TubeGeometry, Vector3, type Group, type Object3D, type SkinnedMesh, type Texture } from 'three';
 import { BUILT_AI_FILES, CreatureModel } from '../../enemies/CreatureModel';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
@@ -24,6 +24,45 @@ export function useReached(beatId: string): boolean {
 }
 
 const CREATURES = `${import.meta.env.BASE_URL}assets/creatures/`;
+/** How long a boss's strike plays after it attacks. */
+const STRIKE_SEC = 0.9;
+
+/** A scene creature's live model (null while loading or on its fallback) and its placed group. */
+export interface CreatureRig {
+  model: Object3D | null;
+  group: Group | null;
+}
+
+const bonePoint = new Vector3();
+const inverseWorld = new Matrix4();
+const skinMatrix = new Matrix4();
+
+/**
+ * Where a point of the model's bind pose (`bind`, model units) is now, following bone `bone` as the
+ * skin does, in the creature group's local space (so effects ride the moving body). False when the
+ * model or bone isn't there (fallback shown).
+ */
+export function rigPoint(rig: CreatureRig, bone: string, bind: Vector3, out: Vector3): boolean {
+  const model = rig.model;
+  const group = rig.group;
+  if (!model || !group) return false;
+  let mesh: SkinnedMesh | null = null;
+  model.traverse((o) => {
+    if (!mesh && (o as SkinnedMesh).isSkinnedMesh) mesh = o as SkinnedMesh;
+  });
+  const skinned = mesh as SkinnedMesh | null;
+  if (!skinned) return false;
+  const i = skinned.skeleton.bones.findIndex((b) => b.name === bone);
+  const b = skinned.skeleton.bones[i];
+  const inv = skinned.skeleton.boneInverses[i];
+  if (!b || !inv) return false;
+  // world = mesh.matrixWorld · bindMatrixInverse · bone.matrixWorld · boneInverse · bindMatrix · bind
+  skinMatrix.copy(skinned.matrixWorld).multiply(skinned.bindMatrixInverse).multiply(b.matrixWorld).multiply(inv).multiply(skinned.bindMatrix);
+  bonePoint.copy(bind).applyMatrix4(skinMatrix);
+  inverseWorld.copy(group.matrixWorld).invert();
+  out.copy(bonePoint).applyMatrix4(inverseWorld);
+  return true;
+}
 
 /**
  * A boss or set-piece creature placed by the scene (not a typing target): shown from `fromBeat` until
@@ -40,6 +79,9 @@ export function SceneCreature({
   fallback,
   rearing,
   flying,
+  threat = false,
+  clip,
+  effects,
 }: {
   file: string;
   position: Vec3;
@@ -51,17 +93,34 @@ export function SceneCreature({
   rearing?: () => boolean;
   /** While true the creature plays its Move clip (the dragon's wingbeats). */
   flying?: () => boolean;
+  /** A boss: winds up its Attack while an arena attack charges, and strikes when it lands or hurls a fireball. */
+  threat?: boolean;
+  /** One of the model's own extra clips to play now (a laugh, a point), or null. */
+  clip?: () => string | null;
+  /** Effects in the creature's own space (wisps, charging glows); `rig` gives its live bones. */
+  effects?: (rig: CreatureRig) => ReactNode;
 }) {
   const shown = useReached(fromBeat);
   const group = useRef<Group>(null);
   const pose = useRef<TargetPose>(emptyPose());
   const fade = useRef(1);
+  const rig = useMemo<CreatureRig>(() => ({ model: null, group: null }), []);
+  const onScene = useCallback((s: Object3D | null) => void (rig.model = s), [rig]);
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.1);
     const p = pose.current;
     p.time += dt;
-    const gone = getRun()?.flags.has(goneFlag) ?? false;
-    p.windup += ((rearing?.() ? 1 : 0) - p.windup) * (1 - Math.exp(-4 * dt));
+    rig.group = group.current;
+    const run = getRun();
+    const gone = run?.flags.has(goneFlag) ?? false;
+    const th = threat && run ? run.bossThreat() : null;
+    const striking = !!th && th.strikeAge < STRIKE_SEC && th.windup === 0;
+    const wantWindup = rearing?.() ? 1 : th ? th.windup : 0;
+    p.windup += (wantWindup - p.windup) * (1 - Math.exp(-4 * dt));
+    // The strike plays at once (CreatureModel holds the wind-up pose while any wind-up remains).
+    if (striking || p.windup < 0.02) p.windup = wantWindup > 0 && !striking ? p.windup : 0;
+    p.recovering = striking;
+    p.override = clip?.() ?? null;
     p.moving = flying?.() ?? false;
     fade.current += ((gone ? 0 : 1) - fade.current) * (1 - Math.exp(-5 * dt));
     const g = group.current;
@@ -75,12 +134,13 @@ export function SceneCreature({
       {BUILT_AI_FILES.has(file) ? (
         <ModelBoundary fallback={fallback}>
           <Suspense fallback={fallback}>
-            <CreatureModel url={`${CREATURES}${file}`} pose={pose} />
+            <CreatureModel url={`${CREATURES}${file}`} pose={pose} onScene={onScene} />
           </Suspense>
         </ModelBoundary>
       ) : (
         fallback
       )}
+      {effects?.(rig)}
     </group>
   );
 }

@@ -99,7 +99,8 @@ const TRACKS: Partial<Record<MusicId, { readonly file: string; readonly gain: nu
   'evacuation-hope': { file: 'lament-of-the-war.ogg', gain: 0.9 },
   'siege-battle': { file: 'determined-pursuit.ogg', gain: 0.85 },
   'wyrm-battle': { file: 'qazijamjam.ogg', gain: 0.85 },
-  'blank-wander': { file: 'dark-shrine-loop.ogg', gain: 1.1 },
+  // Both Level 3 files were loudness-normalised to about -13 LUFS like the rest (owner, 2026-10-17: too soft).
+  'blank-wander': { file: 'dark-shrine-loop.ogg', gain: 0.9 },
   'citadel-battle': { file: 'evil-approach.ogg', gain: 0.85 },
   'unwriter-battle': { file: 'epic-endgame.ogg', gain: 0.85 },
 };

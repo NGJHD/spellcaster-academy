@@ -7,7 +7,7 @@ import type { Speaker } from '../content/dialogue';
 import { useRunStore } from '../state/runStore';
 
 export type CharacterId = 'mira' | 'orin' | 'student_a' | 'student_b' | 'student_a_lod1' | 'student_b_lod1';
-export type CharacterClip = 'Idle' | 'Wave' | 'TalkShort' | 'Celebrate';
+export type CharacterClip = 'Idle' | 'Wave' | 'TalkShort' | 'Celebrate' | 'Run';
 
 const base = `${import.meta.env.BASE_URL}assets/characters/`;
 const FADE_SEC = 0.35;
@@ -53,7 +53,9 @@ export function CharacterModel({ id, clip = 'Idle', speaker }: { id: CharacterId
 
   useFrame((_, dt) => {
     const talking = speaker !== undefined && useRunStore.getState().subtitle?.speaker === speaker;
-    const want = talking ? 'TalkShort' : typeof clip === 'function' ? clip() : clip;
+    const chosen = typeof clip === 'function' ? clip() : clip;
+    // Talking gestures never interrupt a run.
+    const want = talking && chosen !== 'Run' ? 'TalkShort' : chosen;
     if (want !== state.current) {
       const next = actions.get(want) ?? actions.get('Idle');
       const prev = actions.get(state.current);

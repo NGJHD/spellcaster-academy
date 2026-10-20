@@ -9,6 +9,7 @@ import { brilliantGeometry, fireballTexture, glintTexture } from '../scene/glow'
 import { AdditiveBlending, CanvasTexture, CatmullRomCurve3, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, SphereGeometry, SpriteMaterial, Vector3, type Group, type Sprite } from 'three';
 import { preloadKit, useKit, useKitGlow } from '../scene/kitGlb';
 import { MAT } from '../scene/materials';
+import { Fire } from '../scene/Fire';
 
 /** Per-frame animation inputs derived from simulation state (0…1 unless noted). */
 export interface TargetPose {
@@ -25,6 +26,8 @@ export interface TargetPose {
   defeated: boolean;
   /** The strike has landed and the creature is recovering. */
   recovering: boolean;
+  /** A model's own extra clip to loop instead of Idle/Move (a boss laughing or pointing), if it has one. */
+  override?: string | null;
 }
 
 export const emptyPose = (): TargetPose => ({
@@ -736,6 +739,52 @@ export function FireballModel({ pose }: { pose: PoseRef }) {
           <sprite key={i} material={emberMat} scale={0.1} />
         ))}
       </group>
+      </group>
+    </group>
+  );
+}
+
+/** Columns of flame across a fire tide: x across the wall, z depth (two staggered rows), height. */
+const WALL_ROWS = 3;
+const WALL_PER_ROW = 12;
+const WALL_COLUMNS = Array.from({ length: WALL_ROWS * WALL_PER_ROW }, (_, i) => {
+  const row = Math.floor(i / WALL_PER_ROW);
+  return {
+    x: -11 + (i % WALL_PER_ROW) * 2 + row * 0.7,
+    z: -row * 1.1,
+    // Towering: the back rows rise highest, so the wall climbs away from the player.
+    size: 8.5 + ((i * 37) % 5) * 0.7 + row * 2,
+  };
+});
+
+/**
+ * A fire tide (Level 3): a towering, dense wall of inkfire 22 m wide and up to 14 m high rolling at the player (owner,
+ * 2026-10-17: Pip shouted "a wall of fire!" at a single fireball). Three staggered rows of flame
+ * columns over a glowing base, always turned square to the camera.
+ */
+export function FireWallModel({ pose }: { pose: PoseRef }) {
+  const wall = useRef<Group>(null);
+  const base = useRef<Sprite>(null);
+  const glowMat = useMemo(() => new SpriteMaterial({ map: softGlow(), color: '#c8280a', transparent: true, opacity: 0.35, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
+  const at = useMemo(() => new Vector3(), []);
+  useFrame((state) => {
+    const g = wall.current;
+    if (!g) return;
+    g.getWorldPosition(at);
+    const parentYaw = g.parent ? g.parent.rotation.y : 0;
+    g.rotation.y = Math.atan2(state.camera.position.x - at.x, state.camera.position.z - at.z) - parentYaw;
+    const p = pose.current;
+    // It surges as it rolls in, and collapses into the shock wave when countered.
+    g.scale.set(1, Math.max(0.001, (1 - p.dispel * 1.4) * (0.94 + Math.sin(p.time * 3.1) * 0.06)), 1);
+    base.current?.scale.set(30, 14 + Math.sin(p.time * 5) * 1.2, 1);
+  });
+  return (
+    <group ref={wall}>
+      <group position={[0, -2.5, 0]}>
+        <sprite ref={base} material={glowMat} position={[0, 5, -1.2]} />
+        {WALL_COLUMNS.map((c, i) => (
+          <Fire key={i} position={[c.x, 0, c.z]} size={c.size} count={2} spread={1.9} smoke={i % 4 === 0} light={i === 5} />
+        ))}
       </group>
     </group>
   );

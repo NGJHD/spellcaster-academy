@@ -37,14 +37,18 @@ const GATE_Z = 20;
 const GATE_HALF = 2.5;
 const GATE_HEIGHT = 5;
 
-export function ExteriorScene({ celebration }: { celebration: boolean }) {
+/**
+ * `cheering`: the Level 3 homecoming crowd cheers at random; at the end of Level 1 they just stand
+ * around (owner, 2026-10-17).
+ */
+export function ExteriorScene({ celebration, cheering = false }: { celebration: boolean; cheering?: boolean }) {
   return (
     <group name="exterior">
       <Campus />
       <ArrivalGate />
       <Courtyard celebration={celebration} />
       <EastHall />
-      {celebration && <CelebrationDressing />}
+      {celebration && <CelebrationDressing cheering={cheering} />}
       <WardDome celebration={celebration} />
       {/* The crack in the ward above the Moon Tower, from the moment it breaks until the Warden fight
           (owner: "look at the sky, it's cracking" but the sky looked fine). */}
@@ -443,13 +447,39 @@ function EastHall() {
 const MIRA_BURST_LAST = beatIndexOf('east-hall-mira-burst');
 const MIRA_SLAM = beatIndexOf('east-hall-slam');
 
-/** Mira bursts out of the alcove, runs beside the camera (out of frame), and holds the line at the end. */
+/**
+ * Mira bursts out of the alcove, runs off down the hall ahead of the books, and holds the line at the
+ * end (owner, 2026-10-17: she used to vanish when the books came out).
+ */
 function EastHallMira({ inHall }: { inHall: boolean }) {
   const beat = useBeatIndex();
   if (!inHall) return null;
   if (beat <= MIRA_BURST_LAST) return <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-1.9} waving />;
   if (beat >= MIRA_SLAM) return <Mira position={MIRA_EAST_HALL_END} rotationY={-1.4} />;
-  return null;
+  return <MiraRunsOff />;
+}
+
+const MIRA_RUN_SPEED = 4.2;
+
+function MiraRunsOff() {
+  const ref = useRef<Group>(null);
+  const run = useMemo(() => ({ x: MIRA_EAST_HALL_POSITION[0] as number, arrived: false }), []);
+  useFrame((_, dt) => {
+    const g = ref.current;
+    if (!g) return;
+    run.x = Math.min(MIRA_EAST_HALL_END[0], run.x + MIRA_RUN_SPEED * Math.min(dt, 0.1));
+    run.arrived = run.x >= MIRA_EAST_HALL_END[0];
+    const k = (run.x - MIRA_EAST_HALL_POSITION[0]) / (MIRA_EAST_HALL_END[0] - MIRA_EAST_HALL_POSITION[0]);
+    g.position.set(run.x, 0, MIRA_EAST_HALL_POSITION[2] + (MIRA_EAST_HALL_END[2] - MIRA_EAST_HALL_POSITION[2]) * k);
+    // She turns from the books towards the library doors, runs, and turns back to face them at the end.
+    const want = run.arrived ? -1.4 : Math.PI / 2;
+    g.rotation.y += (want - g.rotation.y) * (1 - Math.exp(-8 * Math.min(dt, 0.1)));
+  });
+  return (
+    <group ref={ref} position={MIRA_EAST_HALL_POSITION} rotation={[0, -1.9, 0]}>
+      <Mira position={[0, 0, 0]} clip={() => (run.arrived ? 'Idle' : 'Run')} />
+    </group>
+  );
 }
 
 function Chest() {
@@ -469,14 +499,14 @@ function Chest() {
 
 // ---------- Celebration (LD-18) ----------
 
-function CelebrationDressing() {
+function CelebrationDressing({ cheering }: { cheering: boolean }) {
   return (
     <group name="celebration">
       <Mira position={[-4, 0, 3]} rotationY={0.6} waving />
       <KeeperOrin position={[3.5, 0, 3.2]} rotationY={-1.9} />
       {[[-8, 2, 0.6], [-9, -4, 1.2], [8, -2, -1.2], [9, 3, -1.6], [-6, 9, 2.4], [7, 10, -2.6], [4, -9, 0.2], [-3, -10, 0.4]].map(
         ([x = 0, z = 0, r = 0], i) => (
-          <Student key={i} position={[x, 0, z]} rotationY={r} robe={i % 3 === 0 ? MAT.burgundyLeather : MAT.navyCloth} height={1.35 + (i % 3) * 0.12} />
+          <Student key={i} position={[x, 0, z]} rotationY={r} robe={i % 3 === 0 ? MAT.burgundyLeather : MAT.navyCloth} height={1.35 + (i % 3) * 0.12} calm={!cheering} cheering={cheering} />
         ),
       )}
       {/* Night celebration light: warm lamplight across the courtyard and a soft fill so faces read */}

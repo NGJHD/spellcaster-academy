@@ -3,15 +3,17 @@
  * and the Unwriter's Cinder Citadel. Path words draw the route in coloured ink; restored objects lose
  * their fire and regain colour. PLACEHOLDER geometry is kit-built; mobs and bosses are AI-pipeline models.
  */
+import { GuardianFists, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useMemo, useRef, type ReactNode } from 'react';
+import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
 import { THRONE_ORIGIN, PIP_SEIZED, UNWRITER } from '../../level/areas3/finale';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
-import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
+import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, RAFT_HOLD_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
 import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
+import { useRunStore } from '../../state/runStore';
 import { Fire, Restorable } from '../Fire';
 import { Bookshelf, Box, KitModel, Slab } from '../kit';
 import { CastleDoor } from '../CastleDoor';
@@ -381,6 +383,25 @@ function RaftOars() {
   );
 }
 
+/** Mira at the raft's bow; she steps back to the left while the apprentice looks over the edge. */
+function RaftMira() {
+  const ref = useRef<Group>(null);
+  useFrame((_, delta) => {
+    const g = ref.current;
+    if (!g) return;
+    const id = getRun()?.director.currentBeat?.id ?? '';
+    const aside = (RAFT_HOLD_BEATS as readonly string[]).includes(id);
+    const k = 1 - Math.exp(-4 * Math.min(delta, 0.1));
+    g.position.x += ((aside ? -0.85 : 0) - g.position.x) * k;
+    g.position.z += ((aside ? -1.5 : -2.4) - g.position.z) * k;
+  });
+  return (
+    <group ref={ref} position={[0, 0.06, -2.4]}>
+      <Mira position={[0, 0, 0]} rotationY={Math.PI} />
+    </group>
+  );
+}
+
 function PaperRaft() {
   const sheet = useMemo(() => {
     const m = surface('paper', [3, 4.4], 1.2);
@@ -492,9 +513,9 @@ export function InkfallScene() {
           <Mira position={[0, 0.06, -2.4]} rotationY={0} />
         </group>
       </OnBeatsShow>
-      <Carried beats={RAFT_BEATS} drop={1.1}>
+      <Carried beats={RAFT_BEATS} drop={1.1} hold={RAFT_HOLD_BEATS}>
         <PaperRaft />
-        <Mira position={[0, 0.06, -2.4]} rotationY={Math.PI} />
+        <RaftMira />
         <FrostBubble flag="l3-shield-on" />
       </Carried>
     </>
@@ -646,8 +667,7 @@ export function Gallery3Scene() {
       <GalleryDressing />
       <Slab x={[-16, 16]} y={[-0.3, 0]} z={[-26, 22]} material={MAT.marble} />
       {/* Back wall and buttressed side walls of volcanic stone, with columns between the bays */}
-      <Slab x={[-16, 16]} y={[0, 14]} z={[-28, -26]} material={MAT.volcanicStone} />
-      <Box position={[0, 14.5, -27]} size={[32.6, 1, 2.6]} material={MAT.volcanicStone} />
+      <CollapsingWall />
       {[-1, 1].map((side) => (
         <group key={side}>
           <Slab x={side < 0 ? [-17.5, -16] : [16, 17.5]} y={[0, 12]} z={[-26, 22]} material={MAT.volcanicStone} />
@@ -692,7 +712,78 @@ export function Gallery3Scene() {
         fromBeat="l3-perfect-warden"
         goneFlag="l3-perfect-warden-gone"
         fallback={<IronGiant height={7} />}
+        // Owner (2026-10-17): it charges up (fists blazing) and smashes when it attacks.
+        threat
+        effects={(rig) => <GuardianFists rig={rig} />}
       />
+    </group>
+  );
+}
+
+const WALL_COLS = 8;
+const WALL_ROWS = 4;
+const WALL_FALL_SEC = 2.6;
+
+/**
+ * The gallery's back wall (owner, 2026-10-17): when the Perfect Guardian is beaten it cracks into
+ * blocks that topple outwards and tumble down the cliff, opening the view of the paper sea far below
+ * with the Cinder Citadel beyond, the way we go next.
+ */
+function CollapsingWall() {
+  const blocks = useRef<(Group | null)[]>([]);
+  const fallen = useRef(0);
+  const [down, setDown] = useState(false);
+  const seeds = useMemo(
+    () =>
+      Array.from({ length: WALL_COLS * WALL_ROWS }, (_, i) => {
+        const col = i % WALL_COLS;
+        const row = Math.floor(i / WALL_COLS);
+        const h = (n: number) => {
+          const x = Math.sin((i + 1) * 12.9898 + n * 78.233) * 43758.5453;
+          return x - Math.floor(x);
+        };
+        return { col, row, delay: 0.15 + (WALL_ROWS - 1 - row) * 0.12 + h(1) * 0.35, spin: (h(2) - 0.5) * 3, drift: (h(3) - 0.5) * 4, push: 2 + h(4) * 3 };
+      }),
+    [],
+  );
+  useFrame((_, delta) => {
+    const gone = getRun()?.flags.has('l3-perfect-warden-gone') ?? false;
+    if (!gone) {
+      fallen.current = 0;
+      if (down) setDown(false);
+    } else {
+      fallen.current += Math.min(delta, 0.1);
+      if (!down) setDown(true);
+    }
+    const t = fallen.current;
+    const w = 32 / WALL_COLS;
+    const hgt = 15 / WALL_ROWS;
+    blocks.current.forEach((b, i) => {
+      const s = seeds[i];
+      if (!b || !s) return;
+      const u = Math.max(0, t - s.delay);
+      // Each block tips outwards, then falls with gravity past the cliff edge and out of sight.
+      b.position.set(-16 + w * (s.col + 0.5) + s.drift * u, hgt * (s.row + 0.5) - 4.9 * u * u, -27 - s.push * u * u * 0.8);
+      b.rotation.set(-Math.min(1.4, u * 1.2) + s.spin * u * 0.2, s.spin * u * 0.3, s.spin * u * 0.4);
+      b.visible = u < WALL_FALL_SEC;
+    });
+  });
+  return (
+    <group>
+      {seeds.map((_, i) => (
+        <group key={i} ref={(g) => void (blocks.current[i] = g)}>
+          <Box position={[0, 0, 0]} size={[32 / WALL_COLS - 0.04, 15 / WALL_ROWS - 0.04, 2]} material={MAT.volcanicStone} />
+        </group>
+      ))}
+      {/* Revealed beyond: the paper sea below the cliff and the Citadel on its far shore. */}
+      {down && (
+        <group position={[0, -9, -60]}>
+          <PaperWaves />
+          <group position={[0, -4, -260]}>
+            <CinderCitadel />
+          </group>
+        </group>
+      )}
     </group>
   );
 }
@@ -1117,6 +1208,11 @@ export function ThroneScene() {
     if (book.current) book.current.visible = run?.flags.has('l3-unwriter-sealed') ?? false;
   });
   const unwriter = sub(UNWRITER, THRONE_ORIGIN);
+  const pipSeized = () => {
+    const run = getRun();
+    const id = run?.director.currentBeat?.id ?? '';
+    return (id === 'l3-pip-seized' || id === 'l3-u3') && !(run?.flags.has('l3-pip-free') ?? false);
+  };
   const pip = sub(PIP_SEIZED, THRONE_ORIGIN);
   return (
     <group position={THRONE_ORIGIN}>
@@ -1156,6 +1252,11 @@ export function ThroneScene() {
         goneFlag="l3-unwriter-sealed"
         fallback={<UnwriterFallback />}
         rearing={() => (getRun()?.director.currentBeat?.id ?? '') === 'l3-u4'}
+        // Owner (2026-10-17): he laughs as he talks, charges his quill before he attacks, and points it
+        // at Pip to burn Pip's rings.
+        threat
+        clip={() => (pipSeized() ? 'Point' : useRunStore.getState().subtitle?.speaker === 'unwriter' ? 'Laugh' : null)}
+        effects={(rig) => <UnwriterQuill rig={rig} pip={PIP_SEIZED} burning={pipSeized} />}
       />
       </group>
       {/* Pip held in a ring of burning red script */}

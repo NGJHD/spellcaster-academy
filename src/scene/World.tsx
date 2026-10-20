@@ -203,7 +203,7 @@ export function World() {
     'l3-citadel': <CitadelScene />,
     'l3-throne': <ThroneScene />,
     // The homecoming ends in the Level 1 courtyard at dawn, celebrating.
-    'l3-home': <ExteriorScene celebration />,
+    'l3-home': <ExteriorScene celebration cheering />,
   };
 
   return (

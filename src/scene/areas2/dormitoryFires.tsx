@@ -34,6 +34,7 @@ export function DormitoryFires() {
               </ModelBoundary>
             </Restorable>
             <TrappedStudent deg={d.deg + 4} flag={`l2-dorm-door-${d.id}`} />
+            <TrapFires deg={d.deg + 4} flag={`l2-dorm-door-${d.id}`} />
           </group>
         );
       })}
@@ -41,6 +42,32 @@ export function DormitoryFires() {
         <Fire key={deg} position={local(spiral(deg, stairFloor(deg) + 0.2, 8.7))} size={1.4} count={3} spread={1} />
       ))}
     </group>
+  );
+}
+
+/**
+ * A ring of inkfire round each trapped first-year (owner, 2026-10-17: more fire, so they look trapped):
+ * tall flames either side and behind, low ones in front so the student stays in view. They go out with
+ * the door's restore word.
+ */
+const TRAP_RING: readonly { dDeg: number; r: number; size: number }[] = [
+  { dDeg: -7, r: 8.7, size: 1.7 },
+  { dDeg: 8, r: 8.7, size: 1.7 },
+  { dDeg: -4, r: 9.15, size: 1.5 },
+  { dDeg: 4, r: 9.2, size: 1.4 },
+  { dDeg: -5, r: 7.95, size: 0.8 },
+  { dDeg: 0, r: 7.75, size: 0.65 },
+  { dDeg: 5, r: 7.95, size: 0.8 },
+];
+
+function TrapFires({ deg, flag }: { deg: number; flag: string }) {
+  return (
+    <>
+      {TRAP_RING.map(({ dDeg, r, size }) => {
+        const at = deg + dDeg;
+        return <Fire key={`${dDeg}:${r}`} position={local(spiral(at, stairFloor(at) + 0.05, r))} size={size} count={size > 1 ? 3 : 2} spread={0.6} smoke={size > 1} untilFlag={flag} />;
+      })}
+    </>
   );
 }
 

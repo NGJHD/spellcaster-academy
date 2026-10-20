@@ -22,7 +22,9 @@ export const GALLERY3_ORIGIN: Vec3 = [2400, 0, 0];
 const I = origin(FALLS_ORIGIN);
 const L = origin(MARGIN_ORIGIN);
 const Y = origin(GALLERY3_ORIGIN);
-export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
+export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-raft-peek', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
+/** Beats where the raft stays at the edge while the apprentice steps to its bow to watch the slide being written. */
+export const RAFT_HOLD_BEATS = ['l3-raft-peek', 'l3-if-slide'] as const;
 /**
  * The written slide down the broken drop: from the basin's edge (z −88, y 19.8) down into the pool
  * (z −120, y 1). Owner (2026-10-08): the slides pointed upwards and we slid down behind them.
@@ -78,6 +80,9 @@ export const inkfall: AreaScript = {
     IF_BASIN: { position: I(0, 21.6, -60.5), lookAt: I(0, 20, -80) },
     // At the basin's edge, then riding the slide surface (raft 1.1 m below the eye) into the pool.
     IF_DROP: { position: I(0, 21.6, -86), lookAt: I(0, 6, -112) },
+    // At the raft's bow (right of Mira), looking down over its edge at the slide as it is written (owner,
+    // 2026-10-17: the raft hid the slide forming).
+    IF_PEEK: { position: I(0.75, 21.5, -88.4), lookAt: I(0, 9, -105) },
     IF_SLIDE_A: { position: [SLIDE_SECTIONS[0]?.[0] ?? 0, (SLIDE_SECTIONS[0]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[0]?.[2] ?? 0], lookAt: I(0, 2, -122) },
     IF_SLIDE_B: { position: [SLIDE_SECTIONS[2]?.[0] ?? 0, (SLIDE_SECTIONS[2]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[2]?.[2] ?? 0], lookAt: I(0, 1.2, -140) },
     IF_POOL: { position: I(0, 1.6, -126), lookAt: I(0, 1.4, -142) },
@@ -101,8 +106,9 @@ export const inkfall: AreaScript = {
     travel('l3-raft-2', F, ['IF_S1', 'IF_RUN2', 'IF_LIP2', 'IF_BASIN'], 4.5),
     fight('l3-tide-1', F, { barks: ['l3-tide-tip'] }),
     travel('l3-raft-3', F, ['IF_BASIN', 'IF_DROP'], 4, { barks: ['l3-broken-drop'] }),
+    travel('l3-raft-peek', F, ['IF_DROP', 'IF_PEEK'], 1.2, { easing: 'easeInOutSine' }),
     fight('l3-if-slide', F),
-    travel('l3-raft-slide', F, ['IF_DROP', 'IF_SLIDE_A', 'IF_SLIDE_B', 'IF_POOL'], 6, { easing: 'easeInOutCubic', fx: [{ kind: 'geyser', at: 'IF_FALLS', atBeat: 0.9, scale: 1.6, color: '#ff3a1a' }] }),
+    travel('l3-raft-slide', F, ['IF_PEEK', 'IF_SLIDE_A', 'IF_SLIDE_B', 'IF_POOL'], 6, { easing: 'easeInOutCubic', fx: [{ kind: 'geyser', at: 'IF_FALLS', atBeat: 0.9, scale: 1.6, color: '#ff3a1a' }] }),
     fight('l3-if-pool', F),
     checkpoint('l3-if-checkpoint', F, 'inkfall-descended', { barks: ['l3-mira-raft'], objective: 'l3-margin' }),
   ],
@@ -269,9 +275,12 @@ export const gallery3: AreaScript = {
   nodes: {
     G3_START: { position: Y(0, 1.6, 16), lookAt: Y(0, 2.4, -4) },
     G3_ARENA: { position: Y(0, 1.7, 4), lookAt: Y(0, 4, -18) },
+    // The breach where the back wall fell: the paper sea far below, the Citadel beyond it.
+    G3_BREACH: { position: Y(0, 1.7, -23), lookAt: Y(0, -6, -90) },
   },
   lookPoints: {
     G3_WALL: Y(0, 4, -22),
+    G3_BACK_WALL: Y(0, 5, -27),
     G3_PW_HEAD: Y(0, 7, -20),
   },
   beats: [
@@ -295,6 +304,8 @@ export const gallery3: AreaScript = {
     fight('l3-pw-3', G, { barks: ['l3-pw-together'] }),
     // Said in the gallery, with our Warden still in view (they played out at sea).
     hold('l3-g3-after', G, 'G3_ARENA', 1, { barks: ['l3-pw-done', 'l3-pw-after'] }),
+    // Owner (2026-10-17): the wall behind the Guardian came down to show the paper sea; walk to the gap.
+    travel('l3-g3-to-breach', G, ['G3_ARENA', 'G3_BREACH'], 4, { easing: 'easeInOutSine' }),
     checkpoint('l3-g3-checkpoint', G, 'perfect-warden-defeated', { objective: 'l3-sea' }),
   ],
   encounters: [
@@ -370,6 +381,10 @@ export const gallery3: AreaScript = {
         { kind: 'debris', at: 'G3_PW_HEAD', scale: 4, color: '#2a2a30' },
         { kind: 'burst', at: 'G3_PW_HEAD', scale: 3, color: '#ff5a1a' },
         { kind: 'shake', scale: 2 },
+        // The wall behind it cracks and comes crashing down (Gallery3Scene CollapsingWall).
+        { kind: 'debris', at: 'G3_BACK_WALL', delaySec: 0.5, scale: 4, color: '#3a3330' },
+        { kind: 'dust', at: 'G3_BACK_WALL', delaySec: 0.7, scale: 4, color: '#4a4440' },
+        { kind: 'shake', delaySec: 0.7, scale: 1.6 },
       ],
     },
   ],

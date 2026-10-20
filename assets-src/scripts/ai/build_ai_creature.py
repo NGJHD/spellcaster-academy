@@ -18,7 +18,7 @@ import sys
 
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "shared"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".deps"))
@@ -36,7 +36,8 @@ CONFIG = {
     "armour_guardian": dict(out="armour_guardian", height=2.05, tris=40000, tex=2048, rig="biped", defeat="bow", metallic=0.45, roughness=0.5),
     "paint_imp": dict(out="paint_imp", height=0.8, tris=26000, tex=1024, rig="biped", defeat="vanish"),
     "thorn_pod": dict(out="thorn_pod", height=1.4, tris=30000, tex=1024, rig="plant", defeat="wilt"),
-    "runaway_book": dict(out="runaway_book", yaw=-90, height=0.5, tris=20000, tex=1024, rig="rigid", defeat="vanish"),
+    # (Its old yaw=-90 was never applied, see the yaw fix below; the book is right as built.)
+    "runaway_book": dict(out="runaway_book", height=0.5, tris=20000, tex=1024, rig="rigid", defeat="vanish"),
     "training_dummy": dict(out="training_dummy", height=1.65, tris=24000, tex=1024, rig="dummy", defeat="slump"),
     "tea_tray": dict(out="tea_tray", folder="props", height=0.06, fit="width", width=0.7, tris=6000, tex=1024, rig="none", defeat="vanish", metallic=0.8, roughness=0.3),
     "lift_platform": dict(out="lift_platform", folder="props", height=3.0, fit="width", width=2.5, tris=20000, tex=1024, rig="none", defeat="vanish", metallic=0.75, roughness=0.4),
@@ -45,16 +46,24 @@ CONFIG = {
     "blotling": dict(out="blotling", height=0.7, tris=24000, tex=1024, rig="biped", defeat="vanish"),
     "eraser_moth": dict(out="eraser_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
     "scribble_imp": dict(out="scribble_imp", height=0.8, tris=24000, tex=1024, rig="biped", defeat="vanish"),
-    "smudgehound": dict(out="smudgehound", height=1.1, tris=28000, tex=1024, rig="rigid", defeat="vanish"),
+    # yaw: the generated hound faced +X, so it walked at the camera sideways (owner, 2026-10-17).
+    "smudgehound": dict(out="smudgehound", yaw=-90, height=1.1, tris=28000, tex=1024, rig="rigid", defeat="vanish"),
     "hollow_knight": dict(out="hollow_knight", height=2.2, tris=34000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
-    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish"),
+    # moves: a boss's own Idle and Attack (owner, 2026-10-17: bosses stood "doing nothing", and every
+    # boss must move differently). The Herald channels with its hands already raised.
+    "grey_herald": dict(out="grey_herald", height=3.0, tris=40000, tex=2048, rig="biped", defeat="vanish", moves="herald"),
     "vellum_wyrm": dict(out="vellum_wyrm", height=6.0, tris=60000, tex=2048, rig="plant", defeat="vanish"),
     # Level 3: the Blank and the Cinder Citadel.
     "correction_moth": dict(out="correction_moth", height=1.1, tris=24000, tex=1024, rig="rigid", defeat="vanish"),
     "redactor": dict(out="redactor", height=2.4, tris=24000, tex=1024, rig="floater", defeat="vanish"),
     "foreman": dict(out="foreman", height=2.7, tris=36000, tex=1024, rig="biped", defeat="slump", metallic=0.5, roughness=0.5),
-    "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45),
-    "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish"),
+    # limbs: extra bones for limbs that stand clear of the body (fractions of W and H, measured): the
+    # Guardian's hanging arms, and the Unwriter's raised quill arm (forearm, hand and quill).
+    "perfect_warden": dict(out="perfect_warden", height=4.0, tris=50000, tex=2048, rig="biped", defeat="vanish", metallic=0.5, roughness=0.45, moves="guardian",
+                           limbs=[dict(bone="arm_l", side=-1, x=0.31, z=(0.36, 0.64), head=(0.29, 0.72), tail=(0.35, 0.40)),
+                                  dict(bone="arm_r", side=1, x=0.31, z=(0.36, 0.64), head=(0.29, 0.72), tail=(0.35, 0.40))]),
+    "unwriter": dict(out="unwriter", height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
+                     limbs=[dict(bone="arm_l", side=-1, x=0.31, z=(0.64, 1.01), head=(0.31, 0.64), tail=(0.38, 0.82))]),
     # Level 2/3 environment set pieces (static props).
     "festival_stall": dict(out="festival_stall", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=3.2, tris=16000, tex=1024),
     "boathouse": dict(out="boathouse", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=10, tris=24000, tex=2048),
@@ -118,7 +127,8 @@ high.matrix_world = world
 for o in list(bpy.context.scene.objects):
     if o is not high:
         bpy.data.objects.remove(o, do_unlink=True)
-high.rotation_euler[2] += math.radians(cfg.get("yaw", 0.0))
+# Through the matrix: glTF imports use quaternion rotation, so rotation_euler was silently ignored.
+high.matrix_world = Matrix.Rotation(math.radians(cfg.get("yaw", 0.0)), 4, "Z") @ high.matrix_world
 bpy.ops.object.select_all(action="DESELECT")
 high.select_set(True)
 bpy.context.view_layer.objects.active = high
@@ -349,6 +359,10 @@ if cfg["rig"] != "none":
                 J("arm_l", (-(ax + 0.02) * W, 0, 0.76 * H), (-(ax + 0.06) * W, 0, 0.4 * H), "chest"),
                 J("arm_r", ((ax + 0.02) * W, 0, 0.76 * H), ((ax + 0.06) * W, 0, 0.4 * H), "chest"),
             ]
+        for limb in cfg.get("limbs", ()):
+            hx, hz = limb["head"]
+            tx, tz = limb["tail"]
+            joints.append(J(limb["bone"], (limb["side"] * hx * W, 0, hz * H), (limb["side"] * tx * W, 0, tz * H), "chest"))
         if cfg["rig"] == "dragon":
             # A wing bone each side, from the shoulder out along the span (wings lie along ±X).
             joints += [
@@ -368,7 +382,8 @@ if cfg["rig"] != "none":
         b.head, b.tail = j.head, j.tail
         if j.parent:
             b.parent = made[j.parent]
-            b.use_connect = True
+            # Only bones that start where their parent ends connect (limbs keep their own shoulders).
+            b.use_connect = (Vector(j.head) - made[j.parent].tail).length < 1e-4
         made[j.name] = b
     bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -417,7 +432,31 @@ if cfg["rig"] != "none":
             return 0.0
         return min(1.0, max(0.0, (z_hi + 0.08 - f) / 0.08))
 
+    for limb in cfg.get("limbs", ()):
+        groups[limb["bone"]] = body.vertex_groups.new(name=limb["bone"])
+
+    def limb_share(co):
+        """(bone, share) of the limb a vertex belongs to: beyond its x line on its side, inside its height band."""
+        for limb in cfg.get("limbs", ()):
+            if co.x * limb["side"] <= 0:
+                continue
+            u = min(1.0, max(0.0, (abs(co.x) / W - limb["x"]) / 0.025))
+            f = co.z / H
+            z_lo, z_hi = limb["z"]
+            zw = min(1.0, max(0.0, (f - (z_lo - 0.03)) / 0.03)) * min(1.0, max(0.0, ((z_hi + 0.03) - f) / 0.03))
+            w = u * u * (3 - 2 * u) * zw
+            if w > 0:
+                return limb["bone"], w
+        return None, 0.0
+
     for v in body.data.vertices:
+        limb_bone, limb_w = limb_share(v.co)
+        if limb_bone:
+            for name, w in band_weights(v.co.z).items():
+                if w * (1 - limb_w) > 0:
+                    groups[name].add([v.index], w * (1 - limb_w), "REPLACE")
+            groups[limb_bone].add([v.index], limb_w, "REPLACE")
+            continue
         wing = max(wing_share(v.co), arm_share(v.co))
         for name, w in band_weights(v.co.z).items():
             if w * (1 - wing) > 0:
@@ -551,6 +590,91 @@ if cfg["rig"] != "none":
                 (0, {"pelvis": {"loc": (0, 0, 0), "scale": (1, 1, 1)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}),
                 (30, {"pelvis": {"loc": (0, 0, 0), "scale": (1.08, 0.82, 1.08)}, "spine": (30, 0, 0), "chest": (22, 0, 0), "head": (28, 0, 0)}),
             ])
+
+def aim_bone(bone_name, direction):
+    """Euler (degrees) turning a bone from its rest direction to point along `direction` (armature space)."""
+    bone = rig.data.bones[bone_name]
+    local = bone.matrix_local.to_3x3().inverted() @ Vector(direction).normalized()
+    return tuple(math.degrees(a) for a in Vector((0.0, 1.0, 0.0)).rotation_difference(local).to_euler("XYZ"))
+
+
+def replace_action(name, keys):
+    """Drop the default clip `name` and author this one instead."""
+    for track in list(rig.animation_data.nla_tracks):
+        if track.name == name:
+            rig.animation_data.nla_tracks.remove(track)
+    old = bpy.data.actions.get(name)
+    if old:
+        bpy.data.actions.remove(old)
+    C.pose_action(rig, name, keys)
+
+
+# Attacks keep the runtime's timing: 30 frames, the wind-up peaking at frame 14 (CreatureModel scrubs it).
+moves = cfg.get("moves")
+if rig and moves == "herald":
+    # Channelling: hovering a little, swaying, the chest opening and the hooded head bowing over the
+    # raised hands as it gathers power (wisps circle it in the game).
+    def ch(rise, sway, open_, bow):
+        return {"pelvis": {"loc": (0, rise * H, 0)}, "spine": (0, sway, sway * 0.7), "chest": (-open_, sway * 0.8, 0), "head": (bow, -sway * 1.5, sway)}
+    replace_action("Idle", [(0, ch(0, 0, 4, 8)), (22, ch(0.02, 4, 8, 12)), (45, ch(0.035, 0, 10, 5)), (67, ch(0.02, -4, 8, 12)), (90, ch(0, 0, 4, 8))])
+    # The trumpet blast: draws itself up and back to breathe in, then pitches forward and blasts.
+    replace_action("Attack", [
+        (0, ch(0, 0, 4, 8)),
+        (14, {"pelvis": {"loc": (0, 0.05 * H, 0)}, "spine": (-10, 0, 0), "chest": (-20, 0, 0), "head": (-12, 0, 0)}),
+        (19, {"pelvis": {"loc": (0, 0.01 * H, 0.04 * H)}, "spine": (12, 0, 0), "chest": (22, 0, 0), "head": (12, 0, 0)}),
+        (23, {"pelvis": {"loc": (0, 0.01 * H, 0.04 * H)}, "spine": (10, 0, 2), "chest": (18, 0, -2), "head": (16, 0, 3)}),
+        (30, ch(0, 0, 4, 8)),
+    ])
+elif rig and moves == "guardian":
+    # Charging: crouched, fists drawn back and out, chest pushed forward, breathing hard.
+    def charge(k):
+        return {
+            "arm_l": aim_bone("arm_l", (-0.45 - 0.05 * k, 0.45 + 0.15 * k, -0.77 + 0.12 * k)),
+            "arm_r": aim_bone("arm_r", (0.45 + 0.05 * k, 0.45 + 0.15 * k, -0.77 + 0.12 * k)),
+            "pelvis": {"loc": (0, -(0.01 + 0.015 * k) * H, 0)},
+            "spine": (6 + 3 * k, 0, 0),
+            "chest": (6 + 4 * k, 0, 0),
+            "head": (-4 - 3 * k, 0, 0),
+        }
+    replace_action("Idle", [(0, charge(0)), (30, charge(1)), (60, charge(0))])
+    # The hammer-fist: both arms swing high overhead, then smash down in front.
+    replace_action("Attack", [
+        (0, charge(0)),
+        (14, {"arm_l": aim_bone("arm_l", (-0.25, 0.15, 0.96)), "arm_r": aim_bone("arm_r", (0.25, 0.15, 0.96)), "pelvis": {"loc": (0, 0.02 * H, 0)}, "spine": (-6, 0, 0), "chest": (-12, 0, 0), "head": (-6, 0, 0)}),
+        (20, {"arm_l": aim_bone("arm_l", (-0.12, -0.85, -0.5)), "arm_r": aim_bone("arm_r", (0.12, -0.85, -0.5)), "pelvis": {"loc": (0, -0.03 * H, 0.05 * H)}, "spine": (20, 0, 0), "chest": (16, 0, 0), "head": (-8, 0, 0)}),
+        (24, {"arm_l": aim_bone("arm_l", (-0.14, -0.8, -0.58)), "arm_r": aim_bone("arm_r", (0.14, -0.8, -0.58)), "pelvis": {"loc": (0, -0.03 * H, 0.05 * H)}, "spine": (18, 0, 0), "chest": (14, 0, 0), "head": (-6, 0, 0)}),
+        (30, charge(0)),
+    ])
+elif rig and moves == "unwriter":
+    still = {"arm_l": (0, 0, 0), "pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}
+    # Brooding: the quill turning slowly in his raised hand, his head tilting as he watches.
+    replace_action("Idle", [
+        (0, still),
+        (40, {**still, "arm_l": (6, 0, -5), "spine": (0, 4, 0), "chest": (2, 4, 0), "head": (-4, 8, 3)}),
+        (80, still),
+    ])
+    # A sinister laugh: head thrown back, shoulders shaking.
+    shake = []
+    for i, frame in enumerate(range(0, 33, 4)):
+        up = i % 2 == 1
+        shake.append((frame, {**still, "arm_l": (4, 0, 0), "pelvis": {"loc": (0, (0.012 if up else 0) * H, 0)}, "spine": (-4, 0, 0), "chest": (-3 if up else -9, 0, 0), "head": (-22 if up else -16, 0, 0)}))
+    C.pose_action(rig, "Laugh", shake)
+    # Pointing the quill straight at someone (at Pip, before he burns Pip's rings).
+    point = aim_bone("arm_l", (-0.45, -0.87, -0.2))
+    jab = aim_bone("arm_l", (-0.42, -0.9, -0.12))
+    C.pose_action(rig, "Point", [
+        (0, {**still, "arm_l": point, "spine": (6, 0, 0), "chest": (6, 0, 0), "head": (6, 0, 0)}),
+        (20, {**still, "arm_l": jab, "spine": (9, 0, 0), "chest": (9, 0, 0), "head": (8, 0, 0)}),
+        (40, {**still, "arm_l": point, "spine": (6, 0, 0), "chest": (6, 0, 0), "head": (6, 0, 0)}),
+    ])
+    # The quill stroke: the arm sweeps up and back, then slashes down across the body.
+    replace_action("Attack", [
+        (0, still),
+        (14, {**still, "arm_l": aim_bone("arm_l", (-0.25, 0.45, 0.86)), "spine": (-4, -14, 0), "chest": (-10, -8, 0), "head": (-6, 6, 0)}),
+        (20, {**still, "arm_l": aim_bone("arm_l", (0.25, -0.8, -0.55)), "spine": (8, 18, 0), "chest": (16, 10, 0), "head": (6, -6, 0)}),
+        (24, {**still, "arm_l": aim_bone("arm_l", (0.28, -0.75, -0.6)), "spine": (8, 18, 0), "chest": (14, 10, 0), "head": (6, -6, 0)}),
+        (30, still),
+    ])
 
 out = os.path.join(ROOT, "public", "assets", cfg.get("folder", "creatures"), f"{cfg['out']}.glb")
 C.export_glb(out)

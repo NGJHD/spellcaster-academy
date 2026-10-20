@@ -78,6 +78,7 @@ export const BEAT_ALIASES: Readonly<Record<string, string>> = {
   'stair-3': 'stairwell-slide-3',
   'stairwell-done': 'stairwell-checkpoint',
   'gallery-mira': 'gallery-to-zone1',
+  'tower-pre-boss-choice': 'observatory-enter',
   'gallery-done-hold': 'gallery-checkpoint',
   'gallery-done': 'gallery-checkpoint',
   'tower-climb-1': 'tower-lift-1',

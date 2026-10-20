@@ -2,6 +2,7 @@
  * Authored Level 1 data model (CLAUDE.md §6A): a deterministic sequence of beats.
  * Camera beats run on time; gated beats wait for a system (dialogue, encounter, choice) to finish.
  */
+import type { SfxId } from '../audio/audioCatalog';
 import type { WordCategory } from '../content/wordLists';
 import type { AnchorId, AreaId, CheckpointId, CosmeticId, SpellId, StarPageId } from '../game/types';
 import type { CameraBeat, CameraNode, Vec3 } from './rail/railTypes';
@@ -79,6 +80,8 @@ export interface FxCue {
   /** Size (or strength for shake). Default 1. */
   readonly scale?: number;
   readonly color?: string;
+  /** Plays this sound (at full volume) instead of the effect's usual one. */
+  readonly sound?: SfxId;
 }
 
 /** A target that joins a camera beat part-way through (chases and fast-rail set pieces). */

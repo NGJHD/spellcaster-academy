@@ -150,6 +150,39 @@ const SOUNDS = {
       ),
       0.6,
     ),
+  // The great bell of the Bell Bridge beacon (owner, 2026-10-17: "I don't hear it at all"). A church
+  // bell's partials (hum, prime, tierce, quint, nominal and upper partials), each a slightly detuned pair
+  // so it beats and shimmers, with a clanging strike, then soft-clipped so it rings out loud.
+  bell: () => {
+    const f = 98;
+    const partials = [
+      [0.5, 1.0, 4.5],
+      [1, 0.8, 3.6],
+      [1.183, 0.55, 2.6],
+      [1.506, 0.35, 2.0],
+      [2, 0.7, 1.8],
+      [2.514, 0.3, 1.2],
+      [2.662, 0.25, 1.0],
+      [3.011, 0.22, 0.8],
+      [4.166, 0.16, 0.5],
+      [5.433, 0.12, 0.35],
+      [6.796, 0.08, 0.25],
+    ];
+    const ring = render(5.5, (t) => {
+      let v = 0;
+      for (const [r, a, d] of partials) {
+        const e = Math.exp(-t / d) * (t < 0.003 ? t / 0.003 : 1);
+        v += a * e * (sine(f * r, t) + sine(f * r * 1.0035, t)) * 0.5;
+      }
+      return v;
+    });
+    const strike = lowpass(render(0.25, (t) => env(t, 0.0005, 0.03) * noise() * 1.4), 3200);
+    const data = mix(ring, strike);
+    let max = 0;
+    for (const v of data) max = Math.max(max, Math.abs(v));
+    for (let i = 0; i < data.length; i++) data[i] = Math.tanh((data[i] / max) * 2.2);
+    return normalise(data, 0.97);
+  },
   dispel: () =>
     normalise(
       mix(...[0, 1, 2, 3, 4].map((i) => chime(note(96 - i * 3), i * 0.05, 0.35, 0.5))),
