@@ -109,7 +109,7 @@ CONFIG = {
     "erased_deer": dict(out="erased_deer", folder="props", rig="none", defeat="vanish", height=2.1, tris=40000, tex=1024),
     "paper_ship": dict(out="paper_ship", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=9, tris=16000, tex=1024),
     # 2026-10-08: the Cinder Citadel's front (owner: "the front of the cinder citadel looks blockish").
-    "vellum_dragon": dict(out="vellum_dragon", normal_map=True, height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
+    "vellum_dragon": dict(out="vellum_dragon", height=6.5, fit="width", width=15, tris=70000, tex=2048, rig="dragon", defeat="vanish"),
     "vine_tangle": dict(out="vine_tangle", folder="props", rig="none", defeat="vanish", height=2.4, tris=30000, tex=1024),
     "wooden_oar": dict(out="wooden_oar", folder="props", rig="none", defeat="vanish", height=0.18, fit="width", width=2.8, tris=6000, tex=1024),
     "lift_cage": dict(out="lift_cage", folder="props", rig="none", defeat="vanish", height=1.25, fit="width", width=2.8, tris=20000, tex=1024),

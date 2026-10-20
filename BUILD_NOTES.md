@@ -864,8 +864,8 @@ Level 3:
   the hand and quill are now a wrist bone (`quill_l`, child of `arm_l`; limb heads/tails take an
   optional y in metres, as the hand is held 0.5 m in front of him). Point keeps the arm raised at
   shoulder height and tips the quill down at Pip; the fire leaves the quill's tip (rigPoint on `quill_l`).
-- Page dragon rebuilt at full quality (sharper horns, wings and head; same size and mouth height, so
-  its glow points still sit on its jaws, chest and belly).
+- Page dragon: back to the original 3080 build (owner, 2026-10-20). The full-quality rebuild looked
+  "kinda fat", and a leaner regenerated concept came out blotchy with its head twice as high.
 
 ## Known limitations / next steps
 
