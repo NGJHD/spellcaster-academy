@@ -79,7 +79,10 @@ CONFIG = {
     # (2026-10-20) Regenerated with his quill arm held out from the shoulder: the whole arm, sleeve, hand
     # and quill is one bone, so he can raise it overhead and point it straight at Pip.
     "unwriter": dict(out="unwriter", normal_map=True, height=3.4, tris=60000, tex=2048, rig="biped", defeat="vanish", moves="unwriter",
-                     limbs=[dict(bone="arm_l", side=-1, x=0.15, z=(0.55, 1.0), head=(0.13, 0.72), tail=(0.33, 0.77), ramp=0.04)]),
+                     # The hand and quill are a bone of their own (a wrist), so the arm stays raised while the
+                     # quill tips down to point straight at Pip (child first: it takes its share, the arm the rest).
+                     limbs=[dict(bone="quill_l", side=-1, x=0.30, z=(0.72, 1.0), head=(0.33, 0.765, -0.53), tail=(0.47, 0.94, -0.39), ramp=0.03, parent="arm_l"),
+                            dict(bone="arm_l", side=-1, x=0.15, z=(0.55, 1.0), head=(0.13, 0.72), tail=(0.33, 0.765, -0.53), ramp=0.04)]),
     # Level 2/3 environment set pieces (static props).
     "festival_stall": dict(out="festival_stall", folder="props", rig="none", defeat="vanish", height=3, fit="width", width=3.2, tris=16000, tex=1024),
     "boathouse": dict(out="boathouse", folder="props", rig="none", defeat="vanish", height=7, fit="width", width=10, tris=24000, tex=2048),
@@ -407,9 +410,10 @@ if cfg["rig"] != "none":
             ]
         # Parents first (a forearm hangs from its upper arm), though limbs are listed child-first for weights.
         for limb in sorted(cfg.get("limbs", ()), key=lambda limb: limb.get("parent", "chest") not in ("chest", "pelvis")):
-            hx, hz = limb["head"]
-            tx, tz = limb["tail"]
-            joints.append(J(limb["bone"], (limb["side"] * hx * W, 0, hz * H), (limb["side"] * tx * W, 0, tz * H), limb.get("parent", "chest")))
+            # (x, z) as fractions of W and H, and optionally y in metres (−Y is forward: a hand held out in front).
+            hx, hz, hy = (*limb["head"], 0.0)[:3]
+            tx, tz, ty = (*limb["tail"], 0.0)[:3]
+            joints.append(J(limb["bone"], (limb["side"] * hx * W, hy, hz * H), (limb["side"] * tx * W, ty, tz * H), limb.get("parent", "chest")))
         if cfg["rig"] == "dragon":
             # A wing bone each side, from the shoulder out along the span (wings lie along ±X).
             joints += [
@@ -748,10 +752,12 @@ elif rig and moves == "foreman":
         (30, rest),
     ])
 elif rig and moves == "unwriter":
-    still = {"arm_l": (0, 0, 0), "pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}
-    # His real arm, from the shoulder to the hand gripping the quill (it reaches forward as well as out;
-    # unwriter.glb bind pose: hand at -0.75, 2.6, 0.53 in glTF).
+    still = {"arm_l": (0, 0, 0), "quill_l": (0, 0, 0), "pelvis": {"loc": (0, 0, 0)}, "spine": (0, 0, 0), "chest": (0, 0, 0), "head": (0, 0, 0)}
+    # His arm, from the shoulder to the hand gripping the quill (unwriter.glb bind pose: hand at -0.75,
+    # 2.6, 0.53 in glTF), and the quill from the hand to its tip (-1.07, 3.21, 0.39): he points with the
+    # quill itself, its fire leaving the tip (owner, 2026-10-20: the fire came from his fist).
     reach = Vector((-0.75, -0.53, 2.6)) - rig.data.bones["arm_l"].head_local
+    quill = Vector((-1.07, -0.39, 3.21)) - Vector((-0.75, -0.53, 2.6))
 
     def arm(direction):
         return aim_bone("arm_l", direction, along=reach)
@@ -771,14 +777,17 @@ elif rig and moves == "unwriter":
     # his head, then thrust straight out at Pip and held there, jabbing, before he raises it again for the
     # next stroke (the scene turns him to face Pip, beside the apprentice).
     high = arm((-0.2, -0.15, 0.97))
-    point = arm((0.06, -0.99, 0.08))
-    jab = arm((0.06, -0.995, 0.02))
+    # The arm raised out in front at shoulder height; the quill tipped down along it, straight at Pip.
+    point_arm = arm((0.08, -0.92, 0.38))
+    point = {"arm_l": point_arm, "quill_l": aim_bone("quill_l", (0.05, -0.97, -0.22), parent=point_arm, along=quill)}
+    jab_arm = arm((0.08, -0.95, 0.3))
+    jab = {"arm_l": jab_arm, "quill_l": aim_bone("quill_l", (0.05, -0.98, -0.18), parent=jab_arm, along=quill)}
     lean = {"spine": (8, 0, 0), "chest": (10, 0, 0), "head": (8, 0, 0)}
     C.pose_action(rig, "Point", [
         (0, {**still, "arm_l": high, "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
-        (9, {**still, "arm_l": point, **lean}),
-        (30, {**still, "arm_l": jab, **lean}),
-        (48, {**still, "arm_l": point, **lean}),
+        (9, {**still, **point, **lean}),
+        (30, {**still, **jab, **lean}),
+        (48, {**still, **point, **lean}),
         (60, {**still, "arm_l": high, "spine": (-4, 0, 0), "chest": (-8, 0, 0), "head": (-6, 0, 0)}),
     ])
     # The quill stroke: the arm sweeps up and back, then slashes down across the body.

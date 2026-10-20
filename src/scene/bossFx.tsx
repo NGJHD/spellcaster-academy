@@ -354,8 +354,8 @@ export function GuardianOrbs({ rig }: { rig: CreatureRig }) {
 
 // ---------- Unwriter ----------
 
-/** The glowing nib of the quill in his outstretched hand (unwriter.glb bind pose, bound to the quill arm). */
-const QUILL_TIP = new Vector3(-0.8, 2.78, 0.5);
+/** The tip of the quill in his outstretched hand, where its fire comes from (unwriter.glb bind pose). */
+const QUILL_TIP = new Vector3(-1.07, 3.21, 0.39);
 
 const EMBERS = 10;
 
@@ -390,7 +390,7 @@ export function UnwriterQuill({ rig, burning }: { rig: CreatureRig; burning: () 
       const yaw = on ? Math.atan2(pipWorld.x - at.x, pipWorld.z - at.z) : 0;
       g.rotation.y += (yaw - g.rotation.y) * (1 - Math.exp(-3 * dt));
     }
-    const ok = rigPoint(rig, 'arm_l', QUILL_TIP, tip);
+    const ok = rigPoint(rig, 'quill_l', QUILL_TIP, tip);
     const n = nib.current;
     if (n) {
       n.visible = ok;

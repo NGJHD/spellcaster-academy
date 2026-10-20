@@ -860,6 +860,12 @@ Level 3:
   pieces and the cleanup kept only the hood); the octree path keeps it whole. Its arm is one bone from
   the shoulder aimed along the real shoulder-to-hand line (`along=reach`): Point raises it overhead and
   thrusts it at Pip; the nib (`QUILL_TIP`, finale `QUILL`) moved to the new hand.
+- Unwriter's fire came from his fist and the quill stood upright while he pointed (owner's beam.jpg):
+  the hand and quill are now a wrist bone (`quill_l`, child of `arm_l`; limb heads/tails take an
+  optional y in metres, as the hand is held 0.5 m in front of him). Point keeps the arm raised at
+  shoulder height and tips the quill down at Pip; the fire leaves the quill's tip (rigPoint on `quill_l`).
+- Page dragon rebuilt at full quality (sharper horns, wings and head; same size and mouth height, so
+  its glow points still sit on its jaws, chest and belly).
 
 ## Known limitations / next steps
 
