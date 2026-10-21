@@ -136,7 +136,7 @@ export const throne: AreaScript = {
           targets: [
             // Pip's ring words float round Pip, beside the apprentice, where the Unwriter's fire is burning.
             marker('pip-brave', PIP_SEIZED, 'brave', { labelHeight: 0.2, aroundPip: { side: -0.35, up: 0.3 }, movement: { kind: 'static' }, defeatFlag: 'l3-pip-ring-1', defeatBark: 'l3-pip-ring-1', defeatFx: { kind: 'burst', scale: 1.2, color: '#ffd24a' } }),
-            knight('allies-k1', [O(6, 0, -4), O(5, 0, -2)], [len(5, 6)], { movement: { kind: 'static' }, optional: true, leaveAfterSec: 20 }),
+            knight('allies-k1', [O(6, 0, -4), O(5, 0, -2)], [len(5, 6)], { movement: { kind: 'static' }, optional: true}),
             // He shows the point first; the stroke flies a moment later and bursts just in front of the camera.
             fireball('pip-stroke-1', QUILL, O(0.3, 2, -2.4), { delaySec: 3 }),
           ],

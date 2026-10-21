@@ -26,7 +26,7 @@ export const TORTOISE: Vec3 = C(3, 0, -40);
 
 /** Burning debris tumbling out of the Rift with a counter-word, beside the camera. */
 const debris = (id: string, side: number, up: number) =>
-  fireball(id, R(0, 0, 0), R(0, 0, 0), { follow: { ahead: 5, side, up }, movement: { kind: 'static' }, leaveAfterSec: 4.5 });
+  fireball(id, R(0, 0, 0), R(0, 0, 0), { follow: { ahead: 5, side, up }, movement: { kind: 'static' }});
 
 export const shore: AreaScript = {
   nodes: {
@@ -63,8 +63,8 @@ export const shore: AreaScript = {
     travel('l3-warden-dive', S, ['SURGE_B', 'SHORE_LAND'], 8, {
       easing: 'easeInOutCubic',
       chase: [
-        { at: 0.25, target: correctionMoth('dive-moth-1', [R(0, 0, 0)], { follow: { ahead: 4.6, side: 1.2, up: 0.5 }, movement: { kind: 'static' }, leaveAfterSec: 5 }) },
-        { at: 0.6, target: correctionMoth('dive-moth-2', [R(0, 0, 0)], { follow: { ahead: 4.6, side: -1.2, up: 0.4 }, movement: { kind: 'static' }, leaveAfterSec: 5 }) },
+        { at: 0.25, target: correctionMoth('dive-moth-1', [R(0, 0, 0)], { follow: { ahead: 4.6, side: 1.2, up: 0.5 }, movement: { kind: 'static' }}) },
+        { at: 0.6, target: correctionMoth('dive-moth-2', [R(0, 0, 0)], { follow: { ahead: 4.6, side: -1.2, up: 0.4 }, movement: { kind: 'static' }}) },
       ],
     }),
     checkpoint('l3-rift-crossed', S, 'rift-crossed', { objective: 'l3-shore' }),

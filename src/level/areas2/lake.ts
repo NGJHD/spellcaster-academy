@@ -24,7 +24,6 @@ export const LIFT_BEATS_L2 = ['l2-lighthouse-lift'] as const;
 const windowMoth = (id: string, side: number) =>
   target(id, 'eraser-moth', L(0, 0, 0), [{ min: 3, max: 4 }], {
     follow: { ahead: 3, side, up: 0.2 },
-    leaveAfterSec: 4.5,
     labelHeight: 0.9,
     entrance: { kind: 'glass', scale: 0.8 },
     defeatFx: { kind: 'burst', scale: 1, color: '#ffa040' },

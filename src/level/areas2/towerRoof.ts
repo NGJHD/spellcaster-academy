@@ -78,7 +78,7 @@ export const towerRoof: AreaScript = {
     travel('l2-palm-ride', A, ['PALM_BASE', 'PALM_MID', 'PALM_HIGH', 'PALM_TOP'], 11, {
       easing: 'easeInOutCubic',
       chase: [
-        { at: 0.12, target: fireball('palm-fb-1', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: 1, up: 0.4 }, movement: { kind: 'static' }, leaveAfterSec: 4 }) },
+        { at: 0.12, target: fireball('palm-fb-1', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: 1, up: 0.4 }, movement: { kind: 'static' }}) },
       ],
     }),
     reveal('l2-wyrm-rises', A, 'ROOF_FIGHT', ['ROOF_WYRM_HEAD'], 0.8, 3, {

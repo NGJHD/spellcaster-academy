@@ -7,7 +7,7 @@
  * - Ordinary fights: one wave of monsters, at most 2 (different kinds where possible); story steps
  *   after the monsters (restore a door, pull a lever) are kept as their own short waves.
  * - Boss phases: at most 2 rounds of at most 2 targets each; finishing sentences are kept whole.
- * - Word sequences (anchors, beacons, path words, levers): at most 3 words.
+ * - Word sequences (path words, levers, flights, masts): at most 2 words; anchors and beacons 3.
  * - Armoured enemies: at most 2 words. Power-up waves: 3 easy monsters (enough to feel the spell).
  * Encounters with special rules (streak/qualify tutorials) and listed tutorials are left as authored.
  */

@@ -46,9 +46,9 @@ Spark Bolt, Frost Thread and Chain Spark carry over from Level 1.
 ### Lantern Festival Lawn
 
 - Keeper Orin: "Watch the sky!" **Fireballs:** the counter-word tutorial (`ink`, then `run` and another), time freezing on the first.
-- The lawn burns. Orin names the Hush; blotlings with a fireball.
+- The lawn burns. Orin names the Hush; a blotling and a fireball.
 - A festival stall on fire: `stall` puts it out and repaints it.
-- Eraser moths and blotlings while the students cross. Orin explains the four beacons and the Lantern Ward. Checkpoint `festival-lawn-complete`. The Bell Bridge beacon is closest.
+- An eraser moth and a blotling while the students cross. Orin explains the four beacons and the Lantern Ward. Checkpoint `festival-lawn-complete`. The Bell Bridge beacon is closest.
 
 ### Bell Bridge (Beacon 1)
 
@@ -70,21 +70,21 @@ Spark Bolt, Frost Thread and Chain Spark carry over from Level 1.
 ### Alchemy Workshops (Beacon 2)
 
 - The furnace beacon is choked with ash. A smudgehound darts between the benches (with a fireball).
-- **Optional speed round:** the valves, `copper` and `steam` in 8 seconds.
+- **Speed round:** the valves, `copper` and `steam` in 8 seconds.
 - **Furnace Beacon:** `ember`, `flame`, `forge`; the furnace roars back to life and its fire flows into the wand: Starfall, then three easy blotlings. Checkpoint `furnace-beacon-lit`. The third beacon is the lighthouse; we need a boat.
 
 ### Lantern Lake (Beacon 3)
 
 - On the jetty Oarsby introduces himself; type `row` to board, and the boat pushes off across a lake reflecting the Rift, burning lanterns drifting on it.
-- Moths over the water and blots in the waves; the boathouse burns, with a hollow knight and a moth on the jetty.
+- An eraser moth over the water with an ink blast; the boathouse burns, with a hollow knight and a moth on the jetty.
 - **Set piece: the lighthouse lift.** A brass lift waits at the bottom of a shaft on the island's rim; it shoots straight up while moths smash through every window (two chase words).
 - **Lighthouse Beacon:** `harbour`, `guide`, `shine`; the lamp turns and its beam sweeps the lake. Checkpoint `lighthouse-beacon-lit`. Pages are pouring out of the library; Oarsby rows there.
 
 ### Whispering Library
 
 - The Level 1 library at night, half in flames, pages streaming out of a shattered window. Through it: the dragon of pages on the Moon Tower.
-- Paper sprites and a shielded wisp; imps going for the Great Grimoire's star map (two). The Grimoire hands over the map.
-- **Optional speed round:** save the shelves, `story` and `verse` in 9 seconds, for the Inkwell wand trail. Checkpoint `star-atlas-recovered`. The map shows the last beacon, on the ramparts.
+- A flying page and a shielded wisp; imps going for the Great Grimoire's star map (two). The Grimoire hands over the map.
+- **Speed round:** save the shelves, `story` and `verse` in 9 seconds, for the Inkwell wand trail. Checkpoint `star-atlas-recovered`. The map shows the last beacon, on the ramparts.
 
 ### East Ramparts (Beacon 4)
 
@@ -120,7 +120,7 @@ Ink-black and ash-grey constructs with glowing red-orange eyes and cracks. Scary
 | Scribble imp | A jittery scribble with a burning torch-quill; sets scenery alight | Snaps apart into sparks |
 | Smudgehound | A snarling charcoal hound; dashes, pauses, lunges | Breaks into embers and ash |
 | Hollow knight | Empty black armour with fire inside; two command words (the Captain hurls fire) | The fire goes out with a bang |
-| Paper sprite | A folded page; flits in the library | The page flutters back |
+| Flying page | A loose page; flits in the library | Flutters back to its shelf |
 | Fireball | A counter-word in a ball of fire flying at the camera | Deflected into sparks |
 
 ## Music

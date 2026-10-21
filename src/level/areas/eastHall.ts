@@ -20,7 +20,6 @@ const COVERS = ['red', 'blue', 'green'] as const;
 const runaway = (id: string, side: number, up: number, i: number): TargetSpawn =>
   target(id, 'book', [0, 0, 0], [len(3, 4)], {
     follow: { ahead: 4.2, side, up },
-    leaveAfterSec: 4.5,
     labelHeight: 0.45,
     variant: COVERS[i % COVERS.length],
     defeatFx: { kind: 'debris', scale: 0.4, color: '#e8dcc0' },

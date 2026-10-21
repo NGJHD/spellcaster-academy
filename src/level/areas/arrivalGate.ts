@@ -54,7 +54,6 @@ export const arrivalGate: AreaScript = {
           target: target('pip-thief', 'sprite', [0, 0, 0], ['drop'], {
             follow: { ahead: 5.2, side: 0.7, up: 0.45 },
             carriesPip: true,
-            leaveAfterSec: 9,
             labelHeight: 0.95,
             variant: 'grey',
             defeatFx: { kind: 'leaves', scale: 1.1 },

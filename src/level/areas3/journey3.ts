@@ -33,7 +33,7 @@ export const FLIGHTS = [0, 1, 2, 3].map((i) => C(0, i * 8, -i * 12));
 export const flightChunk = (i: number): { dy: number; dz: number } => ({ dy: 1 + i * 2.4, dz: 0.6 - i * 3 });
 
 /** A colour target streaming past the ship (paper islands, a lighthouse, a whale outline). */
-const streaming = (id: string, side: number, word = len(3, 4)) => colour(id, S(0, 0, 0), word, `l3-${id}`, { follow: { ahead: 4.6, side, up: 0.1 }, leaveAfterSec: 5 });
+const streaming = (id: string, side: number, word = len(3, 4)) => colour(id, S(0, 0, 0), word, `l3-${id}`, { follow: { ahead: 4.6, side, up: 0.1 }});
 
 /** A galleon's mast: two words bring it down in flames. */
 const mast = (id: string, at: Vec3) => target(id, 'marker', at, [len(5, 6), len(5, 6)], { labelHeight: 0.5, defeatFlag: `l3-${id}-down`, defeatFx: { kind: 'debris', scale: 2.2, color: '#1a1414' } });
@@ -60,7 +60,7 @@ export const sea: AreaScript = {
       barks: ['l3-sea-1'],
       chase: [
         { at: 0.1, target: streaming('island', -1.3) },
-        { at: 0.3, target: correctionMoth('sail-moth-1', [S(0, 0, 0)], { follow: { ahead: 4.6, side: 1.1, up: 1 }, movement: { kind: 'static' }, leaveAfterSec: 5 }) },
+        { at: 0.3, target: correctionMoth('sail-moth-1', [S(0, 0, 0)], { follow: { ahead: 4.6, side: 1.1, up: 1 }, movement: { kind: 'static' }}) },
         { at: 0.5, target: streaming('lighthouse', 1.3) },
         { at: 0.72, target: streaming('whale', -1.2, 'whale') },
       ],

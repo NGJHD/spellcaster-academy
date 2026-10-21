@@ -21,7 +21,7 @@ The game is a campaign of three levels (§5). The whole game takes **30–45 min
 - The game controls the player's position, facing, camera path, stops, pans and transitions. The camera travels between named camera nodes along authored rails; nothing is physics-driven.
 - There is no free movement, jumping, strafing, mouse aiming, searching for exits, backtracking or open hub.
 - At a fight the camera frames the targets and turns towards any word near the edge of the screen. Every word is fully on screen within 1–2 seconds; a reveal that shows a word holds on it until it is typed.
-- Camera travel slows while a chase word is being typed, and the camera holds at the end of its move until every word on that stretch is typed. No word ever disappears on a timer, except optional words.
+- Camera travel slows while a chase word is being typed, and the camera holds at the end of its move until every word on that stretch is typed. No word ever disappears on a timer: the game waits for every word it shows, bonus words included.
 - **Nobody just appears somewhere.** Every move to a new place has a line saying where we are going and why, and the way there is shown: a door we walk through, a boat we board, a doorway the erased pages fly into. Where two areas are separate scenes joined by a fade, the first one shows the way on (a door, an arch, a stair) and the next one opens just through it. On a boat, raft, ship or ride, its bow stays in front of the camera.
 - No camera roll, rapid spins or uncontrolled shake.
 
@@ -41,7 +41,7 @@ The audience has a short attention span. Something should always be happening.
 - **New spells** are announced like power-ups (a slow-motion beat and a title card), followed by a wave of easy enemies to try them on.
 - **Set pieces:** each level has fast-rail moments (a chase, a slide, a ride, a climb) with light typing.
 - **Surprise entrances and destruction:** enemies burst through floors, out of frames and out of the ground, always in view before they can attack. Spells and attacks smash cosmetic scenery.
-- **Optional speed rounds:** a short countdown for bonus score. The countdown runs only while its words are on screen, it is never a fail state, and the words still count if time runs out.
+- **Speed rounds:** a short countdown for bonus score (7–10 seconds; ×1.6 on Gentle, ×0.85 on Challenge). The countdown runs only while its words are on screen, it is never a fail state, and the words still count if time runs out.
 - **Story:** short and funny, told from the player's side (§5). Characters are in danger and need rescuing.
 - **Music** is always present and switches to a battle theme whenever something can cause damage.
 
@@ -123,7 +123,7 @@ Each level is a deterministic list of **beats** built from area scripts (`src/le
 Letter keys   type the active word
 Backspace     correct the current input
 Tab           switch to another visible target (works mid-word)
-Enter / Space skip the current line; skip an optional speed round
+Enter / Space skip the current line
 Escape        pause
 Mouse         menus only
 ```
@@ -155,11 +155,11 @@ The typing engine is framework-free TypeScript with unit tests (`src/typing/`).
 | Damage | none (unlimited HP) | 1× | 1.15× |
 | Mistakes | flashed, never entered | entered | entered |
 
-Assist mode (offered after repeated failures) shortens generated words to 4 letters at most.
+Assist mode shortens generated words to 4 letters at most. It switches on, with a line from Pip, after two resets in a boss phase, and can be turned off from the pause menu.
 
 ## 10. Combat
 
-- **HP** drops when an enemy's telegraphed attack lands. At zero, a short calm reset restarts the current wave or boss phase; checkpoint progress is kept. Assist mode is offered after two resets in a boss.
+- **HP** drops when an enemy's telegraphed attack lands. At zero, a short calm reset restarts the current wave or boss phase; checkpoint progress is kept. Assist mode switches on after two resets in a boss phase (§9).
 - Every attack has a clear wind-up (the creature's Attack pose, an "Attacking!" tag on its word and a warning sound). Every word typed restarts the attack clocks, a defeat cancels a wind-up, and nothing attacks while its next word is still arriving.
 - An enemy off screen hurries into view (at least 3.5× its speed and 7 m/s). Every walking enemy's path ends a couple of metres from the camera, so its hits land up close.
 - **Spells** (each unlocked by a story moment):
@@ -174,19 +174,19 @@ Assist mode (offered after repeated failures) shortens generated words to 4 lett
 ## 11. Words
 
 - Curated lists in `src/content/wordLists.ts`, tagged by difficulty, category and length; generated words never repeat within an encounter and avoid proper nouns and confusing early words.
-- **Young typists** (`src/level/youngTypists.ts`): every level is trimmed when assembled so a 12 WPM child can finish. An ordinary fight is one wave of at most two monsters; a boss phase is at most two rounds of two targets (phrases kept whole); a sequence is two words (anchors and beacons three); armour has two words; a power-up wave three monsters; a stretch of rail two chase words.
+- **Young typists** (`src/level/youngTypists.ts`): every level is trimmed when assembled so a 12 WPM child can finish. An ordinary fight is one wave of at most two monsters; a boss phase is at most two rounds of two targets (phrases kept whole); a sequence is two words (anchors and beacons three); armour has two words; a power-up wave three monsters; a stretch of rail two chase words. The fireball tutorial and Pip's three rings keep their authored shape, and a word that unlocks a cosmetic is never trimmed.
 
 ## 12. State and saves
 
 - Zustand holds coarse state only: the game mode and settings (`gameStore`, `settingsStore`) and the HUD's view of the run (`runStore`). The run itself (`GameRun`) is plain TypeScript and fully playable headless.
 - **Autosave** at every beat start, wave, checkpoint and boss phase, on hiding the tab and on leaving the page. It stores a stable resume beat and wave, never live simulation state: a reload resumes at the start of the wave or boss phase. The save is written to a temporary key, validated, then promoted; the previous valid save is kept.
-- On resume: a two-second area card, a short safe establishing moment, "Welcome back.", and Pip says the current goal. A beat removed in a later version resumes at the beat that replaced it (`BEAT_ALIASES`).
+- On resume: the area card, a short safe establishing moment, "Welcome back.", and Pip says the current goal. A beat removed in a later version resumes at the beat that replaced it (`BEAT_ALIASES`).
 - The profile keeps completed levels, best results per level and cosmetics. Save data is versioned with a safe default for anything unknown.
 - "Journey saved" shows briefly after a checkpoint.
 
 ### Results screen
 
-Average and peak WPM, average word time, fastest word, active typing time, accuracy, first-attempt accuracy, correct, incorrect and corrected keys, perfect words, best streak, words completed, level time, optional words typed, HP lost, restarts, difficulty, new cosmetics, the score, medals, a positive rank title and two true, encouraging observations. No grades and no comparisons.
+Average and peak WPM, average word time, fastest word, active typing time, accuracy, first-attempt accuracy, correct, incorrect and corrected keys, perfect words, best streak, words completed, level time, bonus targets typed, HP lost, restarts, difficulty, new cosmetics, the score, medals, a positive rank title and two true, encouraging observations. No grades and no comparisons.
 
 ### Cosmetics
 

@@ -58,7 +58,6 @@ export const pathWord = (id: string, position: Vec3, word: WordSpec, flag: strin
 export const colour = (id: string, position: Vec3, word: WordSpec, flag: string, options: Partial<TargetSpawn> = {}): TargetSpawn =>
   marker(id, position, word, {
     optional: true,
-    leaveAfterSec: 18,
     labelHeight: 0.45,
     defeatFlag: flag,
     reward: { score: 60 },

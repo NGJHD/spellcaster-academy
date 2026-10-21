@@ -26,7 +26,7 @@ The Ward Warden seems to be the threat, but it is holding the crack shut. Once i
 
 ## Mechanics introduced
 
-Typing a word, locking by its first letter, Backspace, shielded targets (shield word, then binding word), chase words on moving rails, beam struggles, speed rounds, and three spells: Spark Bolt (courtyard anchor), Frost Thread (library anchor), Chain Spark (greenhouse anchor). Each new spell's light flows from the anchor into the wand, gets a power-up card, then a wave of three easy enemies.
+Typing a word, locking by its first letter, Backspace, Tab, shielded targets (shield word, then binding word), armoured targets (two words), chase words on moving rails, beam struggles, speed rounds, and three spells: Spark Bolt (courtyard anchor), Frost Thread (library anchor), Chain Spark (greenhouse anchor). Each new spell's light flows from the anchor into the wand, gets a power-up card, then a wave of three easy enemies.
 
 ## Flow
 
@@ -42,7 +42,7 @@ Typing a word, locking by its first letter, Backspace, shielded targets (shield 
 
 - Training dummies hop off their stands at the player (two words).
 - Sprites burst out of the planters (two sprites).
-- **Rooftop chase:** a sprite has grabbed a page; the camera chases it along the arcade roof (an optional sprite with two words). Caught, the page is half erased: a clue.
+- **Rooftop chase:** a sprite has grabbed a page; the camera chases it along the arcade roof (a bonus sprite with two words). Caught, the page is half erased: a clue.
 - The Warden crash-lands, points at the broken anchor ("THREE ANCHORS HOLD THE WARD. THIS ONE IS BROKEN. HELP, APPRENTICE.") and leaps back to the tower.
 - **Courtyard Anchor:** `light`, `steady`, `shine`, one at a time. A pillar of light, then Spark Bolt and three easy sprites. Checkpoint `courtyard-restored`.
 - Leaving: Pip notices the scratches look new, and says the next anchor is in the library.
@@ -50,7 +50,7 @@ Typing a word, locking by its first letter, Backspace, shielded targets (shield 
 ### East Hall: the Book Stampede
 
 - Mira bursts out of an alcove: "Run, the library books are loose!" The camera runs backwards down the hall with Mira while books swoop in (two chase words per stretch). The books are fleeing, and their words are disappearing.
-- **Optional speed round:** a treasure chest, `lock` and `key` in 8 seconds, for the Starlight wand trail.
+- **Speed round:** a treasure chest, `lock` and `key` in 8 seconds, for the Starlight wand trail.
 - Mira runs off down the hall to the library doors and turns to hold the line; the doors slam on the last books. Checkpoint `east-hall-complete`.
 
 ### Whispering Library
@@ -69,9 +69,9 @@ Typing a word, locking by its first letter, Backspace, shielded targets (shield 
 ### Hall of Portraits: the Paint Ambush
 
 - The portraits come alive: paint imps leap out of their frames and throw splats that land at the screen edges, never over a word (two imps). The portraits gossip about a banished wizard; Pip asks whose name nobody will say.
-- **Fountain:** a short breather. Healing droplets fly beside the camera (`drip`, `heal`, optional).
+- **Fountain:** a short breather. Healing droplets fly beside the camera (`drip`, `heal`, bonus words).
 - **The empty frame** next to the Warden's, its name scratched out. Pip puts the clues together.
-- **Optional speed round:** star plaques, `lark` and `crown` in 7 seconds, for a ×1.5 score multiplier in the next fight. Checkpoint `portrait-hall-complete`.
+- **Speed round:** star plaques, `lark` and `crown` in 7 seconds, for a ×1.5 score multiplier in the next fight. Checkpoint `portrait-hall-complete`.
 - The far end is an open arched doorway; the greenhouse is through it.
 
 ### Enchanted Greenhouse

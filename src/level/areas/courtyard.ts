@@ -100,7 +100,6 @@ export const courtyard: AreaScript = {
               variant: 'teal',
               optional: true,
               follow: { ahead: 5.5, side: 0.3, up: -1.5 },
-              leaveAfterSec: 9,
               labelHeight: 0.95,
               defeatFx: { kind: 'leaves', scale: 0.9 },
               defeatBark: 'court-chase-caught',

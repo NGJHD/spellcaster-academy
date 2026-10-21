@@ -118,7 +118,7 @@ export const lawn: AreaScript = {
             moth('moth-2', [W(10, 5, -12), W(-3, 4, -9)]),
             moth('moth-3', [W(-9, 6, -16), W(6, 4.5, -14)], { delaySec: 1 }),
             fireball('dust-1', W(4, 6, -18), W(0.6, 1.7, 2.6), { delaySec: 2.2 }),
-            restore('stall-2', W(6, 1.6, -9), 'booth', 'l2-stall-2', { optional: true, leaveAfterSec: 20 }),
+            restore('stall-2', W(6, 1.6, -9), 'booth', 'l2-stall-2', { optional: true}),
           ],
         },
       ],

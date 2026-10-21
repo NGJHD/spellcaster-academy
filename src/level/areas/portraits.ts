@@ -48,7 +48,6 @@ const droplet = (id: string, word: string, side: number): TargetSpawn =>
   target(id, 'gem', [0, 0, 0], [word], {
     follow: { ahead: 3.8, side, up: 0.1 },
     optional: true,
-    leaveAfterSec: 4,
     labelHeight: 0.28,
     variant: 'droplet',
     defeatFx: { kind: 'burst', scale: 0.5, color: '#bfe6ff' },

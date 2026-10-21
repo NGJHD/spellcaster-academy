@@ -65,7 +65,6 @@ const guardChest = (i: 0 | 1 | 2): Vec3 => {
 const command = (i: 0 | 1 | 2, word: string, flag: string): TargetSpawn =>
   target(`stair-${i + 1}-word`, 'marker', guardChest(i), [word], {
     labelHeight: 0.6,
-    leaveAfterSec: 30,
     defeatFlag: flag,
     defeatFx: { kind: 'sparks', scale: 0.8, color: '#9fd8ff' },
   });

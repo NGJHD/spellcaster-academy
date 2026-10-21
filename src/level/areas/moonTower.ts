@@ -18,7 +18,6 @@ export const LIFT_BEATS = ['tower-enter', 'tower-t1', 'tower-lift-1', 'tower-t2'
 const leaper = (id: string, kind: 'wisp' | 'mossling', side: number): TargetSpawn =>
   target(id, kind, T(0, 0, 0), [len(3, 4)], {
     follow: kind === 'wisp' ? { ahead: 2.6, side, up: -0.2 } : { ahead: 2.3, side, up: -1.55 },
-    leaveAfterSec: 4.5,
     labelHeight: kind === 'wisp' ? 1.35 : 1.45,
     defeatFx: { kind: 'burst', scale: 0.8, color: kind === 'wisp' ? '#6f7cff' : '#8fcf5a' },
   });

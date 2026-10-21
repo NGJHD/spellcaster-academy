@@ -39,7 +39,6 @@ const mossling = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}):
 const pollen = (id: string, path: Vec3[], delaySec: number): TargetSpawn =>
   target(id, 'pollen', path[0] ?? G(0, 3, -38), [len(3, 4)], {
     optional: true,
-    leaveAfterSec: 14,
     delaySec,
     labelHeight: 0.5,
     movement: { kind: 'patrol', path, speed: 0.5 },

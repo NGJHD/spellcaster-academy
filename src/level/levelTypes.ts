@@ -248,9 +248,8 @@ export interface TargetSpawn {
   readonly shield?: boolean;
   /** Seconds after the wave starts before this target appears. */
   readonly delaySec?: number;
-  /** Optional bonus target: never required, leaves after `leaveAfterSec`. */
+  /** Bonus target: it never holds back the next target or an arena attack, but the wave still waits for it. */
   readonly optional?: boolean;
-  readonly leaveAfterSec?: number;
   /** Chain Spark can dispel weak targets. */
   readonly weak?: boolean;
   /** HUD marks this as the priority threat. */
@@ -354,7 +353,7 @@ export interface EncounterDef {
   /** 'interaction' never damages Focus and has no failure state. */
   readonly kind: 'combat' | 'interaction';
   readonly waves: readonly Wave[];
-  /** Optional interactions show a prompt; Enter skips them. */
+  /** A speed round's prompt, shown while its words are up. */
   readonly optionalPrompt?: string;
   readonly hazard?: HazardSpec;
   readonly barks?: readonly Bark[];

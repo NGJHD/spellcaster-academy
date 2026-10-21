@@ -95,7 +95,7 @@ export const ramparts: AreaScript = {
               entrance: { kind: 'geyser', scale: 1.4, color: '#ff5a1a' },
             }),
             fireball('rp-halt', R(0, 2.4, -4), R(-0.4, 1.7, 2.6), { delaySec: 4, words: ['halt'] }),
-            restore('rp-warden-3', R(5.5, 3.6, -0.9), 'guard', 'l2-warden-3', { optional: true, leaveAfterSec: 16, delaySec: 2 }),
+            restore('rp-warden-3', R(5.5, 3.6, -0.9), 'guard', 'l2-warden-3', { optional: true, delaySec: 2 }),
           ],
         },
       ],
