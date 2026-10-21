@@ -1,5 +1,5 @@
 /**
- * LD-11 as revised by LEVEL1_DESIGN LD-0: Whispering Library and the Great Grimoire mini-boss.
+ * Whispering Library and the Great Grimoire mini-boss.
  * Books dive-bomb from the galleries, a shelf topples, wisps erupt from an overturned inkwell, the
  * Grimoire snaps its chains, its gusts smash the furniture, and the final sentence is a beam struggle.
  * Local layout (origin LIBRARY_ORIGIN): reading hall x ∈ [-12, 12], z ∈ [-32, 2], upper galleries at y = 4.5.
@@ -19,7 +19,7 @@ export const LIBRARY_ANCHOR_POSITION = L(8, 0, -26);
 /** The overturned inkwell the wisps erupt from, and the free-standing shelf that topples. */
 export const INKWELL_POSITION = L(-1.2, 0, -14.5);
 
-/** Books swoop down from the gallery rails before patrolling their aisle (LD-0 dive-bombing). */
+/** Books swoop down from the gallery rails before patrolling their aisle (dive-bombing). */
 const gallery = (path: Vec3[]): Vec3 => {
   const first = path[0] ?? L(0, 2, -14);
   return [first[0] < LIBRARY_ORIGIN[0] ? LIBRARY_ORIGIN[0] - 10.5 : LIBRARY_ORIGIN[0] + 10.5, 5.6, first[2]];
@@ -35,7 +35,7 @@ const book = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): Tar
     ...options,
   });
 
-/** Wisps erupt from the inkwell, then glide out along their aisle (LD-0 ink geyser). */
+/** Wisps erupt from the inkwell, then glide out along their aisle (ink geyser). */
 const wisp = (id: string, path: Vec3[], shield: boolean, options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'wisp', INKWELL_POSITION, shield ? [len(3, 5), len(4, 7)] : [len(4, 7)], {
     shield,

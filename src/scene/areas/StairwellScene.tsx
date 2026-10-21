@@ -1,4 +1,4 @@
-/** PLACEHOLDER Lower Stairwell (§14A.22): broad spiral around a central column. */
+/** PLACEHOLDER Lower Stairwell: broad spiral around a central column. */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { CatmullRomCurve3, TubeGeometry, Vector3, type Group } from 'three';
@@ -169,7 +169,7 @@ const REASSEMBLE_BEAT = 'stairwell-reassemble';
 
 /**
  * Guardian 3 stands on the last landing; when the tray arrives it bursts apart into armour pieces and
- * re-assembles (LD-0) before the short fight. Hidden while the live fight target exists.
+ * re-assembles before the short fight. Hidden while the live fight target exists.
  */
 function ReassemblingGuard() {
   const group = useRef<Group>(null);
@@ -199,7 +199,7 @@ function ReassemblingGuard() {
 }
 
 /**
- * PLACEHOLDER tea tray (LD-0 Banister Slide): a polished silver tray under the camera while sliding,
+ * PLACEHOLDER tea tray (Banister Slide): a polished silver tray under the camera while sliding,
  * banking into the curve. Replaceable with the first-person hands-on-rim GLB.
  */
 function TeaTray() {

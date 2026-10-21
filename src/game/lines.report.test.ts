@@ -1,6 +1,6 @@
 /**
  * Every story line is heard (owner, 2026-10-07: "you need to be more careful"; "did you review the
- * conversations?"). A bot plays each level with spark gems and collectibles off, records every subtitle
+ * conversations?"). A bot plays each level, records every subtitle
  * shown, and checks that each line wired into a beat it passed through was actually said: beat lines,
  * conversations, lines on waves, defeats and finishing a fight, and lines on defeating a target.
  * Only typing tips may go unsaid (lines marked `tip`, and lines on the first letter, first mistake or
@@ -31,7 +31,7 @@ function play(levelId: LevelId) {
     resume: null,
     storage: memoryStorage(),
     deferSavesUntilFirstCheckpoint: false,
-    settings: () => ({ rail: { reducedMotion: false, travelSpeed: TRAVEL_SPEED_MULTIPLIER.fast }, gems: false, collectibles: false }),
+    settings: () => ({ rail: { reducedMotion: false, travelSpeed: TRAVEL_SPEED_MULTIPLIER.fast } }),
     now: () => clock,
     levelId,
   });
@@ -60,7 +60,7 @@ function play(levelId: LevelId) {
   return { said, visited, ended: run.isEnded };
 }
 
-/** Lines a beat should be heard saying (with gems and collectibles off, on Standard). */
+/** Lines a beat should be heard saying (on Standard). */
 function expectedLines(levelId: LevelId, beat: LevelBeat): string[] {
   const out: string[] = [];
   const level = LEVELS[levelId];
@@ -82,7 +82,7 @@ function expectedLines(levelId: LevelId, beat: LevelBeat): string[] {
   return out;
 }
 
-describe('every story line is heard (gems and collectibles off)', () => {
+describe('every story line is heard', () => {
   for (const levelId of ['level-1', 'level-2', 'level-3'] as const) {
     it(`${levelId}`, () => {
       const { said, visited, ended } = play(levelId);

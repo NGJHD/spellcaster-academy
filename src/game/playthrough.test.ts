@@ -90,7 +90,7 @@ describe('full Level 1 playthrough', () => {
     const save = readAutosave(storage, (id) => LEVEL1_ROUTE.beats.some((b) => b.id === id));
     expect(save?.status).toBe('complete');
     expect(readProfile(storage).levelCompleted).toBe(true);
-    // The owner asked for a much brisker pace than LD-1's 20–30 minutes; a quick adult typist now
+    // The owner asked for a much brisker pace than the first plan's 20–30 minutes; a quick adult typist now
     // finishes in about 7 minutes. Guard against the level collapsing into something trivially short.
     expect(clock / 60000).toBeGreaterThan(5);
   });

@@ -1,5 +1,5 @@
 """
-Mischief sprite (§14A.5, MD-3): 55 cm woodland creature with a lemur-like body plan, long leaf-membrane
+Mischief sprite: 55 cm woodland creature with a lemur-like body plan, long leaf-membrane
 ears, large but seated eyes, teal bioluminescent freckles and a leaf-tufted tail. Appealing, cheeky.
 
     blender --background --python assets-src/scripts/creatures/mischief_sprite.py -- [russet|grey|teal] [--preview]

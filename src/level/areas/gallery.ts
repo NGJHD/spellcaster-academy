@@ -1,5 +1,5 @@
 /**
- * LD-15 as revised by LEVEL1_DESIGN LD-0: the Practice Gallery is a target-range arcade. Targets pop
+ * The Practice Gallery is a target-range arcade. Targets pop
  * up spinning, Pip commentates like a sports announcer, and every zone ends with a medal fanfare.
  * Two short zones only (owner, 2026-10-07: the gallery felt draggy).
  * Practice Gallery. Local layout (origin GALLERY_ORIGIN): long hall along −Z,

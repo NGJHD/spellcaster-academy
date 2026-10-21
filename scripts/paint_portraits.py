@@ -1,5 +1,5 @@
 """
-Painterly finish for the Hall of Portraits paintings (§14A.20).
+Painterly finish for the Hall of Portraits paintings.
 
 Input:  assets-src/paintings/raw/*.png  (Blender still lifes / bust studies, game landscapes)
 Output: public/assets/textures/paintings/<name>.jpg

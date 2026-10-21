@@ -1,4 +1,4 @@
-/** PLACEHOLDER Observatory boss arena (§14A.25) with the Ward Warden. */
+/** PLACEHOLDER Observatory boss arena with the Ward Warden. */
 import { LightBeam } from '../glow';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
@@ -47,7 +47,7 @@ function Arena() {
           <planeGeometry args={[0.05, R * 2]} />
         </mesh>
       ))}
-      {/* Four marked safe positions (§7.10). */}
+      {/* Four marked safe positions. */}
       {[0, 1, 2, 3].map((i) => {
         const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
         return (

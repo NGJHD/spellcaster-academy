@@ -22,7 +22,7 @@ function DummyGLB({ pose }: { pose: PoseRef }) {
   useFrame(() => {
     const p = pose.current;
     const wobble = Math.sin(p.time * 9) * p.hit * 0.22;
-    // Force travels through torso and base with diminishing overlap (§14A.4).
+    // Force travels through torso and base with diminishing overlap.
     if (torso) {
       torso.rotation.x = p.hit * 0.4 + wobble + p.windup * 0.15 - (p.defeated ? Math.min(1, p.dispel * 2) * 0.1 : 0);
       torso.rotation.z = Math.sin(p.time * 1.3) * 0.02;

@@ -25,7 +25,7 @@ function chaptersOf(route: LevelRoute | undefined): readonly { areaId: AreaId; a
   return out;
 }
 
-/** HUD (GD-19): Focus, objective, streak, star pages, subtitles, prompts and short notices only. */
+/** HUD: HP, objective, streak, subtitles, prompts and short notices only. */
 export function HUD() {
   const areaId = useRunStore((s) => s.areaId);
   const areaCardKey = useRunStore((s) => s.areaCardKey);

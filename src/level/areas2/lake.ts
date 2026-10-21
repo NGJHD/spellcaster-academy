@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-12: Lantern Lake and Beacon 3. Oarsby's boat glides across a lake reflecting the
+ * Lantern Lake and Beacon 3. Oarsby's boat glides across a lake reflecting the
  * red Rift; burning lanterns drift on the water; the boathouse burns on the shore. Hollow Knights hold
  * the jetty. At the lighthouse island a brass lift rockets up the tower while moths smash through the
  * windows; four words light the lamp. Local layout (origin LAKE_ORIGIN): water at y = 0, the boat

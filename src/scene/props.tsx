@@ -31,7 +31,7 @@ export function useBeatIndex(): number {
 
 const damp = (current: number, goal: number, rate: number, dt: number) => current + (goal - current) * (1 - Math.exp(-rate * Math.min(dt, 0.1)));
 
-// ---------- Ward anchor (§14A.14) ----------
+// ---------- Ward anchor ----------
 
 const ANCHOR_THEME = {
   courtyard: { base: MAT.academyStone, accent: '#ffcf6a' },
@@ -209,7 +209,7 @@ export function spawnPosition(encounterId: string, targetId: string): Vec3 {
   return [0, 0, 0];
 }
 
-// ---------- Ward Warden (§14A.13) ----------
+// ---------- Ward Warden ----------
 
 export interface WardenState {
   /** 0 = dormant/kneeling, 1 = fully risen. */
@@ -328,7 +328,7 @@ export interface CameoKey {
 }
 
 /**
- * Scripted Warden appearance during one beat (LD-0: crash-landing in the courtyard, smashing
+ * Scripted Warden appearance during one beat (crash-landing in the courtyard, smashing
  * through the greenhouse roof): moves through keyframes by beat progress with eased motion.
  */
 export function WardenCameo({ beatId, keys, scale = 1, rotationY = 0 }: { beatId: string; keys: readonly CameoKey[]; scale?: number; rotationY?: number }) {

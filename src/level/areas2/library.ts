@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-13: the Whispering Library being stolen. The Level 1 library at night, half in
+ * The Whispering Library being stolen. The Level 1 library at night, half in
  * flames; pages stream out through the shattered north window towards the Moon Tower, where the Vellum
  * Wyrm is glimpsed. Paper sprites and wisps (with counter-word ink pulses), then Scribble Imps scratch
  * at the friendly Grimoire guarding the Star Atlas. Reuses the Level 1 library (origin LIBRARY_ORIGIN).

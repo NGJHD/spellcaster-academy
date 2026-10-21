@@ -18,7 +18,7 @@ const carried = new Vector3();
 export const pipWorld = new Vector3();
 
 /**
- * PLACEHOLDER Pip (§14A.2): brass astrolabe rings around a warm opalescent core. Follows the camera
+ * PLACEHOLDER Pip: brass astrolabe rings around a warm opalescent core. Follows the camera
  * with soft inertia and overlap; brightens while speaking.
  */
 interface PipRig {
@@ -44,7 +44,7 @@ export function PipCompanion() {
     offset.copy(combat ? OFFSET_COMBAT : OFFSET_CALM).applyQuaternion(state.camera.quaternion);
     goal.copy(state.camera.position).add(offset);
     goal.y += Math.sin(time.current * 1.6) * 0.04;
-    // Snatched! A creature is carrying Pip off (LD-0 cold open): Pip dangles and struggles.
+    // Snatched! A creature is carrying Pip off (cold open): Pip dangles and struggles.
     const snatched = run?.pipCarrier(carried) ?? false;
     if (snatched) {
       goal.copy(carried);

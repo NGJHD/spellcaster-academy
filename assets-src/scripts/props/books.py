@@ -114,7 +114,7 @@ def runaway_book(m, group):
 
 
 def grimoire(m, group):
-    """The Great Grimoire (§14A.8) as a real book lying on its back.
+    """The Great Grimoire as a real book lying on its back.
 
     Cover_L: back board + lower page block (static). Cover_R: front board + upper pages, hinged at the
     spine's top edge and modelled OPEN (flat, to +X); the game rotates it by up to pi to close it.

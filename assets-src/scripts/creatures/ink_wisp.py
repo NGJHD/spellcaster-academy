@@ -1,5 +1,5 @@
 """
-Ink wisp (§14A.7, MD-5): 0.9–1.2 m floating being of dark indigo ink in a faint membrane; narrow upper
+Ink wisp: 0.9–1.2 m floating being of dark indigo ink in a faint membrane; narrow upper
 torso, trailing lower body, two tapered arms, two soft cyan eye lights; calligraphic tendrils.
 No skulls or hollow faces. The rune shield is rendered separately at runtime.
 

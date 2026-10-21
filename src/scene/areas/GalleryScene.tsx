@@ -1,4 +1,4 @@
-/** PLACEHOLDER Practice Gallery (§14A.23): prestigious duelling hall with three zones. */
+/** PLACEHOLDER Practice Gallery: prestigious duelling hall with three zones. */
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import type { Group } from 'three';

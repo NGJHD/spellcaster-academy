@@ -22,7 +22,7 @@ interface Rig {
 }
 
 /**
- * First-person forearm and wand (§14A.1): navy sleeve with star-thread motif, leather cuff, gripping
+ * First-person forearm and wand: navy sleeve with star-thread motif, leather cuff, gripping
  * hand, walnut wand with a twisted silver inlay and moonstone tip (Blender GLB, code stand-in while
  * loading). Casting has anticipation, a forward thrust and recovery. Never intersects the camera.
  */

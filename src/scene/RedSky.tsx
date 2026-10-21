@@ -112,7 +112,7 @@ export function CitadelOnHorizon() {
 }
 
 /**
- * The Rift (LEVEL2_DESIGN L2-6): a ragged tear of red fire across the sky over Lantern Lake. Before
+ * The Rift: a ragged tear of red fire across the sky over Lantern Lake. Before
  * the opening beat it is the thin seam left by Level 1; once the sky splits it blazes wide.
  * Sits in the camera-following sky rig, so it reads as infinitely far away.
  */

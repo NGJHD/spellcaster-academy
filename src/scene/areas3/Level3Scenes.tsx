@@ -1,5 +1,5 @@
 /**
- * Level 3 areas (LEVEL3_DESIGN L3-6 … L3-15): the Blank, a scorched realm of grey ash under a red sky,
+ * Level 3 areas: the Blank, a scorched realm of grey ash under a red sky,
  * and the Unwriter's Cinder Citadel. Path words draw the route in coloured ink; restored objects lose
  * their fire and regain colour. PLACEHOLDER geometry is kit-built; mobs and bosses are AI-pipeline models.
  */
@@ -1292,7 +1292,7 @@ export function ThroneScene() {
   useFrame((state, delta) => {
     const run = getRun();
     const id = run?.director.currentBeat?.id ?? '';
-    // He grows larger and more fiery as the fight goes on (M3-8): full height for the final clash.
+    // He grows larger and more fiery as the fight goes on: full height for the final clash.
     const target = id === 'l3-u4' ? 1.7 : id === 'l3-u3' || id === 'l3-pip-seized' || id === 'l3-pip-free' ? 1.35 : 1;
     size.current += (target - size.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
     grow.current?.scale.setScalar(size.current);

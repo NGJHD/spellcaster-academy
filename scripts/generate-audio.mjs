@@ -112,7 +112,7 @@ const SOUNDS = {
       ),
       0.6,
     ),
-  'star-page': () => normalise(mix(chime(note(84), 0, 0.4), chime(note(88), 0.07, 0.4), chime(note(91), 0.14, 0.4), chime(note(96), 0.21, 0.6)), 0.55),
+  heal: () => normalise(mix(chime(note(84), 0, 0.4), chime(note(88), 0.07, 0.4), chime(note(91), 0.14, 0.4), chime(note(96), 0.21, 0.6)), 0.55),
   'ui-select': () => normalise(render(0.08, (t) => env(t, 0.002, 0.02) * (sine(880, t) + 0.5 * sine(1320, t))), 0.4),
   'ui-move': () => normalise(render(0.04, (t) => env(t, 0.001, 0.008) * sine(1200, t)), 0.3),
   unlock: () => normalise(mix(chime(note(72), 0, 0.5), chime(note(76), 0.1, 0.5), chime(note(79), 0.2, 0.5), chime(note(84), 0.3, 0.9)), 0.55),

@@ -53,7 +53,7 @@ export function ExteriorScene({ celebration, cheering = false }: { celebration: 
       {/* The crack in the ward above the Moon Tower, from the moment it breaks until the Warden fight
           (owner: "look at the sky, it's cracking" but the sky looked fine). */}
       {!celebration && <Seam points={[[-14, 58, -78], [-4, 72, -84], [6, 66, -86], [18, 84, -90]]} radius={0.8} fromBeat={FRACTURE_BEAT} wideUntilBeat={OBSERVATORY_RESTORED_BEAT} />}
-      {/* The seam lingers faintly over the celebration (LD-21). */}
+      {/* The seam lingers faintly over the celebration. */}
       {celebration && <Seam points={[[-60, 95, -150], [-25, 108, -160], [0, 100, -165], [30, 112, -158], [65, 102, -148]]} radius={0.5} strength={0.55} />}
       {/* The Warden floats down to greet the apprentice, then waits for the "hi". */}
       <WardenCameo
@@ -236,7 +236,7 @@ function ArrivalGate() {
       {[-14, -11.5, -9, -6.5, 6.5, 9, 11.5, 14].map((x, i) => (
         <Prop key={x} id={`shrub_0${(i % 4) + 1}`} position={[x, 0, 22.3]} height={1.5} rotationY={i * 2.1} />
       ))}
-      {/* Decorative fallen banner pole (no jump tutorial: §GD-4). */}
+      {/* Decorative fallen banner pole (no jump tutorial). */}
       <mesh position={[-6.5, 0.12, 25]} rotation={[Math.PI / 2, 0, 0.7]} material={MAT.darkOak} castShadow>
         <cylinderGeometry args={[0.07, 0.07, 3.4, 10]} />
       </mesh>
@@ -253,7 +253,7 @@ function GateDoors() {
   useFrame((_, delta) => {
     const open = beat >= GATE_OPEN_BEAT || (getRun()?.flags.has('gate-open') ?? false);
     const goal = open ? 1.75 : 0;
-    // The crystal words blast the doors open (LD-0): a fast swing with a little overshoot damping.
+    // The crystal words blast the doors open: a fast swing with a little overshoot damping.
     const k = 1 - Math.exp(-(open ? 6 : 1.8) * Math.min(delta, 0.1));
     if (left.current) left.current.rotation.y += (goal - left.current.rotation.y) * k;
     if (right.current) right.current.rotation.y += (-goal - right.current.rotation.y) * k;
@@ -321,7 +321,7 @@ function Courtyard({ celebration }: { celebration: boolean }) {
       {[-12, -4, 4, 12].map((z) => (
         <WallLamp key={z} position={[-13.9, 3.2, z]} rotationY={Math.PI / 2} />
       ))}
-      {/* LD-0: the Warden crash-lands in the courtyard, points at the broken anchor, then leaps back to the tower. */}
+      {/* The Warden crash-lands in the courtyard, points at the broken anchor, then leaps back to the tower. */}
       <WardenCameo
         beatId="courtyard-warden-sighting"
         scale={0.8}
@@ -497,7 +497,7 @@ function Chest() {
   );
 }
 
-// ---------- Celebration (LD-18) ----------
+// ---------- Celebration ----------
 
 function CelebrationDressing({ cheering }: { cheering: boolean }) {
   return (

@@ -1,6 +1,6 @@
 /**
- * LD-9 as revised by LEVEL1_DESIGN LD-0: Sunlit Courtyard. Charging dummies, sprites bursting out of
- * the planters, a rooftop chase for the star page, the Warden crash-landing, and an anchor that
+ * Sunlit Courtyard. Charging dummies, sprites bursting out of
+ * the planters, a rooftop chase after a page-stealing sprite, the Warden crash-landing, and an anchor that
  * blasts a pillar of light into the sky. Courtyard spans x ∈ [-14, 14], z ∈ [-14, 20]; fountain at the origin.
  * Enemies always enter from the front arc of the combat camera (never from behind).
  */
@@ -17,7 +17,7 @@ export const COURTYARD_DUMMY_POSITIONS: readonly Vec3[] = [
   [-4, 0, -7],
 ];
 
-/** LD-0: dummies leap off their stands and hop at the player (still harmless). */
+/** Dummies leap off their stands and hop at the player (still harmless). */
 const dummy = (id: string, position: Vec3, delaySec: number): TargetSpawn =>
   target(id, 'dummy', position, [len(3, 4)], {
     labelHeight: 2.0,

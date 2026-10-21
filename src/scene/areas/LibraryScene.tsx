@@ -1,4 +1,4 @@
-/** PLACEHOLDER Whispering Library (§14A.19). Local coordinates; see src/level/areas/library.ts. */
+/** PLACEHOLDER Whispering Library. Local coordinates; see src/level/areas/library.ts. */
 import { LightBeam } from '../glow';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
@@ -257,7 +257,7 @@ interface GrimoireRig {
 }
 
 /**
- * The Great Grimoire (§14A.8): closed and chained on its pedestal until it wakes; rises, turns its
+ * The Great Grimoire: closed and chained on its pedestal until it wakes; rises, turns its
  * cover to the player and strains against its clasps; once the clasps break the heavy front board
  * swings open; afterwards it closes and settles back.
  */
@@ -338,7 +338,7 @@ function GrimoireGLB({ rig }: { rig: RefObject<GrimoireRig> }) {
 }
 
 /**
- * LD-0: the free-standing shelf at (6.5, -16) topples in slow motion when the third book wave starts
+ * The free-standing shelf at (6.5, -16) topples in slow motion when the third book wave starts
  * (the books then spill out as debris). It falls away from the camera's aisle and stays down.
  */
 function TopplingShelf() {
@@ -372,7 +372,7 @@ function TopplingShelf() {
   );
 }
 
-/** LD-0: the overturned inkwell the ink wisps erupt from (code-built glass bottle and spilled ink). */
+/** The overturned inkwell the ink wisps erupt from (code-built glass bottle and spilled ink). */
 function Inkwell() {
   const [x, , z] = INKWELL_POSITION;
   return (
@@ -392,7 +392,7 @@ function Inkwell() {
 
 const WAKE_DARK = 0.12;
 
-/** Standing lamps: the Grimoire's roar blows them down to embers until it is calmed (LD-0). */
+/** Standing lamps: the Grimoire's roar blows them down to embers until it is calmed. */
 function LibraryLamp({ position }: { position: [number, number, number] }) {
   const light = useRef<PointLight>(null);
   const beat = useBeatIndex();

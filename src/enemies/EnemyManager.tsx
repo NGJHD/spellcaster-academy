@@ -19,7 +19,7 @@ import {
   PollenModel,
   RuneModel,
   SpriteModel,
-  StarPageModel,
+  JournalPageModel,
   GemModel,
   ImpModel,
   FireballModel,
@@ -32,7 +32,7 @@ import {
 
 const HIT_SEC = 0.5;
 /** Kinds that turn to face the camera (creatures); props keep their authored orientation. */
-const FACES_CAMERA = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman', 'imp', 'sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'star-page', 'pollen']);
+const FACES_CAMERA = new Set(['blotling', 'eraser-moth', 'scribble-imp', 'smudgehound', 'hollow-knight', 'correction-moth', 'redactor', 'foreman', 'imp', 'sprite', 'mossling', 'wisp', 'guardian', 'thorn-pod', 'book', 'dummy', 'journal-page', 'pollen']);
 
 /** Rigged GLB when one exists for the kind, with the code-built stand-in while it streams in. */
 function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose> }): ReactNode {
@@ -69,8 +69,8 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
       return <PollenModel pose={pose} />;
     case 'guardian':
       return <Guardian pose={pose} />;
-    case 'star-page':
-      return <StarPageModel pose={pose} cosmetic={spawn.variant === 'cosmetic'} />;
+    case 'journal-page':
+      return <JournalPageModel pose={pose} />;
     case 'imp':
       return <ImpModel pose={pose} variant={spawn.variant} />;
     case 'fireball':
@@ -136,7 +136,7 @@ function TargetView({ id }: { id: string }) {
     g.visible = true;
     writePose(t, pose.current);
     g.position.copy(t.position);
-    // LD-0: charging training dummies hop on their weighted bases.
+    // Charging training dummies hop on their weighted bases.
     if (t.spawn.kind === 'dummy' && pose.current.moving) g.position.y += Math.abs(Math.sin(t.clock * 6.5)) * 0.32;
     if (FACES_CAMERA.has(t.spawn.kind)) {
       const dx = state.camera.position.x - t.position.x;
@@ -148,7 +148,7 @@ function TargetView({ id }: { id: string }) {
       g.rotation.y += diff * 0.15;
     }
     const p = pose.current;
-    // Arcade targets (Practice Gallery, LD-0) spin as they pop up.
+    // Arcade targets (Practice Gallery) spin as they pop up.
     if (t.spawn.variant === 'practice' && p.appear < 1) g.rotation.y += (1 - p.appear) * 0.9;
     let scale = easeOutBack(p.appear);
     if (t.phase === 'dispelling' && !t.spawn.persist) scale *= Math.max(0, 1 - p.dispel * 1.1);

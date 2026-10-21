@@ -1,4 +1,4 @@
-/** PLACEHOLDER Moon Tower ascent (§14A.24): three round floors, warm below, moonlit above. */
+/** PLACEHOLDER Moon Tower ascent: three round floors, warm below, moonlit above. */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
 import { BackSide, Box3, CylinderGeometry, Path, Shape, ShapeGeometry, Vector3, type Group, type Object3D } from 'three';
@@ -246,7 +246,7 @@ function shaftDisc(flip: -1 | 1): ShapeGeometry {
 const liftOffset = new Vector3();
 
 /**
- * PLACEHOLDER runaway lift (LD-0): a brass platform with a railing that carries the camera (no cables:
+ * PLACEHOLDER runaway lift: a brass platform with a railing that carries the camera (no cables:
  * one passed right in front of the camera and split the view, Chrome playtest 2026-10-07)
  * up the shaft. Rides under the camera while the lift beats play.
  */

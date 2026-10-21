@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-15 / L2-16: the Moon Tower roof and the Vellum Wyrm, then the dawn aftermath.
+ * The Moon Tower roof and the Vellum Wyrm, then the dawn aftermath.
  * The Warden lifts the apprentice up the burning tower on its palm (fast rail, fireballs with
  * counter-words); the wyrm rears out of the smoke. V1 page scales, V2 sky chase (the camera orbits as
  * the wyrm circles), V3 a beam struggle against its fire with "every page has a place". Local layout
@@ -107,7 +107,7 @@ export const towerRoof: AreaScript = {
     }),
     fight('l2-wyrm-v3', A, { barks: ['l2-wyrm-motto'] }),
     checkpoint('l2-wyrm-checkpoint', A, 'wyrm-defeated'),
-    // Ending (L2-16): the quill shard, Pip glitches, someone has to go through.
+    // Ending: the quill shard, Pip glitches, someone has to go through.
     fade('l2-after-enter', E, 'AFTER_OBS', { music: 'ward-repair', fadeOutSec: 1, holdSec: 0.6, fadeInSec: 1 }),
     talk('l2-after-shard', E, ['l2-end-0', 'l2-end-1', 'l2-end-2', 'l2-end-3'], { attention: 'ending' }),
     reveal('l2-after-rift', E, 'AFTER_OBS', ['AFTER_SHARD'], 0.6, 0.2, { attention: 'ending' }),

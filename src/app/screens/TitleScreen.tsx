@@ -21,7 +21,7 @@ function timeAgo(iso: string): string {
   return days === 1 ? 'yesterday' : `${days} days ago`;
 }
 
-/** LD-5 title screen: exactly two primary options, START and RESUME. */
+/** Title screen: exactly two primary options, START and RESUME. */
 export function TitleScreen() {
   const startNewRun = useGameStore((s) => s.startNewRun);
   const resumeSavedRun = useGameStore((s) => s.resumeSavedRun);

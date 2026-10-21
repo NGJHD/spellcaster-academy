@@ -1,5 +1,5 @@
 /**
- * Shared runtime materials for code-built stand-ins (CLAUDE.md §14A.29 library names).
+ * Shared runtime materials for code-built stand-ins (library names).
  * GLB assets bring their own PBR materials; these keep placeholders visually consistent.
  */
 import { DoubleSide, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, type MeshStandardMaterialParameters } from 'three';

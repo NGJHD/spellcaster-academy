@@ -1,5 +1,5 @@
 /**
- * LD-17 / LD-18 as revised by LEVEL1_DESIGN LD-0: the dome splits open with a boom, the Warden rises
+ * The dome splits open with a boom, the Warden rises
  * with a roar of light (name card, health bar), plates blast off, light arcs scorch the floor, and the
  * repair is a beam struggle against the fracture that ends in a huge flash and shock wave. The ending
  * starts with fireworks and keeps to four lines before the results.

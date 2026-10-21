@@ -1,6 +1,6 @@
 /**
- * Level 2 enemy templates (LEVEL2_DESIGN M2): the Hush, ink-and-ember constructs that burst into
- * sparks when beaten. Every spawn and path is authored per encounter (MD-1).
+ * Level 2 enemy templates: the Hush, ink-and-ember constructs that burst into
+ * sparks when beaten. Every spawn and path is authored per encounter.
  */
 import type { AttackSpec, FxCue, TargetSpawn, WordSpec } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
@@ -81,7 +81,7 @@ export const knight = (id: string, path: Vec3[], words: readonly WordSpec[] = [l
 
 /**
  * A fireball (or ink blast) streaking at the camera with a counter-word: typing it raises the Ward
- * Shield and deflects it into sparks (L2-4). It takes the lock even mid-word.
+ * Shield and deflects it into sparks. It takes the lock even mid-word.
  */
 export const fireball = (id: string, from: Vec3, to: Vec3, options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'fireball', from, [len(3, 3)], {
@@ -96,7 +96,7 @@ export const fireball = (id: string, from: Vec3, to: Vec3, options: Partial<Targ
     ...options,
   });
 
-/** A burning object's restore word: blasts out the inkfire and repaints it (L2-4). */
+/** A burning object's restore word: blasts out the inkfire and repaints it. */
 export const restore = (id: string, position: Vec3, word: string, flag: string, options: Partial<TargetSpawn> = {}): TargetSpawn =>
   marker(id, position, word, {
     labelHeight: 0.5,

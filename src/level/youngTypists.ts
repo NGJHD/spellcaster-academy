@@ -28,11 +28,11 @@ const CHASE_PER_BEAT = 2;
 // Kept whole: the fireball tutorial, and Pip's three rings ("Brave, curious, kind: say them!").
 const KEEP_AS_AUTHORED = new Set(['l2-fireballs', 'l3-u3']);
 
-const NON_MOB = new Set(['marker', 'gem', 'star-page']);
+const NON_MOB = new Set(['marker', 'gem', 'journal-page']);
 
 const isMob = (t: TargetSpawn) => !NON_MOB.has(t.kind);
 /** Targets that unlock a cosmetic (the Inkwell trail's shelves): never trimmed away. */
-const isCollectible = (t: TargetSpawn) => t.reward?.cosmetic !== undefined;
+const givesCosmetic = (t: TargetSpawn) => t.reward?.cosmetic !== undefined;
 const isPowerWave = (id: string) => /-power$|power-wave|starfall-wave|quill-wave/.test(id);
 
 const isAnchor = (id: string) => /anchor|beacon/.test(id);
@@ -44,7 +44,7 @@ const isAnchor = (id: string) => /anchor|beacon/.test(id);
 function keepFirst(targets: readonly TargetSpawn[], n: number): TargetSpawn[] {
   if (targets.length <= n) return [...targets];
   // Cosmetic rewards are never trimmed.
-  const kept = targets.filter((t, i) => i < n || isCollectible(t));
+  const kept = targets.filter((t, i) => i < n || givesCosmetic(t));
   const dropped = targets.filter((t) => !kept.includes(t)).flatMap((t) => [t.defeatFlag, ...(t.alsoFlags ?? [])]).filter((f): f is string => !!f);
   const last = kept[kept.length - 1];
   if (last && dropped.length > 0) kept[kept.length - 1] = { ...last, alsoFlags: [...(last.alsoFlags ?? []), ...dropped] };
@@ -75,7 +75,7 @@ function pickMobs(mobs: readonly TargetSpawn[], n: number): TargetSpawn[] {
 function simplifyFight(def: EncounterDef): EncounterDef {
   const all = def.waves.flatMap((w) => w.targets);
   const mobs = all.filter((t) => isMob(t) && !t.optional && !t.challengeOnly);
-  const keepOptional = all.filter((t) => t.optional && isCollectible(t));
+  const keepOptional = all.filter((t) => t.optional && givesCosmetic(t));
   const limit = isPowerWave(def.id) ? POWER_WAVE_MOBS : MOBS_PER_FIGHT;
   const fight: Wave = {
     id: def.waves[0]?.id ?? 'fight',
@@ -110,7 +110,7 @@ function simplifySequence(def: EncounterDef): EncounterDef {
     waves: def.waves.map((w) => ({
       ...w,
       targets: keepFirst(
-        w.targets.filter((t) => !t.optional || isCollectible(t)),
+        w.targets.filter((t) => !t.optional || givesCosmetic(t)),
         isAnchor(def.id) ? ANCHOR_WORDS : SEQUENCE_WORDS,
       ).map((t) => capWords(t, isAnchor(def.id) ? ARMOUR_WORDS : 1)),
     })),
@@ -128,8 +128,6 @@ export function forYoungTypists(def: EncounterDef): EncounterDef {
 /** Chase words along the rails: at most two per stretch. */
 export function trimChase(beat: LevelBeat): LevelBeat {
   if (!('chase' in beat) || !beat.chase || beat.chase.length <= CHASE_PER_BEAT) return beat;
-  const collectibles = beat.chase.filter((c) => isCollectible(c.target));
-  const others = beat.chase.filter((c) => !isCollectible(c.target));
-  const chase = [...collectibles, ...others].slice(0, Math.max(CHASE_PER_BEAT, collectibles.length)).sort((a, b) => a.at - b.at);
+  const chase = beat.chase.slice(0, CHASE_PER_BEAT);
   return { ...beat, chase };
 }

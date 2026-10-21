@@ -9,7 +9,7 @@ export interface DifficultyProfile {
   readonly speed: number;
   /** Attack wind-up multiplier (bigger = more warning). */
   readonly windup: number;
-  /** Minimum attack anticipation in seconds (MD-1). */
+  /** Minimum attack anticipation in seconds. */
   readonly minWindupSec: number;
   /** Simulation time scale for enemies while the player is mid-word. */
   readonly typingTimeScale: number;

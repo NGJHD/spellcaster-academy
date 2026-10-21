@@ -1,4 +1,4 @@
-/** PLACEHOLDER Hall of Portraits (§14A.20). Local coordinates; see src/level/areas/portraits.ts. */
+/** PLACEHOLDER Hall of Portraits. Local coordinates; see src/level/areas/portraits.ts. */
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import type { Mesh } from 'three';

@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-9: the Bell Bridge and Beacon 1. A long covered bridge over a gorge, on fire. The
+ * The Bell Bridge and Beacon 1. A long covered bridge over a gorge, on fire. The
  * camera races along it while sections collapse into the gorge just behind (scripted, never a catch);
  * burning planks ahead need restore words. Moths swarm the belfry; three words swing the great bell,
  * and its boom blasts every moth away and sends a gold beam into the sky.

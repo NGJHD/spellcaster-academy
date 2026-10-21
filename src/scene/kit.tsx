@@ -1,5 +1,5 @@
 /**
- * PLACEHOLDER architecture kit (§14A.15): code-built modules standing in for the Blender kit.
+ * PLACEHOLDER architecture kit: code-built modules standing in for the Blender kit.
  * Dimensions follow the documented academy conventions (1 unit = 1 m, doors 2.4–3.2 m, eye 1.6 m).
  */
 import { useGLTF, useTexture } from '@react-three/drei';
@@ -148,7 +148,7 @@ export function StandingLamp({ position, light = false }: { position: V3; light?
   );
 }
 
-/** Instanced books on a shelf unit; one draw call for the books (§14A.19). */
+/** Instanced books on a shelf unit; one draw call for the books. */
 const BOOK_ROWS_TALL = Array.from({ length: 8 }, (_, i) => `bookrow_tall_${i}`);
 const BOOK_ROWS_SHORT = Array.from({ length: 4 }, (_, i) => `bookrow_short_${i}`);
 const BOOK_ROW_LENGTH = 0.5;
@@ -156,7 +156,7 @@ const BOOK_ROW_LENGTH = 0.5;
 const BOOK_LOD_HEIGHT = 4;
 
 /**
- * Oak bookcase (§14A.19): plinth, crown moulding, pilasters and lipped shelves, filled with
+ * Oak bookcase: plinth, crown moulding, pilasters and lipped shelves, filled with
  * Blender-built 0.5 m book rows (kit_props.py) chosen per slot. Books never cast shadows.
  */
 export function Bookshelf({ position, width = 3, height = 3.6, shelves = 5, rotationY = 0, seed = 1 }: { position: V3; width?: number; height?: number; shelves?: number; rotationY?: number; seed?: number }) {
@@ -281,7 +281,7 @@ export const PAINTINGS = [
 ] as const;
 const FRAME_SIZES = new Set(['1.1x1.4', '1x1.3', '1.6x1.1']);
 
-/** A framed oil painting on a wall (§14A.20). `painting` names a canvas texture. */
+/** A framed oil painting on a wall. `painting` names a canvas texture. */
 export function Portrait({ position, rotationY = 0, size = [1.1, 1.4], painting = 'painting_0' }: { position: V3; rotationY?: number; size?: readonly [number, number]; painting?: string }) {
   const key = `${size[0]}x${size[1]}`;
   if (!FRAME_SIZES.has(key)) return null;
@@ -353,7 +353,7 @@ interface FacadeProps {
 }
 
 /**
- * Academy façade (§14A.15 wall modules): plinth, pilasters, cornice, framed arched windows and
+ * Academy façade (wall modules): plinth, pilasters, cornice, framed arched windows and
  * optional crenellations, so large walls read as constructed masonry rather than flat boxes.
  */
 export function Facade({

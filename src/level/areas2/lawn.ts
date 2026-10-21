@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-7: the lawn. Night by Lantern Lake after the Lantern Festival: the apprentice runs
+ * The lawn. Night by Lantern Lake after the Lantern Festival: the apprentice runs
  * out of the Dormitory Tower (see bedroom.ts) into the siege; fireballs teach counter-words, the Hush
  * climb out of the flames, and Keeper Orin sends the apprentice to light the four beacons. Local layout (origin LAWN_ORIGIN): lawn
  * x ∈ [-22, 22], z ∈ [-24, 22]; the lake beyond z < -24; the Rift high over the lake; the dormitory

@@ -1,5 +1,5 @@
 /**
- * Target simulation (MD-1): a small finite-state machine driven entirely by authored data.
+ * Target simulation: a small finite-state machine driven entirely by authored data.
  *   Appearing → Active (approach / patrol / orbit / static) ⇄ attack (wind-up → hit → recover)
  *   → Stunned (shield break) → Dispelling → Gone
  * Plain TypeScript; renderers read the state each frame.

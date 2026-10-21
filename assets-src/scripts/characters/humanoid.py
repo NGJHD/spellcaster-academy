@@ -1,5 +1,5 @@
 """
-Stylised-realistic robed humanoids (§14A.3 apprentice, ending cast): Mira, Keeper Orin, students.
+Stylised-realistic robed humanoids (apprentice, ending cast): Mira, Keeper Orin, students.
 
     blender --background --python assets-src/scripts/characters/humanoid.py -- <mira|orin|student_a|student_b> [--preview]
 

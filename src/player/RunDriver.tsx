@@ -13,7 +13,7 @@ const KICK_DISTANCE = 0.06;
 const kick = new Vector3();
 /** Labels stay this many pixels inside the viewport edge. */
 const SAFE_MARGIN = 56;
-/** Labels never drop into the subtitle band at the bottom of the screen (GD-19). */
+/** Labels never drop into the subtitle band at the bottom of the screen. */
 const SUBTITLE_BAND = 150;
 
 /** Last frame's render statistics (read by the `?test` hook for performance checks). */

@@ -1,5 +1,5 @@
 """
-Raw renders for the Hall of Portraits paintings (§14A.20). scripts/paint_portraits.py applies the
+Raw renders for the Hall of Portraits paintings. scripts/paint_portraits.py applies the
 painterly finish (brushwork, canvas weave, varnish) outside Blender.
 
   render_still_life  dramatic still life / bust study of photo-scanned CC0 props

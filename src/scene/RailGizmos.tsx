@@ -5,7 +5,7 @@ import { getRun } from '../state/gameStore';
 import { buildTravelCurves } from '../level/rail/railMath';
 import type { CameraNode, Vec3 } from '../level/rail/railTypes';
 
-/** Debug view of authored rails (GD-2): position splines, look splines and named nodes. */
+/** Debug view of authored rails: position splines, look splines and named nodes. */
 export function RailGizmos() {
   const ROUTE = getRun()?.level.route ?? LEVELS['level-1'].route;
   const rails = useMemo(

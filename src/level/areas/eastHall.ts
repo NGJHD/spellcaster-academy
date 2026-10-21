@@ -1,5 +1,5 @@
 /**
- * LEVEL1_DESIGN LD-0 East Hall (replaces LD-10): the Book Stampede. Mira bursts out of an alcove
+ * East Hall: the Book Stampede. Mira bursts out of an alcove
  * chased by runaway books; the camera wheels round and runs backwards down the corridor while books
  * swoop in; the chest is an optional speed round; Pip's ward stops the stampede with a crash.
  * Corridor from the courtyard door (x = 14) to the library doors (x = 44), z ∈ [-2.5, 2.5].

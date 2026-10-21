@@ -1,5 +1,5 @@
 /**
- * Level 1 — First Day, First Spell. The complete authored on-rails sequence (LD-4), assembled
+ * Level 1 — First Day, First Spell. The complete authored on-rails sequence, assembled
  * from per-area scripts. Order here is the story order; nothing else can advance the level.
  */
 import type { AreaId } from '../game/types';
@@ -47,10 +47,7 @@ export function beatIndexOf(beatId: string): number {
   return BEAT_INDEX.get(beatId) ?? -1;
 }
 
-/**
- * Beats removed by the LD-0 excitement rewrite, mapped to the beat that now plays that moment, so a
- * save made before the rewrite still resumes sensibly (LEVEL1_DESIGN LD-0 implementation notes).
- */
+/** Beats that no longer exist, mapped to the beat that now plays that moment, so an older save still resumes sensibly. */
 export const BEAT_ALIASES: Readonly<Record<string, string>> = {
   'courtyard-fountain-reveal': 'courtyard-c1',
   'library-balcony-pan': 'library-to-grimoire',

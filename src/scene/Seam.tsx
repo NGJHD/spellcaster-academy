@@ -1,5 +1,5 @@
 /**
- * The burning seam (LEVEL1_DESIGN LD-21): after the ward is mended, a jagged split stays in the
+ * The burning seam: after the ward is mended, a jagged split stays in the
  * sky where it was torn from outside. It glows in the observatory reveal and lingers faintly over the
  * celebration, foreshadowing the Rift of Level 2.
  */

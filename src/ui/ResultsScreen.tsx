@@ -42,7 +42,7 @@ function rows(r: ResultsData): { group: keyof typeof strings.results.groups; lab
   ];
 }
 
-/** After Level 3 (L3-17): each chapter's best, with positive framing only. */
+/** After Level 3: each chapter's best, with positive framing only. */
 function CampaignSummary() {
   const profile = readProfile(gameStorage());
   const t = strings.results;
@@ -66,7 +66,7 @@ function CampaignSummary() {
   );
 }
 
-/** LD-19 completion screen: encouraging, no grades, no comparisons. */
+/** Completion screen: encouraging, no grades, no comparisons. */
 export function ResultsScreen() {
   const results = useRunStore((s) => s.results);
   const startNewRun = useGameStore((s) => s.startNewRun);

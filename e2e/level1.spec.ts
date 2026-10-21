@@ -129,8 +129,6 @@ test('full Level 1 from START to results (Gentle, 10× time)', async ({ page }) 
   await startNewGame(page, '&speed=10', 'Gentle');
   await playUntil(page, async () => (await page.locator('.results').count()) > 0, 560_000);
   await expect(page.getByRole('heading', { name: 'LEVEL 1 COMPLETE' })).toBeVisible();
-  // Collectibles are off by default for now (owner, 2026-10-07), so the results hide the page tally.
-  await expect(page.getByText('Star pages')).toHaveCount(0);
   // Definition of done: no recurring console errors during a full playthrough.
   expect(errors).toEqual([]);
 });

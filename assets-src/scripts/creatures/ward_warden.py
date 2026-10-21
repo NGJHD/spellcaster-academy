@@ -1,5 +1,5 @@
 """
-Ward Warden (§14A.13, MD-11): 3.6 m majestic floating protector of carved pale stone held together by
+Ward Warden: 3.6 m majestic floating protector of carved pale stone held together by
 gold-blue ward energy. Broad torso, long articulated arms, a crown-like halo ring, a faceless polished
 mask with a narrow warm light seam, and a fractured celestial core (not an eye).
 

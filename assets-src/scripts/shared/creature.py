@@ -386,7 +386,7 @@ def triangle_count():
     return total
 
 
-# ---------- Previews (§14A.29 neutral turntables) ----------
+# ---------- Previews (neutral turntables) ----------
 
 
 def render_previews(path_prefix, target_height, views=((0, "front"), (90, "side"), (35, "three-quarter")), pose_frame=None):

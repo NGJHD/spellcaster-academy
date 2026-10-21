@@ -1,5 +1,5 @@
 /**
- * PLACEHOLDER creature and target stand-ins (CLAUDE.md §14A, MD-2 … MD-11).
+ * PLACEHOLDER creature and target stand-ins.
  * Built from smooth primitives so gameplay can be finished before the Blender GLBs land.
  * Every model reads only a `TargetPose`, so swapping in a GLB never touches gameplay code.
  */
@@ -60,9 +60,9 @@ function useGlowPulse(pose: PoseRef, material: MeshStandardMaterial, base: numbe
   });
 }
 
-// ---------- Training dummy (MD-2) ----------
+// ---------- Training dummy ----------
 
-preloadKit(['star_page', 'star_page_teal', 'clasp', 'page_loose', 'warden_plate']);
+preloadKit(['star_page', 'clasp', 'page_loose', 'warden_plate']);
 
 /** useGlowPulse for every per-instance glow material of a kit model. */
 function useGlowPulses(pose: PoseRef, materials: readonly MeshStandardMaterial[], base: number): void {
@@ -128,7 +128,7 @@ export function DummyModel({ pose, practice }: { pose: PoseRef; practice: boolea
   );
 }
 
-// ---------- Mischief sprite (MD-3) ----------
+// ---------- Mischief sprite ----------
 
 export function SpriteModel({ pose, variant }: { pose: PoseRef; variant?: string }) {
   const body = useRef<Group>(null);
@@ -179,7 +179,7 @@ export function SpriteModel({ pose, variant }: { pose: PoseRef; variant?: string
   );
 }
 
-// ---------- Runaway book (MD-4) ----------
+// ---------- Runaway book ----------
 
 const BOOK_COVERS = { default: MAT.burgundyLeather, green: MAT.greenLeather, blue: MAT.blueLeather } as const;
 
@@ -221,7 +221,7 @@ export function BookModel({ pose, variant }: { pose: PoseRef; variant?: string }
   );
 }
 
-// ---------- Ink wisp (MD-5) ----------
+// ---------- Ink wisp ----------
 
 export function WispModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
@@ -277,7 +277,7 @@ export function WispModel({ pose }: { pose: PoseRef }) {
   );
 }
 
-/** The wisp's luminous rune shield disc (§14A.7), shown until the shield word is typed. */
+/** The wisp's luminous rune shield disc, shown until the shield word is typed. */
 export function WispShield({ pose }: { pose: PoseRef }) {
   const shield = useRef<Group>(null);
   useFrame(() => {
@@ -304,7 +304,7 @@ export function WispShield({ pose }: { pose: PoseRef }) {
   );
 }
 
-// ---------- Thorn pod (MD-7) ----------
+// ---------- Thorn pod ----------
 
 export function ThornPodModel({ pose }: { pose: PoseRef }) {
   const head = useRef<Group>(null);
@@ -353,7 +353,7 @@ export function ThornPodModel({ pose }: { pose: PoseRef }) {
   );
 }
 
-// ---------- Mossling (MD-8) ----------
+// ---------- Mossling ----------
 
 export function MosslingModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
@@ -424,7 +424,7 @@ export function MosslingModel({ pose }: { pose: PoseRef }) {
   );
 }
 
-// ---------- Pollen puff (MD-9) ----------
+// ---------- Pollen puff ----------
 
 const Y_AXIS = v(0, 1, 0);
 
@@ -470,7 +470,7 @@ export function PollenModel({ pose }: { pose: PoseRef }) {
   );
 }
 
-// ---------- Armour guardian (MD-10) ----------
+// ---------- Armour guardian ----------
 
 export function GuardianModel({ pose }: { pose: PoseRef }) {
   const torso = useRef<Group>(null);
@@ -540,9 +540,10 @@ export function GuardianModel({ pose }: { pose: PoseRef }) {
 
 // ---------- Small magical targets ----------
 
-export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boolean }) {
+/** A glowing gilt page (the pages that fly out of Corvane's burning journal). */
+export function JournalPageModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
-  const { root, glow } = useKitGlow(cosmetic ? 'star_page_teal' : 'star_page', [cosmetic ? 'TealGlow' : 'Energy']);
+  const { root, glow } = useKitGlow('star_page', ['Energy']);
   useGlowPulses(pose, glow, 2.2);
   useFrame(() => {
     const p = pose.current;
@@ -555,7 +556,7 @@ export function StarPageModel({ pose, cosmetic }: { pose: PoseRef; cosmetic: boo
       <primitive object={root} rotation={[0.15, 0, 0.1]} />
       <mesh>
         <sphereGeometry args={[0.22, 16, 12]} />
-        <meshBasicMaterial color={cosmetic ? '#8fffd8' : '#ffe9a0'} transparent opacity={0.1} depthWrite={false} />
+        <meshBasicMaterial color="#ffe9a0" transparent opacity={0.1} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -582,7 +583,7 @@ function impBodyGeometry(): SphereGeometry {
 }
 
 /**
- * PLACEHOLDER paint imp (LD-0 Hall of Portraits): a cheeky glossy blob of portrait paint with big
+ * PLACEHOLDER paint imp (Hall of Portraits): a cheeky glossy blob of portrait paint with big
  * eyes and stubby arms. Hops, rears back to throw a splat, and bursts back into paint when beaten.
  */
 export function ImpModel({ pose, variant }: { pose: PoseRef; variant?: string }) {
@@ -793,7 +794,7 @@ export function FireWallModel({ pose }: { pose: PoseRef }) {
 // Deep jewel tones (amber, sapphire, ruby-pink, emerald): pale tones washed out against the sky.
 const GEM_COLOURS = ['#e8a010', '#1a6cff', '#e8206a', '#10b860'];
 
-/** Spark gem (CLAUDE.md §1B): spins, glints, and bursts outward when caught. */
+/** A small glowing word-token that flies beside the camera (healing droplets, Mira's song word). */
 export function GemModel({ pose, seed }: { pose: PoseRef; seed: string }) {
   const body = useRef<Group>(null);
   const glint = useRef<Sprite>(null);

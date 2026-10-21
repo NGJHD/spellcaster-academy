@@ -1,5 +1,5 @@
 /**
- * Versioned save data (LD-6). The autosave stores a stable resume beat — never live simulation state.
+ * Versioned save data. The autosave stores a stable resume beat — never live simulation state.
  * Writes go to a temporary key, are validated, then promoted; the previous valid save is kept as backup.
  */
 import { cloneMetrics, emptyMetrics, type PersistedRunMetrics } from '../typing/TypingMetrics';

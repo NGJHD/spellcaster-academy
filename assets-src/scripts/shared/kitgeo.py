@@ -1,7 +1,7 @@
 """
 Low-level geometry helpers for kit props (bookshelves, windows, furniture, hero books).
 
-Conventions (§14A.29): 1 Blender unit = 1 metre, Z up; the glTF exporter turns Blender -Y into the
+Conventions: 1 Blender unit = 1 metre, Z up; the glTF exporter turns Blender -Y into the
 game's +Z (the side facing the player). Materials are named after the runtime material library
 (src/scene/materials.ts `MAT` keys) so the game swaps in its shared CC0-textured materials; every
 mesh gets metre-scaled box-projected UVs so those textures keep their real-world size.

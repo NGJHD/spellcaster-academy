@@ -194,7 +194,7 @@ const SPLAT_SPOTS = [
 ];
 
 /**
- * Paint splats from the portrait imps land at the screen edges only (LD-0: they never cover a
+ * Paint splats from the portrait imps land at the screen edges only (they never cover a
  * word) and slide off after a moment.
  */
 export function PaintSplats() {

@@ -1,5 +1,5 @@
 /**
- * All Level 1 subtitle lines (LD-7 … LD-18). No voice acting; text only.
+ * All Level 1 subtitle lines. No voice acting; text only.
  * Keep lines short: one or two subtitle lines suitable for a ten-year-old.
  */
 import type { AreaId } from '../game/types';
@@ -348,7 +348,7 @@ export function getLine(id: string): DialogueLine | undefined {
   return (LINES as Record<string, DialogueLine>)[id];
 }
 
-/** One-sentence goal summaries Pip gives after resuming (GD-21). */
+/** One-sentence goal summaries Pip gives after resuming. */
 export const RESUME_SUMMARY: Record<AreaId, DialogueLine> = {
   'arrival-gate': line('pip', "Welcome back! Let's wake the gate crystals."),
   'sunlit-courtyard': line('pip', 'The Courtyard Anchor needs us. Ready your wand.'),

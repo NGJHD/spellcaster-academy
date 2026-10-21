@@ -1,13 +1,13 @@
 """
 Original hero props and small characters built as named, pivoted parts (the game animates the parts):
 
-  fp_arm          §14A.1  first-person forearm, gloved grip, walnut wand with silver twist, moonstone Tip
-  pip             §14A.2  brass astrolabe guide orb: Core, Ring_0..2, Fin_L/R
-  training_dummy  §14A.4  stone base, hardwood post, canvas torso with straps & ward target, Arm_L/R, Head
-  runaway_book    §14A.6  leather covers hinged at the spine (Cover_L/R), layered pages, brass corners
-  thorn_pod       §14A.9  rooted plant: stem, leaves, Head with Petal_0..6 and amber Core
-  ward_anchor     §14A.14 triangular carved base, Ring_0..2, Node_0..2, Shard
-  grimoire        §14A.8  massive reference book: Pages, Cover_L/R, Spine, clasps, corner ornaments
+  fp_arm          first-person forearm, gloved grip, walnut wand with silver twist, moonstone Tip
+  pip             brass astrolabe guide orb: Core, Ring_0..2, Fin_L/R
+  training_dummy  stone base, hardwood post, canvas torso with straps & ward target, Arm_L/R, Head
+  runaway_book    leather covers hinged at the spine (Cover_L/R), layered pages, brass corners
+  thorn_pod       rooted plant: stem, leaves, Head with Petal_0..6 and amber Core
+  ward_anchor     triangular carved base, Ring_0..2, Node_0..2, Shard
+  grimoire        massive reference book: Pages, Cover_L/R, Spine, clasps, corner ornaments
 
     blender --background --python assets-src/scripts/props/hero_props.py -- [ids…] [--preview]
 """

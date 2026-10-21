@@ -1,5 +1,4 @@
 /**
- * LEVEL3_DESIGN L3-12 … L3-14.
  * - Paper Sea (origin SEA_ORIGIN): Mira's paper ship sails along −Z; three black-sailed galleons at
  *   z ≈ −100 (x = −14, 0, 14); a firestorm at z ≈ −160; the Citadel looms ahead.
  * - The Forge of Unwriting (origin FORGE_ORIGIN): three production lines (lanes) at x = −8, 0, 8,

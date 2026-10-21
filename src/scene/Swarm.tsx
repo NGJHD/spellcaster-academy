@@ -1,5 +1,5 @@
 /**
- * The swarm of runaway books (LD-0 East Hall Book Stampede): a flock of flapping books that chases
+ * The swarm of runaway books (East Hall Book Stampede): a flock of flapping books that chases
  * the camera during the listed beats. Cosmetic only; the typeable books are ordinary chase targets.
  * Owner (2026-10-08): the books are instances of the generated `runaway_book` model (AI pipeline), each
  * tinted a different cover colour; tinted boxes only while it loads.

@@ -1,5 +1,5 @@
 /**
- * Fire for Levels 2 and 3 (LEVEL2_DESIGN A2-1b): camera-facing flame sprites animated from a
+ * Fire for Levels 2 and 3: camera-facing flame sprites animated from a
  * procedurally rendered flipbook (turbulent noise coloured by heat), with a flickering light for big fires and rising smoke.
  * - 'ink': the enemy's inkfire, red-orange with dark smoky cores.
  * - 'warm': ordinary flame (furnace, beacons, braziers).
@@ -260,7 +260,7 @@ const ASH = new Color('#55504c');
 
 /**
  * An object that burns to grey ash (with fire on it) until `flag` is set by its restore word, then
- * blazes back to full colour (LEVEL2_DESIGN A2-1). `burning` false keeps it ash without flames.
+ * blazes back to full colour. `burning` false keeps it ash without flames.
  */
 /** The slant of the line that rubs out half of an `erased` creature (world space, normalised). */
 const ERASE_NORMAL = new Vector3(0.85, 0.45, 0.3).normalize();

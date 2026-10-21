@@ -1,5 +1,5 @@
 /**
- * Level 2 areas (LEVEL2_DESIGN L2-6 … L2-16): the academy at night under siege, lit by inkfire.
+ * Level 2 areas: the academy at night under siege, lit by inkfire.
  * Each scene matches the local layout documented in its area script (src/level/areas2).
  * PLACEHOLDER geometry is kit-built; mobs and bosses are realistic AI-pipeline models.
  */

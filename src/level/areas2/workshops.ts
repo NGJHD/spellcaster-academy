@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-11: the Alchemy Workshops and Beacon 2. Copper stills, glass alembics and the great
+ * The Alchemy Workshops and Beacon 2. Copper stills, glass alembics and the great
  * furnace (choked with grey ash, inkfire along the pipes). Smudgehounds dart between benches; an
  * optional valve speed round; four words roar the furnace back to life and unlock Starfall, then a
  * wave of easy Blotlings to feel its power. Local layout (origin WORKSHOP_ORIGIN): x ∈ [−11, 11],

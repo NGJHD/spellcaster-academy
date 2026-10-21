@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-8: the Dormitory Tower rescue. Reuses the Lower Stairwell spiral (dressed as the
+ * The Dormitory Tower rescue. Reuses the Lower Stairwell spiral (dressed as the
  * dormitory, on fire). On each of three landings Scribble Imps are setting a door alight with a
  * first-year behind it: blast them, restore the door, and the student runs down to safety. A
  * Smudgehound bursts through a burning door on landing 3.

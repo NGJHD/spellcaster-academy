@@ -1,9 +1,8 @@
 /**
- * LEVEL3_DESIGN L3-9 … L3-11.
  * - Inkfall Cascades (origin FALLS_ORIGIN): a page-raft descends falls of red ink, from y = 40 at
  *   z = 0 down to the pool at y = 0, z = −130; walls of fire on both banks; a fire tide in the basin.
- * - Margin Library (origin MARGIN_ORIGIN): walkways between upside-down shelves hanging from the red
- *   sky; Corvane's journal burns into a tornado at z = −40; Bright Quill.
+ * - Margin Library (origin MARGIN_ORIGIN): a roofless ruined hall over a chasm, walkways written across
+ *   it; Corvane's journal burns into a tornado at z = −40; Bright Quill.
  * - Gallery of Unfinished Things (origin GALLERY3_ORIGIN): grey sculptures; the Perfect Warden smashes
  *   out of the far wall at z = −20.
  */
@@ -250,7 +249,7 @@ export const margin: AreaScript = {
           sequential: true,
           targets: ([['orb', 'l3-mem-4'], ['quill', 'l3-mem-5'], ['flee', 'l3-mem-6']] as const).map(([word, bark], i) =>
             // Low enough to stay well inside the view (owner, 2026-10-16: "orb" was too high to see).
-            target(`journal-page-${i + 1}`, 'star-page', L(-2 + i * 2, 3 + i * 0.4, -38), [word], {
+            target(`journal-page-${i + 1}`, 'journal-page', L(-2 + i * 2, 3 + i * 0.4, -38), [word], {
               labelHeight: 0.4,
               movement: { kind: 'patrol', path: [L(-3 + i * 2, 2.6 + i * 0.4, -39), L(-1 + i * 2, 3.4 + i * 0.4, -38)], speed: 0.8 },
               defeatBark: bark,

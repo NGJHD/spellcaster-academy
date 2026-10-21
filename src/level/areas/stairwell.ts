@@ -1,5 +1,5 @@
 /**
- * LEVEL1_DESIGN LD-0 Lower Stairwell (replaces LD-14): the Banister Slide. The apprentice and Pip
+ * Lower Stairwell: the Banister Slide. The apprentice and Pip
  * ride a tea tray down the spiral banister. Each guardian steps out onto the stairs ahead; its command
  * word is a chase word on the slide (the tray slows while it is typed). If the word is not finished
  * in time the guardian simply leaps aside at the last moment: it never fails. The third guardian falls

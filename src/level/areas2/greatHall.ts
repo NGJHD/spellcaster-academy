@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-10: the Great Hall. Students shelter behind Prefect Idris's barrier at the far end;
+ * The Great Hall. Students shelter behind Prefect Idris's barrier at the far end;
  * the Hush push through three side doors (lanes). Then the Grey Herald blasts the main doors open and
  * reads the Unwriter's decree. Local layout (origin HALL_ORIGIN): hall along −Z from z = 6 to z = −46,
  * x ∈ [−9, 9]; lane doors on the west wall (x = −9) at z = −4, −12, −20, each midway between two

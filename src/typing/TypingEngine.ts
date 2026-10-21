@@ -7,7 +7,7 @@ export interface TypingCandidate {
   readonly id: string;
   readonly word: string;
   /**
-   * Counter-words (Level 2 Ward Shield, LEVEL2_DESIGN L2-4): typing the first letter takes the lock
+   * Counter-words (Level 2 Ward Shield): typing the first letter takes the lock
    * even while another word is locked; finishing it hands the lock back with that word's progress intact.
    */
   readonly interrupt?: boolean;

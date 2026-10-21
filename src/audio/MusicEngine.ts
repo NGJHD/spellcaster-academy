@@ -1,5 +1,5 @@
 /**
- * Small procedural music engine (GD-20). Each story state is a "mood": tempo, scale, chord
+ * Small procedural music engine. Each story state is a "mood": tempo, scale, chord
  * progression and layer levels. Original material generated live with Web Audio — no recordings.
  * Layers: warm pad, arpeggio, bass, a generated lead melody, and drums; a synthetic hall reverb
  * gives them space. Story moods cross-fade slowly; battle moods cut in quickly (owner feedback).

@@ -44,7 +44,7 @@ describe('EncounterRunner fairness (owner bug reports)', () => {
   });
 
   it('a word never disappears on a timer, and the wave waits for it (owner, 2026-10-06)', () => {
-    const r = runner([{ id: 'page', kind: 'star-page', position: [0, 0, -5], words: ['glint'], optional: true, leaveAfterSec: 1 }]);
+    const r = runner([{ id: 'page', kind: 'journal-page', position: [0, 0, -5], words: ['glint'], optional: true, leaveAfterSec: 1 }]);
     step(r, 0.8);
     step(r, 2, 'page');
     step(r, 5, null);

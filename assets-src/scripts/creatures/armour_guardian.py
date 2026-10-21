@@ -1,5 +1,5 @@
 """
-Animated armour guardian (§14A.12, MD-10): 2.05 m original ceremonial academy armour — brushed steel
+Animated armour guardian: 2.05 m original ceremonial academy armour — brushed steel
 plates (sabatons, greaves, knee cops, cuisses, tassets, cuirass, gorget, pauldrons, couters,
 vambraces, gauntlets), engraved brass edging, a quilted navy skirt, a moon-shaped chest ward and a
 closed, non-human visor with gentle blue light (no skull imagery). No weapon.

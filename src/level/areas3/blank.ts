@@ -1,6 +1,6 @@
 /**
- * Level 3 templates (LEVEL3_DESIGN M3 and L3-4): the Unwriter's constructs, path words that write the
- * route ahead, colour restoration, Memory Pages and fire tides.
+ * Level 3 templates: the Unwriter's constructs, path words that write the
+ * route ahead, colour restoration and fire tides.
  */
 import type { TargetSpawn, WordSpec } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
@@ -14,7 +14,7 @@ export const correctionMoth = (id: string, path: Vec3[], options: Partial<Target
     labelHeight: 0.9,
     weak: true,
     entrance: { kind: 'sparks', scale: 0.8, color: '#ff8a3a' },
-    // Bursts into embers and leaves a bright butterfly behind (M3-1).
+    // Bursts into embers and leaves a bright butterfly behind.
     defeatFx: { kind: 'burst', scale: 1.3, color: '#ffd24a' },
     ...options,
   });
@@ -43,7 +43,7 @@ export const foreman = (id: string, path: Vec3[], options: Partial<TargetSpawn> 
   });
 
 /**
- * A path word (L3-4): the route ahead is blank paper until written. Completing it sets `flag`, which
+ * A path word: the route ahead is blank paper until written. Completing it sets `flag`, which
  * draws that section of path in coloured ink (scene), and the camera moves on.
  */
 export const pathWord = (id: string, position: Vec3, word: WordSpec, flag: string, options: Partial<TargetSpawn> = {}): TargetSpawn =>
@@ -67,7 +67,7 @@ export const colour = (id: string, position: Vec3, word: WordSpec, flag: string,
   });
 
 /**
- * A fire tide (L3-4): a wall of inkfire rolling across the view, countered by a two-word phrase typed
+ * A fire tide: a wall of inkfire rolling across the view, countered by a two-word phrase typed
  * in order on one tag. It takes the lock like any counter-word.
  */
 export const fireTide = (id: string, from: Vec3, to: Vec3, words: readonly [string, string], options: Partial<TargetSpawn> = {}): TargetSpawn =>

@@ -1,4 +1,4 @@
-/** Level 2 Dormitory Tower (L2-8): burning doors on each landing of the reused spiral stairwell. */
+/** Level 2 Dormitory Tower: burning doors on each landing of the reused spiral stairwell. */
 import { DORM_DOORS } from '../../level/areas2/dormitory';
 import { spiral, stairFloor, STAIRWELL_ORIGIN } from '../../level/areas/stairwell';
 import type { Vec3 } from '../../level/rail/railTypes';

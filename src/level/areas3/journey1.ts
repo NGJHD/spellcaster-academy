@@ -1,5 +1,5 @@
 /**
- * LEVEL3_DESIGN L3-6 … L3-8: Through the Rift, Rift Shore and Cinderwood.
+ * Through the Rift, Rift Shore and Cinderwood.
  * - Opening (origin SHORE_ORIGIN, high above the shore): the Warden surges out of the Rift with the
  *   party on its palm; debris with counter-words, then the first view of the Blank and the dive.
  * - Rift Shore: a beach of grey ash by a river of red ink (z ∈ [−30, 20]); path words draw stepping
@@ -140,7 +140,7 @@ export const cinderwood: AreaScript = {
     travel('l3-tortoise-ride', W, ['CW_MOUNT', 'CW_RIDE'], 8, {
       barks: ['l3-tortoise-ride'],
       chase: [
-        // Correction moths chasing the tortoise, keeping pace beside it (owner, 2026-10-16: mobs, not gems;
+        // Correction moths chasing the tortoise, keeping pace beside it (owner, 2026-10-16: mobs;
         // before that the words floated over bare trees).
         { at: 0.3, target: correctionMoth('ride-moth-1', [C(0, 0, 0)], { words: [len(3, 4)], movement: { kind: 'static' }, follow: { ahead: 5, side: -1.7, up: 0.3 } }) },
         { at: 0.65, target: correctionMoth('ride-moth-2', [C(0, 0, 0)], { words: [len(3, 4)], movement: { kind: 'static' }, follow: { ahead: 5, side: 1.7, up: 0.3 } }) },

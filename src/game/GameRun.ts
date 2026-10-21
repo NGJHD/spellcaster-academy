@@ -43,7 +43,7 @@ export const SAVE_DEBOUNCE_SEC = 0.4;
 /** Chain Spark fires on every Nth consecutive perfect word. */
 export const CHAIN_STREAK = 5;
 export const CHAIN_TARGETS = 2;
-/** Starfall (LEVEL2_DESIGN L2-4): an eight-word perfect streak. */
+/** Starfall: an eight-word perfect streak. */
 export const STARFALL_STREAK = 8;
 
 const SHAKE_SEC = 0.35;
@@ -95,7 +95,7 @@ export interface RunOptions {
   readonly difficulty: Difficulty;
   readonly resume: Level1Autosave | null;
   readonly storage: KeyValueStorage;
-  /** An older run's save is kept until this run reaches its first checkpoint (LD-5). */
+  /** An older run's save is kept until this run reaches its first checkpoint. */
   readonly deferSavesUntilFirstCheckpoint: boolean;
   readonly settings: () => RunSettings;
   readonly onResults?: (results: ResultsData) => void;
@@ -405,7 +405,7 @@ export class GameRun {
     });
 
     if (resume) {
-      // LD-5: resume at the last committed beat after a short, safe establishing moment. A beat removed
+      // Resume at the last committed beat after a short, safe establishing moment. A beat removed
       // by a later version resumes at the beat that replaced it, from its first wave.
       const beatId = this.level.resolveBeatId(resume.resumeBeatId) ?? firstBeat;
       this.pendingStartBeat = beatId;
@@ -888,7 +888,7 @@ export class GameRun {
     const m = this.progress.metrics;
     m.score += r.bonus;
     audio.playSfx('checkpoint');
-    // A local best to beat on replay (Practice Gallery arcade, LD-0).
+    // A local best to beat on replay (Practice Gallery arcade).
     if (r.bonus > this.speedBest) {
       this.speedNewBest = this.speedBest > 0;
       this.speedBest = r.bonus;
@@ -1225,7 +1225,7 @@ export class GameRun {
       this.startBoss(boss);
     }
 
-    // Every beat start is a stable resume point (LD-6).
+    // Every beat start is a stable resume point.
     this.progress.resumeBeatId = beat.id;
     this.progress.resumeWaveIndex = 0;
     this.progress.areaId = beat.areaId;
@@ -1340,7 +1340,7 @@ export class GameRun {
     const boss = bossForEncounter(def.id, this.level.bosses);
     if (boss && this.boss?.def.id !== boss.id) this.startBoss(boss);
     this.startSpeedRound(def);
-    // A spark gem left over from travel stays until typed (owner: a word never disappears).
+    // A chase word left over from travel stays until typed (owner: a word never disappears).
     patchRunUi({ prompt: def.optionalPrompt ?? null });
     this.resetEncounterTyping();
   }
@@ -1357,7 +1357,7 @@ export class GameRun {
           this.requestSave();
           break;
         case 'wave-complete':
-          // Commit metrics atomically with the wave (LD-20).
+          // Commit metrics atomically with the wave.
           this.commitMetrics();
           this.progress.resumeWaveIndex = e.wave + 1;
           this.requestSave();
@@ -1477,7 +1477,7 @@ export class GameRun {
     if (reward.heal) {
       this.setFocus(this.focus + reward.heal);
       this.songShield = true;
-      audio.playSfx('star-page', { rate: 0.8 });
+      audio.playSfx('heal', { rate: 0.8 });
     }
   }
 
@@ -1514,7 +1514,7 @@ export class GameRun {
   private songCooldown = 0;
   private song: EncounterRunner | null = null;
 
-  /** Offers the Shield Song when HP runs low in Level 3 (L3-4): optional, at most every 20 s. */
+  /** Offers the Shield Song when HP runs low in Level 3: optional, at most every 20 s. */
   private updateSong(dt: number, timeScale: number, locked: string | null): boolean {
     this.songCooldown = Math.max(0, this.songCooldown - dt);
     let changed = false;

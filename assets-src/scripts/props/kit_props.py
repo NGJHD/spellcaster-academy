@@ -749,7 +749,7 @@ def banner_cloth(name, w=1.1, h=3.6):
 
 
 def fountain_courtyard(name):
-    """Courtyard centrepiece (§14A.17): octagonal pool with a moulded kerb, turned column, two carved
+    """Courtyard centrepiece: octagonal pool with a moulded kerb, turned column, two carved
     bowls and a pine-cone finial. Water levels (set by the game): pool 0.55, lower bowl 2.04, upper 2.86."""
     m = K.lib()
     stone, dark = m["academyStone"], m["academyStoneDark"]

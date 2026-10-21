@@ -1,5 +1,5 @@
 /**
- * LD-16 as revised by LEVEL1_DESIGN LD-0: the Moon Tower is a runaway lift ride. A brass lift rockets
+ * The Moon Tower is a runaway lift ride. A brass lift rockets
  * up a shaft through three round floors (radius 9 m) at y = 0, 10, 20; creatures leap at it between
  * floors; it pauses at each floor for its fight; on floor 3 the guardian smashes up through the floor.
  * The lift shaft (radius 1.4 m) is centred under the camera at (0, 6.5). Colour script moves from warm

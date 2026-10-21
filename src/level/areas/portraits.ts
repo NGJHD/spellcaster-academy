@@ -1,7 +1,7 @@
 /**
- * LEVEL1_DESIGN LD-0 Hall of Portraits (replaces LD-12): the Paint Ambush. Portraits come alive and
+ * Hall of Portraits: the Paint Ambush. Portraits come alive and
  * paint imps leap out of their frames throwing telegraphed splats; the portrait gags are shouted
- * mid-fight; the fountain is a short breather with healing-droplet gems; Mira calls through the
+ * mid-fight; the fountain is a short breather with healing droplets to catch; Mira calls through the
  * mirror; the constellations are a speed round for the greenhouse multiplier.
  * Local layout (origin PORTRAITS_ORIGIN): corridor along −Z from z = 2 to z = −40, x ∈ [−3, 3].
  */

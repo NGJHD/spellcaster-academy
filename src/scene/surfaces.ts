@@ -31,7 +31,7 @@ interface SurfaceSpec {
   readonly gain?: number;
 }
 
-/** Which CC0 set dresses which shared material (§14A.29 material library). */
+/** Which CC0 set dresses which shared material (material library). */
 export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   academyStone: { texture: 'large_sandstone_blocks_01', tileMetres: 4.5, tint: '#f5e6cc', normalScale: 0.6 },
   academyStoneDark: { texture: 'sandstone_blocks_08', tileMetres: 3, tint: '#dccaa8', normalScale: 0.7 },

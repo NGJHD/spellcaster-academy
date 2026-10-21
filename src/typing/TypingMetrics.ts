@@ -1,5 +1,5 @@
 /**
- * Typing metrics built from accepted-input segments (LD-19, LD-20).
+ * Typing metrics built from accepted-input segments.
  * Idle reading time, travel, dialogue, pauses and hidden-tab time never count as typing.
  */
 import type { AreaId } from '../game/types';

@@ -40,7 +40,7 @@ interface ChainBolt {
   landed: boolean;
 }
 
-/** Trail colours by cosmetic (§7.3 Starlight, §7.6 Verdant). */
+/** Trail colours by cosmetic. */
 const TRAILS: Record<string, { core: string; halo: string }> = {
   default: { core: '#fff1c2', halo: '#7fc8ff' },
   'trail-starlight': { core: '#ffffff', halo: '#ffe08a' },

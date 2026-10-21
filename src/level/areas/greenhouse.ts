@@ -1,5 +1,5 @@
 /**
- * LD-13 as revised by LEVEL1_DESIGN LD-0: Enchanted Greenhouse. The Snapvine Chase across the vine
+ * Enchanted Greenhouse. The Snapvine Chase across the vine
  * bridge, thorn pods bursting out of the soil, a mossling stampede, and the Warden smashing down
  * through the glass roof. Local layout (origin GREENHOUSE_ORIGIN):
  * chamber 1 z ∈ [−20, 2], water channel z ∈ [−26, −20] crossed by the vine bridge, chamber 2 z ∈ [−52, −26].
@@ -17,7 +17,7 @@ export const GREENHOUSE_ANCHOR_POSITION = G(-6, 0, -46);
 export const ROOF_PANEL_POSITION = G(5, 7.2, -36);
 export const VINE_KNOT_POSITIONS: readonly Vec3[] = [G(-1.2, 0.6, -21), G(0, 0.9, -23), G(1.2, 0.6, -25)];
 
-/** Thorn pods burst up out of the soil in a shower of dirt (LD-0). */
+/** Thorn pods burst up out of the soil in a shower of dirt. */
 const pod = (id: string, position: Vec3, options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'thorn-pod', position, [len(4, 6)], {
     attack: ATTACKS.thornSeed,
@@ -26,7 +26,7 @@ const pod = (id: string, position: Vec3, options: Partial<TargetSpawn> = {}): Ta
     ...options,
   });
 
-/** Mosslings charge in a stampede (LD-0): faster, with a dust trail as they set off. */
+/** Mosslings charge in a stampede: faster, with a dust trail as they set off. */
 const mossling = (id: string, path: Vec3[], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   target(id, 'mossling', path[0] ?? G(0, 0, -45), [len(4, 6)], {
     movement: { kind: 'approach', path, speed: 1.15 },

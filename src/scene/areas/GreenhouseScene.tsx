@@ -1,4 +1,4 @@
-/** PLACEHOLDER Enchanted Greenhouse (§14A.21). Local coordinates; see src/level/areas/greenhouse.ts. */
+/** PLACEHOLDER Enchanted Greenhouse. Local coordinates; see src/level/areas/greenhouse.ts. */
 import { placeStreak, STREAK_GEOMETRY, streakTexture } from '../glow';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
@@ -132,7 +132,7 @@ function Beds() {
   );
 }
 
-/** CC0 plant models for the beds, mixed with the code-built families below for variety (§14A.21). */
+/** CC0 plant models for the beds, mixed with the code-built families below for variety. */
 const BED_PROPS = ['fern_02', 'calathea_orbifolia_01', 'nettle_plant', 'anthurium_botany_01', 'periwinkle_plant', 'wild_rooibos_bush', 'flower_gazania', 'pachira_aquatica_01', 'flower_ursinia', 'shrub_03', 'potted_plant_02'] as const;
 const BED_HEIGHTS: Record<(typeof BED_PROPS)[number], number> = {
   fern_02: 0.9,
@@ -211,7 +211,7 @@ function VineBridge() {
 }
 
 /**
- * LD-13 midpoint reversal as revised by LD-0: the roof panel shatters, the Warden smashes down through
+ * The story's turning point: the roof panel shatters, the Warden smashes down through
  * the glass, catches the falling sheet in one hand, sets it down safely and leaps away.
  */
 function WardenRescue() {
@@ -276,7 +276,7 @@ const SNAPVINE_JAW = 1.15 * SNAPVINE_SCALE;
 const toCamera = new Vector3();
 
 /**
- * The giant snapvine (LD-0 Snapvine Chase): the AI-built snapvine (Flux2 → TRELLIS.2 → Blender, rigged
+ * The giant snapvine (Snapvine Chase): the AI-built snapvine (Flux2 → TRELLIS.2 → Blender, rigged
  * with Idle and Attack clips) on a long stem rising out of the channel. It sways in a coil, then
  * lunges at the spot the camera has just left and snaps shut on empty air (scripted, never a hit).
  */
@@ -489,7 +489,7 @@ const BEAM_SOURCES: readonly { from: Vector3; color: string }[] = [
 const beamTo = new Vector3();
 
 /**
- * LD-13: after the third anchor, all three anchor beams converge toward the Moon Tower: the greenhouse
+ * After the third anchor, all three anchor beams converge toward the Moon Tower: the greenhouse
  * beam joined by the courtyard and library beams from across the campus.
  */
 function ConvergingBeams() {

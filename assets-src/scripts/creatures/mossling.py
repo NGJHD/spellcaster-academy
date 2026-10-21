@@ -1,5 +1,5 @@
 """
-Mossling (§14A.10, MD-8): ~1.05 m compact forest guardian — mammalian anatomy under thick moss and
+Mossling: ~1.05 m compact forest guardian — mammalian anatomy under thick moss and
 rooted bark armour, broad shoulders, long forearms, short stable legs, small deer-like ears, amber
 eyes, fern growth along the back, three thick fingers. Heavy but never slow-motion.
 

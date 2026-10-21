@@ -1,5 +1,5 @@
 /**
- * LEVEL3_DESIGN L3-15 / L3-16: the Throne of Ash and the Homecoming.
+ * The Throne of Ash and the Homecoming.
  * - Throne (origin THRONE_ORIGIN): a circular iron platform (r = 14) above a sea of fire; the
  *   Unwriter rises at (0, 0, −12). In phase U3 Pip stays beside the apprentice and he burns Pip there.
  *   U1 Erasure (seal pages, quill strokes), U2 Perfect Copies of past foes, U3 Correcting Pip

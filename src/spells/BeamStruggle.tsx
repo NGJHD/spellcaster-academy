@@ -1,5 +1,5 @@
 /**
- * Beam struggle (CLAUDE.md §1B; LEVEL1_DESIGN LD-0 Grimoire G3 and Warden W3): the player's golden
+ * Beam struggle (CLAUDE.md §1B; Grimoire G3 and Warden W3): the player's golden
  * beam meets the opponent's storm at a crackling clash point. Every word pushes the clash point
  * further toward the opponent until the last word blasts through.
  */

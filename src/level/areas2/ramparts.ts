@@ -1,5 +1,5 @@
 /**
- * LEVEL2_DESIGN L2-14: the East Ramparts and Beacon 4. Burning battlements over the lake and the red
+ * The East Ramparts and Beacon 4. Burning battlements over the lake and the red
  * Rift; the Hush climb the cliffs on flaming ladders in three lanes (left tower, centre gate, right
  * tower). The Warden holds the wall beside the player; inkfire scorches it and restore words bring it
  * back. A Hollow Knight Captain, then four words close the Lantern Ward. Local layout (origin
