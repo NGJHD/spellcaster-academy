@@ -1,10 +1,10 @@
 /**
  * LEVEL3_DESIGN L3-15 / L3-16: the Throne of Ash and the Homecoming.
  * - Throne (origin THRONE_ORIGIN): a circular iron platform (r = 14) above a sea of fire; the
- *   Unwriter rises at (0, 0, −12); Pip is seized at (−3, 3.2, −6) in phase U3.
+ *   Unwriter rises at (0, 0, −12). In phase U3 Pip stays beside the apprentice and he burns Pip there.
  *   U1 Erasure (seal pages, quill strokes), U2 Perfect Copies of past foes, U3 Correcting Pip
  *   (restore brave, curious, kind), U4 the First Lesson: a six-word beam struggle against the quill.
- * - Homecoming: the Level 1 Celebration Courtyard at dawn (the exterior campus coordinates).
+ * - Homecoming: the Level 1 Celebration Courtyard at night, with fireworks (the exterior campus coordinates).
  */
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, len, marker, origin, reveal, talk, target, travel, type AreaScript } from '../areas/builders';

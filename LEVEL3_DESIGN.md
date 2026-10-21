@@ -8,6 +8,19 @@ Section ids use the prefix `L3-` for level design, `M3-` for mobs, `A3-` for the
 
 Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
 
+## As built (v1.0.0)
+
+This document is the original design. Where the shipped game differs, the game and the owner decisions in `BUILD_NOTES.md` win. The script is `src/content/dialogue.ts`; the route is `src/level/level3Route.ts` and `src/level/areas3/`.
+
+- **Erased letters** were removed (2026-10-16): a child thought faded letters needn't be typed.
+- **Inkfall to Margin Library to Gallery:** the raft runs ashore below a cliff at the foot of the falls, and the erased books' scraps fly in at a stone doorway in it; that is the library's door. The Margin Library is a roofless ruined hall under the red sky, broken by a chasm that the walkways are written across, with torn bookcases floating upside down above it (not a library hanging from the sky). An arch at its far end opens on a landing of statues and the gallery's front door.
+- **Gallery:** the stolen treasures are Asterfall's fountain, the Bell Bridge bell and the Great Hall clock. The mini-boss is named THE PERFECT GUARDIAN; it floats, gathers a ring of fire orbs and blasts it at the player. When it falls, the back wall collapses to show the paper sea, and the party walks to the gap.
+- **Unwriter, phase U3:** Pip stays beside the apprentice. The Unwriter points his quill at Pip and a stream of fire runs to Pip, with the ring words `brave`, `curious`, `kind` floating next to Pip.
+- **The Warden** is bound in ropes of fire at the Throne during the fight. They break when the Unwriter is sealed, and it carries everyone home.
+- **Homecoming:** the Level 1 courtyard at night (not dawn), with Keeper Orin's thanks, the Wardkeeper ceremony, cheering students and fireworks. Orin's vault line is said there; there is no vault visit, no returning east tower and no credits flight.
+- **Not built:** the colour meter and Colour restored %, the Memory Book, the Prism trail, the creeping erasure.
+- **Settings:** spark gems and Memory Pages exist but are off by default. The 7-second rule is on hold.
+
 ---
 
 # LEVEL DESIGN
@@ -18,7 +31,7 @@ Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-
 **Target first-play duration:** 12–17 minutes at the Fast travel speed (the longest level, and the finale; the whole game is 30–45 minutes at Fast, CLAUDE.md §1)
 **Format:** first-person on-rails typing shooter (unchanged)
 **Tone:** the climax. A journey through a scorched world of ash under a red sky to the villain's stronghold, a black fortress of iron, molten ink and roaring fire, ending in an all-out battle with the Unwriter. It is darker and more dramatic than Level 2, and the most epic part of the game. Dramatic, not horror (`CLAUDE.md` §2). The colour and light the player blasts back into the world is the visual reward of the whole game.
-**Core objective:** cross the Blank, reach the Throne of Blank Pages, and stop the Unwriter from erasing Asterfall, without destroying him.
+**Core objective:** cross the Blank, reach the Throne of Ash, and stop the Unwriter from erasing Asterfall, without destroying him.
 
 ## L3-2. Story Premise
 

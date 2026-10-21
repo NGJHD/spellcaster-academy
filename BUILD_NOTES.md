@@ -1,6 +1,6 @@
 # Build Notes — Spellcaster Academy: The Broken Ward
 
-Running log of decisions, environment facts, architecture and milestone status. `CLAUDE.md` is the spec; this file records how it was built and what is verified.
+Running log of decisions, environment facts, architecture and milestone status. `CLAUDE.md` is the spec; this file records how it was built and what is verified. The sections up to "Architecture" describe the current state; the dated sections after them are history (later entries supersede earlier ones).
 
 ## Environment
 
@@ -18,7 +18,6 @@ Running log of decisions, environment facts, architecture and milestone status. 
 | @react-three/fiber / drei | 9.8 / 10.7 | |
 | zustand | 5.0 | coarse state only |
 | howler | 2.2 | SFX; music is a Web Audio engine on Howler's context |
-| @fontsource/opendyslexic | 5.3 | OFL-licensed dyslexia-friendly font |
 | vite / vitest | 8.3 / 5.0 | vendor and three.js split into cached chunks |
 | typescript | ~6.0.3 | typescript-eslint supports `<6.1` only |
 | eslint 10 + typescript-eslint 8 + react-hooks 7 | | `react-hooks/immutability` is off for R3F scene folders only (imperative three.js updates in `useFrame` are mandated by §4.4) |
@@ -101,8 +100,8 @@ The LD/MD/GD sections of `CLAUDE.md` take precedence over earlier sections:
 
 ```bash
 npm run dev            # http://localhost:5173
-npm run test           # unit + content + headless full playthroughs + asset validation (97 tests)
-npm run test:e2e       # Playwright (Edge): 8 browser flows incl. a full Level 1 run
+npm run test           # unit + content + headless full playthroughs + asset validation (262 tests, 1 skipped: the 7-second rule)
+npm run test:e2e       # Playwright (Edge): 11 browser flows (8 Level 1, 3 campaign) incl. a full Level 1 run
 npm run typecheck && npm run lint && npm run build
 npm run audio          # regenerate synthesised SFX into public/audio/sfx
 node scripts/fetch-cc0.mjs                     # re-download CC0 sources (raw models are git-ignored)
@@ -111,6 +110,8 @@ blender --background --python assets-src/scripts/creatures/<name>.py -- [--previ
 blender --background --python assets-src/scripts/characters/humanoid.py -- <mira|orin|student_a|student_b> [--preview]
 node scripts/build-manifests.mjs               # refresh public/assets/manifests/{creatures,characters}.json
 node scripts/screens.mjs http://localhost:5199/ "<beat>@<ms>" …   # screenshots of beats
+sh assets-src/scripts/ai/build_hq.sh <name>     # regenerate an AI model at full quality (RTX 5060 Ti)
+powershell -ExecutionPolicy Bypass -File scripts/release/package.ps1   # release zip (RELEASE_GUIDE.md)
 ```
 
 Development/test URL options (dev builds, or any build with `?test`):
@@ -127,8 +128,8 @@ Development/test URL options (dev builds, or any build with `?test`):
 - **Typing** (`src/typing`): framework-free engine (initial-letter targeting, duplicate initials need a 2nd letter then fall back to the most central target, Tab cycling, buffered mistakes with Backspace, Gentle reject mode); metrics recorder built on accepted-input **segments** (5 s idle gap, pause/hidden suspend) with the LD-19 formulas; deterministic word assigner (unique initials, no repeats, seeded per encounter/wave/attempt).
 - **GameRun** (`src/game/GameRun.ts`): one playthrough — beats, encounters, typing, Focus/resets, rewards, barks/dialogue, choice, autosave, results. Plain TS; fully playable headless (see `playthrough.test.ts`).
 - **Saves** (`saveData.ts`): versioned autosave written to a temp key, validated, promoted; previous valid save kept as backup. Resume = beat + wave; only *committed* typing metrics are saved (committed at wave/encounter/checkpoint completion) so reloads never double count. Starting a new run while a save exists defers saving until the new run's first checkpoint (LD-5). Profile stores best results and cosmetics separately.
-- **Rendering**: `RunDriver` advances the run, places the camera (with gentle locked-target framing and optional shake), drives the fade overlay and projects HTML word labels (clamped above the subtitle band, with off-screen arrows). `World` mounts only the current area plus the previous one briefly (area streaming). `Atmosphere` = per-area HDRI lighting, one camera-following shadow sun, sky/stars, fog.
-- **Audio**: 19 synthesised SFX (`scripts/generate-audio.mjs`, ~1 MB) via Howler with per-category volumes; procedural music moods per GD-20 state with cross-fades. Game is fully playable muted.
+- **Rendering**: `RunDriver` advances the run, places the camera (with gentle locked-target framing and optional shake), drives the fade overlay and projects HTML word labels (clamped above the subtitle band, with off-screen arrows). `World` mounts the current area, keeps the previous one briefly, and mounts the next one hidden ahead of time so it is loaded and compiled when the story reaches it. `Atmosphere` = per-area HDRI lighting, one camera-following shadow sun, sky/stars, fog.
+- **Audio**: 23 synthesised SFX (`scripts/generate-audio.mjs`, about 2 MB) via Howler with per-category volumes; twelve recorded CC0 music tracks mapped to the GD-20 moods (`MusicEngine` `TRACKS`; the procedural score plays until a track has loaded, and for moods without one). Lines are spoken by the browser's text-to-speech. The game is fully playable muted.
 
 ## Visual direction and asset pipeline (Milestone 8)
 
@@ -333,7 +334,7 @@ Owner: "My son types at 12 words per minute… I still want to complete the game
 - [x] **M4 Library** — East Hall, books, shielded wisps, Great Grimoire (3 phases), second anchor.
 - [x] **M5 Greenhouse** — Portraits (fountain, constellations bonus), vine bridge, pods/mosslings/pollen priority encounters, Warden rescue, third anchor.
 - [x] **M6 Final path** — Stairwell commands + malfunction, Practice Gallery (accuracy/priority/streak rules with assist), Tower floors, pre-boss menu, Ward Warden (shell, runes ×2, repair).
-- [x] **M7 Completion** — Celebration ending, results (all LD-19 metrics, rank, two true positive messages), 8 star pages, 2 cosmetics, audio, accessibility (reduced motion/shake/effects, font size, high contrast, OpenDyslexic, auto-continue, optional WPM, volumes, full screen, travel speed), quality presets.
+- [x] **M7 Completion** — Celebration ending, results (all LD-19 metrics, rank, two true positive messages), 8 star pages, 2 cosmetics, audio, accessibility (reduced motion/shake/effects, font size, high contrast, OpenDyslexic, auto-continue, optional WPM, volumes, full screen, travel speed), quality presets. (Reduced motion/shake/effects, high contrast and OpenDyslexic were removed on 2026-10-02.)
 - [x] **M8 Polish & verification** — realism pass (above), asset validation and `/dev/assets`, Playwright full path, balance check via headless playthroughs.
 
 ## Verification (2026-10-01)
@@ -829,6 +830,7 @@ Level 3:
   Owner: "make the burning rings tighter and render a proper burning ring": four bands hug its legs,
   waist, pinned arms and chest, each a thin glowing band with uneven tongues of flame from the fire
   flipbook (`flameTexture`, normal blending; additive flames vanished against the white Warden).
+  Replaced the same day by ropes of fire (`FireRope`, below); `flameTexture` is gone.
 - Test hook: `__spellcaster.targets()` lists the live encounter's targets and positions.
 
 ## Thirteenth playtest (2026-10-20)
@@ -895,7 +897,8 @@ clearly not linked to anywhere, then … a gallery (did we teleport?)". Each was
 
 ## Known limitations / next steps
 
-- Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
+- Still code-built (clearly labelled placeholders, same gameplay hooks): the pollen puffs and the Ward Warden's rune rings. The gate crystals, clasps, plates, flying pages and star pages are kit models.
+- Not built from the design documents: the Memory Book screen, the Prism trail (all Memory Pages) and the Lantern Glow trail (all Festival Lanterns); see each level document's "As built" section.
 - Character faces are stylised volume sculpts — readable at dialogue distance, not close-up hero quality. Creature LOD1/LOD2 files are not yet generated (single LOD within budget).
 - Manual checks in §17 that need a human at a real keyboard have not been done by a person: deliberately slow Gentle play, intentional-mistake Standard play by feel, focus loss / tab switching by hand, browser resizing at several resolutions, refresh at every checkpoint. Automated equivalents exist for most flows.
 - Firefox is out of scope by owner decision (Edge/Chromium only). Text-to-speech voice quality depends on the voices installed in the browser/OS.

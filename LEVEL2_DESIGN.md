@@ -8,6 +8,17 @@ Section ids use the prefix `L2-` for level design, `M2-` for mobs, `A2-` for the
 
 Every area in this level follows the attention rules in `CLAUDE.md` §1B: the 7-second rule, powerful-feeling words, boss name cards and health bars, fast-rail set pieces, spark gems, optional speed rounds and encounter medals. The sequences below are the minimum; add surprise entrances and destruction wherever they fit.
 
+## As built (v1.0.0)
+
+This document is the original design. Where the shipped game differs, the game and the owner decisions in `BUILD_NOTES.md` win. The script is `src/content/dialogue.ts`; the route is `src/level/level2Route.ts` and `src/level/areas2/`.
+
+- **Order:** the night opens in the apprentice's bedroom at the top of the Dormitory Tower (the Rift tears open outside the window and imps climb in), then the rescue down the Dormitory Tower, then out onto the Festival Lawn. The festival-lantern opening (L2-6) is not in the game. The rest follows L2-5: Bell Bridge, Great Hall, Alchemy Workshops, Lantern Lake, Whispering Library, East Ramparts, Moon Tower Roof.
+- **Ending:** the aftermath plays on the Moon Tower roof at dawn ("Observatory at Dawn"), not inside the observatory.
+- **Grey Herald:** a hooded figure preaching from a book held in one hand (no trumpet or scroll). Wisps rise from the book and circle its head, then rush the player when it points. Phases: decree words, blasts with a word beside its book, then `not on my watch`.
+- **Boss:** a winged dragon of burnt pages, named THE PAGE DRAGON (the coiled Vellum Wyrm was dropped). V1 on the roof; V2 a sky chase where it hovers to one side and then the other, breathing fire and fireballs; V3 the beam struggle with `every page has a place`.
+- **Not built:** the evacuation counter ("Students safe"), Pip's lane warnings, Warden Strike, the HUD beacon tracker (a journey map card shows the beacons lit and the next stop as each area is left), the Lantern Glow trail. The Warden fights climbers on the ramparts by itself.
+- **Settings:** spark gems and Festival Lanterns exist but are off by default. The 7-second rule is on hold.
+
 ---
 
 # LEVEL DESIGN

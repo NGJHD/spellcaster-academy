@@ -6,6 +6,19 @@ Game-wide rules (on-rails format, audience, technology, typing system, combat ru
 
 Section numbers are kept from the original single-file specification so that references in code and notes (for example §14A.19, LD-11, MD-6 and GD-18) stay valid. Where the LD, MD and GD sections conflict with the earlier numbered sections, the LD, MD and GD sections take precedence.
 
+## As built (v1.0.0)
+
+This document is the original design. Where the shipped game differs, the game and the owner decisions in `BUILD_NOTES.md` win. The script is `src/content/dialogue.ts`; the route is `src/level/areas/*.ts`.
+
+- **Story and script:** rewritten as a mystery told from the player's side (2026-10-07/08; LD-21). The dialogue quoted in this document is the original draft and is not what the game says.
+- **Length:** words are trimmed for young typists (`src/level/youngTypists.ts`): ordinary fights are one wave of at most two monsters, sequences are two words.
+- **Arrival Gate:** two crystals, not three. The Warden greets the apprentice inside the gate (type `hi`) before the ward cracks.
+- **East Hall:** Mira joins the party; when the books come she runs off down the hall to the library doors.
+- **Practice Gallery:** two short zones.
+- **Moon Tower:** the pre-boss menu (Continue, Review controls, Change difficulty) was removed. The tower door opens onto a stair up to the observatory.
+- **Celebration:** the courtyard at dawn, with fireworks.
+- **Settings:** spark gems and star pages exist but are off by default. Reduced motion, reduced shake, reduced effects, high contrast and the dyslexia font were removed. The 7-second rule (LD-0) is on hold.
+
 ---
 
 ## LD-0. Excitement Revision (2026-10-04)

@@ -4,9 +4,11 @@ Game-wide rules for every level: format, audience, technology, engineering, cont
 
 Level content lives in separate design documents:
 
-- `LEVEL1_DESIGN.md` — Level 1: First Day, First Spell (built)
+- `LEVEL1_DESIGN.md` — Level 1: First Day, First Spell
 - `LEVEL2_DESIGN.md` — Level 2: The Siege of Asterfall
 - `LEVEL3_DESIGN.md` — Level 3: Into the Unwritten (finale)
+
+All three levels are built and released (v1.0.0, 2026-10-21; `RELEASE_GUIDE.md`). The level documents are the original designs; each opens with an "As built" section listing where the shipped game differs. The game's own script is `src/content/dialogue.ts`, and each level's route is in `src/level/areas*`.
 
 Section numbers are unchanged from the original single-file specification, which code comments still cite. Sections 6, 7, 14A, 18 and 19, plus the LD, MD and GD sections, were Level 1 content and now live in `LEVEL1_DESIGN.md`.
 
@@ -198,7 +200,7 @@ Use a conventional, LLM-friendly stack.
 - **Three.js**
 - **React Three Fiber**
 - **@react-three/drei**
-- **@react-three/rapier** for physics and collision
+- **@react-three/rapier** for physics and collision, only if a feature truly needs it (it is not installed: nothing on the rails needs physics)
 - **Zustand** for central game state
 - **Howler.js** for audio
 - **Vitest** for unit tests
@@ -258,7 +260,7 @@ Use `localStorage` for settings, checkpoints, unlocked content, and best scores.
 | Level | Title | Setting | Finale |
 | --- | --- | --- | --- |
 | 1 | First Day, First Spell | Asterfall Academy on the apprentice's first day; the celestial ward cracks | The Ward Warden (misunderstood protector) |
-| 2 | The Siege of Asterfall | The academy at night, burning under a red sky, under attack by the Hush and their inkfire | The Vellum Wyrm, a fire-breathing dragon of stolen library pages |
+| 2 | The Siege of Asterfall | The academy at night, burning under a red sky, under attack by the Hush and their inkfire | The Vellum Wyrm, a fire-breathing dragon of stolen library pages (named THE PAGE DRAGON in the game) |
 | 3 | Into the Unwritten | The Blank, a scorched realm of ash under a red sky, leading to the Unwriter's burning stronghold | The Unwriter, the game's final villain |
 
 ### Visual tone across the campaign
@@ -275,10 +277,10 @@ Centuries ago Magister Corvane Hale, Asterfall's greatest archivist, came to bel
 
 - **Level 1:** the Unwriter tests the seal and the ward fractures. The apprentice, Pip and the Warden repair it, but a hairline seam remains.
 - **Level 2:** on the night of the Lantern Festival the seam tears open over Lantern Lake into a blazing red Rift. The Unwriter's Hush army pours in and sets the academy alight with inkfire, which burns whatever it touches to grey ash. The apprentice relights the four beacons that raise an emergency Lantern Ward, rescues students, and defeats the Vellum Wyrm on the Moon Tower roof. At its heart lies a shard of the Unwriting Quill. Keeper Orin recognises Corvane's work, and Pip glitches at the sight of it. The rift cannot be closed from this side.
-- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank: a scorched land of ash under a red sky, with fires that never go out. Typing quenches the fires and restores colour to the world as they travel. Their goal is the Unwriter's stronghold, the **Cinder Citadel**. On the way they learn that Pip was Corvane's own guide orb, which he tried to erase for "being wrong too often". At the Throne of Blank Pages they face the Unwriter.
+- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank: a scorched land of ash under a red sky, with fires that never go out. Typing quenches the fires and restores colour to the world as they travel. Their goal is the Unwriter's stronghold, the **Cinder Citadel**. On the way they learn that Pip was Corvane's own guide orb, which he tried to erase for "being wrong too often". At the Throne of Ash they face the Unwriter.
   - In an all-out battle the apprentice breaks the Unwriting Quill with a final spell of six words about mistakes being how we learn.
   - The Unwriter is defeated and sealed inside his own blank book, which Pip slams shut.
-  - The fires of the Blank die and its stolen colours and places return home. The apprentice is named Asterfall's first Wardkeeper in a hundred years, and the credits roll.
+  - The fires of the Blank die and its stolen colours and places return home. Back in the courtyard at night, with fireworks, the apprentice is named Asterfall's first Wardkeeper in a hundred years, and the campaign results follow.
 
 Victories in Levels 2 and 3 are decisive and dramatic. Enemies are beaten, shattered, sent crashing or sealed away, but never killed or harmed on screen (§2).
 
@@ -314,6 +316,10 @@ These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to ev
 - **Length:** the whole game takes 30–45 minutes at Fast (2026-10-04).
 - **Young typists (2026-10-06):** a child typing at **12 WPM** must finish the whole game in **under an hour**. Ordinary fights are one wave of at most two monsters; sequences are short (`src/level/youngTypists.ts`). `src/game/pacing.report.test.ts` plays all three levels as a 12 WPM child and fails above 45 simulated minutes (margin for real mistakes).
 - **Scary mobs:** mobs may look scary (fangs, snarls, glowing eyes, menacing poses), in Level 1 too; kids "can handle a lot" (2026-10-04). No gore, blood or injury.
+- **7-second rule on hold (2026-10-07):** "Ignore the 7s rule for now." The gap test (`src/game/attention.report.test.ts`) is skipped, and lines are not cut or moved just to fit §1B. Switch it back on only when the owner asks.
+- **Spark gems and collectibles off (2026-10-07):** both are settings and both default to off (gems broke the pacing). Lines that mention them play only when they are on.
+- **No faded letters (2026-10-16):** a child thought faded letters needn't be typed, so Level 3's erased letters were removed.
+- **Boss names in the game:** THE GREAT GRIMOIRE, THE WARD WARDEN, THE GREY HERALD, THE PAGE DRAGON, THE PERFECT GUARDIAN, THE UNWRITER (`strings.bosses`).
 
 ---
 
@@ -397,17 +403,9 @@ There is no normal WASD movement, jump control, strafing, or manual FPS aiming i
 
 ### Accessibility control options
 
-- Adjustable cinematic camera sensitivity only if optional look offset exists
-- Reduced motion
-- Reduced camera shake
-- Reduced particle effects
-- Font-size options
-- High-contrast word panel
-- Dyslexia-friendly font option using an openly licensed asset
-- Audio volume categories
-- Full-screen toggle
-- Adjustable travel speed between encounters
-- Auto-continue or press-to-continue story pauses
+The game has: font size, travel speed (Slow, Normal, Fast), volumes (master, music, sound effects, interface, voices), spoken dialogue, an optional WPM display, quality, full screen, and the spark-gem and collectible switches. Lines always continue by themselves (Enter or Space skips one). There is no mouse-look offset.
+
+Removed by owner decision (§5), not to be reintroduced unless the owner asks: reduced motion, reduced camera shake, reduced particle effects, the high-contrast word panel and the dyslexia-friendly font.
 
 ## 9. Typing System Specification
 
@@ -689,44 +687,37 @@ The quality reference is a modern, polished, stylised 3D adventure—not photore
 
 ### 14.2 Required production method
 
-Claude should create and revise assets with **Blender Python scripts using `bpy`**, executed in headless mode where possible. Store source scripts and editable `.blend` files in version control or reproducible build storage.
+Claude should create and revise assets with **Blender Python scripts using `bpy`**, executed in headless mode where possible. The scripts are the editable source: every asset rebuilds from them, so no `.blend` files are kept.
 
 ```text
 assets-src/
-├── briefs/
 ├── scripts/
-│   ├── shared/
-│   │   ├── materials.py
-│   │   ├── rigging.py
-│   │   ├── animation.py
-│   │   ├── geometry.py
-│   │   ├── uv.py
-│   │   └── export.py
-│   ├── characters/
-│   ├── creatures/
-│   ├── environments/
-│   ├── props/
-│   └── build_all.py
-├── blend/
-├── textures/
-└── previews/
+│   ├── shared/        creature.py (rigs and clips), kitgeo.py, paint.py
+│   ├── ai/            generated models: Flux 2 concept → TRELLIS.2 → Blender (§20.16)
+│   ├── characters/    humanoid.py (Mira, Orin, students)
+│   ├── creatures/     the hand-scripted Level 1 creatures
+│   ├── props/         hero props, kit pieces, books, LODs
+│   ├── sky/           the fire sky and molten ink
+│   └── repack_cc0.py  CC0 models repacked to budget
+├── concepts/          Flux concept images and their prompts
+├── cc0/               sources of the CC0 assets
+├── paintings/, portraits/
+├── previews/          rendered previews of every built asset
+└── ai-meshes/         raw TRELLIS meshes (git-ignored)
 
 public/assets/
-├── characters/
-├── creatures/
-├── environments/
-├── props/
-├── animations/
-└── manifests/
+├── characters/  creatures/  props/  kit/
+├── textures/  hdri/  sky/
+└── manifests/   per-category JSON (scripts/build-manifests.mjs)
 ```
 
 Typical command:
 
 ```bash
-blender --background --python assets-src/scripts/build_all.py
+blender --background --python assets-src/scripts/creatures/<name>.py -- [--preview]
 ```
 
-Export runtime assets as `.glb`. Keep `.blend` files as editable sources, not runtime files.
+Export runtime assets as `.glb`.
 
 ### 14.3 Modelling method
 
@@ -806,7 +797,7 @@ Optimisation must preserve the intended modern look.
 
 ### 14.7 Asset manifest and validation
 
-Every runtime asset needs a JSON manifest containing:
+Every runtime asset needs a manifest entry (one JSON file per category in `public/assets/manifests/`, generated by `scripts/build-manifests.mjs`) containing:
 
 ```json
 {
@@ -1002,7 +993,7 @@ When responding to an implementation request:
 13. Prefer deterministic encounter scripts over random spawning in every level.
 14. Do not add placeholder TODOs for requested core behaviour; implement the smallest complete version.
 15. If final art is unavailable, use a clearly labelled geometric placeholder and continue implementing gameplay.
-16. **Generate models; don't hand-build them from polygons** (owner, 2026-10-08). Make every visible object, creature or prop with Blender (`bpy` scripts) and the local ComfyUI pipeline (Flux 2 concept → TRELLIS.2 shape and colour → Blender build; `assets-src/scripts/ai`, `build_on_3080.sh` when only the RTX 3080 is free) whenever possible. Code-built boxes, cylinders and planes are only for invisible helpers, ground and wall surfaces, effects, or a short-lived placeholder kept as the `ModelBoundary` fallback while the generated model is made. Check every new model in the game from the camera's actual view.
+16. **Generate models; don't hand-build them from polygons** (owner, 2026-10-08). Make every visible object, creature or prop with Blender (`bpy` scripts) and the local ComfyUI pipeline (Flux 2 concept → TRELLIS.2 shape and colour → Blender build; `assets-src/scripts/ai`: `build_hq.sh` for full quality on the RTX 5060 Ti, `build_on_3080.sh` when only the RTX 3080 is free) whenever possible. Code-built boxes, cylinders and planes are only for invisible helpers, ground and wall surfaces, effects, or a short-lived placeholder kept as the `ModelBoundary` fallback while the generated model is made. Check every new model in the game from the camera's actual view.
 
 ### Commands
 
