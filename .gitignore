@@ -11,3 +11,4 @@ playwright-report/
 assets-src/cc0/models/
 assets-src/ai-meshes/
 assets-src/scripts/ai/.deps/
+*.zip

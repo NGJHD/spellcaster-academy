@@ -887,6 +887,12 @@ clearly not linked to anywhere, then … a gallery (did we teleport?)". Each was
   sides), `BookHall` (open-air), the statue landings. Lines must not say "pages" (gems.test reads it as the
   collectible).
 
+## Release v1.0.0 (2026-10-21)
+
+- Version 1.0.0. `scripts/release/package.ps1` builds and zips the game with a launcher (`Play.cmd` +
+  `serve.ps1`: a PowerShell web server on http://localhost:8737/; the game cannot run from file://).
+  Steps in RELEASE_GUIDE.md. Zips are git-ignored and deleted after upload (STANDARD.MD).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.
