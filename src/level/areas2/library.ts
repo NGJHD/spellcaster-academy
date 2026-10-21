@@ -8,7 +8,7 @@ import { LIBRARY_ORIGIN } from '../areas/library';
 import { checkpoint, fade, fight, hold, len, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import type { TargetSpawn } from '../levelTypes';
 import type { Vec3 } from '../rail/railTypes';
-import { fireball, lantern, restore, scribbleImp } from './hush';
+import { fireball, restore, scribbleImp } from './hush';
 
 const A = 'l2-burning-library';
 const L = origin(LIBRARY_ORIGIN);
@@ -88,7 +88,6 @@ export const library2: AreaScript = {
             wisp('l2-wisp-1', [L(-7, 1, -18), L(-3, 1, -12), L(-1, 1, -8.6)]),
             fireball('wisp-pulse-1', L(-6, 1.6, -17), L(-0.6, 1.7, -4.4), { delaySec: 2 }),
             wisp('l2-wisp-2', [L(7, 1, -18), L(3, 1, -12), L(1.2, 1, -8.6)], { delaySec: 1.2 }),
-            lantern('lantern-library', L(9.5, 5.4, -12), 'shelf', 'lantern-library', { leaveAfterSec: 12 }),
           ],
         },
       ],

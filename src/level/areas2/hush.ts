@@ -105,16 +105,4 @@ export const restore = (id: string, position: Vec3, word: string, flag: string, 
     ...options,
   });
 
-/** A floating Festival Lantern collectible (L2-17): a bonus word, never required. */
-export const lantern = (id: string, position: Vec3, word: string, page: string, options: Partial<TargetSpawn> = {}): TargetSpawn =>
-  target(id, 'gem', position, [word], {
-    optional: true,
-    leaveAfterSec: 14,
-    labelHeight: 0.4,
-    variant: 'lantern',
-    reward: { starPage: page },
-    defeatFx: { kind: 'burst', scale: 1, color: '#ffd27a' },
-    ...options,
-  });
-
 export { ASH_POOF };

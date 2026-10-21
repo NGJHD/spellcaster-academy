@@ -60,7 +60,6 @@ export const library: AreaScript = {
   },
   lookPoints: {
     LIB_GRIMOIRE: L(0, 1.6, -20),
-    LIB_BALCONY_PAGE: L(9.5, 5.4, -12),
     LIB_MOSAIC: L(-11.4, 2.5, -13),
     LIB_FLYING_BOOKS: L(0, 5.5, -10),
     LIB_INKWELL: INKWELL_POSITION,
@@ -78,25 +77,14 @@ export const library: AreaScript = {
     fade('library-doors', A, 'LIB_ENTRY', { music: 'library-mystery', objective: 'library-anchor' }),
     travel('library-follow-book', A, ['LIB_ENTRY', 'LIB_REVEAL'], 5, {
       barks: ['lib-1'],
-      // A spark gem along the entrance glide keeps the long walk-in lively (§1B travel rule).
-      chase: [{ at: 0.35, target: target('lib-entry-gem', 'gem', L(0, 0, 0), [len(3, 3)], { follow: { ahead: 4.4, side: 1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) }],
     }),
     reveal('library-grimoire-reveal', A, 'LIB_REVEAL', ['LIB_FLYING_BOOKS', 'LIB_GRIMOIRE'], 1.6, 1.0),
     travel('library-to-combat', A, ['LIB_REVEAL', 'LIB_COMBAT'], 3, { reducedMotion: 'glide' }),
     fight('library-l1', A),
     fight('library-l2', A, { barks: ['lib-wisps'] }),
     travel('library-to-clue', A, ['LIB_COMBAT', 'LIB_CLUE_AISLE', 'LIB_CLUE_VIEW'], 5),
-    // Look at the mosaic while Pip and Mira talk about it (owner: the lines played while the camera
-    // looked at the balcony shelf)...
+    // Look at the mosaic while Pip and Mira talk about it.
     reveal('library-mosaic', A, 'LIB_CLUE_VIEW', ['LIB_MOSAIC'], 1.4, 3.0, { barks: ['lib-mosaic', 'lib-mosaic-2'] }),
-    // ...then pan across to the balcony star page (skipped when collectibles are off).
-    reveal('library-balcony-pan', A, 'LIB_CLUE_VIEW', ['LIB_BALCONY_PAGE'], 1.0, 1.5, {
-      bonus: target('bonus-page-balcony', 'star-page', L(9.5, 5.1, -12), ['shelf'], {
-        optional: true,
-        labelHeight: 0.45,
-        reward: { starPage: 'page-library-balcony' },
-      }),
-    }),
     travel('library-to-grimoire', A, ['LIB_CLUE_VIEW', 'LIB_GRIMOIRE_ARENA'], 4, { reducedMotion: 'glide' }),
     // Boss intro: the chains snap one by one, the Grimoire rises and roars a gust of pages that blows
     // out the lamps, and the name card appears.
@@ -164,14 +152,6 @@ export const library: AreaScript = {
             book('book-3', [L(-6, 2.2, -13), L(2, 2.4, -12.5)]),
             book('book-4', [L(6, 3.0, -15), L(0, 3.5, -17)], { variant: 'blue' }),
             book('book-5', [L(-2, 4.0, -18), L(5, 3.8, -18.5)], { delaySec: 1, variant: 'green' }),
-            target('flying-star-page', 'star-page', L(-6, 4.6, -15), ['page'], {
-              optional: true,
-              leaveAfterSec: 12,
-              delaySec: 0.3,
-              labelHeight: 0.4,
-              movement: { kind: 'patrol', path: [L(-6, 4.6, -15), L(6, 4.2, -15)], speed: 1.2 },
-              reward: { starPage: 'page-library-flying' },
-            }),
           ],
         },
         {
@@ -235,8 +215,6 @@ export const library: AreaScript = {
             target(id, 'clasp', p, [len(4, 5)], {
               labelHeight: 0.35,
               defeatFx: { kind: 'sparks', scale: 1.2 },
-              reward: { starPage: 'page-library-grimoire' },
-              rewardIf: 'perfect',
             }),
           ),
         },

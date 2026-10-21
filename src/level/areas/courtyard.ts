@@ -79,29 +79,12 @@ export const courtyard: AreaScript = {
   beats: [
     // Owner (2026-10-08): straight to the training dummies, no stop at the fountain.
     travel('courtyard-entry', A, ['ARRIVAL_WARD_FRACTURE', 'COURTYARD_ENTRY_01', 'COURTYARD_COMBAT_C1'], 7, { barks: ['fracture-4'], easing: 'easeInOutCubic' }),
-    // The fountain's star page, only when collectibles are on (otherwise this pan is skipped).
-    reveal(
-      'courtyard-fountain-reveal',
-      A,
-      'COURTYARD_COMBAT_C1',
-      ['COURTYARD_FOUNTAIN_RIM'],
-      1.2,
-      1.4,
-      {
-        barks: ['page-hint'],
-        bonus: target('bonus-page-fountain', 'star-page', [2.4, 0.75, -1.2], ['glint'], {
-          optional: true,
-          labelHeight: 0.45,
-          reward: { starPage: 'page-courtyard-fountain' },
-        }),
-      },
-    ),
     fight('courtyard-c1', A, { music: 'courtyard-action', barks: ['court-1'] }),
     reveal('courtyard-planter-reveal', A, 'COURTYARD_COMBAT_C1', ['COURTYARD_PLANTER_NW'], 0.9, 0.4, {
       fx: [{ kind: 'leaves', at: 'COURTYARD_PLANTER_NW', scale: 1.2, atBeat: 0.5 }],
     }),
     fight('courtyard-c2', A, { barks: ['court-sprites'] }),
-    // Fast-rail set piece: chase the star-page thief along the arcade roof.
+    // Fast-rail set piece: chase the sprite along the arcade roof.
     travel(
       'courtyard-rooftop-chase',
       A,
@@ -119,13 +102,10 @@ export const courtyard: AreaScript = {
               follow: { ahead: 5.5, side: 0.3, up: -1.5 },
               leaveAfterSec: 9,
               labelHeight: 0.95,
-              reward: { starPage: 'page-courtyard-sprite' },
               defeatFx: { kind: 'leaves', scale: 0.9 },
               defeatBark: 'court-chase-caught',
             }),
           },
-          // A spark gem along the last stretch of roof keeps the run lively while Pip talks.
-          { at: 0.8, target: target('roof-gem', 'gem', [0, 0, 0], [len(3, 3)], { follow: { ahead: 4.4, side: -1.2, up: 0.3 }, optional: true, labelHeight: 0.28 }) },
         ],
       },
     ),

@@ -66,17 +66,6 @@ export const colour = (id: string, position: Vec3, word: WordSpec, flag: string,
     ...options,
   });
 
-/** A Memory Page collectible (L3-17): one of eight. */
-export const memoryPage = (id: string, position: Vec3, word: WordSpec, page: string, options: Partial<TargetSpawn> = {}): TargetSpawn =>
-  target(id, 'star-page', position, [word], {
-    optional: true,
-    leaveAfterSec: 14,
-    labelHeight: 0.4,
-    reward: { starPage: page },
-    defeatFx: { kind: 'burst', scale: 1.2, color: '#ffe6a0' },
-    ...options,
-  });
-
 /**
  * A fire tide (L3-4): a wall of inkfire rolling across the view, countered by a two-word phrase typed
  * in order on one tag. It takes the lock like any counter-word.

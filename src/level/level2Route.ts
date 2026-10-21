@@ -22,14 +22,3 @@ export const LEVEL2_BOSSES: readonly BossDef[] = [
   { id: 'vellum-wyrm', introBeat: 'l2-wyrm-rises', phases: ['l2-wyrm-v1', 'l2-wyrm-v2a', 'l2-wyrm-v2b', 'l2-wyrm-v3'] },
 ];
 
-/** Eight Festival Lanterns (L2-17): two on the lawn, four on the lake, one in the library, one on the climb. */
-export const LEVEL2_COLLECTIBLES: readonly string[] = [
-  'lantern-lawn-1',
-  'lantern-lawn-2',
-  'lantern-lake-1',
-  'lantern-lake-2',
-  'lantern-lake-3',
-  'lantern-lake-4',
-  'lantern-library',
-  'lantern-ramparts',
-];

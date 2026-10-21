@@ -95,7 +95,6 @@ export interface RunUiState {
   unlimitedHp: boolean;
   objective: string | null;
   streak: number;
-  starPages: number;
   labels: readonly LabelInfo[];
   /** Target id → mistake flash key. */
   mistakeKey: number;
@@ -143,7 +142,6 @@ export const initialRunUi = (): RunUiState => ({
   unlimitedHp: false,
   objective: null,
   streak: 0,
-  starPages: 0,
   labels: [],
   mistakeKey: 0,
   mistakeTargetId: null,

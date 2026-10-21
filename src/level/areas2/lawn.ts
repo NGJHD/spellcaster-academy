@@ -7,7 +7,7 @@
  */
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, origin, reveal, travel, type AreaScript } from '../areas/builders';
-import { blotling, fireball, lantern, moth, restore } from './hush';
+import { blotling, fireball, moth, restore } from './hush';
 
 const A = 'l2-festival-lawn';
 export const LAWN_ORIGIN: Vec3 = [900, 0, 0];
@@ -110,7 +110,6 @@ export const lawn: AreaScript = {
           targets: [
             moth('moth-1', [W(-10, 4, -12), W(4, 5, -10)]),
             blotling('blot-6', [W(5, 0, -18), W(2, 0, -7), W(0.8, 0, 1)], { delaySec: 0.6 }),
-            lantern('lantern-lawn-1', W(-12, 3.5, -10), 'float', 'lantern-lawn-1', { movement: { kind: 'patrol', path: [W(-12, 3.5, -10), W(-4, 4, -16)], speed: 0.6 } }),
           ],
         },
         {
@@ -120,7 +119,6 @@ export const lawn: AreaScript = {
             moth('moth-3', [W(-9, 6, -16), W(6, 4.5, -14)], { delaySec: 1 }),
             fireball('dust-1', W(4, 6, -18), W(0.6, 1.7, 2.6), { delaySec: 2.2 }),
             restore('stall-2', W(6, 1.6, -9), 'booth', 'l2-stall-2', { optional: true, leaveAfterSec: 20 }),
-            lantern('lantern-lawn-2', W(12, 3, -14), 'glimmer', 'lantern-lawn-2', { delaySec: 1, movement: { kind: 'patrol', path: [W(12, 3, -14), W(4, 4.5, -18)], speed: 0.6 } }),
           ],
         },
       ],

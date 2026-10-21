@@ -7,7 +7,7 @@ import { LEVEL1_ENCOUNTERS, LEVEL1_ROUTE } from '../level/level1Route';
 import { useRunStore } from '../state/runStore';
 import { GameRun } from './GameRun';
 import { AUTOSAVE_KEY, readAutosave, readProfile, type KeyValueStorage } from './saveData';
-import { ALL_STAR_PAGES, type Difficulty } from './types';
+import type { Difficulty } from './types';
 
 function memoryStorage(): KeyValueStorage & { map: Map<string, string> } {
   const map = new Map<string, string>();
@@ -83,9 +83,8 @@ describe('full Level 1 playthrough', () => {
       expect.arrayContaining(['grimoire-clasps', 'grimoire-pages', 'grimoire-sentence', 'warden-shell', 'warden-runes', 'warden-repair']),
     );
     expect(run.progress.unlockedSpells).toEqual(expect.arrayContaining(['spark-bolt', 'frost-thread', 'chain-spark']));
-    // The bot types every visible word, so it collects every star page and both cosmetics.
-    expect([...run.progress.collectedStarPageIds].sort()).toEqual([...ALL_STAR_PAGES].sort());
-    expect(run.progress.unlockedCosmeticIds).toHaveLength(2);
+    // The bot types every visible word, so it wins the chest's Starlight trail.
+    expect(run.progress.unlockedCosmeticIds).toEqual(['trail-starlight']);
     expect(results?.accuracy).toBe(100);
     expect(results?.averageWpm ?? 0).toBeGreaterThan(40);
     const save = readAutosave(storage, (id) => LEVEL1_ROUTE.beats.some((b) => b.id === id));
@@ -111,10 +110,9 @@ describe('full Level 1 playthrough', () => {
     expect(run.isEnded).toBe(true);
   });
 
-  it('resumes from a mid-level save without losing collected progress', () => {
+  it('resumes from a mid-level save without losing progress', () => {
     const storage = memoryStorage();
     const first = play({ difficulty: 'standard', msPerKey: 160, storage, stopAtBeat: 'library-l2' });
-    const pagesBefore = first.run.progress.collectedStarPageIds.length;
     first.run.saveNow();
     expect(storage.map.has(AUTOSAVE_KEY)).toBe(true);
     const save = readAutosave(storage, (id) => LEVEL1_ROUTE.beats.some((b) => b.id === id));
@@ -122,7 +120,6 @@ describe('full Level 1 playthrough', () => {
     expect(save?.restoredAnchors).toEqual(['courtyard']);
     const second = play({ difficulty: 'standard', msPerKey: 160, storage, resume: save });
     expect(second.run.isEnded).toBe(true);
-    expect(second.run.progress.collectedStarPageIds.length).toBeGreaterThanOrEqual(pagesBefore);
     // Words committed before the save are not double counted after resuming.
     const words = second.run.progress.metrics.completedWords;
     const fresh = play({ difficulty: 'standard', msPerKey: 160 }).run.progress.metrics.completedWords;

@@ -3,7 +3,8 @@
  * Writes go to a temporary key, are validated, then promoted; the previous valid save is kept as backup.
  */
 import { cloneMetrics, emptyMetrics, type PersistedRunMetrics } from '../typing/TypingMetrics';
-import type { AnchorId, AreaId, CheckpointId, CosmeticId, Difficulty, LevelId, SpellId, StarPageId } from './types';
+import type { AnchorId, AreaId, CheckpointId, CosmeticId, Difficulty, LevelId, SpellId } from './types';
+import { ALL_COSMETICS } from './types';
 import { AREA_ORDER, LEVEL_ORDER } from './types';
 
 export const SAVE_SCHEMA_VERSION = 1;
@@ -34,7 +35,6 @@ export interface Level1Autosave {
   restoredAnchors: AnchorId[];
   completedEncounterIds: string[];
   completedBossPhases: string[];
-  collectedStarPageIds: StarPageId[];
   unlockedCosmeticIds: CosmeticId[];
   unlockedSpells: SpellId[];
   flags: string[];
@@ -50,7 +50,6 @@ export interface BestResults {
   bestAccuracy: number;
   bestStreak: number;
   fastestLevelMs: number | null;
-  mostStarPages: number;
   bestScore: number;
 }
 
@@ -96,7 +95,6 @@ export function newAutosave(runId: string, difficulty: Difficulty, firstBeatId: 
     restoredAnchors: [],
     completedEncounterIds: [],
     completedBossPhases: [],
-    collectedStarPageIds: [],
     unlockedCosmeticIds: [],
     unlockedSpells: [],
     flags: [],
@@ -171,8 +169,7 @@ export function validateAutosave(raw: unknown, knownBeat: (id: string) => boolea
     restoredAnchors: strArray(raw.restoredAnchors) as AnchorId[],
     completedEncounterIds: strArray(raw.completedEncounterIds),
     completedBossPhases: strArray(raw.completedBossPhases),
-    collectedStarPageIds: strArray(raw.collectedStarPageIds) as StarPageId[],
-    unlockedCosmeticIds: strArray(raw.unlockedCosmeticIds) as CosmeticId[],
+    unlockedCosmeticIds: cosmeticArray(raw.unlockedCosmeticIds),
     unlockedSpells: strArray(raw.unlockedSpells) as SpellId[],
     flags: strArray(raw.flags),
     pendingScoreMultiplier: num(raw.pendingScoreMultiplier, 1),
@@ -224,6 +221,11 @@ export function clearAutosave(storage: KeyValueStorage): void {
   storage.removeItem(AUTOSAVE_BACKUP_KEY);
 }
 
+/** Known cosmetics only (older saves may hold trails that no longer exist). */
+function cosmeticArray(raw: unknown): CosmeticId[] {
+  return strArray(raw).filter((id): id is CosmeticId => ALL_COSMETICS.includes(id as CosmeticId));
+}
+
 function readBest(raw: unknown): BestResults | null {
   if (!isObj(raw)) return null;
   return {
@@ -231,7 +233,6 @@ function readBest(raw: unknown): BestResults | null {
     bestAccuracy: num(raw.bestAccuracy, 0),
     bestStreak: num(raw.bestStreak, 0),
     fastestLevelMs: typeof raw.fastestLevelMs === 'number' ? raw.fastestLevelMs : null,
-    mostStarPages: num(raw.mostStarPages, 0),
     bestScore: num(raw.bestScore, 0),
   };
 }
@@ -258,8 +259,8 @@ export function readProfile(storage: KeyValueStorage): Profile {
     bestResults: bestByLevel['level-1'] ?? null,
     completedLevels: completed,
     bestByLevel,
-    cosmetics: strArray(raw.cosmetics) as CosmeticId[],
-    selectedTrail: typeof raw.selectedTrail === 'string' ? (raw.selectedTrail as CosmeticId) : null,
+    cosmetics: cosmeticArray(raw.cosmetics),
+    selectedTrail: ALL_COSMETICS.includes(raw.selectedTrail as CosmeticId) ? (raw.selectedTrail as CosmeticId) : null,
     tutorialSeen: raw.tutorialSeen === true,
   };
 }
@@ -284,7 +285,6 @@ export function mergeBestResults(previous: BestResults | null, next: BestResults
         : next.fastestLevelMs === null
           ? previous.fastestLevelMs
           : Math.min(previous.fastestLevelMs, next.fastestLevelMs),
-    mostStarPages: Math.max(previous.mostStarPages, next.mostStarPages),
     bestScore: Math.max(previous.bestScore, next.bestScore),
   };
 }

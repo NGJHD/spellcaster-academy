@@ -33,7 +33,7 @@ import { Combo } from './combo';
 import { SpeedRound } from './speedRound';
 import { MEDAL_SCORE, encounterStars } from './medals';
 import { bossForEncounter, bossForIntroBeat, bossWordTotal, type BossDef } from '../level/bosses';
-import type { AreaId, CosmeticId, Difficulty, SpellId, StarPageId } from './types';
+import type { AreaId, CosmeticId, Difficulty, SpellId } from './types';
 import type { LevelId } from './types';
 
 export const MAX_FOCUS = 100;
@@ -89,24 +89,7 @@ function snatchPath(age: number, follow: { ahead: number; side: number; up: numb
 
 export interface RunSettings {
   readonly rail: RailSettings;
-  /** Spark gems (automatic and authored along the route). Absent means on. */
-  readonly gems?: boolean;
-  /** Optional collectibles (star pages, lanterns, memory pages). Absent means on. */
-  readonly collectibles?: boolean;
 }
-
-/**
- * Lines that talk about something a setting can switch off: they are skipped when it is off
- * (owner: "type the sparks as we fly in. Where are the sparks?").
- */
-export const LINE_NEEDS: Readonly<Record<string, 'gems' | 'collectibles'>> = {
-  'open-sparks': 'gems',
-  'page-hint': 'collectibles',
-};
-
-/** An optional pickup the settings can switch off (story targets that carry a page, like the thief, stay). */
-const isOptionalCollectible = (t: TargetSpawn) =>
-  t.optional === true && (t.kind === 'star-page' || t.kind === 'gem') && (t.reward?.starPage !== undefined || t.reward?.cosmetic !== undefined);
 
 export interface RunOptions {
   readonly difficulty: Difficulty;
@@ -237,10 +220,6 @@ const HIT_STOP_SEC = 0.05;
 /** Length of the small camera kick on a hit. */
 export const KICK_SEC = 0.12;
 
-/** A spark gem swoops in after this long with nothing to type (CLAUDE.md §1B 7-second rule, at Fast). */
-/** Owner (2026-10-06): fewer words for young typists; a gem now holds the camera until typed. */
-const GEM_AFTER_IDLE_SEC = 6;
-/** An ignored gem flies off after this long. */
 /** A queued line must start within this many seconds, or it is dropped rather than said late. */
 const LINE_FRESH_SEC = 4;
 /** Longest a fight waits for earlier story lines before it starts anyway. */
@@ -264,11 +243,6 @@ const LOCKED_FRAMING = 0.14;
 const RUSH_SPEED = 3.5;
 /** Off-screen mobs move at least this fast (metres per second) until they are in view. */
 const RUSH_MIN_MPS = 7;
-/** Score for catching a gem (before the combo multiplier). */
-const GEM_SCORE = 40;
-
-/** A bonus word stays typeable at least this long before the camera may move on. */
-const BONUS_MIN_VISIBLE_SEC = 3;
 
 /** Seconds after a battle before the story music returns. */
 const MUSIC_REVERT_SEC = 3;
@@ -360,7 +334,6 @@ export class GameRun {
   readonly spellEvents: SpellEvent[] = [];
   encounter: EncounterRunner | null = null;
   private encounterBeatId: string | null = null;
-  bonus: EncounterRunner | null = null;
   focus = MAX_FOCUS;
   shakeTime = 0;
   /** Screen-centre distance of a target; supplied by the renderer each frame. */
@@ -378,7 +351,6 @@ export class GameRun {
   /** Seconds of play, for line freshness. */
   private speechClock = 0;
   /** A camera beat to skip straight through (see onBeatStart), or −1. */
-  private skipBeatIndex = -1;
   private resumeIntro = 0;
   private pendingStartBeat: string | undefined;
   private pendingStartWave = 0;
@@ -428,7 +400,6 @@ export class GameRun {
     patchRunUi({
       focus: this.focus,
       unlimitedHp: DIFFICULTY[this.difficulty].unlimitedHp,
-      starPages: this.progress.collectedStarPageIds.length,
       streak: this.progress.metrics.currentStreak,
       results: null,
     });
@@ -525,13 +496,11 @@ export class GameRun {
     return LOCKED_FRAMING;
   }
 
-  /** Every live target runner: the encounter, a bonus window, a chase and a spark gem. */
+  /** Every live target runner: the encounter, a chase and Mira's song word. */
   private runners(): EncounterRunner[] {
     const list: EncounterRunner[] = [];
     if (this.encounter) list.push(this.encounter);
-    if (this.bonus) list.push(this.bonus);
     if (this.chase) list.push(this.chase);
-    if (this.gem) list.push(this.gem);
     if (this.song) list.push(this.song);
     return list;
   }
@@ -613,9 +582,8 @@ export class GameRun {
     this.updatePendingFx(dt);
     this.updateDeferredFight(dt);
 
-    // Never carry the camera away from a bonus word too soon or once the player has started it
-    // (owner bugs: "gle" for "glint", then "glint is skipped entirely" after the pace-up). The camera
-    // finishes its move, then waits at the end pose.
+    // Never carry the camera away from a chase word still waiting: the camera finishes its move, then
+    // waits at the end pose.
     let railDt = dt;
     // Fast-rail set pieces ease off while a chase word is being typed (§1A comfort, §1B speed).
     if (this.chaseTyping()) railDt *= CHASE_TYPING_RAIL;
@@ -623,10 +591,6 @@ export class GameRun {
     // the pan back (owner: "it was looking at the target then the camera shifted away").
     if (this.wordsPending()) railDt = Math.min(railDt, Math.max(0, this.director.remainingBeforeReturnSec(settings.rail) - 1e-4));
     if (this.holdForSpeech()) railDt = Math.min(railDt, Math.max(0, this.director.remainingSec(settings.rail) - 1e-4));
-    if (this.skipBeatIndex === this.director.currentIndex) {
-      this.skipBeatIndex = -1;
-      this.director.skipCameraBeat(settings.rail);
-    }
     this.director.update(railDt, settings.rail);
 
     const timeScale = this.typing.isMidWord ? DIFFICULTY[this.difficulty].typingTimeScale : 1;
@@ -642,11 +606,6 @@ export class GameRun {
       if (events.length > 0) changed = true;
       this.handleEncounterEvents(events);
     }
-    if (this.bonus) {
-      const events = this.bonus.update(simDt, timeScale, locked);
-      if (events.length > 0) changed = true;
-      this.handleBonusEvents(events);
-    }
     if (this.chase) {
       const chase = this.chase;
       const events = chase.update(simDt, timeScale, locked);
@@ -654,7 +613,6 @@ export class GameRun {
       this.fxFromRunnerEvents(events);
       if (events.some((e) => e.type === 'complete') && this.chase === chase) this.chase = null;
     }
-    if (this.updateGems(simDt, timeScale, locked)) changed = true;
     if (this.updateSong(simDt, timeScale, locked)) changed = true;
     this.applyFollow(dt);
     this.updateRush(simDt);
@@ -752,24 +710,10 @@ export class GameRun {
     }
   }
 
-  /**
-   * With collectibles off, an optional story target that carries a page (the courtyard thief) gives no
-   * page: no "STAR PAGE FOUND" for a counter the player cannot see.
-   */
-  private withoutCollectible(t: TargetSpawn): TargetSpawn {
-    if (this.settings().collectibles !== false || !t.optional || !t.reward?.starPage) return t;
-    return { ...t, reward: { ...t.reward, starPage: undefined } };
-  }
-
   private startChase(beat: LevelBeat): void {
     if (!isCameraBeat(beat) || !beat.chase || beat.chase.length === 0) return;
     const duration = this.director.remainingSec(this.settings().rail);
-    // With spark gems switched off, authored gems are left out (lanterns and other collectibles stay).
-    const gemsOff = this.settings().gems === false;
-    const collectiblesOff = this.settings().collectibles === false;
-    const chase = beat.chase.filter((c) => !(gemsOff && c.target.kind === 'gem' && !c.target.variant) && !(collectiblesOff && isOptionalCollectible(c.target)));
-    if (chase.length === 0) return;
-    const targets = chase.map((c) => ({ ...this.withoutCollectible(c.target), delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
+    const targets = beat.chase.map((c) => ({ ...c.target, delaySec: (c.target.delaySec ?? 0) + c.at * duration }));
     const def: EncounterDef = { id: `chase:${beat.id}`, areaId: beat.areaId, kind: 'interaction', waves: [{ id: 'chase', targets }] };
     this.chase = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
   }
@@ -963,9 +907,6 @@ export class GameRun {
     patchRunUi({ speedRound: null });
   }
 
-  // ---------- Spark gems (CLAUDE.md §1B: never more than ~7 s at Fast with nothing to type) ----------
-
-  gem: EncounterRunner | null = null;
   readonly combo = new Combo();
   /** Small camera kick when a word lands (seconds remaining; read by the camera driver). */
   kickTime = 0;
@@ -974,63 +915,6 @@ export class GameRun {
   private boss: { def: BossDef; total: number; done: number } | null = null;
   private hazardFxIndex = 0;
   private slowMoSec = 0;
-  private idleSec = 0;
-  private gemCount = 0;
-
-  /** Spawns a gem after a short lull and keeps live gems flying beside the camera. Returns true if targets changed. */
-  private updateGems(dt: number, timeScale: number, locked: string | null): boolean {
-    let changed = false;
-    const prompt = locked !== null || this.candidateCount() > 0 || this.choice !== null;
-    this.idleSec = prompt ? 0 : this.idleSec + dt;
-    if (!this.gem && this.idleSec >= GEM_AFTER_IDLE_SEC && this.gemsAllowed()) {
-      this.spawnGem();
-      changed = true;
-    }
-    const gem = this.gem;
-    if (!gem) return changed;
-    const events = gem.update(dt, timeScale, locked);
-    for (const e of events) {
-      if (e.type === 'complete') {
-        this.gem = null;
-        this.idleSec = 0;
-        return true;
-      }
-    }
-    return changed || events.length > 0;
-  }
-
-  private gemsAllowed(): boolean {
-    if (this.settings().gems === false) return false;
-    if (this.ended || this.focusResetTimer > 0 || this.resumeIntro > 0) return false;
-    const beat = this.director.currentBeat;
-    // Exempt beats and scripted spectacle are never covered by a gem.
-    if (!beat || beat.kind === 'results' || beat.attention) return false;
-    // Chase set pieces have their own authored words.
-    if (isCameraBeat(beat) && beat.chase && beat.chase.length > 0) return false;
-    // Never while the camera waits for a story line: a gem there feels random (owner, 2026-10-06).
-    if (this.holdForSpeech()) return false;
-    if (this.encounter && this.encounter.state !== 'complete' && this.encounter.def.kind === 'combat') return false;
-    return this.director.pose.fade < 0.2;
-  }
-
-  private spawnGem(): void {
-    const n = ++this.gemCount;
-    const side = n % 2 === 0 ? 1 : -1;
-    const pose = this.director.pose;
-    const spawn: TargetSpawn = {
-      id: `gem-${n}`,
-      kind: 'gem',
-      position: [pose.position.x, pose.position.y, pose.position.z],
-      // Swoops in from well ahead (applyFollow), then flies beside the camera.
-      follow: { ahead: 4.2, side: side * 1.25, up: 0.15 },
-      words: [{ min: 3, max: 4 }],
-      optional: true,
-      labelHeight: 0.28,
-      variant: String(side),
-    };
-    const def: EncounterDef = { id: `gem:${n}`, areaId: this.areaId, kind: 'interaction', waves: [{ id: 'gem', targets: [spawn] }] };
-    this.gem = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: n });
-  }
 
   setPaused(paused: boolean): void {
     if (paused === this.paused) return;
@@ -1067,8 +951,8 @@ export class GameRun {
       } else if (skip) {
         this.advanceDialogue(true);
       }
-      // Letters, Backspace and Tab also reach typing: gems fly in during conversations, so there is
-      // always something to do, and a typo on one must be fixable mid-line.
+      // Letters, Backspace and Tab also reach typing: words can be live during a conversation, and a
+      // typo on one must be fixable mid-line.
       const typingKey = intent.kind === 'letter' || intent.kind === 'backspace' || intent.kind === 'tab';
       if (!typingKey || (this.typing.lockedId === null && this.candidateCount() === 0)) return;
     }
@@ -1178,7 +1062,7 @@ export class GameRun {
 
     const result = runner.completeWord(targetId, mistakes);
 
-    if (perfect && this.progress.unlockedSpells.includes('bright-quill') && runner !== this.gem) {
+    if (perfect && this.progress.unlockedSpells.includes('bright-quill')) {
       // Bright Quill: a splash of colour where the perfect word lands, and a little extra score.
       const colours = ['#ff6a5a', '#ffd24a', '#5ae08a', '#4ab8ff', '#c78aff'];
       this.emitFx({ kind: 'burst', scale: 1.4, color: colours[m.completedWords % colours.length] }, target.position);
@@ -1210,11 +1094,7 @@ export class GameRun {
       this.castStarfall(targetId);
     }
 
-    if (result.defeated && runner === this.gem) {
-      // Spark gem caught: a bright chime and bonus score, no other rewards.
-      m.score += GEM_SCORE * this.activeMultiplier * this.combo.multiplier;
-      audio.playSfx('star-page', { rate: 1.25, volume: 0.7 });
-    } else if (result.defeated) {
+    if (result.defeated) {
       audio.playSfx('dispel');
       const spawn = target.spawn;
       if (spawn.defeatFx) this.emitFx(spawn.defeatFx, target.position);
@@ -1324,27 +1204,14 @@ export class GameRun {
     if (beat.music) this.setStoryMusic(beat.music);
     if (beat.objective !== undefined) patchRunUi({ objective: beat.objective === 'none' ? null : beat.objective });
     if (beat.journey) patchRunUi({ journey: { key: nextKey(), to: beat.journey } });
-    let spoken = 0;
     // A scene with lines of its own drops leftover lines from a fight that has ended and not started
     // yet (instructions for a fight already won would be said over the wrong scene). Story lines and
     // conversations are never dropped; a line being said always finishes.
-    if ((beat.barks ?? []).some((id) => !(LINE_NEEDS[id] && this.settings()[LINE_NEEDS[id]] === false))) {
+    if ((beat.barks ?? []).length > 0) {
       this.barkQueue = this.barkQueue.filter((q) => q.beat >= beatIndex || !q.instruction);
     }
-    for (const id of beat.barks ?? []) {
-      const needs = LINE_NEEDS[id];
-      if (needs && this.settings()[needs] === false) continue;
-      this.queueBark(getLine(id), beatIndex);
-      spoken++;
-    }
-    // A reveal that only showed a collectible, with collectibles switched off and nothing to say, is
-    // skipped (its pan begins and ends on the same view, so nothing jumps).
-    this.skipBeatIndex =
-      beat.kind === 'camera-reveal' && beat.bonus && isOptionalCollectible(beat.bonus) && this.settings().collectibles === false && spoken === 0 && !beat.fx?.length
-        ? beatIndex
-        : -1;
+    for (const id of beat.barks ?? []) this.queueBark(getLine(id), beatIndex);
     if (beat.restoreFocus) this.setFocus(MAX_FOCUS);
-    if (beat.bonus) this.startBonus(beat);
     if (isCameraBeat(beat) && beat.chase) this.startChase(beat);
     this.beatFx = [];
     for (const cue of beat.fx ?? []) {
@@ -1409,13 +1276,6 @@ export class GameRun {
       this.chase = null;
       this.refreshTargets();
     }
-    if (this.bonus && isCameraBeat(beat) && beat.bonus) {
-      // Bonus windows close with their camera beat; missed pages never block progress.
-      for (const t of this.bonus.targets.values()) if (!t.defeated) t.phase = 'gone';
-      this.bonus = null;
-      this.typing.setCandidates(this.encounter?.candidates() ?? []);
-      this.refreshTargets();
-    }
   }
 
   private enterArea(areaId: AreaId): void {
@@ -1425,11 +1285,6 @@ export class GameRun {
     patchRunUi({ areaId, areaCardKey: nextKey(), retiredKey: nextKey() });
   }
 
-  /**
-   * True while any word on this stretch of rail is still waiting: chase and bonus words (spawned or
-   * still to come) and a spark gem. The camera finishes its move, then holds there (owner: "hold the
-   * animation and wait for the child to finish typing").
-   */
   /** Mobs waiting off screen hurry in (owner: they should appear within 1–2 seconds). */
   private updateRush(dt: number): void {
     const runner = this.encounter;
@@ -1445,49 +1300,17 @@ export class GameRun {
     }
   }
 
+  /**
+   * True while a chase word on this stretch of rail is still waiting (spawned or still to come). The
+   * camera finishes its move, then holds there (owner: "hold the animation and wait for the child to
+   * finish typing").
+   */
   private wordsPending(): boolean {
-    if (this.chase && this.chase.state !== 'complete') return true;
-    if (this.bonus && this.bonus.state !== 'complete') return true;
-    if (this.gem) return true;
-    return this.bonusNeedsTime();
-  }
-
-  /** True while a bonus word must stay reachable: locked mid-word, or not yet shown long enough. */
-  private bonusNeedsTime(): boolean {
-    const lockedId = this.typing.lockedId;
-    if (lockedId !== null && this.typing.isMidWord && this.chase?.targets.has(lockedId)) return true;
-    const bonus = this.bonus;
-    if (!bonus) return false;
-    if (this.typing.lockedId !== null && bonus.targets.has(this.typing.lockedId)) return true;
-    for (const t of bonus.targets.values()) {
-      if (t.defeated || t.phase === 'leaving' || t.phase === 'gone') continue;
-      if (t.phase !== 'active' || t.activeTime < BONUS_MIN_VISIBLE_SEC) return true;
-    }
-    return false;
-  }
-
-  private startBonus(beat: LevelBeat): void {
-    const spawn = beat.bonus;
-    if (!spawn) return;
-    if (this.settings().collectibles === false && isOptionalCollectible(spawn)) return;
-    if (spawn.reward?.starPage && this.progress.collectedStarPageIds.includes(spawn.reward.starPage)) return;
-    if (spawn.reward?.cosmetic && this.progress.unlockedCosmeticIds.includes(spawn.reward.cosmetic)) return;
-    const def: EncounterDef = {
-      id: `bonus:${beat.id}`,
-      areaId: beat.areaId,
-      kind: 'interaction',
-      waves: [{ id: 'bonus', targets: [spawn] }],
-    };
-    this.bonus = new EncounterRunner(def, { difficulty: this.difficulty, assist: this.assist, attempt: 0 });
+    return this.chase !== null && this.chase.state !== 'complete';
   }
 
   private startEncounter(beatId: string, encounterId: string): void {
-    const authored = this.level.encounters.get(encounterId);
-    // Collectibles switched off: their optional pickups are left out of the fight.
-    const def =
-      authored && this.settings().collectibles === false
-        ? { ...authored, waves: authored.waves.map((w) => ({ ...w, targets: w.targets.filter((t) => !isOptionalCollectible(t)).map((t) => this.withoutCollectible(t)) })) }
-        : authored;
+    const def = this.level.encounters.get(encounterId);
     if (!def) {
       this.director.completeGatedBeat(beatId);
       return;
@@ -1588,16 +1411,6 @@ export class GameRun {
     }
   }
 
-  private handleBonusEvents(events: readonly EncounterEvent[]): void {
-    this.fxFromRunnerEvents(events);
-    for (const e of events) {
-      if (e.type === 'complete') {
-        this.bonus = null;
-        this.refreshTargets();
-        return;
-      }
-    }
-  }
 
   private completeEncounter(runner: EncounterRunner): void {
     const def = runner.def;
@@ -1660,30 +1473,12 @@ export class GameRun {
   private grantReward(reward: Reward): void {
     const m = this.progress.metrics;
     if (reward.score) m.score += reward.score;
-    if (reward.starPage) this.collectStarPage(reward.starPage);
     if (reward.cosmetic) this.unlockCosmetic(reward.cosmetic);
     if (reward.heal) {
       this.setFocus(this.focus + reward.heal);
       this.songShield = true;
       audio.playSfx('star-page', { rate: 0.8 });
     }
-  }
-
-  private collectStarPage(page: StarPageId): void {
-    if (this.progress.collectedStarPageIds.includes(page)) return;
-    this.progress.collectedStarPageIds.push(page);
-    const count = this.progress.collectedStarPageIds.length;
-    audio.playSfx('star-page');
-    // With collectibles off, story pages (Level 3's journal) still count but show no "1 / 8" tally.
-    if (this.settings().collectibles === false) {
-      patchRunUi({ starPages: count });
-    } else {
-      patchRunUi({
-        starPages: count,
-        toast: { key: nextKey(), title: strings.toasts.collectible[this.level.id] ?? strings.toasts.starPage, detail: `${count} / ${this.level.collectibles.length}` },
-      });
-    }
-    this.saveNow();
   }
 
   private unlockCosmetic(id: CosmeticId): void {
@@ -1789,8 +1584,8 @@ export class GameRun {
   }
 
   /**
-   * Clears typing between encounters, but keeps a word the player is part-way through on a gem or
-   * bonus target (they outlive encounters; dropping them turned correct letters into mistakes).
+   * Clears typing between encounters, but keeps a word the player is part-way through on a chase or
+   * song word (they outlive encounters; dropping them turned correct letters into mistakes).
    */
   private resetEncounterTyping(): void {
     const locked = this.typing.lockedId;
@@ -2011,11 +1806,7 @@ export class GameRun {
   /** True if a beat says something as it starts (its own lines, a conversation, or a fight's lines). */
   private bringsLines(beat: LevelBeat): boolean {
     if (beat.kind === 'dialogue') return beat.lines.length > 0;
-    const settings = this.settings();
-    return (beat.barks ?? []).some((id) => {
-      const needs = LINE_NEEDS[id];
-      return !(needs && settings[needs] === false);
-    });
+    return (beat.barks ?? []).length > 0;
   }
 
   /** A story line (not a fight's tip) from an earlier beat is being said or waiting to be said. */
@@ -2267,7 +2058,7 @@ export class GameRun {
     this.metrics.suspend();
     this.progress.status = 'complete';
     const metrics = this.progress.metrics;
-    const results = buildResults(metrics, this.difficulty, this.progress.collectedStarPageIds, this.newCosmetics, this.level.id, this.level.collectibles.length);
+    const results = buildResults(metrics, this.difficulty, this.newCosmetics, this.level.id);
     const storage = this.options.storage;
     const profile = readProfile(storage);
     if (!profile.completedLevels.includes(this.level.id)) profile.completedLevels.push(this.level.id);
@@ -2277,7 +2068,6 @@ export class GameRun {
       bestAccuracy: results.accuracy,
       bestStreak: results.bestStreak,
       fastestLevelMs: metrics.levelTimeMs,
-      mostStarPages: results.starPages,
       bestScore: results.score,
     });
     profile.bestByLevel[this.level.id] = best;

@@ -97,29 +97,7 @@ export type SpellId = 'spark-bolt' | 'frost-thread' | 'chain-spark' | 'starfall'
 
 export type AnchorId = 'courtyard' | 'library' | 'greenhouse';
 
-export type CosmeticId = 'trail-starlight' | 'trail-verdant' | 'trail-inkwell' | 'trail-bright-quill' | 'trail-prism';
+export type CosmeticId = 'trail-starlight' | 'trail-inkwell' | 'trail-bright-quill';
 
-/** Collectible ids (star pages in Level 1; each level lists its own in the level registry). */
-export type StarPageId = string;
+export const ALL_COSMETICS: readonly CosmeticId[] = ['trail-starlight', 'trail-inkwell', 'trail-bright-quill'];
 
-export const ALL_STAR_PAGES: readonly StarPageId[] = [
-  'page-courtyard-fountain',
-  'page-courtyard-sprite',
-  'page-library-flying',
-  'page-library-balcony',
-  'page-library-grimoire',
-  'page-greenhouse-leaf',
-  'page-greenhouse-pod',
-  'page-greenhouse-panel',
-];
-
-export const STAR_PAGE_AREA: Record<StarPageId, AreaId> = {
-  'page-courtyard-fountain': 'sunlit-courtyard',
-  'page-courtyard-sprite': 'sunlit-courtyard',
-  'page-library-flying': 'whispering-library',
-  'page-library-balcony': 'whispering-library',
-  'page-library-grimoire': 'whispering-library',
-  'page-greenhouse-leaf': 'enchanted-greenhouse',
-  'page-greenhouse-pod': 'enchanted-greenhouse',
-  'page-greenhouse-panel': 'enchanted-greenhouse',
-};

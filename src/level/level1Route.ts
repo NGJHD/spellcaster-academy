@@ -52,6 +52,10 @@ export function beatIndexOf(beatId: string): number {
  * save made before the rewrite still resumes sensibly (LEVEL1_DESIGN LD-0 implementation notes).
  */
 export const BEAT_ALIASES: Readonly<Record<string, string>> = {
+  'courtyard-fountain-reveal': 'courtyard-c1',
+  'library-balcony-pan': 'library-to-grimoire',
+  'greenhouse-leaf-pan': 'greenhouse-to-vine',
+  'greenhouse-verdant-pan': 'greenhouse-to-anchor',
   'arrival-gate-intro': 'arrival-crystals',
   'arrival-fracture-talk': 'arrival-checkpoint',
   'courtyard-c1-talk': 'courtyard-c1',

@@ -31,7 +31,8 @@ const KEEP_AS_AUTHORED = new Set(['l2-fireballs', 'l3-u3']);
 const NON_MOB = new Set(['marker', 'gem', 'star-page']);
 
 const isMob = (t: TargetSpawn) => !NON_MOB.has(t.kind);
-const isCollectible = (t: TargetSpawn) => t.reward?.starPage !== undefined || t.reward?.cosmetic !== undefined;
+/** Targets that unlock a cosmetic (the Inkwell trail's shelves): never trimmed away. */
+const isCollectible = (t: TargetSpawn) => t.reward?.cosmetic !== undefined;
 const isPowerWave = (id: string) => /-power$|power-wave|starfall-wave|quill-wave/.test(id);
 
 const isAnchor = (id: string) => /anchor|beacon/.test(id);
@@ -42,7 +43,7 @@ const isAnchor = (id: string) => /anchor|beacon/.test(id);
  */
 function keepFirst(targets: readonly TargetSpawn[], n: number): TargetSpawn[] {
   if (targets.length <= n) return [...targets];
-  // Collectibles are never trimmed (every star page, lantern and Memory Page stays findable).
+  // Cosmetic rewards are never trimmed.
   const kept = targets.filter((t, i) => i < n || isCollectible(t));
   const dropped = targets.filter((t) => !kept.includes(t)).flatMap((t) => [t.defeatFlag, ...(t.alsoFlags ?? [])]).filter((f): f is string => !!f);
   const last = kept[kept.length - 1];
@@ -124,7 +125,7 @@ export function forYoungTypists(def: EncounterDef): EncounterDef {
   return simplifySequence(def);
 }
 
-/** Chase and bonus words along the rails: at most two per stretch (collectibles always kept). */
+/** Chase words along the rails: at most two per stretch. */
 export function trimChase(beat: LevelBeat): LevelBeat {
   if (!('chase' in beat) || !beat.chase || beat.chase.length <= CHASE_PER_BEAT) return beat;
   const collectibles = beat.chase.filter((c) => isCollectible(c.target));

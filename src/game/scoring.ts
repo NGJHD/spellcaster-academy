@@ -9,8 +9,7 @@ import {
   wpm,
   type PersistedRunMetrics,
 } from '../typing/TypingMetrics';
-import type { CosmeticId, Difficulty, StarPageId } from './types';
-import { ALL_STAR_PAGES, STAR_PAGE_AREA, type LevelId } from './types';
+import type { CosmeticId, Difficulty, LevelId } from './types';
 
 export function wordScore(letters: number, perfect: boolean, multiplier: number): number {
   return Math.round(letters * 10 * (perfect ? 1.5 : 1) * multiplier);
@@ -26,14 +25,14 @@ export const RANK_TITLES = [
 
 export type RankTitle = (typeof RANK_TITLES)[number];
 
-export function rankTitle(accuracy: number, averageWpmValue: number, starPages: number): RankTitle {
+/** Accuracy and speed each give up to two points; four points is the top title. */
+export function rankTitle(accuracy: number, averageWpmValue: number): RankTitle {
   let points = 0;
   if (accuracy >= 97) points += 2;
   else if (accuracy >= 90) points += 1;
   if (averageWpmValue >= 25) points += 2;
   else if (averageWpmValue >= 15) points += 1;
-  if (starPages >= 6) points += 1;
-  const index = points >= 5 ? 4 : points >= 3 ? 3 : points;
+  const index = Math.min(4, points);
   return RANK_TITLES[index] ?? RANK_TITLES[0];
 }
 
@@ -54,8 +53,6 @@ export interface ResultsData {
   readonly levelTimeMs: number;
   readonly focusLost: number;
   readonly checkpointRestarts: number;
-  readonly starPages: number;
-  readonly starPagesTotal: number;
   readonly optionalTargets: number;
   readonly difficulty: Difficulty;
   readonly newCosmetics: readonly CosmeticId[];
@@ -70,10 +67,8 @@ export interface ResultsData {
 export function buildResults(
   m: PersistedRunMetrics,
   difficulty: Difficulty,
-  starPages: readonly StarPageId[],
   newCosmetics: readonly CosmeticId[],
   levelId: LevelId = 'level-1',
-  collectiblesTotal: number = ALL_STAR_PAGES.length,
 ): ResultsData {
   const avg = averageWpm(m);
   const acc = characterAccuracy(m);
@@ -95,21 +90,19 @@ export function buildResults(
     levelTimeMs: m.levelTimeMs,
     focusLost: Math.round(m.focusLost),
     checkpointRestarts: m.checkpointRestarts,
-    starPages: starPages.length,
-    starPagesTotal: collectiblesTotal,
     levelId,
     optionalTargets: m.optionalTargetsCompleted,
     difficulty,
     newCosmetics,
     score: m.score,
     medals: { fights: m.medalsEarned, stars: m.medalStars, perfect: m.threeStarMedals },
-    rank: rankTitle(acc, avg, starPages.length),
-    messages: positiveMessages(m, starPages),
+    rank: rankTitle(acc, avg),
+    messages: positiveMessages(m),
   };
 }
 
 /** Two specific, true, encouraging observations drawn from the actual metrics. */
-export function positiveMessages(m: PersistedRunMetrics, starPages: readonly StarPageId[]): string[] {
+export function positiveMessages(m: PersistedRunMetrics): string[] {
   const out: string[] = [];
   const acc = characterAccuracy(m);
   const overall = averageWpm(m);
@@ -129,17 +122,6 @@ export function positiveMessages(m: PersistedRunMetrics, starPages: readonly Sta
   if (m.bestStreak >= 3) out.push(`Your longest perfect streak was ${m.bestStreak} words.`);
   if (obs && overall > 0 && wpm(obs.wpmChars, obs.activeMs) > overall * 1.05) {
     out.push('You grew faster during the Observatory battle.');
-  }
-  for (const [area, label] of [
-    ['whispering-library', 'the Library'],
-    ['enchanted-greenhouse', 'the Greenhouse'],
-    ['sunlit-courtyard', 'the Courtyard'],
-  ] as const) {
-    const all = ALL_STAR_PAGES.filter((p) => STAR_PAGE_AREA[p] === area);
-    if (all.every((p) => starPages.includes(p))) {
-      out.push(`You found every star page in ${label}.`);
-      break;
-    }
   }
   if (m.checkpointRestarts > 0) out.push('You kept going after a difficult wave.');
   if (m.completedWords > 0) out.push(`You cast ${m.completedWords} spells on your first day.`);

@@ -44,10 +44,8 @@ interface ChainBolt {
 const TRAILS: Record<string, { core: string; halo: string }> = {
   default: { core: '#fff1c2', halo: '#7fc8ff' },
   'trail-starlight': { core: '#ffffff', halo: '#ffe08a' },
-  'trail-verdant': { core: '#eaffd8', halo: '#6fe39a' },
   'trail-inkwell': { core: '#dce6ff', halo: '#3a5cff' },
   'trail-bright-quill': { core: '#fff6d8', halo: '#ffb640' },
-  'trail-prism': { core: '#ffffff', halo: '#ff6ad5' },
   frost: { core: '#f2fbff', halo: '#8fd8ff' },
 };
 

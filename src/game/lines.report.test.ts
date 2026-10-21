@@ -12,7 +12,7 @@ import { LEVELS } from '../level/levels';
 import type { LevelBeat } from '../level/levelTypes';
 import { TRAVEL_SPEED_MULTIPLIER } from '../state/settings';
 import { initialRunUi, useRunStore } from '../state/runStore';
-import { GameRun, LINE_NEEDS } from './GameRun';
+import { GameRun } from './GameRun';
 import type { KeyValueStorage } from './saveData';
 import type { LevelId } from './types';
 
@@ -64,7 +64,7 @@ function play(levelId: LevelId) {
 function expectedLines(levelId: LevelId, beat: LevelBeat): string[] {
   const out: string[] = [];
   const level = LEVELS[levelId];
-  for (const id of beat.barks ?? []) if (!LINE_NEEDS[id]) out.push(id);
+  for (const id of beat.barks ?? []) out.push(id);
   if (beat.kind === 'dialogue') out.push(...beat.lines);
   if (beat.kind === 'encounter') {
     const def = level.encounters.get(beat.encounterId);

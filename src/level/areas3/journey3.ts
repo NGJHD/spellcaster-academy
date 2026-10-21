@@ -11,7 +11,7 @@ import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, hound, knight } from '../areas2/hush';
 import type { EncounterDef } from '../levelTypes';
-import { colour, correctionMoth, fireTide, fireball, foreman, memoryPage, pathWord, redactor } from './blank';
+import { colour, correctionMoth, fireTide, fireball, foreman, pathWord, redactor } from './blank';
 import { CITADEL_FAR } from './journey1';
 
 const P = 'l3-paper-sea';
@@ -70,9 +70,7 @@ export const sea: AreaScript = {
     fight('l3-ps-galleons', P),
     travel('l3-ps-to-storm', P, ['PS_FLEET', 'PS_GAP_IN', 'PS_GAP_OUT', 'PS_STORM'], 7, { fx: [{ kind: 'lightning', at: 'PS_FLEET_MID', atBeat: 0.6 }] }),
     fight('l3-ps-storm', P, { barks: ['l3-storm'] }),
-    travel('l3-ps-to-end', P, ['PS_STORM', 'PS_END'], 5, {
-      chase: [{ at: 0.4, target: memoryPage('sea-page', S(0, 0, 0), 'wave', 'memory-8', { follow: { ahead: 4.4, side: 1.3, up: 0.6 } }) }],
-    }),
+    travel('l3-ps-to-end', P, ['PS_STORM', 'PS_END'], 5),
     // Holds on the Citadel until Pip has said it (it was said inside the forge).
     reveal('l3-citadel-looms', P, 'PS_END', ['PS_CITADEL'], 1, 1.5, { barks: ['l3-citadel-looms'] }),
     checkpoint('l3-ps-checkpoint', P, 'paper-sea-crossed', { objective: 'l3-forge' }),

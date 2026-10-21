@@ -10,7 +10,7 @@
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, len, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, scribbleImp } from '../areas2/hush';
-import { colour, correctionMoth, fireball, memoryPage, pathWord, redactor } from './blank';
+import { colour, correctionMoth, fireball, pathWord, redactor } from './blank';
 
 const S = 'l3-rift-shore';
 const W = 'l3-cinderwood';
@@ -96,7 +96,7 @@ export const shore: AreaScript = {
           targets: [
             blotling('shore-blot-1', [R(-6, 0, -30), R(-3, 0, -24), R(-1, 0, -21)]),
             scribbleImp('shore-imp-1', [R(6, 0, -30), R(3, 0, -25), R(1.2, 0, -21)], { delaySec: 0.7 }),
-            colour('shore-shell', R(-5, 0.6, -26), 'shell', 'l3-shell', { reward: { starPage: 'memory-1', score: 60 } }),
+            colour('shore-shell', R(-5, 0.6, -26), 'shell', 'l3-shell', { reward: { score: 60 } }),
           ],
         },
         {
@@ -197,7 +197,6 @@ export const cinderwood: AreaScript = {
           targets: (['wing', 'song', 'feather'] as const).map((word, i) => marker(`bird-${i + 1}`, C(-3 + i * 3, 6 + (i % 2), -30), word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 1, color: ['#ff6a5a', '#ffd24a', '#4ab8ff'][i] } })),
         },
       ],
-      onComplete: { reward: { starPage: 'memory-2' } },
     },
     {
       id: 'l3-tortoise',
@@ -207,5 +206,3 @@ export const cinderwood: AreaScript = {
     },
   ],
 };
-
-export { memoryPage };

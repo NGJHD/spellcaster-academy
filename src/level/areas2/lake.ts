@@ -8,7 +8,7 @@
  */
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, hold, marker, origin, reveal, target, travel, type AreaScript } from '../areas/builders';
-import { fireball, knight, lantern, moth } from './hush';
+import { fireball, knight, moth } from './hush';
 
 const A = 'l2-lantern-lake';
 export const LAKE_ORIGIN: Vec3 = [1400, 0, 0];
@@ -60,22 +60,11 @@ export const lake: AreaScript = {
       chase: [{ at: 0.05, target: marker('boat-row', L(0, 1.3, 18.6), 'row', { labelHeight: 0.2, defeatFx: { kind: 'sparks', scale: 0.8, color: '#ffd27a' } }) }],
     }),
     travel('l2-lake-step-in', A, ['LAKE_JETTY_END', 'LAKE_DOCK'], 1.5, { easing: 'easeInOutCubic' }),
-    travel('l2-lake-push-off', A, ['LAKE_DOCK', 'LAKE_OPEN'], 6, {
-      chase: [
-        { at: 0.2, target: lantern('lantern-lake-1', L(-3, 0.6, -8), 'drift', 'lantern-lake-1', { follow: { ahead: 4.4, side: -1.3, up: -0.8 } }) },
-        { at: 0.62, target: lantern('lantern-lake-2', L(3, 0.6, -14), 'ripple', 'lantern-lake-2', { follow: { ahead: 4.6, side: 1.3, up: -0.8 } }) },
-      ],
-    }),
+    travel('l2-lake-push-off', A, ['LAKE_DOCK', 'LAKE_OPEN'], 6),
     fight('l2-lake-seg-1', A, { music: 'siege-battle', barks: ['l2-lake-moths'] }),
     travel('l2-lake-jetty-move', A, ['LAKE_OPEN', 'LAKE_MID', 'LAKE_JETTY'], 6, { barks: ['l2-lake-boathouse'] }),
     fight('l2-lake-jetty', A),
-    travel('l2-lake-seg-2', A, ['LAKE_JETTY', 'LAKE_BEYOND', 'LAKE_ISLAND'], 9, {
-      chase: [
-        { at: 0.15, target: lantern('lantern-lake-3', L(4, 0.6, -60), 'beam', 'lantern-lake-3', { follow: { ahead: 4.4, side: 1.2, up: -0.8 } }) },
-        { at: 0.45, target: fireball('lake-ink', L(-8, 0.4, -70), L(0.6, 1.5, -64), { follow: { ahead: 4, side: -0.8, up: -0.2 } }) },
-        { at: 0.7, target: lantern('lantern-lake-4', L(-4, 0.6, -96), 'harbor', 'lantern-lake-4', { follow: { ahead: 4.6, side: -1.3, up: -0.8 } }) },
-      ],
-    }),
+    travel('l2-lake-seg-2', A, ['LAKE_JETTY', 'LAKE_BEYOND', 'LAKE_ISLAND'], 9),
     travel('l2-lake-dock-island', A, ['LAKE_ISLAND', 'LH_BASE'], 3, { music: 'siege-dread', barks: ['l2-oarsby-lift'] }),
     // Fast-rail set piece: the lighthouse lift rockets up while moths smash through the windows.
     travel('l2-lighthouse-lift', A, ['LH_BASE', 'LH_TOP'], 9, {

@@ -4,7 +4,7 @@
  */
 import type { SfxId } from '../audio/audioCatalog';
 import type { WordCategory } from '../content/wordLists';
-import type { AnchorId, AreaId, CheckpointId, CosmeticId, SpellId, StarPageId } from '../game/types';
+import type { AnchorId, AreaId, CheckpointId, CosmeticId, SpellId } from '../game/types';
 import type { CameraBeat, CameraNode, Vec3 } from './rail/railTypes';
 
 export type MusicId =
@@ -98,14 +98,12 @@ export interface BeatExtras {
   readonly objective?: string;
   /** Non-blocking subtitle lines played when the beat starts. */
   readonly barks?: readonly LineId[];
-  /** Optional collectible target available while this beat plays (GD-18). */
-  readonly bonus?: TargetSpawn;
   /** Refill Focus when the beat starts (fountains, safe rooms). */
   readonly restoreFocus?: boolean;
   /**
-   * How the 7-second attention rule treats the beat (CLAUDE.md §1B). Boss intros and endings are
-   * exempt. 'spectacle' beats (a crash-landing, an explosion, a big reveal) count as action: no spark
-   * gems cover them, and each must stay short.
+   * The beat's role. 'boss-intro' (the name card) and 'spectacle' (a crash-landing, an explosion, a big
+   * reveal) stay short: the camera does not wait at their end for their lines. An 'ending'
+   * conversation is said in full before the story moves on.
    */
   readonly attention?: 'boss-intro' | 'ending' | 'spectacle';
   /** Spectacle played when the beat starts (each cue may be delayed). */
@@ -200,7 +198,7 @@ export type TargetKind =
   | 'correction-moth'
   | 'redactor'
   | 'foreman'
-  /** Spark gem: a bonus word that flies alongside the camera (CLAUDE.md §1B). */
+  /** A small glowing word that flies beside the camera (the fountain's healing droplets, Mira's song word). */
   | 'gem';
 
 /** A fixed word, or a request for a generated word. Lengths are Standard and shift with difficulty. */
@@ -232,7 +230,6 @@ export interface AttackSpec {
 }
 
 export interface Reward {
-  readonly starPage?: StarPageId;
   readonly cosmetic?: CosmeticId;
   readonly score?: number;
   /** HP restored (Mira's Shield Song, Level 3); also blocks the next hit. */

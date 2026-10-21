@@ -28,19 +28,6 @@ describe.each(LEVEL_ORDER.filter((id) => LEVELS[id].route.beats.length > 0))('%s
     expect(missing).toEqual([]);
   });
 
-  it('every collectible can be found', () => {
-    const found = new Set<string>();
-    for (const beat of level.route.beats) {
-      if (beat.bonus?.reward?.starPage) found.add(beat.bonus.reward.starPage);
-      if ('chase' in beat) for (const c of beat.chase ?? []) if (c.target.reward?.starPage) found.add(c.target.reward.starPage);
-    }
-    for (const e of level.encounters.values()) {
-      if (e.onComplete?.reward?.starPage) found.add(e.onComplete.reward.starPage);
-      for (const w of e.waves) for (const t of w.targets) if (t.reward?.starPage) found.add(t.reward.starPage);
-    }
-    expect([...found].sort()).toEqual([...level.collectibles].sort());
-  });
-
   it('never more than four required enemies at once and six targets at most', () => {
     for (const e of level.encounters.values()) {
       for (const w of e.waves) {

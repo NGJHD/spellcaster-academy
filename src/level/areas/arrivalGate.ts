@@ -1,10 +1,8 @@
 /**
- * LEVEL1_DESIGN LD-0 Opening and Arrival Gate (replaces LD-7 / LD-8): a fast swoop with spark gems
- * from the first second, a sprite snatching Pip in mid-air, crystal words that blast the gate open,
- * then the ward fracture at full drama.
+ * Opening and Arrival Gate: a fast swoop over the trees, a sprite snatching Pip in mid-air, crystal
+ * words that blast the gate open, the Warden's greeting, then the ward fracture at full drama.
  * World layout: the arrival path runs along +Z to the gate wall at z = 20.
  */
-import type { TargetSpawn } from '../levelTypes';
 import { checkpoint, fade, fight, hold, marker, reveal, target, travel, type AreaScript } from './builders';
 
 const A = 'arrival-gate';
@@ -17,16 +15,6 @@ export const CRYSTAL_POSITIONS = {
   left: [-3.6, 2.2, 21.3],
   right: [3.6, 2.2, 21.3],
 } as const;
-
-/** A sky gem in the opening swoop: a fixed word, flying beside the camera. */
-const skyGem = (id: string, word: string, side: number): TargetSpawn =>
-  target(id, 'gem', [0, 0, 0], [word], {
-    follow: { ahead: 4.6, side, up: 0.2 },
-    optional: true,
-    leaveAfterSec: 3.6,
-    labelHeight: 0.28,
-    defeatFx: { kind: 'burst', scale: 0.6, color: '#ffe08a' },
-  });
 
 const crystalBurst = { kind: 'burst', scale: 0.9, color: '#a8dcff' } as const;
 
@@ -51,15 +39,10 @@ export const arrivalGate: AreaScript = {
   },
   beats: [
     fade('arrival-opening-fade', A, 'ARRIVAL_SKY_01', { fadeOutSec: 0, holdSec: 0.2, fadeInSec: 0.8, music: 'arrival-wonder' }),
-    // 1. The swoop: spark gems from the first second (`go`, `fly`, `sky`).
+    // 1. The swoop over the trees to the academy.
     travel('arrival-flyover', A, ['ARRIVAL_SKY_01', 'ARRIVAL_SKY_02'], 7, {
-      barks: ['open-1', 'open-sparks'],
+      barks: ['open-1'],
       easing: 'easeInOutSine',
-      chase: [
-        { at: 0.0, target: skyGem('sky-gem-go', 'go', -1.3) },
-        { at: 0.3, target: skyGem('sky-gem-fly', 'fly', 1.3) },
-        { at: 0.62, target: skyGem('sky-gem-sky', 'sky', -1.3) },
-      ],
     }),
     // 2. Cold open: a sprite snatches Pip; its word makes it let go. The camera dives after them.
     travel('arrival-snatch', A, ['ARRIVAL_SKY_02', 'ARRIVAL_SNATCH_DIVE', 'ARRIVAL_GATE_APPROACH'], 8, {

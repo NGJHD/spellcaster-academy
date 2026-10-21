@@ -11,7 +11,7 @@ import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, hold, len, marker, origin, powerWave, reveal, target, travel, type AreaScript } from '../areas/builders';
 import { blotling, knight } from '../areas2/hush';
 import type { TargetSpawn } from '../levelTypes';
-import { colour, fireTide, fireball, memoryPage, pathWord } from './blank';
+import { colour, fireTide, fireball, pathWord } from './blank';
 
 const F = 'l3-inkfall';
 const M = 'l3-margin-library';
@@ -114,9 +114,7 @@ export const inkfall: AreaScript = {
       barks: ['l3-shield'],
       chase: [{ at: 0.05, target: pathWord('raft-shield', I(0, 41.4, -4), 'shield', 'l3-shield-on', { defeatBark: 'l3-shield-on', defeatFx: { kind: 'shockwave', scale: 1.2, color: '#9fd8ff' } }) }],
     }),
-    travel('l3-raft-1', F, ['IF_TOP', 'IF_RUN1', 'IF_LIP1', 'IF_S1'], 6, {
-      chase: [{ at: 0.4, target: memoryPage('falls-page', I(0, 0, 0), 'drift', 'memory-3', { follow: { ahead: 4.4, side: 1.3, up: 0.6 } }) }],
-    }),
+    travel('l3-raft-1', F, ['IF_TOP', 'IF_RUN1', 'IF_LIP1', 'IF_S1'], 6),
     fight('l3-if-s1', F),
     travel('l3-raft-2', F, ['IF_S1', 'IF_RUN2', 'IF_LIP2', 'IF_BASIN'], 4.5),
     fight('l3-tide-1', F, { barks: ['l3-tide-tip'] }),
@@ -250,12 +248,11 @@ export const margin: AreaScript = {
         {
           id: 'memories',
           sequential: true,
-          targets: ([['orb', 'memory-4', 'l3-mem-4'], ['quill', 'memory-5', 'l3-mem-5'], ['flee', 'memory-6', 'l3-mem-6']] as const).map(([word, page, bark], i) =>
+          targets: ([['orb', 'l3-mem-4'], ['quill', 'l3-mem-5'], ['flee', 'l3-mem-6']] as const).map(([word, bark], i) =>
             // Low enough to stay well inside the view (owner, 2026-10-16: "orb" was too high to see).
             target(`journal-page-${i + 1}`, 'star-page', L(-2 + i * 2, 3 + i * 0.4, -38), [word], {
               labelHeight: 0.4,
               movement: { kind: 'patrol', path: [L(-3 + i * 2, 2.6 + i * 0.4, -39), L(-1 + i * 2, 3.4 + i * 0.4, -38)], speed: 0.8 },
-              reward: { starPage: page },
               defeatBark: bark,
               defeatFx: { kind: 'flash', scale: 1, color: '#ffe6a0' },
             }),
@@ -356,7 +353,6 @@ export const gallery3: AreaScript = {
           ],
         },
       ],
-      onComplete: { reward: { starPage: 'memory-7' } },
     },
     {
       id: 'l3-pw-1',

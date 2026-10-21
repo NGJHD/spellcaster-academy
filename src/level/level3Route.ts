@@ -15,5 +15,3 @@ export const LEVEL3_BOSSES: readonly BossDef[] = [
   { id: 'unwriter', introBeat: 'l3-unwriter-rises', phases: ['l3-u1', 'l3-u2', 'l3-u3', 'l3-u4'] },
 ];
 
-/** Eight Memory Pages (L3-17): the story of Corvane and Pip. */
-export const LEVEL3_COLLECTIBLES: readonly string[] = ['memory-1', 'memory-2', 'memory-3', 'memory-4', 'memory-5', 'memory-6', 'memory-7', 'memory-8'];

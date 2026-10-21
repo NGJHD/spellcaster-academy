@@ -8,7 +8,7 @@
 import type { Vec3 } from '../rail/railTypes';
 import { checkpoint, fade, fight, len, marker, origin, reveal, talk, target, travel, type AreaScript } from '../areas/builders';
 import type { TargetSpawn } from '../levelTypes';
-import { fireball, lantern } from './hush';
+import { fireball } from './hush';
 
 const A = 'l2-tower-roof';
 const E = 'l2-aftermath';
@@ -79,9 +79,6 @@ export const towerRoof: AreaScript = {
       easing: 'easeInOutCubic',
       chase: [
         { at: 0.12, target: fireball('palm-fb-1', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: 1, up: 0.4 }, movement: { kind: 'static' }, leaveAfterSec: 4 }) },
-        { at: 0.32, target: lantern('lantern-ramparts', T(0, 0, 0), 'updraft', 'lantern-ramparts', { follow: { ahead: 4.4, side: -1.3, up: 0.6 } }) },
-        { at: 0.5, target: fireball('palm-fb-2', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: -0.9, up: 0.3 }, movement: { kind: 'static' }, leaveAfterSec: 4 }) },
-        { at: 0.72, target: fireball('palm-fb-3', T(0, 0, 0), T(0, 0, 0), { follow: { ahead: 5, side: 0.6, up: 0.5 }, movement: { kind: 'static' }, leaveAfterSec: 4 }) },
       ],
     }),
     reveal('l2-wyrm-rises', A, 'ROOF_FIGHT', ['ROOF_WYRM_HEAD'], 0.8, 3, {

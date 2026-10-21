@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { getLine } from '../content/dialogue';
-import { ALL_STAR_PAGES } from '../game/types';
 import { BEAT_ALIASES, LEVEL1_ENCOUNTERS, LEVEL1_ROUTE, beatIndexOf, resolveBeatId } from './level1Route';
 import { validateRoute } from './rail/validateRoute';
 
@@ -20,23 +19,14 @@ describe('Level 1 content', () => {
     expect(missing).toEqual([]);
   });
 
-  it('all eight star pages and two cosmetics can be found', () => {
-    const pages = new Set<string>();
+  it('the Starlight trail can be won', () => {
     const cosmetics = new Set<string>();
-    const visit = (reward?: { starPage?: string; cosmetic?: string }) => {
-      if (reward?.starPage) pages.add(reward.starPage);
-      if (reward?.cosmetic) cosmetics.add(reward.cosmetic);
-    };
-    for (const beat of LEVEL1_ROUTE.beats) {
-      visit(beat.bonus?.reward);
-      if ('chase' in beat) for (const c of beat.chase ?? []) visit(c.target.reward);
-    }
+    for (const beat of LEVEL1_ROUTE.beats) if ('chase' in beat) for (const c of beat.chase ?? []) if (c.target.reward?.cosmetic) cosmetics.add(c.target.reward.cosmetic);
     for (const e of LEVEL1_ENCOUNTERS.values()) {
-      visit(e.onComplete?.reward);
-      for (const w of e.waves) for (const t of w.targets) visit(t.reward);
+      if (e.onComplete?.reward?.cosmetic) cosmetics.add(e.onComplete.reward.cosmetic);
+      for (const w of e.waves) for (const t of w.targets) if (t.reward?.cosmetic) cosmetics.add(t.reward.cosmetic);
     }
-    expect([...pages].sort()).toEqual([...ALL_STAR_PAGES].sort());
-    expect(cosmetics.size).toBeGreaterThanOrEqual(2);
+    expect([...cosmetics]).toEqual(['trail-starlight']);
   });
 
   it('target ids are unique within each encounter', () => {

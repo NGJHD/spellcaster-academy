@@ -36,8 +36,6 @@ const tip = (speaker: Speaker, text: string): DialogueLine => ({ speaker, text, 
 export const LINES = {
   // Opening and Arrival Gate
   'open-1': line('pip', 'Hi! I\'m Pip, your guide orb. Welcome to Asterfall Academy, on your very first day!'),
-  // Only said when spark gems are on (see LINE_NEEDS in GameRun).
-  'open-sparks': line('pip', 'Ooh, sparks! Type them as we fly in!'),
   'open-snatch': line('pip', 'Whoa, a sprite! Hey, put me down! Type its word, quick!'),
   'open-rescued': line('pip', 'Phew, thanks! But why was it shaking like that? Forest sprites are never scared.'),
   'open-2': line('pip', 'Huh? Why have the gate crystals gone dark? Let\'s type their words and wake them up!'),
@@ -63,7 +61,6 @@ export const LINES = {
   'court-anchor-done': line('pip', 'It\'s glowing again! And whoa, its light is flowing into your wand!'),
   'court-exit': line('pip', 'Those scratches on the anchor looked new. Did someone break it on purpose?'),
   'court-exit-2': line('pip', 'Two anchors to go. I think the next one is in the library. This way!'),
-  'page-hint': line('pip', 'A star page! Type its word to catch it.'),
 
   // East Hall
   'east-1': line('mira', 'You\'re the new apprentice? I\'m Mira, a student here. Run, the library books are loose!'),

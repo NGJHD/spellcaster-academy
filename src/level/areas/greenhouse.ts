@@ -86,10 +86,8 @@ export const greenhouse: AreaScript = {
     GH_ANCHOR: { position: G(-2.5, 1.6, -39), lookAt: G(-6, 1.4, -46) },
   },
   lookPoints: {
-    GH_LEAF_PAGE: G(-6, 1.4, -11),
     GH_ROOF_PANEL: ROOF_PANEL_POSITION,
-    GH_PANEL_PAGE: G(6.5, 0.6, -38),
-    GH_VERDANT: G(4.5, 1.2, -33),
+    GH_PANEL_DOWN: G(6.5, 0.6, -38),
     GH_SNAP_1: G(1.4, 1.5, -16.5),
     GH_SNAP_2: G(1.3, 1.5, -20.2),
     GH_SNAP_3: G(1.2, 1.5, -22.4),
@@ -102,13 +100,6 @@ export const greenhouse: AreaScript = {
   beats: [
     fade('greenhouse-enter', A, 'GH_ENTRY', { music: 'greenhouse-wonder', objective: 'greenhouse-anchor' }),
     travel('greenhouse-entry', A, ['GH_ENTRY', 'GH_REVEAL'], 5),
-    reveal('greenhouse-leaf-pan', A, 'GH_REVEAL', ['GH_LEAF_PAGE'], 1.6, 3.6, {
-      bonus: target('bonus-page-leaf', 'star-page', G(-6, 1.2, -11), ['frond'], {
-        optional: true,
-        labelHeight: 0.45,
-        reward: { starPage: 'page-greenhouse-leaf' },
-      }),
-    }),
     travel('greenhouse-to-vine', A, ['GH_REVEAL', 'GH_VINE'], 4, { reducedMotion: 'glide' }),
     // The Snapvine Chase: a giant snapping plant lunges; each word hops the camera forward in time.
     fight('greenhouse-vine', A, { barks: ['gh-1'], music: 'greenhouse-action' }),
@@ -131,29 +122,16 @@ export const greenhouse: AreaScript = {
     // Both lines play over the mossling fight, so the Warden scene that follows keeps its own line.
     fight('greenhouse-h2', A, { barks: ['gh-stampede', 'gh-moss'] }),
     // The Warden smashes down through the glass roof, catches the falling panel, and leaps away.
-    reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_PAGE'], 2.0, 2.6, {
+    reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_DOWN'], 2.0, 2.6, {
       barks: ['gh-warden'],
       music: 'greenhouse-wonder',
       fx: [
         { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.08, scale: 2 },
         { kind: 'flash', atBeat: 0.08 },
         { kind: 'shake', atBeat: 0.08, scale: 1.3 },
-        { kind: 'dust', at: 'GH_PANEL_PAGE', atBeat: 0.4, scale: 1.2 },
+        { kind: 'dust', at: 'GH_PANEL_DOWN', atBeat: 0.4, scale: 1.2 },
         { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.86, scale: 0.8 },
       ],
-      bonus: target('bonus-page-panel', 'star-page', G(6.5, 0.45, -38), ['glass'], {
-        optional: true,
-        labelHeight: 0.45,
-        reward: { starPage: 'page-greenhouse-panel' },
-      }),
-    }),
-    reveal('greenhouse-verdant-pan', A, 'GH_COMBAT', ['GH_VERDANT'], 1.4, 2.6, {
-      bonus: target('bonus-trail-verdant', 'star-page', G(4.5, 1.0, -33), ['sprout'], {
-        optional: true,
-        labelHeight: 0.45,
-        variant: 'cosmetic',
-        reward: { cosmetic: 'trail-verdant' },
-      }),
     }),
     travel('greenhouse-to-anchor', A, ['GH_COMBAT', 'GH_ANCHOR'], 5, { barks: ['gh-anchor-intro'] }),
     fight('greenhouse-anchor', A),
@@ -195,7 +173,7 @@ export const greenhouse: AreaScript = {
           id: 'pods',
           fx: [{ kind: 'shake', scale: 0.8 }],
           targets: [
-            pod('pod-1', G(-5, 0, -38), { priority: true, reward: { starPage: 'page-greenhouse-pod' }, rewardIf: 'first-defeat' }),
+            pod('pod-1', G(-5, 0, -38), { priority: true }),
             pod('pod-2', G(5, 0, -40), { attack: { ...ATTACKS.thornSeed, intervalSec: 8.5 } }),
             mossling('moss-1', [G(0, 0, -46), G(0.5, 0, -38), G(0, 0, -31.2)], { delaySec: 1.5 }),
           ],
