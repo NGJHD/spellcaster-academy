@@ -1,1003 +1,283 @@
 # CLAUDE.md — Spellcaster Academy: The Broken Ward
 
-Game-wide rules for every level: format, audience, technology, engineering, controls, typing, combat, content, state, asset pipeline, performance, audio, testing and working practice.
-
-Level content lives in separate design documents:
+Game-wide rules for every level. The levels themselves are described in:
 
 - `LEVEL1_DESIGN.md` — Level 1: First Day, First Spell
 - `LEVEL2_DESIGN.md` — Level 2: The Siege of Asterfall
-- `LEVEL3_DESIGN.md` — Level 3: Into the Unwritten (finale)
+- `LEVEL3_DESIGN.md` — Level 3: Into the Unwritten
 
-All three levels are built and released (v1.0.0, 2026-10-21; `RELEASE_GUIDE.md`). The level documents are the original designs; each opens with an "As built" section listing where the shipped game differs. The game's own script is `src/content/dialogue.ts`, and each level's route is in `src/level/areas*`.
+`BUILD_NOTES.md` holds the environment, commands, architecture and technical lessons. `RELEASE_GUIDE.md` says how to publish a version. The game's script is `src/content/dialogue.ts`; each level's route is in `src/level/`. Section numbers below are cited in code comments, so keep them.
 
-Section numbers are unchanged from the original single-file specification, which code comments still cite. Sections 6, 7, 14A, 18 and 19, plus the LD, MD and GD sections, were Level 1 content and now live in `LEVEL1_DESIGN.md`.
+## 1. Mission
 
-`BUILD_NOTES.md` records the build history and the owner's decisions. Where an owner decision conflicts with this file or a level document, the owner decision wins (see §5).
+A polished, child-friendly, browser-based **first-person 3D typing adventure** for children of about 8–10. The player follows a directed, cinematic route through an original magical academy and casts spells by typing words. It is a **first-person on-rails typing shooter**: the game moves and aims the camera; typing is the only skill.
 
-## 1. Project Mission
-
-Build a polished, child-friendly, browser-based **first-person 3D typing adventure** for players around age 10.
-
-The player follows a directed, cinematic route through an original magical academy, encounters fantasy creatures, and casts spells by typing words accurately. The game is a **first-person on-rails typing shooter**: camera movement, travel, staging, and target presentation are authored by the game, while **typing—not aiming or navigation—is the primary player skill**.
-
-The game is a campaign of three levels (§5). Each level must be a complete playable on-rails level, not a single-room prototype. The **whole game takes 30–45 minutes** on a first playthrough at the **Fast** travel speed (owner decision, §5): about 10–13 minutes for Level 1, 10–15 for Level 2 and 12–17 for Level 3. Each includes cinematic travel, new mechanics introduced gently, multiple encounters, short story pauses, optional targets, checkpoints, collectibles, a mid-level set piece and a boss finale. No level may become an open world, a free-roaming hub, a maze or a walking simulator.
-
-### Non-negotiable design principle
+The game is a campaign of three levels (§5). The whole game takes **30–45 minutes** on a first play at the Fast travel speed, and a child typing at **12 words per minute** must finish it in **under an hour** (`src/game/pacing.report.test.ts` plays all three levels as such a child and fails above 45 simulated minutes).
 
 > Present the action like an FPS, but control it like an on-rails typing shooter: the game moves and aims the camera; the player observes, chooses targets through typing, and casts spells.
 
-When typing combat begins, movement slows or pauses, camera motion is reduced, and the game assists with targeting.
+## 1A. On-rails format
 
----
+- The game controls the player's position, facing, camera path, stops, pans and transitions. The camera travels between named camera nodes along authored rails; nothing is physics-driven.
+- There is no free movement, jumping, strafing, mouse aiming, searching for exits, backtracking or open hub.
+- At a fight the camera frames the targets and turns towards any word near the edge of the screen. Every word is fully on screen within 1–2 seconds; a reveal that shows a word holds on it until it is typed.
+- Camera travel slows while a chase word is being typed, and the camera holds at the end of its move until every word on that stretch is typed. No word ever disappears on a timer, except optional words.
+- **Nobody just appears somewhere.** Every move to a new place has a line saying where we are going and why, and the way there is shown: a door we walk through, a boat we board, a doorway the erased pages fly into. Where two areas are separate scenes joined by a fade, the first one shows the way on (a door, an arch, a stair) and the next one opens just through it. On a boat, raft, ship or ride, its bow stays in front of the camera.
+- No camera roll, rapid spins or uncontrolled shake.
 
-## 1A. Authoritative On-Rails Format
+## 1B. Keeping it exciting
 
-This requirement overrides any wording elsewhere that could imply free exploration.
+The audience has a short attention span. Something should always be happening.
 
-### Format
+- **Dialogue never stops the action.** Lines play over travel or typing. A conversation with nothing to type has at most two short lines. Instructions for a fight play over its words, not before them.
+- **Every word feels powerful:**
+  - **Hit-stop:** a 50 ms freeze on the target when a word completes.
+  - **Impact:** an impact sound, a burst of sparks and a small camera kick that never moves the active word.
+  - **Size:** the spell bolt grows with the combo, from a thin bolt to a blazing comet.
+  - **Defeats:** enemies burst, shatter, spin away or crash. Nothing just fades out.
+- **Combo and score:** every word adds to the combo. The multiplier is ×2 at 3, ×3 at 6 and ×4 at 10, and a mistake halves the combo rather than resetting it. Cheers pop up at 3 (COMBO!), 5 (SUPER!), 8 (AMAZING!), 12 (UNSTOPPABLE!) and 20 (LEGENDARY!), and a perfect word shows PERFECT!. The score counts up in the HUD.
+- **Medals:** every encounter of two words or more ends with 1–3 stars and bonus score (3 stars: 97% accuracy and no HP lost; 2 stars: 88%).
+- **Bosses:** a camera move to the boss, a full-width name card that clears as the first word appears, and a boss health bar that drops with each word. A boss finale is a **beam struggle**: each word of a phrase pushes the player's beam against the boss's.
+- **New spells** are announced like power-ups (a slow-motion beat and a title card), followed by a wave of easy enemies to try them on.
+- **Set pieces:** each level has fast-rail moments (a chase, a slide, a ride, a climb) with light typing.
+- **Surprise entrances and destruction:** enemies burst through floors, out of frames and out of the ground, always in view before they can attack. Spells and attacks smash cosmetic scenery.
+- **Optional speed rounds:** a short countdown for bonus score. The countdown runs only while its words are on screen, it is never a fail state, and the words still count if time runs out.
+- **Story:** short and funny, told from the player's side (§5). Characters are in danger and need rescuing.
+- **Music** is always present and switches to a battle theme whenever something can cause damage.
 
-- The game is an **on-rails first-person typing shooter**, inspired structurally by arcade rail shooters.
-- The player does not freely roam the academy.
-- The player does not control normal locomotion, jumping, strafing, or precise mouse aiming during the level.
-- The game controls the player's position, facing direction, camera path, stops, pans, transitions, and encounter staging.
-- The camera travels along authored splines or between authored camera nodes.
-- At combat stops, the camera automatically frames valid targets and uses subtle cinematic pans to reveal threats.
-- The player's main controls are typing, target selection through typed initials, optional target cycling, interaction choices, pause, and settings.
-- The path must always serve the story and cannot become lost, blocked, or navigationally ambiguous.
+## 2. Content and audience
 
-### Moment-to-moment loop
+- An **original** fantasy game. Do not use or imitate protected characters, places, terms, insignia, music or designs from Harry Potter, One Piece, Roblox, Dragon Ball, Naruto or any other franchise.
+- For children 8+. Level 1 is bright and gentle; Levels 2 and 3 escalate into dramatic peril (fire, red skies, burning buildings, menacing enemies) so a child can tell at once the stakes have changed.
+- **Scary is fine:** creatures may snarl, bare fangs, have glowing eyes and loom large, in every level.
+- **Never** show gore, blood, realistic weapons, injury to people or death. Enemies are magical constructs, mischievous creatures and animated objects; beaten, they burst into sparks, shatter, flee or are sealed away.
+- No gambling, loot boxes, advertising or monetisation. Mistakes are met with encouragement, never shame.
+- British spelling everywhere, including the typed words.
 
-```text
-Cinematic camera travel
-→ story event or environmental reveal
-→ camera stops and frames an encounter
-→ enemies enter from authored positions
-→ player types words to cast spells
-→ short reaction or dialogue beat
-→ camera automatically continues along the route
-```
+## 3. Technology
 
-### Player agency without free roaming
+- TypeScript (strict), React, Vite, Three.js, React Three Fiber, `@react-three/drei`, Zustand (coarse state only), Howler (sound effects), Vitest, Playwright. npm is the package manager.
+- The stable WebGL renderer, GLB assets, simple materials, one shadow-casting sun. No WebGPU, custom renderers or post-processing.
+- Do not add without being asked: Next.js, Redux, an ECS, a physics engine (nothing on the rails needs one), Babylon.js, game-engine exports, networking, a backend or accounts, procedural levels, shader frameworks.
+- `localStorage` holds settings, saves, best results and cosmetics.
 
-Agency should come from:
+## 4. Engineering principles
 
-- Choosing which visible threat to type first
-- Accuracy, speed, streaks, and spell outcomes
-- Optional side targets and collectibles visible during travel
-- Brief two-choice route moments that rejoin the same main story
-- Optional bonus words during safe pauses
-- Difficulty and accessibility settings
+1. Small, explicit, testable systems; plain TypeScript for game rules.
+2. React for composition, screens and HUD; `useFrame`, refs and imperative Three.js for per-frame work. Never set React state every frame.
+3. Typing logic is separate from rendering and enemy behaviour.
+4. No dependency for something doable in about 100 lines.
+5. All player-facing text lives in `src/content/` (`strings.ts`, `dialogue.ts`).
+6. A placeholder asset must be swappable without changing gameplay code.
+7. Browser shortcuts are blocked only while gameplay is active.
 
-Route choices must be explicit, short, and controlled. They do not create an open world. For example, the player may type `library` or `garden` at one junction; both are authored sequences and later rejoin before the tower.
+## 5. The campaign
 
-### Camera comfort
+**Title:** Spellcaster Academy: The Broken Ward
 
-- Use smooth, authored acceleration and deceleration.
-- Avoid constant head bob, sudden roll, rapid spins, and uncontrolled camera shake.
-- Pause camera travel while the player is actively typing unless a deliberately slow scripted move has been tested for readability.
-- Give the player a reduced-motion option that shortens pans, removes head bob, reduces shake, and uses fades for fast repositioning.
-- Never move the camera in a way that makes the active word hard to read.
-- Do not simulate walking continuously when a short cinematic transition or fade would be more comfortable.
-
-### Prohibited gameplay
-
-Do not implement:
-
-- WASD free movement during the story level
-- Free-look mouse aiming as a combat requirement
-- Platforming
-- Searching rooms to find the correct exit
-- Physics puzzles requiring navigation
-- Backtracking through completed areas
-- Open hubs inside any level
-- Enemies attacking from behind without an automatic camera reveal
-- Collectibles that require leaving the rail path
-
-A separate non-story asset viewer or optional celebration diorama may allow orbit-camera inspection, but every playable level remains on rails.
-
-## 1B. Keeping It Exciting (attention rules)
-
-Owner feedback (2026-10-04): playtesters found Level 1 boring. The audience is 8–10-year-olds with short attention spans. These rules apply to every level and override any calmer pacing elsewhere in the specification.
-
-### The 7-second rule
-
-With the travel speed set to **Fast**, the player should never go more than about **7 seconds** without at least one of the moments below. Fast is the reference setting for this rule. At Normal (1.6× against Fast's 2.4×) the same route stretches to about 10.5 seconds, and at Slow (1×) to about 17 seconds, which suits players who choose a calmer pace.
-
-- something to type
-- something exploding, crashing, bursting or transforming on screen
-- a new enemy entrance
-- a reveal (a creature, a boss or a dramatic view)
-
-At 7 seconds the game is close to continuous action:
-
-- **Travel:** ordinary camera travel is never enough on its own. Every travel segment longer than 7 s at Fast needs spark gems, a bonus target or a scripted action moment along it, spaced no more than about 7 s apart.
-- **Dialogue:** dialogue never stops the action. Lines play over typing or over an action moment. A beat with no typing at all has at most one short line.
-- **Tutorials:** freezes such as the first counter-word are fine, because the player has something to type immediately.
-- **Exceptions:**
-  - Boss introductions may run up to **8 s at Fast** without typing. They must use the name card, camera move and roar, and the boss's first target appears as the card fades.
-  - The ending cinematic of each level is exempt, but keeps lines short and skippable.
-- **Measurement:** the gap check counts from the moment a typeable prompt disappears to the moment the next one appears. Story dialogue between fights is **at most two short lines** and plays over camera travel.
-
-### Every word should feel powerful
-
-- **Hit-stop:** a 40–60 ms freeze on the target when a word completes.
-- **Impact:** a punchy impact sound, a burst of sparks, and a small camera kick. The kick is kept small and never moves the active label.
-- **Size:** spells grow visibly bigger with the streak — a thin bolt at 0, a thick bolt at 3, a blazing comet at 5+.
-- **Defeats:** enemies are knocked back, spin, crash, burst or shatter. Nothing just fades out.
-- **Popups:** "PERFECT!", "x3 COMBO!", "SUPER!" and "UNSTOPPABLE!" pop near the target with a bounce, for streaks of 3, 5, 8 and 12. They are short, bright, and never cover the next word.
-- **Score:** the score counts up visibly, with a combo multiplier that grows with the streak and resets kindly (a mistake halves it rather than zeroing it).
-
-### Big moments
-
-- **Boss intros:**
-  - A dramatic camera move to the boss, then a full-width name card (for example "THE GREAT GRIMOIRE"), a music sting, and the boss roaring or rearing up.
-  - Bosses show a **boss health bar** at the top of the screen that drops chunkily with each word.
-- **Set pieces:** every level has at least three set pieces where the camera **moves fast on rails** while the player types slow-paced targets. Speed comes from the camera and scenery; the typing load stays light. Examples: a chase, a slide, a fall, a ride, a collapsing floor. The camera still pauses or slows for long words (§1A comfort rules still apply).
-- **Surprise entrances:** enemies burst through windows, drop from ceilings, smash through doors or erupt from the ground, always revealed by the camera before they can attack (MD-1).
-- **Destruction:** spells and boss attacks visibly smash scenery — crates, vases, statues, glass, shelves. Debris is cosmetic and cleared between encounters.
-
-### Rewards every minute
-
-- **Bonus pickups:** floating **spark gems** appear often along the rail. Each has a 2–4 letter word and gives score and a satisfying chime. Several per minute of travel.
-- **Optional speed rounds:**
-  - Short bonus challenges with a visible countdown, for example "SPEED ROUND: 5 words in 10 seconds!". They give big score and a medal.
-  - Never required, and never a fail state.
-  - On Gentle the countdown is generous.
-- **Encounter medals:** every encounter ends with a quick **star rating** (1–3 stars) based on accuracy and speed, with a fanfare. There are no letter grades. Even 1 star is celebrated, and 3 stars gets a bigger fanfare.
-- **Unlock moments:** new spells are announced like power-ups: a slow-motion beat, a big title card, and a first use against a wave of easy enemies so the player feels the power.
-
-### Keep the story short and funny
-
-- Pip gets most lines, and most of them are jokes or excitement. Lore goes into collectibles (star pages, Memory Pages) rather than dialogue.
-- **The two-line rule:** no conversation beat has more than two lines without the player typing something.
-- Characters should be in danger and need rescuing — Pip grabbed by a creature, Mira cornered. Rescues are quick, exciting typing moments.
-
-### Music and sound
-
-- Music is always present and usually energetic. Calm music is used only for short breathers of 20 seconds or less.
-- Every attack has a clear wind-up sound, and every defeat a satisfying burst sound.
-
-## 2. Intellectual Property and Audience Rules
-
-This is an **original fantasy game**. Do not use or imitate protected characters, locations, terminology, insignia, music, dialogue, or visual designs from Harry Potter, One Piece, Roblox, Dragon Ball, Naruto, or other franchises.
-
-Allowed broad inspirations include:
-
-- Magical schools
-- Wizard apprentices
-- Fantasy libraries
-- Enchanted gardens
-- Elemental spells
-- Friendly rivalries
-- Colourful anime-style energy effects
-
-The tone must be:
-
-- Appropriate for children aged 8+
-- Adventurous and exciting. Level 1 is bright and gentle. Levels 2 and 3 deliberately escalate into dramatic peril so that an 8–10-year-old can tell at once the stakes have changed:
-  - fire and red-lit skies
-  - burning buildings and smoke
-  - menacing enemies
-  - explosive spell effects
-- Scary is fine (owner decision, §5): creatures may snarl, bare fangs, have glowing eyes and loom large, in every level. Never show gore, blood, realistic weapons, injury to people, or death.
-- Defeated enemies may burst into embers, shatter, crash or be sealed away, but they never bleed or suffer.
-- Free of gore, realistic violence, gambling, loot boxes, advertisements, and manipulative monetisation
-- Encouraging when the player makes mistakes
-
-Enemies are magical constructs, mischievous creatures, animated objects, and shadow-like fantasy beings. Defeated enemies dissolve into harmless sparkles, flee, or return to an inactive form.
-
----
-
-## 3. Required Technology
-
-Use a conventional, LLM-friendly stack.
-
-### Core stack
-
-- **TypeScript** with strict mode
-- **React**
-- **Vite**
-- **Three.js**
-- **React Three Fiber**
-- **@react-three/drei**
-- **@react-three/rapier** for physics and collision, only if a feature truly needs it (it is not installed: nothing on the rails needs physics)
-- **Zustand** for central game state
-- **Howler.js** for audio
-- **Vitest** for unit tests
-- **Playwright** for critical browser-flow tests
-- CSS Modules or a small global CSS system for UI styling
-
-### Rendering
-
-- Use the stable **WebGL renderer** for the initial release.
-- Do not introduce WebGPU, custom renderers, or complex post-processing.
-- Use glTF/GLB for 3D assets.
-- Prefer simple materials, baked detail, limited real-time lighting, and restrained shadows.
-
-### Do not introduce without explicit instruction
-
-- Next.js
-- Redux
-- An ECS framework
-- A custom physics engine
-- Babylon.js
-- Unity or Godot exports
-- Multiplayer or networking
-- A backend or authentication
-- Procedural level generation
-- Custom shader frameworks
-- Microservices
-
-Use `localStorage` for settings, checkpoints, unlocked content, and best scores.
-
----
-
-## 4. Engineering Principles
-
-1. Keep systems small, explicit, and independently testable.
-2. Prefer plain TypeScript functions and classes for game rules.
-3. Use React for composition, screens, menus, and HUD—not for per-frame simulation state.
-4. Use `useFrame`, refs, and imperative Three.js updates for frequent transforms.
-5. Never call React state setters every frame.
-6. Keep temporary combat values out of global state unless the HUD or another system needs them.
-7. Separate typing logic from rendering and enemy behaviour.
-8. Avoid premature abstractions.
-9. Do not add dependencies for functionality that can be implemented clearly in fewer than roughly 100 lines.
-10. Keep all user-facing text in a central content module to support later localisation.
-11. Any generated placeholder asset must be easy to replace without changing gameplay code.
-12. Preserve keyboard focus and prevent browser shortcuts only while gameplay is active.
-
----
-
-## 5. Product Definition and Campaign
-
-### Title
-
-**Spellcaster Academy: The Broken Ward**
-
-### The three levels
-
-| Level | Title | Setting | Finale |
+| Level | Title | Setting | Bosses |
 | --- | --- | --- | --- |
-| 1 | First Day, First Spell | Asterfall Academy on the apprentice's first day; the celestial ward cracks | The Ward Warden (misunderstood protector) |
-| 2 | The Siege of Asterfall | The academy at night, burning under a red sky, under attack by the Hush and their inkfire | The Vellum Wyrm, a fire-breathing dragon of stolen library pages (named THE PAGE DRAGON in the game) |
-| 3 | Into the Unwritten | The Blank, a scorched realm of ash under a red sky, leading to the Unwriter's burning stronghold | The Unwriter, the game's final villain |
+| 1 | First Day, First Spell | Asterfall Academy on the apprentice's first day, bright and sunny; the ward cracks | The Great Grimoire; the Ward Warden (a misunderstood protector) |
+| 2 | The Siege of Asterfall | The academy at night, burning under a red sky, attacked by the Hush | The Grey Herald; the Page Dragon |
+| 3 | Into the Unwritten | The Blank, a scorched land of ash under a red sky, up to the Unwriter's Cinder Citadel | The Perfect Guardian; the Unwriter |
 
-### Visual tone across the campaign
+### Visual tone
 
-- **Level 1:** bright and peaceful (gold, blue and green).
-- **Level 2:** a night siege lit by fire. Red and orange inkfire against the dark is the dominant colour, with the gold of the beacons pushing it back.
-- **Level 3:** a red sky over scorched grey lands, and the villain's stronghold of black iron, molten red ink and roaring fire.
+- **Level 1:** bright and peaceful: gold, blue and green.
+- **Level 2:** a night siege lit by fire: red and orange inkfire against the dark, pushed back by the gold of the beacons.
+- **Level 3:** a red sky over scorched grey land, and a stronghold of black iron, molten red ink and roaring fire.
 
-Fire, embers, smoke and red light are the visual signal that the game has turned serious. They must be dramatic, but must never cover the active word (word labels keep their dark backing, §9).
+Fire, embers and red light signal that the game has turned serious. They never cover an active word.
 
-### Overall story
+### Story
 
-Centuries ago Magister Corvane Hale, Asterfall's greatest archivist, came to believe that mistakes should not exist. He made the Unwriting Quill, which writes in fire: whatever it strikes out burns away to grey ash and is unwritten. First he erased his own errors, then anything he judged imperfect. The founders sealed him and everything he had erased beyond the celestial ward, in a realm of blank paper and grey pencil lines called the Blank. They built the Ward Warden to guard the seal. Over the centuries he became the Unwriter.
+Long ago Corvane Hale, Asterfall's archivist, came to believe mistakes should not exist. He made the Unwriting Quill, which burns whatever it strikes out of the world, and became the Unwriter. The academy's founders sealed him beyond the celestial ward, guarded by the Ward Warden.
 
-- **Level 1:** the Unwriter tests the seal and the ward fractures. The apprentice, Pip and the Warden repair it, but a hairline seam remains.
-- **Level 2:** on the night of the Lantern Festival the seam tears open over Lantern Lake into a blazing red Rift. The Unwriter's Hush army pours in and sets the academy alight with inkfire, which burns whatever it touches to grey ash. The apprentice relights the four beacons that raise an emergency Lantern Ward, rescues students, and defeats the Vellum Wyrm on the Moon Tower roof. At its heart lies a shard of the Unwriting Quill. Keeper Orin recognises Corvane's work, and Pip glitches at the sight of it. The rift cannot be closed from this side.
-- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank: a scorched land of ash under a red sky, with fires that never go out. Typing quenches the fires and restores colour to the world as they travel. Their goal is the Unwriter's stronghold, the **Cinder Citadel**. On the way they learn that Pip was Corvane's own guide orb, which he tried to erase for "being wrong too often". At the Throne of Ash they face the Unwriter.
-  - In an all-out battle the apprentice breaks the Unwriting Quill with a final spell of six words about mistakes being how we learn.
-  - The Unwriter is defeated and sealed inside his own blank book, which Pip slams shut.
-  - The fires of the Blank die and its stolen colours and places return home. Back in the courtyard at night, with fireworks, the apprentice is named Asterfall's first Wardkeeper in a hundred years, and the campaign results follow.
+- **Level 1, a mystery:** on the apprentice's first day the ward cracks. Pip, Mira and the apprentice repair its three anchors and calm the Warden, which was only holding the crack shut. Clues build up (scratched runes, vanishing words, a mosaic of a man with a pen, a scratched-out portrait), and Keeper Orin names the Unwriter at the end.
+- **Level 2:** the crack tears open into the Rift and the Unwriter's army, the Hush, sets the academy alight. The apprentice rescues the first-years, lights four beacons that raise the Lantern Ward, and beats the Page Dragon on the Moon Tower roof. In its heart is a shard of the Quill; the Rift can only be closed from the other side.
+- **Level 3:** the apprentice, Pip, Mira and the Warden cross into the Blank. Corvane's journal reveals that Pip was his guide orb, which he tried to erase for "being wrong too often". At the Throne of Ash the apprentice breaks the Quill with six words, "every mistake teaches us something new", and the Unwriter is sealed in his own book. At home, in the courtyard at night, Keeper Orin names the apprentice Asterfall's first Wardkeeper in a hundred years.
 
-Victories in Levels 2 and 3 are decisive and dramatic. Enemies are beaten, shattered, sent crashing or sealed away, but never killed or harmed on screen (§2).
+The story is told from the player's side: characters notice something odd and wonder about it before acting, every move has a reason, and every new power has a cause (an anchor's light flowing into the wand). An 8-year-old must always know who someone is and why we are here. Lines that count things must match what is on screen (`src/game/story.test.ts`), and nothing may suggest a word can be skipped.
 
 ### Campaign rules
 
-- Levels unlock in order. Each level saves and resumes independently, following the autosave rules in `LEVEL1_DESIGN.md` LD-5 and LD-6, which apply to every level.
-- The title screen keeps two primary options, START and RESUME:
-  - RESUME continues the in-progress level.
-  - START begins the next level that hasn't been completed, or Level 1 if none has been completed. When an autosave exists, START asks for confirmation first, as in LD-5.
-- A secondary **Chapters** icon lists unlocked levels so completed ones can be replayed.
-- Results are per level. After Level 3 the results screen adds a campaign summary covering all three levels.
-- Settings, cosmetics, collectibles and best results persist across levels. Spells unlocked in a level are available from the start of the next level.
+- The title screen has two primary options. START begins the next level not yet completed (Level 1 if none is); if an autosave exists it asks for confirmation first, and the old save is kept until the new run reaches its first checkpoint. RESUME continues the in-progress level and is disabled ("No journey to resume") when there is none.
+- A **Chapters** button lists unlocked levels so completed ones can be replayed. Levels unlock in order.
+- Spells learned in a level are known from the start of the next. Settings, cosmetics and best results persist across levels.
+- Results are per level; after Level 3 the results add each chapter's best.
+- **HP:** shown to players as HP (Focus in code), 100 at most. On Gentle HP is unlimited and its bar is hidden; a hit still glows.
 
-### Owner decisions that override this specification
+## 6A. Rails and encounters
 
-These come from playtests and are recorded in `BUILD_NOTES.md`. They apply to every level:
+Each level is a deterministic list of **beats** built from area scripts (`src/level/areas*/`):
 
-- **Pace:** brisk, with no dead pauses. The old "fast" travel speed is now "normal". Camera pans are quick, and dialogue overlaps travel. Enter or Space skips a line.
-- **Never skip a word (2026-10-06):** no word ever disappears on a timer. Chase, bonus and gem words hold the camera at the end of its move until they are typed, and a wave waits for every word it has shown.
-- **Speech (2026-10-06):** a spoken line is never cut short — not by typing, and not by the story moving on. Lines queue and each plays in full. A line simply carries on over the next walk, reveal or fight; the camera holds at the end of its move only when the next camera move or conversation brings lines of its own (so speech never drifts out of its scene). Instructions for a puzzle or fight play over its typing, not before it. No automatic spark gems while the camera waits for a story line. Enter or Space skips a line on purpose. Every character has their own voice.
-- **Off-screen mobs (2026-10-06, 2026-10-07):** a mob that is off screen hurries in (at least 3.5× speed and 7 m/s) so it appears within about 1–2 seconds.
-- **Words on screen (2026-10-07):** every word is fully on screen within 1–2 seconds, never stuck in a corner. The camera turns towards words near an edge, and a reveal that shows a word holds on it until it is typed.
-- **Transitions (2026-10-07):** nobody just appears somewhere. Every move to a new place has a line saying where we are going and why, and is shown (the Level 2 beacon map card, walking out of a door, boarding a boat). On a boat, ship or ride, its bow stays in front of the camera.
-- **Story sense (2026-10-07):** an 8-year-old must always know who someone is and why we are here. Lines that count things must match what is on screen (`src/game/story.test.ts`), and nothing may suggest a word can be skipped.
-- **Endings (2026-10-07):** the final ending is a night celebration in the courtyard with Keeper Orin thanking the apprentice, fireworks and victory music.
-- **Speed rounds (2026-10-06):** the countdown runs only while its words are on screen, and its prompt goes as soon as the round ends.
-- **Voice and music:** lines are spoken aloud by the browser's text-to-speech, and the music softens under dialogue. The music switches to battle themes whenever something can cause damage.
-- **HP:** Focus is shown to players as **HP**. On Gentle, HP is unlimited and the HP bar is hidden.
-- **Removed settings:** reduced motion, reduced shake, reduced particle effects, high-contrast word panels and the dyslexia font. Do not reintroduce them unless the owner asks.
-- **Platforms:** low-end laptops and Firefox are out of scope; the target is Edge/Chrome on a capable GPU.
-- **Word presentation:** new words fly in from the centre of the screen. The locked target shows a TARGET tag, other targets show a Tab hint, and Tab works mid-word.
-- **HUD:** a level progress bar with chapter marks. Pip is labelled "Guide Orb".
-- **Length:** the whole game takes 30–45 minutes at Fast (2026-10-04).
-- **Young typists (2026-10-06):** a child typing at **12 WPM** must finish the whole game in **under an hour**. Ordinary fights are one wave of at most two monsters; sequences are short (`src/level/youngTypists.ts`). `src/game/pacing.report.test.ts` plays all three levels as a 12 WPM child and fails above 45 simulated minutes (margin for real mistakes).
-- **Scary mobs:** mobs may look scary (fangs, snarls, glowing eyes, menacing poses), in Level 1 too; kids "can handle a lot" (2026-10-04). No gore, blood or injury.
-- **7-second rule on hold (2026-10-07):** "Ignore the 7s rule for now." The gap test (`src/game/attention.report.test.ts`) is skipped, and lines are not cut or moved just to fit §1B. Switch it back on only when the owner asks.
-- **Spark gems and collectibles off (2026-10-07):** both are settings and both default to off (gems broke the pacing). Lines that mention them play only when they are on.
-- **No faded letters (2026-10-16):** a child thought faded letters needn't be typed, so Level 3's erased letters were removed.
-- **Boss names in the game:** THE GREAT GRIMOIRE, THE WARD WARDEN, THE GREY HERALD, THE PAGE DRAGON, THE PERFECT GUARDIAN, THE UNWRITER (`strings.bosses`).
+- **Camera beats:** `rail-travel` (along named nodes, with optional chase words), `camera-reveal` (a pan to look points and back), `loading-transition` (a fade to a new area).
+- **Gated beats:** `encounter` (a fight or a typing interaction), `dialogue`, `checkpoint`, `results`.
+- Beats carry lines (`barks`), music, objective text, spectacle cues (`fx`) and a role (`attention`: `boss-intro` and `spectacle` stay short; an `ending` conversation is said in full).
+- Camera nodes and look points are named; `validateRoute` proves the camera never jumps.
+- The level director owns progression; enemies never advance the story. An encounter runs its waves (all at once or one at a time) and completes when every required word is typed.
 
----
-
-
-## 6A. Rail and Encounter Architecture
-
-Every level is implemented as a deterministic sequence of rail segments, story beats, and combat stops. Each level document gives its own story rail.
-
-### Core data model
-
-```ts
-type LevelBeat =
-  | RailTravelBeat
-  | CameraRevealBeat
-  | DialogueBeat
-  | CombatBeat
-  | TypingInteractionBeat
-  | RouteChoiceBeat
-  | CheckpointBeat
-  | LoadingTransitionBeat
-  | ResultsBeat;
-```
-
-Each beat defines:
-
-- Stable identifier
-- Entry and exit camera node or spline position
-- Camera duration and easing
-- Look-at targets
-- Dialogue and subtitle triggers
-- Enemy spawn cues
-- Combat completion condition
-- Optional collectible windows
-- Audio cues
-- Checkpoint behaviour
-- Reduced-motion alternative
-
-### Camera rails
-
-- Use authored Catmull–Rom splines or explicit camera-node interpolation.
-- Store camera position and look target separately so framing can be art-directed.
-- Support pause points, reveal pans, dolly movement, fades, and instant reduced-motion cuts.
-- Camera rails are not physics-driven.
-- Combat starts only after the camera reaches its defined combat pose.
-- Combat completion releases the next beat after a short authored delay.
-
-### Encounter director
-
-The Level Director owns progression. Enemies cannot independently advance the story. Every encounter has explicit start, wave, completion, recovery, and exit states.
+## 8. Controls
 
 ```text
-Pending → CameraEntering → Intro → Active → Resolving → Complete
+Letter keys   type the active word
+Backspace     correct the current input
+Tab           switch to another visible target (works mid-word)
+Enter / Space skip the current line; skip an optional speed round
+Escape        pause
+Mouse         menus only
 ```
 
----
+There is no movement, jump, aiming or pointer lock.
 
-## 8. Core Controls
+### Settings
 
-The story level must be playable primarily from the keyboard.
+Travel speed (Slow 1×, Normal 1.6×, Fast 2.4×), font size, spoken dialogue, an optional live WPM display, quality (Low, Medium, High; Medium by default), full screen, and volumes for master, music, sound effects, interface and voices. Difficulty is chosen at START and can be changed from the pause menu outside a fight. There are no reduced-motion, reduced-shake, reduced-effects, high-contrast or dyslexia-font options.
+
+## 9. Typing
+
+The typing engine is framework-free TypeScript with unit tests (`src/typing/`).
+
+- Letters only, case-insensitive. Modifier, function and navigation keys are never mistakes. Backspace corrects.
+- **Targeting:** typing a word's first letter locks it. Targets on screen get different first letters where possible; when two share one, the second letter decides, then the most central. Once locked, input goes only to that word until it is done. A locked word shows a TARGET tag; the others show a Tab hint.
+- **Counter-words** (short words on incoming attacks, Level 2 onwards) take the lock even mid-word and hand it back when typed.
+- **Labels** are HTML projected near their target. A new word flies in large from the centre of the screen and lands on its target. Labels keep a dark backing, clamp to the screen edges with an arrow, and never drop into the subtitle band. Typed letters turn gold; the current letter is underlined; a mistake flashes orange.
+- **Metrics** (`TypingMetrics.ts`): timing runs only from a word's first accepted letter; a five-second gap, a pause or a hidden tab closes the timing segment. WPM = (correct characters / 5) / active minutes. Accuracy = correct / (correct + incorrect) keys; Backspace never erases a mistake from it. First-attempt accuracy counts words with no mistake. Metrics are committed with each wave, so a reload never double counts.
+
+### Difficulty
+
+| | Gentle | Standard | Challenge |
+| --- | --- | --- | --- |
+| Generated word length | 3–5 | 3–7 | 4–9 |
+| Enemy speed | 0.85× | 1× | 1.25× |
+| Enemy time while mid-word | 0.55× | 0.7× | 0.85× |
+| Attack warning | 1.4× (at least 0.7 s) | 1× (at least 0.5 s) | 0.85× (at least 0.5 s) |
+| Damage | none (unlimited HP) | 1× | 1.15× |
+| Mistakes | flashed, never entered | entered | entered |
+
+Assist mode (offered after repeated failures) shortens generated words to 4 letters at most.
+
+## 10. Combat
+
+- **HP** drops when an enemy's telegraphed attack lands. At zero, a short calm reset restarts the current wave or boss phase; checkpoint progress is kept. Assist mode is offered after two resets in a boss.
+- Every attack has a clear wind-up (the creature's Attack pose, an "Attacking!" tag on its word and a warning sound). Every word typed restarts the attack clocks, a defeat cancels a wind-up, and nothing attacks while its next word is still arriving.
+- An enemy off screen hurries into view (at least 3.5× its speed and 7 m/s). Every walking enemy's path ends a couple of metres from the camera, so its hits land up close.
+- **Spells** (each unlocked by a story moment):
+  - **Spark Bolt:** every completed word.
+  - **Frost Thread:** a perfect word slows the other enemies.
+  - **Chain Spark:** every fifth perfect word in a row jumps to the next enemy.
+  - **Starfall** (Level 2): every eighth perfect word in a row rains stars on every weak enemy.
+  - **Bright Quill** (Level 3): a perfect word splashes colour and extra score.
+  - **Shield Song** (Level 3): when HP is low, Mira offers a word that heals 25 and blocks the next hit, at most every 20 s.
+- **Enemy behaviour:** a small data-driven state machine (appearing → active ⇄ wind-up/hit/recover → stunned → dispelling). Movement is authored per encounter (approach, patrol, orbit, static); nothing spawns at random. Bosses are a list of phases, each its own encounter.
+
+## 11. Words
+
+- Curated lists in `src/content/wordLists.ts`, tagged by difficulty, category and length; generated words never repeat within an encounter and avoid proper nouns and confusing early words.
+- **Young typists** (`src/level/youngTypists.ts`): every level is trimmed when assembled so a 12 WPM child can finish. An ordinary fight is one wave of at most two monsters; a boss phase is at most two rounds of two targets (phrases kept whole); a sequence is two words (anchors and beacons three); armour has two words; a power-up wave three monsters; a stretch of rail two chase words.
+
+## 12. State and saves
+
+- Zustand holds coarse state only: the game mode and settings (`gameStore`, `settingsStore`) and the HUD's view of the run (`runStore`). The run itself (`GameRun`) is plain TypeScript and fully playable headless.
+- **Autosave** at every beat start, wave, checkpoint and boss phase, on hiding the tab and on leaving the page. It stores a stable resume beat and wave, never live simulation state: a reload resumes at the start of the wave or boss phase. The save is written to a temporary key, validated, then promoted; the previous valid save is kept.
+- On resume: a two-second area card, a short safe establishing moment, "Welcome back.", and Pip says the current goal. A beat removed in a later version resumes at the beat that replaced it (`BEAT_ALIASES`).
+- The profile keeps completed levels, best results per level and cosmetics. Save data is versioned with a safe default for anything unknown.
+- "Journey saved" shows briefly after a checkpoint.
+
+### Results screen
+
+Average and peak WPM, average word time, fastest word, active typing time, accuracy, first-attempt accuracy, correct, incorrect and corrected keys, perfect words, best streak, words completed, level time, optional words typed, HP lost, restarts, difficulty, new cosmetics, the score, medals, a positive rank title and two true, encouraging observations. No grades and no comparisons.
+
+### Cosmetics
+
+Wand trails: Starlight (Level 1, the East Hall chest), Inkwell (Level 2, the library shelves), Bright Quill (finishing Level 3).
+
+## 13. Source layout
 
 ```text
-Letter keys       Type the active target word
-Backspace         Correct current input
-Tab               Cycle visible valid targets when not locked
-Left / Right      Choose an offered route or story option
-Enter             Confirm an interaction or continue a story pause
-Space             Optional quick-confirm where shown
-Escape            Pause / release pointer lock if currently used
-Mouse             Menus only; optional nonessential look offset during safe pauses
+src/app/        App and screens (title, game)
+src/audio/      Howler sound effects, the music engine, text-to-speech voices
+src/content/    strings, dialogue, word lists
+src/game/       GameRun, saves, scoring, combo, medals, speed rounds, difficulty
+src/level/      level registry, routes, area scripts (areas, areas2, areas3), encounter runner, rails
+src/enemies/    enemy brains, creature models and stand-ins
+src/player/     camera driver, wand, Pip
+src/scene/      canvas, each area's scenery (areas, areas2, areas3), kit, materials, fire, sky, effects
+src/spells/     spell effects, beam struggle, effects layer
+src/state/      Zustand stores and settings
+src/typing/     typing engine, word assigner, metrics
+src/ui/         HUD, word labels, menus, results
+src/dev/        the /dev/assets asset viewer
 ```
 
-There is no normal WASD movement, jump control, strafing, or manual FPS aiming in any level. Do not make pointer lock mandatory. If a small mouse-look offset is offered during safe cinematic pauses, it must automatically recenter before action resumes and must not reveal otherwise inaccessible gameplay targets.
+## 14. Visual quality and assets
 
-### Targeting
+The game uses a **stylised-realistic** look: believable shapes, weight and materials, softened and friendly for children. No crude low-poly or blocky art, no faceted humanoids, no chibi or voxel forms, no grimdark imagery.
 
-- The camera automatically presents enemies inside a readable combat composition.
-- Typing a unique initial locks the corresponding enemy.
-- `Tab` cycles targets for accessibility but is never required when unique initials are available.
-- The game can briefly pan between target groups, but it must not move the active target off-screen.
-- Off-axis threats receive a clear indicator and are automatically revealed before they can attack.
+### 14.2 How assets are made
 
-### Accessibility control options
+- **Generate models; don't hand-build them from polygons.** Every visible creature, character or prop is made with Blender (`bpy` scripts run headless) and, for most models, the local AI pipeline: a Flux 2 concept image, then TRELLIS.2 shape and colour, then a Blender build that cleans, rigs, animates and exports it (`assets-src/scripts/ai/`; details in `BUILD_NOTES.md`). Code-built boxes, cylinders and planes are only for invisible helpers, ground and wall surfaces, effects, or a short-lived placeholder kept as the `ModelBoundary` fallback while the real model is made.
+- CC0 assets (Poly Haven textures, HDRIs and models; recorded music) are allowed and recorded in `assets-src/cc0/sources.json` and `public/audio/music/CREDITS.md`.
+- The scripts are the editable source; no `.blend` files are kept. Runtime assets are GLB in `public/assets/` (`characters`, `creatures`, `props`, `kit`).
+- **Check every new model in the game from the camera's real view**, not only in its Blender previews (`assets-src/previews/`).
 
-The game has: font size, travel speed (Slow, Normal, Fast), volumes (master, music, sound effects, interface, voices), spoken dialogue, an optional WPM display, quality, full screen, and the spark-gem and collectible switches. Lines always continue by themselves (Enter or Space skips one). There is no mouse-look offset.
+### 14.3 Modelling
 
-Removed by owner decision (§5), not to be reintroduced unless the owner asks: reduced motion, reduced camera shake, reduced particle effects, the high-contrast word panel and the dyslexia-friendly font.
+Final visible meshes are joined, smoothed and shaded so they never read as primitives. Bake fine surface detail into a normal map where useful.
 
-## 9. Typing System Specification
+### 14.4 Materials
 
-The typing engine must be a framework-independent TypeScript module with unit tests.
+glTF PBR materials (base colour, normal, roughness, metallic, emissive for magic and eyes). Avoid noisy textures that shimmer at play distance. Bosses and heroes may use 2K textures; ordinary enemies and props 1K.
 
-### Required behaviour
+### 14.5 Animation
 
-- Accept printable alphabetical keys.
-- Normalise uppercase input to lowercase for matching.
-- Ignore modifier-only keypresses.
-- Do not count `Shift`, `Control`, `Alt`, `Meta`, function keys, or navigation keys as mistakes.
-- Support Backspace.
-- Prevent browser find/quick-search behaviour during gameplay where appropriate.
-- Track correct characters, incorrect characters, corrected mistakes, elapsed typing time, and completed words.
-- Derive accuracy and WPM from documented formulas.
-- Clear the active buffer when a target is cancelled or defeated.
-- Never read keystrokes while a menu, text field, or settings screen is active.
+Movement shows weight, anticipation and recovery. Check for broken joints, sliding feet, intersections and floating. Looping clips start and end on the same pose; clips cross-fade. Every creature has Idle, Move, Attack, Hit and Dispel; bosses have their own Idle and Attack, and every boss moves differently. An Attack clip's wind-up is scrubbed by the gameplay wind-up, so the pose matches the warning.
 
-### Target selection
+### 14.6 Optimisation
 
-1. Filter to alive, visible, targetable enemies.
-2. Prefer candidates within the central screen region.
-3. Match the entered first character against candidate word initials.
-4. Word assignment should avoid duplicate initials among simultaneously active enemies.
-5. If duplicate initials are unavoidable, use screen proximity and require the second character before fully locking.
-6. Once locked, input goes only to that target until completion, cancellation, or defeat.
+Reduce hidden geometry first; keep silhouettes, faces, hands and joints. Use normal maps rather than excess geometry. Never decimate a deforming character without checking it animated.
 
-### Word presentation
+### 14.7 Manifests and validation
 
-Display words in HTML UI projected near the enemy, rather than relying exclusively on text rendered inside WebGL.
+Each asset has a manifest entry (`public/assets/manifests/*.json`, generated by `scripts/build-manifests.mjs`). `scripts/validate-assets.test.mjs` checks that every GLB loads, has normals and finite transforms, has its required animations, has a plausible size and a word anchor above it, stays within the §15 budgets and exports no cameras or lights, and that every prop the scenes use exists. `/dev/assets` is the asset viewer: orbit, clips, wireframe, lighting, LOD, collider, anchor, bounds and triangle and material counts.
 
-Word styling states:
+### 14.8 Acceptance
 
-- Completed prefix: gold or green
-- Current character: underlined/highlighted
-- Remaining characters: high-contrast light text
-- Mistake flash: warm orange, not harsh red
-- Targeted word: visible outline and subtle scale increase
+A model is done when it reads clearly in silhouette, convinces at its nearest camera distance, moves without broken joints, has distinct materials, shows its face, attack and defeat clearly, suits children, and holds the frame rate.
 
-The active word must remain readable even when the associated enemy is partially off-screen. Clamp its label to safe screen margins and provide a small directional indicator.
+## 15. Performance
 
-### Difficulty modes
+- The target is Edge or Chrome on a capable GPU at 60 fps. Firefox and low-end laptops are out of scope.
+- Medium quality by default; Low turns off shadows and lowers the pixel ratio.
+- At most four ordinary enemies at once (six light targets in exceptional scenes), one shadow-casting sun, bounded particles, few lights (switching a light on or off recompiles every material).
+- Triangle budgets: ordinary enemy 18–35k, mini-boss 35–70k, final boss 60–110k, friendly character 30–60k, hero prop 8–30k, small prop up to 4k; a visible scene normally under 500–800k after culling.
+- Areas stream: the current area is mounted, the previous one stays briefly, and the next one is mounted hidden ahead of time.
 
-#### Gentle
+## 16. Audio
 
-- Mostly 3–5 letter words
-- Enemies move slowly
-- Generous targeting
-- Time slows heavily while typing
-- Mistakes do not damage the player
+- Separate volumes: master, music, sound effects, interface, voices. The game is playable muted.
+- **Sound effects** are synthesised (`scripts/generate-audio.mjs`): key clicks varied in pitch, a soft mistake cue, word and spell sounds, the perfect-word chime, wind-ups, defeats, checkpoints and more.
+- **Music** is recorded CC0 tracks mapped to story moods (`MusicEngine`): light-hearted in Level 1, darker in Level 2, sinister in Level 3, and battle themes whenever something can cause damage. It ducks under dialogue.
+- **Voices:** lines are spoken by the browser's text-to-speech, each character with its own voice, pitch, rate and loudness. A line is never cut short: lines queue and each finishes. A line carries on over the next walk or fight, but a camera move waits at its end when the next scene brings lines of its own, so speech never drifts out of its scene. Enter or Space skips a line.
 
-#### Standard
+## 17. Testing
 
-- Mostly 4–7 letter words
-- Moderate enemy speed
-- Time slows while typing
-- Accuracy affects spell strength
+- **Unit tests** (`npm run test`): typing, metrics, difficulty, word assignment, saves and migration, scoring, combo and medals, routes and content integrity, story and line checks, asset validation, and headless full playthroughs of every level at every difficulty (including save, reload and resume without double counting, and the 12 WPM pacing report).
+- **Browser tests** (`npm run test:e2e`, Playwright in Edge): the title, the tutorial, locking and combat, pausing, checkpoints and resume, difficulty change, the final boss and results, a full Level 1 run with no console errors, and the campaign unlocking.
+- Before calling a change done: run the tests, typecheck, lint and build, and look at the change in the running game.
 
-#### Challenge
+## 20. Working on this project
 
-- Mostly 5–9 letter words
-- Less time slowing
-- More simultaneous targets
-- Still no graphic violence or punitive messaging
-
-Difficulty can be changed at checkpoints without restarting the level.
-
----
-
-## 10. Combat and Player Rules
-
-### Player focus
-
-Use **Focus** instead of health.
-
-- Maximum Focus: 100
-- Enemy contact or a telegraphed magical hit reduces Focus.
-- At zero Focus, show a short calming reset animation and restart the current encounter or boss phase.
-- Checkpoint progress and collectibles remain saved.
-
-### Spell rules
-
-#### Spark Bolt
-
-- Default spell for a completed word
-- Gold-blue projectile from wand to target
-
-#### Frost Thread
-
-- Triggered by completing a word with no mistakes
-- Briefly slows nearby untargeted enemies
-
-#### Chain Spark
-
-- Triggered after five perfect words
-- Harmless energy arcs automatically strike up to two additional weak enemies
-
-Spell effects must not obscure the next word for longer than 250 ms.
-
-### Enemy behaviour
-
-Use simple finite-state machines:
-
-```text
-Dormant → Appearing → Approaching → Attacking → Stunned → Dispelled
-```
-
-Bosses have separate explicit phase state machines.
-
-Do not use a general-purpose behaviour-tree package.
-
----
-
-## 11. Word Content
-
-Create curated word lists as TypeScript or JSON content files.
-
-Categories:
-
-- Common objects
-- Nature
-- Colours
-- Weather
-- School
-- Positive values
-- Gentle fantasy
-- Animals
-
-Requirements:
-
-- Age-appropriate vocabulary
-- No profanity or mature topics
-- Avoid ambiguous punctuation
-- Avoid proper nouns in combat words
-- Avoid visually confusing words during early encounters
-- Tag every word with difficulty, category, and letter count
-- Ensure simultaneous enemies can receive different first letters
-- Do not select the same word twice in one encounter unless the pool is exhausted
-
-Content for each level should include at least:
-
-- 60 easy words
-- 80 standard words
-- 50 challenge words
-- 12 short optional phrases or sentences
-
-Later levels may add themed word sets (each level document lists them). Reuse is fine, but each level should feel fresh: aim for at least 40% of words new to the level.
-
----
-
-## 12. Game State
-
-Use Zustand for coarse shared state only.
-
-Suggested state:
-
-```ts
-type GameMode =
-  | 'menu'
-  | 'exploration'
-  | 'combat'
-  | 'dialogue'
-  | 'paused'
-  | 'results';
-
-type Difficulty = 'gentle' | 'standard' | 'challenge';
-
-type LevelId = 'level-1' | 'level-2' | 'level-3';
-
-// Checkpoint ids are defined per level in its design document and namespaced by level in saves,
-// e.g. Level 1: 'arrival-gate' | 'courtyard-restored' | ... | 'level-1-complete'.
-type CheckpointId = string;
-```
-
-Persist:
-
-- Settings
-- Highest unlocked checkpoint
-- Level completion
-- Best results
-- Collectibles
-- Cosmetics
-- Tutorial completion flags
-
-Do not persist live enemy objects, Three.js references, physics handles, timers, or active key buffers.
-
-Version the save data and provide a safe migration/default path.
-
----
-
-## 13. Suggested Source Layout
-
-```text
-src/
-├── app/
-│   ├── App.tsx
-│   ├── routes.ts
-│   └── screens/
-├── audio/
-│   ├── AudioManager.ts
-│   └── audioCatalog.ts
-├── content/
-│   ├── dialogue.ts
-│   ├── level1Content.ts
-│   ├── wordLists.ts
-│   └── strings.ts
-├── game/
-│   ├── GameDirector.ts
-│   ├── checkpoints.ts
-│   ├── difficulty.ts
-│   ├── saveData.ts
-│   ├── scoring.ts
-│   └── types.ts
-├── level/
-│   ├── Level1.tsx
-│   ├── Level1Director.ts
-│   ├── areas/
-│   ├── encounters/
-│   └── triggers/
-├── player/
-│   ├── RailCameraController.tsx
-│   ├── PlayerFocus.ts
-│   └── Wand.tsx
-├── enemies/
-│   ├── Enemy.tsx
-│   ├── EnemyBrain.ts
-│   ├── EnemyManager.tsx
-│   ├── TargetingSystem.ts
-│   └── bosses/
-├── typing/
-│   ├── TypingEngine.ts
-│   ├── TypingSession.ts
-│   ├── WordAssigner.ts
-│   └── typingTypes.ts
-├── spells/
-│   ├── SpellSystem.ts
-│   └── effects/
-├── scene/
-│   ├── GameCanvas.tsx
-│   ├── Environment.tsx
-│   ├── Lighting.tsx
-│   └── QualityManager.ts
-├── state/
-│   ├── gameStore.ts
-│   └── settingsStore.ts
-├── ui/
-│   ├── HUD.tsx
-│   ├── EnemyWordLabel.tsx
-│   ├── PauseMenu.tsx
-│   ├── ResultsScreen.tsx
-│   └── TutorialPrompt.tsx
-├── utils/
-└── test/
-```
-
-Keep files focused. Split files that become difficult to understand, but do not create a directory for every single component.
-
----
-
-## 14. Visual Quality and Blender Asset Pipeline
-
-The game must **not** use deliberately crude low-poly art, blocky placeholder characters in the final build, faceted humanoids, or visuals reminiscent of early 3D games. Geometry may be optimised for the browser, but final characters and hero props must have smooth, convincing silhouettes, physically plausible materials, believable proportions, and natural animation.
-
-### 14.1 Target visual style
-
-Use a **stylised-realistic fantasy** direction:
-
-- Believable anatomy, weight, cloth, stone, wood, foliage, and metal
-- Slightly softened, friendly facial and creature proportions suitable for children
-- Realistic surface response and movement without photorealistic skin detail
-- Controlled colour palette with warm academy interiors, rich natural greens, moonlit blues, and gold magical energy
-- Moderate geometric and texture detail viewed from first-person gameplay distances
-- Smooth silhouettes on faces, hands, joints, curved architecture, and creatures
-- No visible polygon faceting on hero characters or objects near the camera
-- No oversized chibi heads, voxel forms, block characters, or toy-like primitive assemblies in final assets
-- No grimdark imagery, gore, decayed anatomy, exposed organs, or frightening facial distortion
-
-The quality reference is a modern, polished, stylised 3D adventure—not photorealism and not retro low-poly. The player should believe the academy and its creatures have physical presence.
-
-### 14.2 Required production method
-
-Claude should create and revise assets with **Blender Python scripts using `bpy`**, executed in headless mode where possible. The scripts are the editable source: every asset rebuilds from them, so no `.blend` files are kept.
-
-```text
-assets-src/
-├── scripts/
-│   ├── shared/        creature.py (rigs and clips), kitgeo.py, paint.py
-│   ├── ai/            generated models: Flux 2 concept → TRELLIS.2 → Blender (§20.16)
-│   ├── characters/    humanoid.py (Mira, Orin, students)
-│   ├── creatures/     the hand-scripted Level 1 creatures
-│   ├── props/         hero props, kit pieces, books, LODs
-│   ├── sky/           the fire sky and molten ink
-│   └── repack_cc0.py  CC0 models repacked to budget
-├── concepts/          Flux concept images and their prompts
-├── cc0/               sources of the CC0 assets
-├── paintings/, portraits/
-├── previews/          rendered previews of every built asset
-└── ai-meshes/         raw TRELLIS meshes (git-ignored)
-
-public/assets/
-├── characters/  creatures/  props/  kit/
-├── textures/  hdri/  sky/
-└── manifests/   per-category JSON (scripts/build-manifests.mjs)
-```
-
-Typical command:
-
-```bash
-blender --background --python assets-src/scripts/creatures/<name>.py -- [--preview]
-```
-
-Export runtime assets as `.glb`.
-
-### 14.3 Modelling method
-
-For organic characters and creatures, Claude should use a proper staged workflow rather than assembling visible primitive shapes:
-
-1. Build a proportioned base mesh with clean major forms.
-2. Use subdivision or multiresolution while shaping smooth anatomy.
-3. Sculpt secondary forms such as muscles, folds, bark, leaf masses, eyelids, and facial planes.
-4. Retopologise to animation-friendly topology with deformation loops around shoulders, elbows, hips, knees, neck, mouth, and eyes.
-5. UV unwrap with sensible island density and minimal stretching.
-6. Bake high-resolution normal and ambient-occlusion detail to the runtime mesh when useful.
-7. Create PBR textures and materials.
-8. Rig with named bones and tested deformation.
-9. Animate using reference-informed key poses, arcs, overlap, anticipation, contact, and follow-through.
-10. Export to GLB and validate inside the game, not only inside Blender.
-
-Procedural scripts may use primitives as hidden construction inputs, but the final visible mesh must be joined, shaped, smoothed, retopologised, and shaded so it does not read as primitive geometry.
-
-### 14.4 Materials and textures
-
-Use glTF-compatible PBR materials based on Principled BSDF. Prefer authored or procedurally baked texture maps over flat material colours on characters and hero assets.
-
-Expected texture channels:
-
-- Base colour
-- Normal
-- Roughness
-- Metallic where relevant
-- Ambient occlusion where useful
-- Emissive for magic, eyes, runes, and ward energy
-
-Guidelines:
-
-- Use subtle colour variation, edge wear, weave, grain, pores, veins, leaf variation, and dirt appropriate to the asset.
-- Avoid noisy procedural textures that shimmer at gameplay distance.
-- Skin and creatures should use restrained roughness variation; do not attempt expensive subsurface-scattering effects for the browser MVP.
-- Metal should read as metal through correct metallic and roughness values, not merely grey colour.
-- Glass should be used sparingly and tested for sorting and performance.
-- Atlas minor props where practical.
-- Hero characters and bosses may use 2K texture sets; normal enemies and prominent props should normally use 1K; small repeated props should use 512 px or atlases.
-
-### 14.5 Rigging and realistic movement
-
-Natural movement is mandatory. Animation should communicate weight, balance, intent, and contact with the floor.
-
-Every animated asset must be checked for:
-
-- Foot sliding
-- Knee and elbow popping
-- Shoulder collapse
-- Intersections between body, clothing, and equipment
-- Unnatural constant-speed motion
-- Missing anticipation and recovery
-- Abrupt animation transitions
-- Floating above or sinking into the floor
-- Wand or prop misalignment
-- Incorrect root motion
-
-Use a conventional humanoid rig for human characters and purpose-built rigs for creatures. Use IK during authoring for planted feet and hands, then bake deformation animation for export. Use constraints only if their results are correctly baked into exported actions.
-
-Animation clips should begin and end on compatible poses when looping. Locomotion speed in the game must be matched to stride length. Use cross-fades between clips in Three.js.
-
-If automated animation does not meet the acceptance checks, Claude must revise the rig, weights, curves, or timing rather than hiding the defect with camera distance.
-
-### 14.6 LOD and optimisation without retro visuals
-
-Optimisation must preserve the intended modern look.
-
-- Create LOD0, LOD1, and LOD2 for normal creatures and major NPCs where beneficial.
-- Reduce hidden and internal geometry first.
-- Preserve silhouettes, faces, hands, joints, and large material boundaries.
-- Use smooth shading and weighted normals where appropriate.
-- Use normal maps for secondary detail rather than retaining excessive geometry.
-- Never use aggressive decimation on a deforming character without checking animation deformation.
-- Use impostors only for distant, noninteractive background elements.
-- Use separate simple physics colliders; do not use render meshes as colliders.
-
-### 14.7 Asset manifest and validation
-
-Every runtime asset needs a manifest entry (one JSON file per category in `public/assets/manifests/`, generated by `scripts/build-manifests.mjs`) containing:
-
-```json
-{
-  "id": "mossling",
-  "file": "/assets/creatures/mossling.glb",
-  "unitScaleMeters": 1,
-  "animations": ["Idle", "Walk", "Attack", "Hit", "Stunned", "Dispel"],
-  "collision": {
-    "shape": "capsule",
-    "radius": 0.38,
-    "height": 0.92
-  },
-  "wordAnchor": [0, 1.55, 0],
-  "lodFiles": [
-    "/assets/creatures/mossling_lod0.glb",
-    "/assets/creatures/mossling_lod1.glb",
-    "/assets/creatures/mossling_lod2.glb"
-  ],
-  "textureSet": "mossling_1k",
-  "license": "original-project-asset"
-}
-```
-
-Automated checks must verify:
-
-- File exists and loads
-- Meshes have normals and valid finite transforms
-- Required animations are present and non-empty
-- Scale and bounding box are plausible
-- Word anchor is above the visible asset
-- Triangle, material, bone, and texture budgets are respected
-- Textures are present and use supported formats
-- No unintended cameras or lights are exported
-- No duplicate hidden meshes are included
-- The asset renders correctly in the R3F asset viewer
-
-Create a `/dev/assets` browser route with orbit controls, animation switching, neutral and game lighting, wireframe view, LOD switching, collider display, word-anchor display, bounding-box measurements, triangle counts, and material counts.
-
-### 14.8 Asset acceptance gates
-
-An asset is not complete merely because it exports. It must pass:
-
-1. **Silhouette check:** recognisable in flat black from front, side, and three-quarter views.
-2. **Close gameplay check:** convincing at its nearest expected camera distance.
-3. **Motion check:** no visible foot sliding or broken joints at normal and half speed.
-4. **Material check:** wood, cloth, foliage, stone, skin, paper, and metal are visually distinct.
-5. **Readability check:** enemy face, attack pose, target state, and defeat state are readable during gameplay.
-6. **Child-suitability check:** appealing or mysterious, never grotesque.
-7. **Performance check:** maintains the scene budget on the target laptop.
-8. **Export check:** looks materially consistent between Blender and Three.js.
-
-## 15. Performance Budget
-
-Target desktop and laptop browsers with physical keyboards.
-
-Goals:
-
-- 60 FPS on a typical modern laptop
-- Graceful 30+ FPS on lower-end integrated graphics
-- Initial playable download ideally below 60 MB, with later areas streamed or loaded between zones
-- Maximum four normal active enemies for most encounters
-- Maximum six lightweight targets in exceptional scenes
-- One primary shadow-casting directional light, with carefully budgeted local lights
-- Minimal transparent overdraw
-- No unbounded particle emitters
-- Pool frequently created projectiles and particles
-- Preserve smooth silhouettes and convincing materials by using LODs, texture atlases, normal maps, instancing, and area-based loading—not by making nearby assets visibly crude
-
-Suggested runtime budgets:
-
-```text
-First-person arms and wand:  35k–70k triangles, 2K textures
-Friendly hero NPC:           30k–60k triangles, 2K textures
-Normal organic enemy LOD0:   18k–35k triangles, 1K textures
-Normal enemy LOD1:           8k–18k triangles
-Normal enemy LOD2:           2k–6k triangles
-Mini-boss LOD0:              35k–70k triangles, up to 2K textures
-Final boss LOD0:             60k–110k triangles, up to 2K textures
-Hero environment prop:       8k–30k triangles
-Small repeated prop:         300–4k triangles
-Visible scene target:        normally below 500k–800k rendered triangles after culling and LOD
-Skinned characters visible:  normally 5 or fewer
-```
-
-Budgets may be adjusted after profiling, but quality changes must be verified in the asset viewer and gameplay camera.
-
-Quality presets:
-
-- Low: no dynamic shadows, reduced particles, lower pixel ratio
-- Medium: limited shadows and particles
-- High: full intended effects, capped pixel ratio
-
-Automatically select Medium initially and allow manual override.
-
----
-
-## 16. Audio Requirements
-
-Use separate volume controls for:
-
-- Master
-- Music
-- Sound effects
-- Interface sounds
-
-Required feedback:
-
-- Soft click for correct character
-- Gentle muted cue for an incorrect character
-- Rising tone for word progress
-- Satisfying spell completion
-- Distinct perfect-word cue
-- Chain Spark cue
-- Enemy approach telegraph
-- Checkpoint chime
-- Boss phase transition sound
-
-Repeated key sounds should vary slightly in pitch or sample to avoid fatigue.
-
-The game must remain playable with all audio muted.
-
----
-
-## 17. Testing Requirements
-
-### Unit tests
-
-At minimum, test:
-
-- Correct character entry
-- Incorrect character entry
-- Backspace correction
-- Completion detection
-- Case normalisation
-- Ignored modifier keys
-- Accuracy calculation
-- WPM calculation
-- Duplicate-initial target handling
-- Word assignment constraints
-- Difficulty filtering
-- Save-data defaults and migration
-- Checkpoint progression
-- Score calculation
-
-### Integration tests
-
-Test:
-
-- Starting each level from the menu (and the next level unlocking after completion)
-- Completing the on-rails interaction tutorial
-- Locking a target by typing
-- Completing a combat encounter
-- Reaching and restoring an anchor
-- Saving and loading a checkpoint
-- Pausing during exploration and combat
-- Changing difficulty at a checkpoint
-- Losing focus and restarting the current encounter
-- Completing the final boss
-- Showing the results screen
-
-### Manual checks
-
-Before marking any level complete:
-
-- Play using Gentle difficulty at deliberately slow typing speed.
-- Play using Standard difficulty with intentional mistakes.
-- Complete the on-rails level without audio.
-- Complete the level with reduced effects.
-- Resize the browser and verify word labels remain readable.
-- Move browser focus away during an encounter and recover cleanly when focus returns.
-- Switch tabs during an encounter and return safely.
-- Refresh at every checkpoint.
-- Confirm no section requires simultaneous precision movement and typing.
-
----
-
-## 20. Instructions for Claude When Coding
-
-When responding to an implementation request:
-
-1. Inspect the existing repository before proposing changes.
-2. State a short implementation plan, then make the changes without requesting confirmation unless essential information is missing.
-3. Reuse established project patterns.
-4. Do not replace working architecture merely because another approach is fashionable.
-5. Use strict TypeScript and avoid `any`. If unavoidable at an external boundary, isolate and document it.
-6. Do not invent package APIs. Inspect installed versions and type definitions when uncertain.
-7. Keep code compilable after each change.
-8. Run relevant tests, type checking, linting, and production build after material changes.
-9. Report exactly what was changed, what was tested, and any remaining limitation.
-10. Never claim a test passed unless it was executed successfully.
-11. Add tests for bug fixes and pure game-rule changes.
-12. Preserve accessibility and child-friendly behaviour.
-13. Prefer deterministic encounter scripts over random spawning in every level.
-14. Do not add placeholder TODOs for requested core behaviour; implement the smallest complete version.
-15. If final art is unavailable, use a clearly labelled geometric placeholder and continue implementing gameplay.
-16. **Generate models; don't hand-build them from polygons** (owner, 2026-10-08). Make every visible object, creature or prop with Blender (`bpy` scripts) and the local ComfyUI pipeline (Flux 2 concept → TRELLIS.2 shape and colour → Blender build; `assets-src/scripts/ai`: `build_hq.sh` for full quality on the RTX 5060 Ti, `build_on_3080.sh` when only the RTX 3080 is free) whenever possible. Code-built boxes, cylinders and planes are only for invisible helpers, ground and wall surfaces, effects, or a short-lived placeholder kept as the `ModelBoundary` fallback while the generated model is made. Check every new model in the game from the camera's actual view.
+1. Inspect the repository before changing it; reuse its patterns.
+2. State a short plan, then make the changes.
+3. Strict TypeScript; avoid `any`. Do not invent package APIs.
+4. Keep the build passing after each change; run tests, typecheck, lint and build after material changes.
+5. Report exactly what changed and what was tested. Never claim a test passed without running it.
+6. Add tests for bug fixes and game-rule changes.
+7. Deterministic encounter scripts, never random spawning.
+8. Generate models rather than hand-building them (§14.2), and check them in the game.
 
 ### Commands
-
-Use the package manager already present in the repository. Typical commands are:
 
 ```bash
 npm run dev
@@ -1008,35 +288,11 @@ npm run lint
 npm run build
 ```
 
-Do not change package managers during the project.
+## 21. Out of scope
 
----
+Multiplayer, accounts or cloud saves, leaderboards, free roaming, touch controls, voice recognition, generative AI inside the game, user word lists, purchases, procedural levels, more than one wand, inventories, character creation, dialogue trees, WebGPU-only features.
 
-## 21. Out of Scope
-
-Do not add these to the game. Also do not start building a level until the previous one meets its definition of done.
-
-- Multiplayer
-- Accounts or cloud saves
-- Leaderboards
-- Open-world or free-roaming exploration
-- Mobile touchscreen controls
-- Voice recognition
-- Generative AI inside the game
-- User-generated word lists
-- Purchases or monetisation
-- Procedural dungeons
-- More than one playable wand type
-- Complex inventory systems
-- Character creation
-- Dialogue trees
-- WebGPU-only features
-
----
-
-## 22. Final Creative Direction
-
-The desired experience is:
+## 22. Creative direction
 
 ```text
 A bright first day at an original magical academy,
@@ -1049,13 +305,4 @@ cinematic travel between encounters,
 and a complete beginning-to-end adventure.
 ```
 
-Prioritise, in this order:
-
-1. Typing readability and correctness
-2. Child-friendly usability
-3. Stable level progression
-4. Satisfying audiovisual feedback
-5. Performance
-6. Visual detail
-
-A polished, complete level is better than an unreliable attempt at photorealism. However, final art must still meet the stylised-realistic quality bar: smooth silhouettes, believable materials, carefully authored animation, and no retro low-poly appearance.
+Priorities, in order: typing readability and correctness; child-friendly usability; stable progression; satisfying audiovisual feedback; performance; visual detail.
