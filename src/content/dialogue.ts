@@ -236,7 +236,6 @@ export const LINES = {
   'l3-not-scared': line('pip', 'I am not scared. I am… accurately concerned.'),
   'l3-fortress': line('pip', 'That fortress wrapped in fire... why do I know its name? The Cinder Citadel. He\'s in there.'),
   'l3-write-path': line('pip', 'The path burned away? Then we WRITE one!'),
-  'l3-colour-tip': line('pip', 'Everything here is burnt and grey... can our words bring the colour back? Let\'s try!'),
   'l3-cw-1': line('mira', 'A forest of burnt trees… and something is watching us.'),
   'l3-deer': line('pip', 'Is that a deer? It\'s half rubbed out! Quick, let\'s draw it back!'),
   'l3-deer-path': line('pip', 'We saved the deer! Look at it run. Keep going!'),

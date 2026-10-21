@@ -69,7 +69,7 @@ export const shore: AreaScript = {
     }),
     checkpoint('l3-rift-crossed', S, 'rift-crossed', { objective: 'l3-shore' }),
     fight('l3-path-shore', S, { barks: ['l3-write-path'] }),
-    travel('l3-cross-stones', S, ['SHORE_LAND', 'SHORE_FAR'], 4, { barks: ['l3-colour-tip'] }),
+    travel('l3-cross-stones', S, ['SHORE_LAND', 'SHORE_FAR'], 4),
     fight('l3-shore-s1', S, { music: 'citadel-battle' }),
     checkpoint('l3-shore-checkpoint', S, 'rift-shore-written', { objective: 'l3-cinderwood' }),
   ],
