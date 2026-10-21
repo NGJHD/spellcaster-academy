@@ -250,6 +250,8 @@ export const LINES = {
   'l3-tide-tip': tip('pip', 'A wall of fire! Type BOTH words. Hold fast!'),
   'l3-broken-drop': line('pip', 'The falls are broken! Write us a slide!'),
   'l3-mira-raft': line('mira', 'Never doing that again. …Can we do that again?'),
+  'l3-if-door': line('pip', "Look! Scraps of erased books are flying into that doorway in the cliff. Let's follow them!"),
+  'l3-ml-arch': line('mira', "Statues, through that arch! That's his gallery of stolen things, and it's on the way to his Citadel."),
   'l3-ml-1': line('pip', 'Wait... these books are OURS, from our library! So this is where erased things end up?'),
   'l3-falling-books': line('pip', 'Burning books falling! Block them and write the walkway!'),
   'l3-journal': line('pip', 'A journal with a quill on the cover... is this HIS? It\'s burning! Catch the pages!'),

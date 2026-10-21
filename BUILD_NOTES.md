@@ -867,6 +867,24 @@ Level 3:
 - Page dragon: back to the original 3080 build (owner, 2026-10-20). The full-quality rebuild looked
   "kinda fat", and a leaner regenerated concept came out blotchy with its head twice as high.
 
+## The way between the Inkfall, the Margin Library and the Gallery (2026-10-21)
+
+Owner: "one moment we were at a waterfall facing nothing, one moment we appear in a library that is
+clearly not linked to anywhere, then … a gallery (did we teleport?)". Each was a bare fade.
+- Foot of the falls: the raft runs ashore below a cliff with a stone doorway in it, a bookshelf hall
+  lit inside, scraps of erased books streaming off the falls and in at it, and Mira running ahead
+  (`l3-if-to-shore`, `l3-if-ashore`; Pip: "Look! Scraps of erased books are flying into that doorway
+  in the cliff. Let's follow them!"). The library opens just inside its matching front door, bookshelf
+  hall behind us (`ML_DOOR`, `l3-ml-in`).
+- The library's heart now has a back wall with an arch, visible from the entrance across the chasm.
+  After the quill fight we walk to it and through onto a landing of statues, with the gallery's own
+  volcanic-stone door and firelit hall at its end (`l3-ml-to-arch`, `l3-ml-through-arch`; Mira:
+  "Statues, through that arch! That's his gallery of stolen things, and it's on the way to his
+  Citadel."). The gallery opens on that landing, outside its front door (`G3_DOOR`, `l3-g3-in`).
+- `src/scene/areas3/passages.tsx`: `StoneDoorway` (wall with an arched opening, the same from both
+  sides), `BookHall`, the statue landings. Lines must not say "pages" (gems.test reads it as the
+  collectible).
+
 ## Known limitations / next steps
 
 - Still code-built (clearly labelled placeholders, same gameplay hooks): pollen puffs, gate crystals, clasps/plates/runes/flying pages of the bosses, star pages, and the stairwell/gallery/observatory architecture details. Each can be swapped for a Blender GLB without gameplay changes.

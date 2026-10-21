@@ -22,7 +22,18 @@ export const GALLERY3_ORIGIN: Vec3 = [2400, 0, 0];
 const I = origin(FALLS_ORIGIN);
 const L = origin(MARGIN_ORIGIN);
 const Y = origin(GALLERY3_ORIGIN);
-export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-raft-peek', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool'] as const;
+export const RAFT_BEATS = ['l3-shield-up', 'l3-raft-1', 'l3-if-s1', 'l3-raft-2', 'l3-tide-1', 'l3-raft-3', 'l3-raft-peek', 'l3-if-slide', 'l3-raft-slide', 'l3-if-pool', 'l3-if-checkpoint', 'l3-if-to-shore'] as const;
+/** Beats where the raft lies beached on the shore below the library door while we walk to it. */
+export const RAFT_BEACHED_BEATS = ['l3-if-ashore'] as const;
+/**
+ * The way on from each area (owner, 2026-10-21: "one moment we were at a waterfall facing nothing, one
+ * moment we appear in a library … did we teleport?"). The erased pages pour off the falls and in at a
+ * stone doorway in the cliff below the pool: the Margin Library's door, which we walk through and come
+ * out of on the other side. At the library's far end an arch opens on a landing of grey statues, the
+ * gallery's foyer; we walk through it into the gallery's front door.
+ */
+export const LIBRARY_DOOR: Vec3 = I(0, 0.6, -171);
+export const GALLERY_ARCH: Vec3 = L(0, 0, -48.5);
 /** Beats where the raft stays at the edge while the apprentice steps to its bow to watch the slide being written. */
 export const RAFT_HOLD_BEATS = ['l3-raft-peek', 'l3-if-slide'] as const;
 /**
@@ -86,6 +97,10 @@ export const inkfall: AreaScript = {
     IF_SLIDE_A: { position: [SLIDE_SECTIONS[0]?.[0] ?? 0, (SLIDE_SECTIONS[0]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[0]?.[2] ?? 0], lookAt: I(0, 2, -122) },
     IF_SLIDE_B: { position: [SLIDE_SECTIONS[2]?.[0] ?? 0, (SLIDE_SECTIONS[2]?.[1] ?? 0) + 1.35, SLIDE_SECTIONS[2]?.[2] ?? 0], lookAt: I(0, 1.2, -140) },
     IF_POOL: { position: I(0, 1.6, -126), lookAt: I(0, 1.4, -142) },
+    // The raft runs ashore below the cliff; we step off and walk in at the library door.
+    IF_SHORE: { position: I(0, 1.6, -148.5), lookAt: I(0, 3.2, -172) },
+    IF_LAND: { position: I(0, 2.2, -158), lookAt: I(0, 2.4, -180) },
+    IF_DOOR: { position: I(0, 2.2, -173), lookAt: I(0, 2.2, -190) },
   },
   lookPoints: {
     IF_FALLS: I(0, 10, -100),
@@ -111,6 +126,8 @@ export const inkfall: AreaScript = {
     travel('l3-raft-slide', F, ['IF_PEEK', 'IF_SLIDE_A', 'IF_SLIDE_B', 'IF_POOL'], 6, { easing: 'easeInOutCubic', fx: [{ kind: 'geyser', at: 'IF_FALLS', atBeat: 0.9, scale: 1.6, color: '#ff3a1a' }] }),
     fight('l3-if-pool', F),
     checkpoint('l3-if-checkpoint', F, 'inkfall-descended', { barks: ['l3-mira-raft'], objective: 'l3-margin' }),
+    travel('l3-if-to-shore', F, ['IF_POOL', 'IF_SHORE'], 3, { easing: 'easeInOutSine', barks: ['l3-if-door'] }),
+    travel('l3-if-ashore', F, ['IF_SHORE', 'IF_LAND', 'IF_DOOR'], 3.5, { easing: 'easeInOutSine' }),
   ],
   encounters: [
     {
@@ -160,16 +177,22 @@ export const inkfall: AreaScript = {
 
 export const margin: AreaScript = {
   nodes: {
+    // Just inside the library's front door, the far side of the door at the foot of the falls.
+    ML_DOOR: { position: L(0, 1.6, 20), lookAt: L(0, 2, -10) },
     ML_START: { position: L(0, 1.6, 8), lookAt: L(0, 2, -10) },
     ML_WALK: { position: L(0, 1.6, -18), lookAt: L(0, 2.4, -32) },
     ML_HEART: { position: L(0, 1.6, -30), lookAt: L(0, 4, -40) },
+    // To the arch at the far end and through it onto the statue landing.
+    ML_EXIT: { position: L(0, 1.6, -43), lookAt: L(0, 2.2, -60) },
+    ML_ARCH: { position: L(0, 1.6, -53), lookAt: L(0, 2.2, -64) },
   },
   lookPoints: {
     ML_JOURNAL: JOURNAL,
     ML_TORNADO_TOP: L(0, 12, -40),
   },
   beats: [
-    fade('l3-ml-enter', M, 'ML_START', { music: 'blank-wander', objective: 'l3-margin', barks: ['l3-ml-1'] }),
+    fade('l3-ml-enter', M, 'ML_DOOR', { music: 'blank-wander', objective: 'l3-margin', barks: ['l3-ml-1'] }),
+    travel('l3-ml-in', M, ['ML_DOOR', 'ML_START'], 2.5, { easing: 'easeInOutSine' }),
     fight('l3-ml-walkway', M, { barks: ['l3-falling-books'] }),
     travel('l3-ml-cross', M, ['ML_START', 'ML_WALK'], 5),
     fight('l3-ml-m1', M, { music: 'citadel-battle' }),
@@ -187,6 +210,8 @@ export const margin: AreaScript = {
     fight('l3-ml-quill', M, { barks: ['l3-quill-page'] }),
     fight('l3-quill-wave', M, { barks: ['l3-quill-try'] }),
     checkpoint('l3-ml-checkpoint', M, 'margin-library-remembered', { objective: 'l3-gallery' }),
+    travel('l3-ml-to-arch', M, ['ML_HEART', 'ML_EXIT'], 3, { easing: 'easeInOutSine', barks: ['l3-ml-arch'] }),
+    travel('l3-ml-through-arch', M, ['ML_EXIT', 'ML_ARCH'], 2.5, { easing: 'easeInOutSine' }),
   ],
   encounters: [
     {
@@ -273,6 +298,8 @@ export const margin: AreaScript = {
 
 export const gallery3: AreaScript = {
   nodes: {
+    // In the gallery's front doorway, coming in from its statue landing.
+    G3_DOOR: { position: Y(0, 1.6, 25), lookAt: Y(0, 2.4, -4) },
     G3_START: { position: Y(0, 1.6, 16), lookAt: Y(0, 2.4, -4) },
     G3_ARENA: { position: Y(0, 1.7, 4), lookAt: Y(0, 4, -18) },
     // The breach where the back wall fell: the paper sea far below, the Citadel beyond it.
@@ -284,7 +311,8 @@ export const gallery3: AreaScript = {
     G3_PW_HEAD: Y(0, 7, -20),
   },
   beats: [
-    fade('l3-g3-enter', G, 'G3_START', { music: 'blank-wander', objective: 'l3-gallery', barks: ['l3-g3-1'] }),
+    fade('l3-g3-enter', G, 'G3_DOOR', { music: 'blank-wander', objective: 'l3-gallery', barks: ['l3-g3-1'] }),
+    travel('l3-g3-in', G, ['G3_DOOR', 'G3_START'], 2.5, { easing: 'easeInOutSine' }),
     fight('l3-sculptures', G),
     travel('l3-g3-to-arena', G, ['G3_START', 'G3_ARENA'], 4),
     reveal('l3-perfect-warden', G, 'G3_ARENA', ['G3_WALL', 'G3_PW_HEAD'], 0.8, 6.5, {

@@ -10,7 +10,7 @@ import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute
 import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
 import { pipWorld } from '../../player/PipCompanion';
 import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
-import { FALLS_ORIGIN, GALLERY3_ORIGIN, JOURNAL, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEATS, RAFT_HOLD_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
+import { FALLS_ORIGIN, GALLERY3_ORIGIN, GALLERY_ARCH, JOURNAL, LIBRARY_DOOR, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEACHED_BEATS, RAFT_BEATS, RAFT_HOLD_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
 import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
 import type { Vec3 } from '../../level/rail/railTypes';
 import { getRun } from '../../state/gameStore';
@@ -33,6 +33,7 @@ import { CinderCitadel } from '../CinderCitadel';
 import { surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
+import { GalleryArchAtLibrary, GalleryFrontDoor, LibraryDoorAtFalls, LibraryFrontDoor } from './passages';
 
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
 /** Molten ink: cooled plates with glowing seams, flowing (see molten.ts). The ink stream in the forge stays a plain glow. */
@@ -507,6 +508,14 @@ export function InkfallScene() {
         ))}
         {/* The rocky bank at the top, where the raft is boarded */}
         <Slab x={[-14, 14]} y={[-5, 40.3]} z={[1.3, 14]} material={MAT.rockGround} />
+        {/* The way on: the library door in the cliff below the pool, the erased pages pouring in */}
+        <LibraryDoorAtFalls door={sub(LIBRARY_DOOR, FALLS_ORIGIN)} ashoreBeat="l3-if-ashore" />
+        {/* The raft run ashore while we walk to the door */}
+        <OnBeatsShow show={RAFT_BEACHED_BEATS}>
+          <group position={[0, 0.5, -148.5]} rotation={[0.06, 0.15, 0]}>
+            <PaperRaft />
+          </group>
+        </OnBeatsShow>
       </group>
       {/* The page raft waiting on the ink with Mira aboard, until we hop on */}
       <OnBeatsShow show={RAFT_WAITING_BEATS}>
@@ -535,12 +544,15 @@ export function MarginScene() {
   return (
     <group position={MARGIN_ORIGIN}>
       <MarginDressing />
+      {/* Its front door (we come in from the foot of the falls) and the arch on to the gallery */}
+      <LibraryFrontDoor door={[0, 0, 18.5]} />
+      <GalleryArchAtLibrary arch={sub(GALLERY_ARCH, MARGIN_ORIGIN)} />
       {/* Owner (2026-10-07): "why is there a library in the Unwriter's world? … needs a serious dose of
           realistic rendering". This is Asterfall's own library, erased: a roofless ruined hall of
           marble and stone under the fire sky, its bookcases full of blank books, broken by a chasm
           over burning ink that the apprentice writes walkways across. */}
       {/* Marble floors: the entrance (z 2…14) and the heart of the hall (z −24…−48) */}
-      <Slab x={[-9, 9]} y={[-0.4, 0]} z={[2, 16]} material={MAT.marble} />
+      <Slab x={[-9, 9]} y={[-0.4, 0]} z={[2, 18]} material={MAT.marble} />
       <Slab x={[-9, 9]} y={[-0.4, 0]} z={[-48, -24]} material={MAT.marble} />
       {/* Broken edges of the floor at the chasm, and the burning ink far below */}
       <Slab x={[-9, 9]} y={[-3, -0.4]} z={[1.4, 2]} material={MAT.rockGround} />
@@ -571,7 +583,7 @@ export function MarginScene() {
         </group>
       ))}
       {/* Stone side walls lined with tall bookcases (only where there is floor) */}
-      {([[2, 16], [-48, -24]] as const).map(([z0, z1], k) => (
+      {([[2, 17.8], [-48, -24]] as const).map(([z0, z1], k) => (
         <group key={k}>
           {[-1, 1].map((side) => (
             <group key={side}>
@@ -667,6 +679,8 @@ export function Gallery3Scene() {
   return (
     <group position={GALLERY3_ORIGIN}>
       <GalleryDressing />
+      {/* Its front door, with the statue landing we came along from the library behind us */}
+      <GalleryFrontDoor door={[0, 0, 22.5]} />
       <Slab x={[-16, 16]} y={[-0.3, 0]} z={[-26, 22]} material={MAT.marble} />
       {/* Back wall and buttressed side walls of volcanic stone, with columns between the bays */}
       <CollapsingWall />
