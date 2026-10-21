@@ -52,23 +52,33 @@ export function StoneDoorway({ width, height, wall, trim = MAT.academyStone }: {
   );
 }
 
-/** A short hall lined with bookshelves running back (−Z) from a doorway, warmly lit. */
+/**
+ * A short roofless walk between bookcases running back (−Z) from a doorway, open to the red sky like the
+ * Margin Library itself (owner, 2026-10-21: the first one was a closed room, but the library is open
+ * air). Its far end opens out between broken columns, with a burning heap of blank books by the way.
+ */
 export function BookHall({ length = 12, seed = 1 }: { length?: number; seed?: number }) {
   return (
     <group>
-      <Slab x={[-3, 3]} y={[-0.3, 0]} z={[-length, 0]} material={MAT.marble} />
+      <Slab x={[-3, 3]} y={[-0.3, 0]} z={[-length - 4, 0]} material={MAT.marble} />
       {[-1, 1].map((s) => (
         <group key={s}>
-          <Slab x={s < 0 ? [-3.6, -3] : [3, 3.6]} y={[0, 6.4]} z={[-length, 0]} material={MAT.academyStoneDark} />
+          {/* Ruined side walls, broken off at uneven heights */}
+          <Slab x={s < 0 ? [-3.6, -3] : [3, 3.6]} y={[0, s < 0 ? 5.8 : 4.6]} z={[-length, 0]} material={MAT.academyStoneDark} />
+          <Slab x={s < 0 ? [-3.6, -3] : [3, 3.6]} y={[0, s < 0 ? 7.4 : 6.6]} z={[-length * 0.45, -length * 0.15]} material={MAT.academyStoneDark} />
           {Array.from({ length: Math.floor(length / 3.2) }, (_, i) => (
-            <Bookshelf key={i} position={[s * 2.6, 0, -1.8 - i * 3.2]} rotationY={s < 0 ? Math.PI / 2 : -Math.PI / 2} width={3} height={5} shelves={6} seed={seed + i + (s > 0 ? 10 : 0)} />
+            <Bookshelf key={i} position={[s * 2.6, 0, -1.8 - i * 3.2]} rotationY={s < 0 ? Math.PI / 2 : -Math.PI / 2} width={3} height={4.4} shelves={5} seed={seed + i + (s > 0 ? 10 : 0)} />
           ))}
+          {/* Broken columns where the walk opens out */}
+          <group position={[s * 2.4, 0, -length - 1.5]}>
+            <mesh position={[0, s < 0 ? 2.6 : 1.6, 0]} material={MAT.academyStone} castShadow>
+              <cylinderGeometry args={[0.45, 0.55, s < 0 ? 5.2 : 3.2, 18]} />
+            </mesh>
+            <Box position={[0, 0.2, 0]} size={[1.3, 0.4, 1.3]} material={MAT.academyStone} />
+          </group>
         </group>
       ))}
-      <Slab x={[-3.6, 3.6]} y={[6.4, 7]} z={[-length, 0]} material={MAT.academyStoneDark} />
-      <Slab x={[-3.6, 3.6]} y={[0, 7]} z={[-length - 0.6, -length]} material={MAT.academyStoneDark} />
-      <Prop id="lantern_chandelier_01" position={[0, 4.2, -length / 2]} height={1.8} />
-      <pointLight position={[0, 4.6, -length / 2]} color="#ffc070" intensity={30} distance={16} decay={1.6} />
+      <Fire position={[1.6, 0, -length + 1]} size={1.2} count={2} spread={0.8} />
       <pointLight position={[0, 3.2, -1.5]} color="#ffb060" intensity={10} distance={8} decay={1.6} />
     </group>
   );

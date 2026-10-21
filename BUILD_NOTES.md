@@ -881,8 +881,10 @@ clearly not linked to anywhere, then … a gallery (did we teleport?)". Each was
   volcanic-stone door and firelit hall at its end (`l3-ml-to-arch`, `l3-ml-through-arch`; Mira:
   "Statues, through that arch! That's his gallery of stolen things, and it's on the way to his
   Citadel."). The gallery opens on that landing, outside its front door (`G3_DOOR`, `l3-g3-in`).
+- The walk behind the cliff door is roofless and opens out between broken columns under the red sky
+  (owner: the first version "shows a closed room. The actual margin library is open air").
 - `src/scene/areas3/passages.tsx`: `StoneDoorway` (wall with an arched opening, the same from both
-  sides), `BookHall`, the statue landings. Lines must not say "pages" (gems.test reads it as the
+  sides), `BookHall` (open-air), the statue landings. Lines must not say "pages" (gems.test reads it as the
   collectible).
 
 ## Known limitations / next steps
