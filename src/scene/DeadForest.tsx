@@ -87,13 +87,8 @@ function useTreeParts(model: string): { parts: { geometry: BufferGeometry; mater
   }, [scene]);
 }
 
-/** Beyond this far out from the edge of the path, a near forest's trees use the lighter model. */
-const NEAR_BAND = 25;
-
 export function DeadForest({ pathX = () => 0, clear, depth, zRange, density = 2.2, avoid = [], seed = 1, model = 'dead_tree_lod1' }: ForestProps) {
-  const near = useTreeParts(model);
-  // The near forest's back rows, never seen up close, use the 500-triangle tree.
-  const far = useTreeParts(model === 'dead_tree_lod1' ? 'dead_tree_lod2' : model);
+  const tree = useTreeParts(model);
 
   const trees = useMemo(() => {
     const out: Tree[] = [];
@@ -116,30 +111,27 @@ export function DeadForest({ pathX = () => 0, clear, depth, zRange, density = 2.
   }, [zRange, depth, density, clear, pathX, avoid, seed]);
 
   // A few trees still smoulder (fires are sprites, so only a handful).
-  // Only the forest along the path smoulders: the far belts' fires were too small to see but cost frames.
-  const burning = useMemo(() => (model === 'dead_tree_lod1' ? trees.filter((t, i) => !t.stump && i % 23 === 5).slice(0, 10) : []), [trees, model]);
+  // A few trees still smoulder (fires are sprites, so only a handful).
+  const burning = useMemo(() => trees.filter((t, i) => !t.stump && i % 23 === 5).slice(0, 10), [trees]);
 
-  // Tiles of TILE metres, each its own instanced mesh with frustum culling (owner, 2026-10-24: the ground
-  // "vibrated" on the Rift Shore: every tree of every belt, behind the camera too, was drawn each frame,
-  // 6.5 M triangles, and the frame rate dropped so each small camera move juddered).
+  // Tiles of TILE metres, each its own instanced mesh with frustum culling, so trees behind or beside the
+  // camera are not drawn (every tree of every belt was drawn each frame).
   const tiles = useMemo(() => {
     const byCell = new Map<string, Tree[]>();
     for (const t of trees) {
-      const back = Math.abs(t.x - pathX(t.z)) > clear + NEAR_BAND;
-      const key = `${back ? 'far' : 'near'}:${Math.floor(t.x / TILE)},${Math.floor(t.z / TILE)}`;
+      const key = `${Math.floor(t.x / TILE)},${Math.floor(t.z / TILE)}`;
       const list = byCell.get(key) ?? [];
       list.push(t);
       byCell.set(key, list);
     }
-    return [...byCell.entries()].map(([key, list]) => ({ far: key.startsWith('far'), trees: list }));
-  }, [trees, pathX, clear]);
+    return [...byCell.values()];
+  }, [trees]);
 
   return (
     <group>
-      {tiles.map((tile, ti) => {
-        const set = tile.far ? far : near;
-        return set.parts.map((part, j) => <ForestTile key={`${ti}-${j}`} trees={tile.trees} geometry={part.geometry} material={part.material} modelHeight={set.height} />);
-      })}
+      {tiles.map((tile, ti) =>
+        tree.parts.map((part, j) => <ForestTile key={`${ti}-${j}`} trees={tile} geometry={part.geometry} material={part.material} modelHeight={tree.height} />),
+      )}
       {burning.map((t, i) => (
         <Fire key={i} position={[t.x, t.h * 0.55, t.z] as unknown as Vec3} size={1.6} count={2} spread={1} />
       ))}

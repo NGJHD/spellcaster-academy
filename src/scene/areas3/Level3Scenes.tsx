@@ -31,7 +31,7 @@ import { DeadForest } from '../DeadForest';
 import { GroundMist } from '../GroundMist';
 import { moltenInk, useMoltenFlow } from '../molten';
 import { LightBeam } from '../glow';
-import { worldPlane } from '../surfaces';
+import { worldGroundTiles, worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
@@ -154,8 +154,20 @@ function ProceduralTree({ position, height = 9, seed = 1 }: { position: Vec3; he
 }
 
 function AshGround({ x, z, y = 0 }: { x: readonly [number, number]; z: readonly [number, number]; y?: number }) {
-  // Photo-scanned burnt earth (owner: "the ground looks untextured").
-  return <Slab x={x} y={[y - 0.3, y]} z={z} material={MAT.burntGround} />;
+  // Photo-scanned burnt earth (owner: "the ground looks untextured"). The top is built of 96 m tiles, not
+  // one slab: the plain is up to 3 km wide, and over one huge triangle the texture swam (worldGroundTiles).
+  const [x0, x1] = [Math.min(...x), Math.max(...x)];
+  const [z0, z1] = [Math.min(...z), Math.max(...z)];
+  return (
+    <group>
+      <mesh position={[(x0 + x1) / 2, y, (z0 + z1) / 2]} geometry={worldGroundTiles(x1 - x0, z1 - z0)} material={MAT.burntGround} receiveShadow />
+      {/* Its edges (seen across the river and the gorge), a little below the top */}
+      <Slab x={[x0, x1]} y={[y - 0.3, y - 0.01]} z={[z0, z0 + 0.02]} material={MAT.burntGround} />
+      <Slab x={[x0, x1]} y={[y - 0.3, y - 0.01]} z={[z1 - 0.02, z1]} material={MAT.burntGround} />
+      <Slab x={[x0, x0 + 0.02]} y={[y - 0.3, y - 0.01]} z={[z0, z1]} material={MAT.burntGround} />
+      <Slab x={[x1 - 0.02, x1]} y={[y - 0.3, y - 0.01]} z={[z0, z1]} material={MAT.burntGround} />
+    </group>
+  );
 }
 
 // ---------- Rift Shore ----------
@@ -171,7 +183,7 @@ export function ShoreScene() {
       <AshGround x={[-1500, GORGE_X[0]]} z={[SHORE_CLIFF_Z, GORGE_TOP_Z]} />
       <AshGround x={[GORGE_X[1], 1500]} z={[SHORE_CLIFF_Z, GORGE_TOP_Z]} />
       {/* The river of molten red ink */}
-      <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(3000, 12)} />
+      <mesh position={[0, -0.25, -10]} material={redInk} geometry={worldGroundTiles(3000, 12, 90)} />
       {/* Stepping stones written across the ink */}
       {STONES.map((s, i) => (
         <Written key={i} flag={`l3-stone-${i + 1}`}>
@@ -201,8 +213,8 @@ export function ShoreScene() {
         {/* Forest from side to side and out to the horizon, the path still clear down the middle, so the
             view from the Warden's palm is dense barren forest everywhere (owner, 2026-10-23). Lighter trees
             further out: 500 triangles in the middle belt, 150 in the far fill. */}
-        <DeadForest model="dead_tree_lod3" pathX={() => 0} clear={86} depth={130} zRange={[130, -2]} density={1.6} seed={13} />
-        <DeadForest model="dead_tree_lod3" pathX={shorePathX} clear={86} depth={130} zRange={[-18, -256]} density={1.6} seed={17} />
+        <DeadForest model="dead_tree_lod2" pathX={() => 0} clear={86} depth={130} zRange={[130, -2]} density={1.6} seed={13} />
+        <DeadForest model="dead_tree_lod2" pathX={shorePathX} clear={86} depth={130} zRange={[-18, -256]} density={1.6} seed={17} />
         <DeadForest model="dead_tree_lod2" pathX={shorePathX} clear={14} depth={72} zRange={[-200, SHORE_CLIFF_Z + 6]} density={1.6} avoid={[[shorePathX(SHORE_CLIFF_Z), SHORE_CLIFF_Z + 20, 14]]} seed={19} />
         <DeadForest model="dead_tree_lod3" pathX={shorePathX} clear={86} depth={520} zRange={[-256, SHORE_CLIFF_Z + 6]} density={1.5} seed={23} />
         <DeadForest model="dead_tree_lod3" pathX={() => 0} clear={216} depth={390} zRange={[130, -2]} density={1.5} seed={29} />
@@ -1377,7 +1389,7 @@ export function ThroneScene() {
       </ModelBoundary>
       <CitadelTowers spots={[[-46, -40, -52, 80], [48, -44, -48, 74], [-60, -48, 8, 70], [62, -46, 16, 76], [0, -52, -80, 96]]} />
       {/* The sea of fire far below */}
-      <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(600, 600)} />
+      <mesh position={[0, -60, 0]} material={redInk} geometry={worldGroundTiles(600, 600, 90)} />
       {[[-40, -60, -30], [50, -60, -60], [0, -60, -90], [-60, -60, 20]].map((p, i) => (
         <Fire key={i} position={p as unknown as Vec3} size={18} count={4} spread={30} />
       ))}

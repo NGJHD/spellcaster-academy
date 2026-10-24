@@ -10,8 +10,17 @@ import { useRunStore } from '../state/runStore';
 const OFFSET_CALM = new Vector3(0.85, -0.05, -1.7);
 const OFFSET_COMBAT = new Vector3(1.15, -0.32, -1.9);
 const FOLLOW_RATE = 2.6;
+/**
+ * Where Pip re-enters from when it has fallen out of view (a camera cut or a big turn): just past the
+ * bottom-right corner of the screen, so it floats up into its place there (owner, 2026-10-24: it always
+ * swept in from the left, trailing behind the turn).
+ */
+const OFFSET_ENTER = new Vector3(1.9, -1.35, -1.6);
+/** Beyond this far from its place, Pip is lost from view and re-enters rather than trailing across. */
+const LOST = 1.4;
 
 const goal = new Vector3();
+const seen = new Vector3();
 const offset = new Vector3();
 const carried = new Vector3();
 /** Where Pip is in the world this frame (the Unwriter aims his quill at it). */
@@ -32,6 +41,8 @@ export function PipCompanion() {
   const rig = useRef<PipRig>({ rings: [], fins: [], core: [] });
   const time = useRef(0);
   const placed = useRef(false);
+  /** Floating back in from the bottom right: not checked for being lost until it has arrived. */
+  const entering = useRef(false);
   const warm = useMemo(() => new Color('#ffb640'), []);
   const cool = useMemo(() => new Color('#bfe0ff'), []);
 
@@ -54,6 +65,16 @@ export function PipCompanion() {
     if (!placed.current) {
       g.position.copy(goal);
       placed.current = true;
+    }
+    if (entering.current && g.position.distanceTo(goal) < 0.35) entering.current = false;
+    if (!snatched && !entering.current) {
+      // Out of view, or far from its place: re-enter from the bottom right instead of sweeping across.
+      seen.copy(g.position).project(state.camera);
+      const offScreen = seen.z > 1 || Math.abs(seen.x) > 1.05 || Math.abs(seen.y) > 1.05;
+      if (offScreen || g.position.distanceTo(goal) > LOST) {
+        g.position.copy(OFFSET_ENTER).applyQuaternion(state.camera.quaternion).add(state.camera.position);
+        entering.current = true;
+      }
     }
     // Soft inertia: Pip lags behind camera moves and settles (never a rigid UI icon).
     // Held in the thief's chest, Pip moves with it (no lag that would leave Pip trailing behind).

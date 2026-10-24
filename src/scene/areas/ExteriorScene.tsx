@@ -19,7 +19,7 @@ import { Seam } from '../Seam';
 import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
 import { smokePuffTexture } from '../Fire';
-import { worldBox, worldCylinder, worldPlane } from '../surfaces';
+import { worldBox, worldCylinder, worldGroundTiles } from '../surfaces';
 import {
   DormantTarget,
   FloatingLantern,
@@ -119,7 +119,8 @@ function Campus() {
   }, []);
   return (
     <group name="campus">
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} material={MAT.grass} geometry={worldPlane(900, 900)} receiveShadow />
+      {/* In 98 m tiles (a whole number of the meadow's 7 m repeats): one 900 m quad made the texture swim */}
+      <mesh position={[0, -0.02, 0]} material={MAT.grass} geometry={worldGroundTiles(900, 900, 98)} receiveShadow />
       {/* The forest the sprites fly out of: dense woods either side of the meadow in front of the gate */}
       {!indoors && (
         <Suspense fallback={null}>

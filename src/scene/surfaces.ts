@@ -14,6 +14,8 @@ import {
   SRGBColorSpace,
   TextureLoader,
   Vector2,
+  BufferGeometry as Geometry,
+  Float32BufferAttribute,
   type BufferGeometry,
   type MeshStandardMaterial,
   type Texture,
@@ -61,8 +63,7 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   panelWood: { texture: 'dark_paneled_wood', tileMetres: 2, tint: '#d8c0a8' },
   linen: { texture: 'rough_linen', tileMetres: 0.6, tint: '#f2e8d8' },
   navyCloth: { texture: 'rough_linen', tileMetres: 0.6, tint: '#4a5f90' },
-  // Softened (ground_textures.py burned_ground_soft): the photo's fine needles shimmered as the camera moved.
-  burntGround: { texture: 'burned_ground_soft', tileMetres: 4, tint: '#c8b0a4', anisotropy: 2 },
+  burntGround: { texture: 'burned_ground_01', tileMetres: 4, tint: '#c8b0a4' },
   crackedRedGround: { texture: 'cracked_red_ground', tileMetres: 3, tint: '#e0b0a0' },
   rockGround: { texture: 'rock_ground_02', tileMetres: 3, tint: '#b8aca8' },
   earth: { texture: 'farm_soil', tileMetres: 3, tint: '#e8c8a0' },
@@ -148,6 +149,40 @@ export function worldBox(w: number, h: number, d: number): BoxGeometry {
       }
     });
     uv.needsUpdate = true;
+    return g;
+  });
+}
+
+/**
+ * A wide flat surface (XZ plane, facing up, centred) built from square tiles of `tile` metres, each with
+ * its own metre UVs starting at zero (owner, 2026-10-24: the Blank's 3 km ground "vibrated": over one
+ * enormous triangle the GPU's texture-coordinate interpolation loses precision and the texture swims as
+ * the camera moves). `tile` should be a whole number of texture repeats so the joins do not show.
+ */
+export function worldGroundTiles(w: number, d: number, tile = 96): Geometry {
+  return cached(`tiles:${w}:${d}:${tile}`, () => {
+    const pos: number[] = [];
+    const uv: number[] = [];
+    const nx = Math.ceil(w / tile);
+    const nz = Math.ceil(d / tile);
+    for (let i = 0; i < nx; i++) {
+      for (let j = 0; j < nz; j++) {
+        const x0 = -w / 2 + i * tile;
+        const z0 = -d / 2 + j * tile;
+        const x1 = Math.min(w / 2, x0 + tile);
+        const z1 = Math.min(d / 2, z0 + tile);
+        const u1 = x1 - x0;
+        const v1 = z1 - z0;
+        // Two triangles, counter-clockwise from above.
+        pos.push(x0, 0, z0, x0, 0, z1, x1, 0, z1, x0, 0, z0, x1, 0, z1, x1, 0, z0);
+        uv.push(0, v1, 0, 0, u1, 0, 0, v1, u1, 0, u1, v1);
+      }
+    }
+    const g = new Geometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+    g.setAttribute('normal', new Float32BufferAttribute(pos.map((_, k) => (k % 3 === 1 ? 1 : 0)), 3));
+    g.computeBoundingSphere();
     return g;
   });
 }

@@ -39,7 +39,7 @@ blender --background --python assets-src/scripts/characters/humanoid.py -- <mira
 blender --background --python assets-src/scripts/props/kit_props.py -- [ids…]
 blender --background --python assets-src/scripts/props/kit_scene.py -- [ids…] [--preview]   # scenery kit (towers, columns, braziers, rocks…)
 python assets-src/scripts/ai/fx_sprites.py [names…] / mosaic.py [seeds…]                  # Flux 3 effect sprites, the clue mosaic
-python assets-src/scripts/ai/ground_textures.py [name] [seeds…]                         # Flux 3 tiling ground textures (green_meadow: the grass; wild_meadow: Level 2's far bank; burned_ground_soft: the Blank's ground, softened so it does not shimmer)
+python assets-src/scripts/ai/ground_textures.py [name] [seeds…]                         # Flux 3 tiling ground textures (green_meadow: the grass; wild_meadow: Level 2's far bank)
 python assets-src/scripts/ai/tree_cards.py [names…]                                     # Flux 3 tree impostors (beech, lime) for far forest rows
 node scripts/build-manifests.mjs                   # refresh public/assets/manifests/*.json
 node scripts/perf.mjs / scripts/breakdown.mjs      # frame rate and triangles per object

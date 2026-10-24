@@ -4,7 +4,6 @@ photo of the ground, made to tile (each half blended across the seams), with a n
 brightness and a packed AO/roughness/metal map, written like the CC0 sets the game uses.
 
     python assets-src/scripts/ai/ground_textures.py [name] [seeds…]
-    python assets-src/scripts/ai/ground_textures.py burned_ground_soft   # the softened CC0 burnt ground
 
 Candidates go to assets-src/concepts/ground/<name>_<seed>.png; the chosen seed (CHOSEN) is written to
 public/assets/textures/<name>/ (diff.jpg, nor.jpg, arm.jpg, 1024 px): green_meadow is the grass everywhere,
@@ -86,26 +85,7 @@ def maps(diff):
     return nor, arm
 
 
-def soften(source, dest, blur=2.6, keep=0.45):
-    """A CC0 set with its finest detail turned down (owner, 2026-10-24: the Blank's ground "vibrated"): the
-    photo of burnt ground is all sub-centimetre needles, which sparkle and crawl whenever the camera kicks or
-    turns a little. Keeps the broad look; the finest contrast is cut to `keep` of itself."""
-    src = os.path.join(OUT, source)
-    out = os.path.join(OUT, dest)
-    os.makedirs(out, exist_ok=True)
-    im = Image.open(os.path.join(src, "diff.jpg")).convert("RGB")
-    a = np.asarray(im).astype(np.float32)
-    b = np.asarray(im.filter(ImageFilter.GaussianBlur(blur))).astype(np.float32)
-    Image.fromarray(np.clip(b + (a - b) * keep, 0, 255).astype(np.uint8)).save(os.path.join(out, "diff.jpg"), quality=92)
-    for f in ("nor.jpg", "arm.jpg"):
-        Image.open(os.path.join(src, f)).filter(ImageFilter.GaussianBlur(blur)).save(os.path.join(out, f), quality=92)
-    print("wrote", out)
-
-
 def main():
-    if sys.argv[1:2] == ["burned_ground_soft"]:
-        soften("burned_ground_01", "burned_ground_soft")
-        return
     name = sys.argv[1] if len(sys.argv) > 1 else "wild_meadow"
     prompt, seeds = TEXTURES[name]
     if len(sys.argv) > 2:
