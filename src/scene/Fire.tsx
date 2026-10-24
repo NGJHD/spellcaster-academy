@@ -77,12 +77,8 @@ function paintSmoke([r, gr, b]: readonly [number, number, number] = [42, 38, 36]
   return new CanvasTexture(canvas);
 }
 
-/**
- * Puffs of smoke over every fire: painted smoke sprites, each rising and spreading over SMOKE_SEC. Small
- * fires get a few; only big ones a full column (owner, 2026-10-24: hundreds of puffs over the Blank's many
- * small fires cost frames, and the frame drops made every camera move judder).
- */
-const puffsFor = (size: number) => (size < 1.5 ? 3 : size < 4 ? 5 : 8);
+/** Puffs of smoke over every fire: painted smoke sprites, each rising and spreading over SMOKE_SEC. */
+const PUFFS = 8;
 const SMOKE_SEC = 4.2;
 /** Smoke glows with the fire's colour just above the flames and cools to grey as it rises. */
 const SMOKE_LIT: Record<'ink' | 'warm', Color> = { ink: new Color('#b0583c'), warm: new Color('#b8844e') };
@@ -124,9 +120,9 @@ export function Fire({ position, size = 1.6, kind = 'ink', count = 4, spread = 0
   const smokeMats = useMemo(
     () =>
       smoke
-        ? Array.from({ length: puffsFor(size) }, (_, i) => new SpriteMaterial({ map: fxSprite(i % 2 ? 'smoke_2' : 'smoke_1'), transparent: true, depthWrite: false, opacity: 0, fog: false }))
+        ? Array.from({ length: PUFFS }, (_, i) => new SpriteMaterial({ map: fxSprite(i % 2 ? 'smoke_2' : 'smoke_1'), transparent: true, depthWrite: false, opacity: 0, fog: false }))
         : [],
-    [smoke, size],
+    [smoke],
   );
   useEffect(() => () => smokeMats.forEach((m) => m.dispose()), [smokeMats]);
   useEffect(
