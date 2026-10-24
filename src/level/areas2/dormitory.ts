@@ -7,6 +7,7 @@
 import { spiral, stairFloor } from '../areas/stairwell';
 import { checkpoint, fade, fight, len, travel, type AreaScript } from '../areas/builders';
 import type { EncounterDef } from '../levelTypes';
+import type { Vec3 } from '../rail/railTypes';
 import { fireball, hound, restore, scribbleImp } from './hush';
 
 const A = 'l2-dormitory';
@@ -22,10 +23,34 @@ export const DORM_DOORS = [
 const at = (deg: number, dy: number, r = RIDE) => spiral(deg, stairFloor(deg) + dy, r);
 const look = (deg: number) => spiral(deg, stairFloor(deg) + 1.5, 9.1);
 
+/**
+ * How far a tread's top can stand above the even ramp `stairFloor` (half a riser: treads are 6° apart,
+ * 0.3 m each), so a mob's feet set this far above the ramp are never inside a step.
+ */
+export const DORM_STEP_LIFT = 0.15;
+
+/** Where the camera stands for each landing's fight (degrees), uphill of its door. */
+const FIGHT_DEG = [-30, -110, -190] as const;
+
+/**
+ * A walk along the stairs from one angle and radius to another, a point every few degrees on the treads
+ * (owner, 2026-10-23: mobs on the stairs must be above them, not under). It ends within arm's reach of
+ * the camera, so the close-in leg (which keeps the last point's height) is never added on the slope.
+ */
+function stairWalk(fromDeg: number, toDeg: number, fromR: number, toR: number): Vec3[] {
+  const n = Math.max(1, Math.ceil(Math.abs(toDeg - fromDeg) / 4));
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const k = i / n;
+    return at(fromDeg + (toDeg - fromDeg) * k, DORM_STEP_LIFT, fromR + (toR - fromR) * k);
+  });
+}
+
 /** One landing: imps scratch the burning door; restore it to free the student. */
 function landing(index: 1 | 2 | 3, extra: boolean): EncounterDef {
   const door = DORM_DOORS[index - 1] ?? DORM_DOORS[0];
   const d = door.deg;
+  // Each mob climbs to about 2.5 m below the camera on the stairs.
+  const near = (FIGHT_DEG[index - 1] ?? FIGHT_DEG[0]) - 19;
   return {
     id: `l2-dorm-${index}`,
     areaId: A,
@@ -34,14 +59,15 @@ function landing(index: 1 | 2 | 3, extra: boolean): EncounterDef {
       {
         id: 'imps',
         targets: [
-          scribbleImp(`dorm-imp-${index}a`, [at(d - 12, 0, 8.6), at(d - 4, 0, 7.4)]),
-          scribbleImp(`dorm-imp-${index}b`, [at(d + 12, 0, 8.6), at(d + 4, 0, 7.2)], { delaySec: 0.7 }),
+          // They scratch at the door, then climb towards the camera.
+          scribbleImp(`dorm-imp-${index}a`, [...stairWalk(d - 12, d - 4, 8.6, 7.4), ...stairWalk(d - 4, near, 7.4, 6.9).slice(1)]),
+          scribbleImp(`dorm-imp-${index}b`, [...stairWalk(d + 12, d + 4, 8.6, 7.2), ...stairWalk(d + 4, near + 2, 7.2, 8.2).slice(1)], { delaySec: 0.7 }),
           ...(extra
             ? [
                 // It climbs the stairs to the camera (owner, 2026-10-19: "why is the dog under the stairs?" Its
                 // path ended below the landing, and the close-in leg kept that height, under the steps). Points
                 // every few degrees follow the stair's rise; it passes inside the trapped student's flames.
-                hound(`dorm-hound`, [at(d - 30, 0, 8.4), at(d - 20, 0, 8), at(d - 10, 0, 7.2), at(d, 0, 6.5), at(d + 8, 0, 6.5), at(d + 16, 0, 7.4)], { delaySec: 1.6, words: [len(4, 6)] }),
+                hound(`dorm-hound`, [...stairWalk(d - 30, d, 8.4, 6.5), ...stairWalk(d, near + 1, 6.5, 7.4).slice(1)], { delaySec: 1.6, words: [len(4, 6)] }),
                 fireball(`dorm-ember`, at(d + 20, 2.4, 8.4), at(d - 26, 1.6, RIDE), { delaySec: 3 }),
               ]
             : []),
@@ -56,9 +82,9 @@ function landing(index: 1 | 2 | 3, extra: boolean): EncounterDef {
 export const dormitory: AreaScript = {
   nodes: {
     DORM_TOP: { position: at(30, 1.7), lookAt: at(-10, 1.4, 8) },
-    DORM_L1: { position: at(-30, 1.7), lookAt: look(-60) },
-    DORM_L2: { position: at(-110, 1.7), lookAt: look(-140) },
-    DORM_L3: { position: at(-190, 1.7), lookAt: look(-220) },
+    DORM_L1: { position: at(FIGHT_DEG[0], 1.7), lookAt: look(-60) },
+    DORM_L2: { position: at(FIGHT_DEG[1], 1.7), lookAt: look(-140) },
+    DORM_L3: { position: at(FIGHT_DEG[2], 1.7), lookAt: look(-220) },
     DORM_BOTTOM: { position: at(-245, 1.7), lookAt: at(-280, 1.2, 6) },
   },
   lookPoints: {
@@ -75,7 +101,7 @@ export const dormitory: AreaScript = {
     travel('l2-dorm-to-3', A, ['DORM_L2', 'DORM_L3'], 4, {
       barks: ['l2-dorm-hound'],
       fx: [
-        { kind: 'debris', at: 'DORM_DOOR_3', atBeat: 0.8, scale: 1.4, color: '#4a3424' },
+        { kind: 'debris', at: 'DORM_DOOR_3', atBeat: 0.8, scale: 1.4, color: '#4a3424', pieces: 'wood' },
         { kind: 'burst', at: 'DORM_DOOR_3', atBeat: 0.8, scale: 1.4, color: '#ff5a1a' },
         { kind: 'shake', atBeat: 0.8 },
       ],

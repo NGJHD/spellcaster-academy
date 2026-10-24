@@ -217,6 +217,111 @@ def export(path, webp=True):
             continue
 
 
+def solid_door_leaves():
+    """
+    large_castle_door: replace each leaf's barred peep window with solid wood (owner, 2026-10-23: the
+    windows showed the wall behind the door). Deletes the bars and the window's bevel and tunnel, fills
+    the hole flush on both faces, and maps the middle panel to the plain lower panel's planks (the atlas
+    under the hole holds metal), so there is no seam.
+    """
+    import bmesh
+    import numpy as np
+
+    half, drop = 0.13, 0.93
+    for obj in [o for o in bpy.context.scene.objects if o.type == "MESH" and o.name.endswith(("_left", "_right"))]:
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        bm.verts.ensure_lookup_table()
+        # The bars are the loose part about 0.3 m square.
+        seen, grille = set(), None
+        for v in bm.verts:
+            if v.index in seen:
+                continue
+            comp, stack = [], [v]
+            seen.add(v.index)
+            while stack:
+                a = stack.pop()
+                comp.append(a)
+                for e in a.link_edges:
+                    b = e.other_vert(a)
+                    if b.index not in seen:
+                        seen.add(b.index)
+                        stack.append(b)
+            xs, zs = [p.co.x for p in comp], [p.co.z for p in comp]
+            if 0.25 < max(xs) - min(xs) < 0.4 and 0.25 < max(zs) - min(zs) < 0.4:
+                grille = comp
+        if grille is None:
+            bm.free()
+            continue
+        xs, zs = [p.co.x for p in grille], [p.co.z for p in grille]
+        cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2
+        bmesh.ops.delete(bm, geom=grille, context="VERTS")
+
+        def inside(co, h):
+            return abs(co.x - cx) < h and abs(co.z - cz) < h
+
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if all(inside(v.co, half) for v in f.verts)], context="FACES_ONLY")
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+        edges = [e for e in bm.edges if e.is_boundary and all(inside(v.co, half + 0.005) for v in e.verts)]
+        filled = bmesh.ops.holes_fill(bm, edges=edges, sides=0)["faces"]
+        uv = bm.loops.layers.uv.active
+        for f in filled:
+            n, y = f.normal.copy(), f.calc_center_median().y
+            near = [
+                g for g in bm.faces
+                if g not in filled and g.normal.dot(n) > 0.99
+                and abs(g.calc_center_median().x - cx) < 0.2 and abs(g.calc_center_median().z - (cz - drop)) < 0.2
+            ]
+            ym = sorted(g.calc_center_median().y for g in near)[len(near) // 2]
+            pts, uvs = [], []
+            for g in near:
+                if abs(g.calc_center_median().y - ym) < 0.004:
+                    for loop in g.loops:
+                        pts.append((loop.vert.co.x, loop.vert.co.z, 1.0))
+                        uvs.append(tuple(loop[uv].uv))
+            fit = np.linalg.lstsq(np.array(pts), np.array(uvs), rcond=None)[0]
+            panel = [
+                g for g in bm.faces
+                if g.normal.dot(n) > 0.99 and abs(g.calc_center_median().y - y) < 0.003
+                and abs(g.calc_center_median().x - cx) < 0.3 and abs(g.calc_center_median().z - cz) < 0.4
+            ]
+            for g in panel:
+                for loop in g.loops:
+                    loop[uv].uv = tuple(np.array((loop.vert.co.x, loop.vert.co.z - drop, 1.0)) @ fit)
+        bm.to_mesh(obj.data)
+        bm.free()
+
+
+def no_transmission():
+    """
+    Plain alpha glass instead of refracting glass (KHR_materials_transmission). In three.js any
+    refracting material on screen re-renders the whole scene every frame with a second variant of every
+    shader, and showing one compiled all those variants at once: entering an area stalled for seconds.
+    Already see-through materials keep a faint, blended glass; solid ones (a brass lantern marked fully
+    transmissive in the source) simply become solid.
+    """
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:
+            continue
+        for node in mat.node_tree.nodes:
+            weight = node.inputs.get("Transmission Weight") if node.type == "BSDF_PRINCIPLED" else None
+            if weight is None or (weight.default_value == 0 and not weight.is_linked):
+                continue
+            for link in list(weight.links):
+                mat.node_tree.links.remove(link)
+            weight.default_value = 0.0
+            if getattr(mat, "surface_render_method", "") == "BLENDED" or getattr(mat, "blend_method", "") == "BLEND":
+                alpha = node.inputs.get("Alpha")
+                if alpha is not None and not alpha.is_linked:
+                    alpha.default_value = min(alpha.default_value, 0.25)
+            print(f"no_transmission: {mat.name}")
+
+
+# Geometry fixes applied to a model before it is decimated.
+FIXUPS = {"large_castle_door": solid_door_leaves}
+
+
 def repack(model_id):
     src = os.path.join(SRC, model_id, f"{model_id}.gltf")
     if not os.path.exists(src):
@@ -225,7 +330,10 @@ def repack(model_id):
     reset()
     bpy.ops.import_scene.gltf(filepath=src)
     remove_cameras_lights()
+    no_transmission()
     budget, tex = BUDGETS.get(model_id, DEFAULT_BUDGET)
+    if model_id in FIXUPS:
+        FIXUPS[model_id]()
     if model_id in JOIN_FIRST:
         join_meshes()
     before = scene_triangles()

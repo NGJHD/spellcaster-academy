@@ -51,6 +51,8 @@ export interface WordResult {
   readonly defeated: boolean;
   /** Target defeated before any other target in this wave. */
   readonly firstDefeat: boolean;
+  /** The word moved the target on (next word or defeat); false when the same word comes back. */
+  readonly counted: boolean;
 }
 
 export class EncounterRunner {
@@ -181,7 +183,7 @@ export class EncounterRunner {
   /** A word on `targetId` was completed. Advances the stage or defeats the target. */
   completeWord(targetId: string, mistakes: number): WordResult {
     const t = this.targets.get(targetId);
-    if (!t || t.defeated) return { defeated: false, firstDefeat: false };
+    if (!t || t.defeated) return { defeated: false, firstDefeat: false, counted: false };
     const word = t.words[t.stage] ?? '';
     interruptAttack(t);
     // Every completed word buys a breather: the target's attack clock and the arena hazard clock restart,
@@ -194,7 +196,7 @@ export class EncounterRunner {
     if (t.spawn.perfectOnly && mistakes > 0 && this.ctx.difficulty !== 'gentle') {
       t.halfCredit++;
       // The same word comes back; the second imperfect try still counts.
-      if (t.halfCredit < 2) return { defeated: false, firstDefeat: false };
+      if (t.halfCredit < 2) return { defeated: false, firstDefeat: false, counted: false };
       t.halfCredit = 0;
     }
 
@@ -205,7 +207,7 @@ export class EncounterRunner {
         setPhase(t, 'stunned');
         t.phaseTime = -PROJECTILE_SEC;
       }
-      return { defeated: false, firstDefeat: false };
+      return { defeated: false, firstDefeat: false, counted: true };
     }
     t.defeated = true;
     setPhase(t, 'dispelling');
@@ -214,15 +216,17 @@ export class EncounterRunner {
     const firstDefeat = this.defeatsThisWave === 0;
     if (!t.spawn.optional) this.defeatsThisWave++;
     this.totalDefeats++;
-    return { defeated: true, firstDefeat };
+    return { defeated: true, firstDefeat, counted: true };
   }
 
   /** Chain Spark / external dispel of a weak target. */
-  dispel(targetId: string): boolean {
+  dispel(targetId: string, delaySec = 0): boolean {
     const t = this.targets.get(targetId);
     if (!t || t.defeated || t.phase !== 'active') return false;
     t.defeated = true;
     setPhase(t, 'dispelling');
+    // The foe bursts when the spell reaches it.
+    t.phaseTime = -delaySec;
     if (!t.spawn.optional) this.defeatsThisWave++;
     this.totalDefeats++;
     return true;

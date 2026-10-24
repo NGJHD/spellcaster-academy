@@ -111,7 +111,7 @@ export const inkfall: AreaScript = {
     // Owner (2026-10-07): "won't we burn to death?" A frost bubble keeps the fire off the paper raft.
     hold('l3-shield-up', F, 'IF_TOP', 1, {
       barks: ['l3-shield'],
-      chase: [{ at: 0.05, target: pathWord('raft-shield', I(0, 41.4, -4), 'shield', 'l3-shield-on', { defeatBark: 'l3-shield-on', defeatFx: { kind: 'shockwave', scale: 1.2, color: '#9fd8ff' } }) }],
+      chase: [{ at: 0.05, target: pathWord('raft-shield', I(0, 41.4, -4), 'shield', 'l3-shield-on', { defeatBark: 'l3-shield-on', defeatFx: { kind: 'pulse', scale: 1.2, color: '#9fd8ff' } }) }],
     }),
     travel('l3-raft-1', F, ['IF_TOP', 'IF_RUN1', 'IF_LIP1', 'IF_S1'], 6),
     fight('l3-if-s1', F),
@@ -199,7 +199,7 @@ export const margin: AreaScript = {
       barks: ['l3-journal'],
       fx: [
         { kind: 'pillar', at: 'ML_JOURNAL', atBeat: 0.1, scale: 1.4, color: '#ff5a1a' },
-        { kind: 'leaves', at: 'ML_TORNADO_TOP', atBeat: 0.3, scale: 2.4, color: '#f3ead2' },
+        { kind: 'leaves', at: 'ML_TORNADO_TOP', atBeat: 0.3, scale: 2.4, color: '#f3ead2', pieces: 'page' },
       ],
     }),
     fight('l3-journal', M),
@@ -317,8 +317,8 @@ export const gallery3: AreaScript = {
       barks: ['l3-voice-pw'],
       objective: 'l3-perfect-warden',
       fx: [
-        { kind: 'debris', at: 'G3_WALL', atBeat: 0.1, scale: 3, color: '#7a7a80' },
-        { kind: 'shockwave', at: 'G3_WALL', atBeat: 0.1, scale: 2, color: '#ff3a1a' },
+        { kind: 'debris', at: 'G3_WALL', atBeat: 0.1, scale: 3, color: '#7a7a80', pieces: 'stone' },
+        { kind: 'dustwave', at: 'G3_WALL', atBeat: 0.1, scale: 2, color: '#7a726a' },
         { kind: 'shake', atBeat: 0.1, scale: 2 },
         { kind: 'flash', atBeat: 0.1 },
       ],
@@ -363,7 +363,7 @@ export const gallery3: AreaScript = {
         {
           id: 'plates-1',
           sequential: true,
-          targets: [0, 1, 2].map((i) => marker(`pw-plate-${i + 1}`, Y(-1.5 + i * 1.5, 3 + (i % 2) * 1.6, -19), len(5, 6), { labelHeight: 0.3, defeatFx: { kind: 'debris', scale: 1, color: '#2a2a30' } })),
+          targets: [0, 1, 2].map((i) => marker(`pw-plate-${i + 1}`, Y(-1.5 + i * 1.5, 3 + (i % 2) * 1.6, -19), len(5, 6), { labelHeight: 0.3, defeatFx: { kind: 'debris', scale: 1, color: '#2a2a30', pieces: 'metal' } })),
         },
         {
           id: 'arcs',
@@ -389,7 +389,7 @@ export const gallery3: AreaScript = {
         {
           id: 'shell',
           sequential: true,
-          targets: [0, 1, 2].map((i) => marker(`pw-shell-${i + 1}`, Y(-1 + i, 3.4 + i * 0.4, -18.6), len(5, 7), { labelHeight: 0.3, perfectOnly: true, defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ff3a1a' } })),
+          targets: [0, 1, 2].map((i) => marker(`pw-shell-${i + 1}`, Y(-1 + i, 3.4 + i * 0.4, -18.6), len(5, 7), { labelHeight: 0.3, perfectOnly: true, defeatFx: { kind: 'pulse', scale: 0.8, color: '#ff3a1a' } })),
         },
       ],
     },
@@ -403,11 +403,11 @@ export const gallery3: AreaScript = {
       onComplete: { flags: ['l3-perfect-warden-gone'] },
       completeFx: [
         { kind: 'flash' },
-        { kind: 'debris', at: 'G3_PW_HEAD', scale: 4, color: '#2a2a30' },
+        { kind: 'debris', at: 'G3_PW_HEAD', scale: 4, color: '#2a2a30', pieces: 'metal' },
         { kind: 'burst', at: 'G3_PW_HEAD', scale: 3, color: '#ff5a1a' },
         { kind: 'shake', scale: 2 },
         // The wall behind it cracks and comes crashing down (Gallery3Scene CollapsingWall).
-        { kind: 'debris', at: 'G3_BACK_WALL', delaySec: 0.5, scale: 4, color: '#3a3330' },
+        { kind: 'debris', at: 'G3_BACK_WALL', delaySec: 0.5, scale: 4, color: '#3a3330', pieces: 'stone' },
         { kind: 'dust', at: 'G3_BACK_WALL', delaySec: 0.7, scale: 4, color: '#4a4440' },
         { kind: 'shake', delaySec: 0.7, scale: 1.6 },
       ],

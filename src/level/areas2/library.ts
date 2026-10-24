@@ -52,9 +52,9 @@ export const library2: AreaScript = {
     reveal('l2-wyrm-glimpse', A, 'L2LIB_WINDOW', ['L2LIB_SKY'], 0.8, 8, {
       barks: ['l2-our-books'],
       fx: [
-        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.2, scale: 2.6, color: '#f3ead2' },
-        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.45, scale: 2.2, color: '#f3ead2' },
-        { kind: 'debris', at: 'L2LIB_SHELF', atBeat: 0.55, scale: 2, color: '#7a2f2a' },
+        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.2, scale: 2.6, color: '#f3ead2', pieces: 'page' },
+        { kind: 'leaves', at: 'L2LIB_SKY', atBeat: 0.45, scale: 2.2, color: '#f3ead2', pieces: 'page' },
+        { kind: 'debris', at: 'L2LIB_SHELF', atBeat: 0.55, scale: 2, color: '#7a2f2a', pieces: 'book' },
         { kind: 'burst', at: 'L2LIB_SHELF', atBeat: 0.55, scale: 1.4, color: '#ff5a1a' },
         { kind: 'shake', atBeat: 0.55, scale: 1.2 },
       ],

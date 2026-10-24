@@ -40,8 +40,8 @@ export const lawn: AreaScript = {
     reveal('l2-lawn-burning', A, 'LAWN_CENTRE', ['LAWN_BOATHOUSE', 'LAWN_STALL_LEFT'], 0.9, 1.2, {
       attention: 'spectacle',
       fx: [
-        { kind: 'shockwave', at: 'LAWN_BOATHOUSE', atBeat: 0.1, scale: 1.5, color: '#ff5a1a' },
-        { kind: 'debris', at: 'LAWN_BOATHOUSE', atBeat: 0.12, scale: 1.4, color: '#4a3424' },
+        { kind: 'explosion', at: 'LAWN_BOATHOUSE', atBeat: 0.1, scale: 1.5, color: '#5a3a22', pieces: 'wood' },
+        { kind: 'debris', at: 'LAWN_BOATHOUSE', atBeat: 0.12, scale: 1.4, color: '#4a3424', pieces: 'wood' },
         { kind: 'geyser', at: 'LAWN_SKY_DROP', atBeat: 0.6, scale: 1, color: '#141010' },
       ],
     }),
@@ -97,7 +97,15 @@ export const lawn: AreaScript = {
       id: 'l2-lawn-stall',
       areaId: A,
       kind: 'interaction',
-      waves: [{ id: 'stall', targets: [restore('stall-1', W(-7, 1.6, -6), 'stall', 'l2-stall-1')] }],
+      // Both burning stalls are put out, one after the other (owner, 2026-10-24: the right one, an optional
+      // word that young-typist trimming dropped, was left burning grey as we moved on).
+      waves: [
+        {
+          id: 'stall',
+          sequential: true,
+          targets: [restore('stall-1', W(-7, 1.6, -6), 'stall', 'l2-stall-1'), restore('stall-2', W(6, 1.6, -9), 'booth', 'l2-stall-2')],
+        },
+      ],
       barks: [{ when: { on: 'complete' }, line: 'l2-stall-done' }],
     },
     {
@@ -118,7 +126,6 @@ export const lawn: AreaScript = {
             moth('moth-2', [W(10, 5, -12), W(-3, 4, -9)]),
             moth('moth-3', [W(-9, 6, -16), W(6, 4.5, -14)], { delaySec: 1 }),
             fireball('dust-1', W(4, 6, -18), W(0.6, 1.7, 2.6), { delaySec: 2.2 }),
-            restore('stall-2', W(6, 1.6, -9), 'booth', 'l2-stall-2', { optional: true}),
           ],
         },
       ],

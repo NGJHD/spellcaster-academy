@@ -57,7 +57,7 @@ export const portraits: AreaScript = {
   nodes: {
     POR_ENTRY: { position: P(0, 1.6, 1), lookAt: P(0, 1.9, -10) },
     POR_FOUNTAIN: { position: P(-0.6, 1.6, -9.5), lookAt: P(2.2, 1.0, -14) },
-    POR_MIRROR: { position: P(0.6, 1.6, -18.5), lookAt: P(-2.9, 1.8, -22) },
+    POR_MIRROR: { position: P(0.6, 1.6, -18.5), lookAt: P(-2.9, 2.4, -22) },
     POR_PLAQUES: { position: P(-1.0, 1.6, -26), lookAt: P(2.9, 1.7, -30) },
     POR_END: { position: P(0, 1.6, -36), lookAt: P(0, 2.2, -41) },
   },

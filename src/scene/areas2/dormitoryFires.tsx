@@ -71,7 +71,7 @@ function TrapFires({ deg, flag }: { deg: number; flag: string }) {
         const at = (Math.atan2(z, x) * 180) / Math.PI;
         // Unwrap to the door's turn of the spiral before reading the stair height.
         const d = at + Math.round((deg - at) / 360) * 360;
-        return <Fire key={i} position={[x, stairFloor(d) + 0.05, z]} size={1.7 + (i % 2) * 0.25} count={3} spread={0.5} smoke={i % 3 === 0} untilFlag={flag} />;
+        return <Fire key={i} position={[x, stairFloor(d) + 0.05, z]} size={1.7 + (i % 2) * 0.25} count={3} spread={0.5} untilFlag={flag} />;
       })}
     </>
   );

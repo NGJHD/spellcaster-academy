@@ -8,6 +8,8 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { getRun } from '../state/gameStore';
 import { CinderCitadel } from './CinderCitadel';
+import { SHORE_CITADEL_AT } from '../level/areas3/journey1';
+import { fxSprite } from './fxSprites';
 import { SkyTear } from './glow';
 import { AdditiveBlending, BackSide, SRGBColorSpace, BufferAttribute, BufferGeometry, NormalBlending, type Points } from 'three';
 
@@ -64,6 +66,7 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
     g.setAttribute('position', new BufferAttribute(pos, 3));
     return { geometry: g, speeds: sp };
   }, []);
+  const sprite = useMemo(() => fxSprite(kind === 'embers' ? 'ember' : 'ash'), [kind]);
   const time = useRef(0);
   useFrame((state, delta) => {
     const pts = points.current;
@@ -85,8 +88,10 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
   });
   return (
     <points ref={points} geometry={geometry} frustumCulled={false}>
+      {/* Painted ember and ash-flake sprites (fx_sprites.py) */}
       <pointsMaterial
-        size={kind === 'embers' ? 0.09 : 0.12}
+        map={sprite}
+        size={kind === 'embers' ? 0.26 : 0.3}
         color={kind === 'embers' ? '#ff8a3a' : '#9a9490'}
         transparent
         opacity={kind === 'embers' ? 0.95 : 0.7}
@@ -98,14 +103,19 @@ export function Drift({ kind }: { kind: 'embers' | 'ash' }) {
   );
 }
 
+/** The real Citadel relative to the camera on the Rift Shore landing (area-local SHORE_LAND is [0, 1.6, 6]). */
+const CITADEL_ON_HORIZON: [number, number, number] = [SHORE_CITADEL_AT[0], SHORE_CITADEL_AT[1] - 1.6, SHORE_CITADEL_AT[2] - 6];
+
 /**
  * The Cinder Citadel on the Blank's horizon (owner, 2026-10-07: "it looks like it was created in power
  * point"): the full fortress (see CinderCitadel), far away and huge, so every view of the Blank shows
  * where the journey ends.
  */
 export function CitadelOnHorizon() {
+  // Where the real Citadel stands as seen from the Rift Shore landing (SHORE_CITADEL_AT), at its size,
+  // so it does not jump between the shore and Cinderwood (owner, 2026-10-23: "the castle moved to the right").
   return (
-    <group position={[200, -95, -520]} scale={1.6}>
+    <group position={CITADEL_ON_HORIZON}>
       <CinderCitadel distant />
     </group>
   );
@@ -127,8 +137,8 @@ export function Rift() {
   // A rendered split across the sky (owner: the zig-zag tube "looks like it was done in ms paint").
   return (
     <>
-      <SkyTear from={[-320, 290, -540]} to={[320, 360, -540]} width={130} seed={7} open={() => width.current} renderOrder={-9} />
-      <SkyTear from={[-160, 250, -560]} to={[60, 300, -560]} width={40} seed={19} open={() => width.current * 0.8} opacity={() => 0.6} renderOrder={-9} />
+      <SkyTear from={[-320, 290, -540]} to={[320, 360, -540]} width={130} open={() => width.current} renderOrder={-9} />
+      <SkyTear from={[-160, 250, -560]} to={[60, 300, -560]} width={40} painting={2} open={() => width.current * 0.8} opacity={() => 0.6} renderOrder={-9} />
     </>
   );
 }

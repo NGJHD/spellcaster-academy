@@ -121,7 +121,7 @@ export const throne: AreaScript = {
         { id: 'copy-dummy', targets: [copy('copy-dummy', 'dummy', O(-2, 0, -6), 2)] },
         { id: 'copy-grimoire', targets: [copy('copy-grimoire', 'book', O(2, 2.4, -7), 2), fireball('copy-gust', O(2, 2.4, -7), O(0.4, 1.7, 5.4), { delaySec: 1.6 })] },
         { id: 'copy-herald', targets: [copy('copy-herald', 'hollow-knight', O(-1, 0, -7), 3)] },
-        { id: 'copy-wyrm', targets: [target('copy-wyrm', 'marker', O(0, 4, -8), ['every', 'page'], { labelHeight: 0.5, phrase: true, entrance: { kind: 'geyser', scale: 1.4, color: '#ff3a10' }, defeatFx: { kind: 'leaves', scale: 3, color: '#f3ead2' } })] },
+        { id: 'copy-wyrm', targets: [target('copy-wyrm', 'marker', O(0, 4, -8), ['every', 'page'], { labelHeight: 0.5, phrase: true, entrance: { kind: 'geyser', scale: 1.4, color: '#ff3a10' }, defeatFx: { kind: 'leaves', scale: 3, color: '#f3ead2', pieces: 'page' } })] },
       ],
     },
     {
@@ -161,7 +161,9 @@ export const throne: AreaScript = {
       kind: 'interaction',
       bossPhase: 'u-first-lesson',
       // The final clash: the apprentice's gold-blue beam against the quill's red fire.
-      beam: { to: QUILL, color: '#ff2a0a' },
+      // It meets the quill in his hand wherever his rearing carries it (owner, 2026-10-23: the beam went
+      // past him to his right, at a fixed point beside the quill).
+      beam: { to: QUILL, color: '#ff2a0a', follow: 'unwriter-quill' },
       waves: [
         {
           id: 'lesson',
@@ -171,7 +173,7 @@ export const throne: AreaScript = {
       onComplete: { flags: ['l3-unwriter-sealed'], reward: { cosmetic: 'trail-bright-quill' } },
       completeFx: [
         { kind: 'flash', color: '#ffffff' },
-        { kind: 'shockwave', at: QUILL, scale: 5, color: '#ffe6a0' },
+        { kind: 'pulse', at: QUILL, scale: 5, color: '#ffe6a0' },
         { kind: 'burst', at: CHEST, scale: 5, color: '#ff5a1a' },
         { kind: 'pillar', at: UNWRITER, scale: 3, color: '#ffd27a' },
         { kind: 'shake', scale: 2.6 },

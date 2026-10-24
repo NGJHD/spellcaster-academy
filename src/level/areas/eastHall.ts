@@ -22,10 +22,11 @@ const runaway = (id: string, side: number, up: number, i: number): TargetSpawn =
     follow: { ahead: 4.2, side, up },
     labelHeight: 0.45,
     variant: COVERS[i % COVERS.length],
-    defeatFx: { kind: 'debris', scale: 0.4, color: '#e8dcc0' },
+    defeatFx: { kind: 'debris', scale: 0.4, color: '#e8dcc0', pieces: 'page' },
   });
 
-const stompBooks = { kind: 'debris', scale: 1.6, color: '#7a2f2a' } as const;
+/** The stampede bursting on the ward into a flurry of pages (owner, 2026-10-24: flying book pieces looked blocky). */
+const stompBooks = { kind: 'debris', scale: 1, color: '#e8dcc0', pieces: 'page' } as const;
 
 export const eastHall: AreaScript = {
   nodes: {
@@ -53,8 +54,9 @@ export const eastHall: AreaScript = {
       barks: ['east-1'],
       attention: 'spectacle',
       fx: [
-        { kind: 'debris', at: 'EAST_HALL_ALCOVE', atBeat: 0.05, scale: 1.2, color: '#6e4a2c' },
-        { kind: 'debris', at: 'EAST_HALL_ALCOVE', atBeat: 0.1, scale: 1.4, color: '#7a2f2a' },
+        { kind: 'debris', at: 'EAST_HALL_ALCOVE', atBeat: 0.05, scale: 1.2, color: '#6e4a2c', pieces: 'wood' },
+        { kind: 'debris', at: 'EAST_HALL_ALCOVE', atBeat: 0.1, scale: 1.4, color: '#e8dcc0', pieces: 'page' },
+        { kind: 'burst', at: 'EAST_HALL_ALCOVE', atBeat: 0.1, scale: 1.2, color: '#ffe6b0' },
         { kind: 'dust', at: 'EAST_HALL_ALCOVE', atBeat: 0.05, scale: 1.4 },
         { kind: 'shake', atBeat: 0.05 },
       ],
@@ -84,11 +86,11 @@ export const eastHall: AreaScript = {
     reveal('east-hall-slam', A, 'EAST_HALL_RUN_D', ['EAST_HALL_WARD_LINE'], 0.3, 4.5, {
       barks: ['east-6', 'east-7'],
       fx: [
-        { kind: 'shockwave', at: 'EAST_HALL_WARD_LINE', scale: 0.35, color: '#9fd8ff' },
+        { kind: 'pulse', at: 'EAST_HALL_WARD_LINE', scale: 0.35, color: '#9fd8ff' },
         { kind: 'burst', at: 'EAST_HALL_WARD_LINE', scale: 1.6, color: '#bfe6ff' },
         { ...stompBooks, at: 'EAST_HALL_WARD_LINE' },
         { kind: 'shake', scale: 1.3 },
-        { ...stompBooks, at: 'EAST_HALL_WARD_LINE', atBeat: 0.25, scale: 1 },
+        { ...stompBooks, at: 'EAST_HALL_WARD_LINE', atBeat: 0.25, scale: 0.7 },
         { kind: 'dust', at: 'EAST_HALL_WARD_LINE', atBeat: 0.3, scale: 1.2 },
       ],
     }),

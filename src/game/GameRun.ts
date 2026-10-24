@@ -7,12 +7,12 @@ import { audio } from '../audio/AudioManager';
 import { voice } from '../audio/voice';
 import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue';
 import { strings } from '../content/strings';
-import { FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
+import { CHAIN_TRAVEL_SEC, FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { closeInEncounter } from '../level/encounters/closeIn';
 import { LevelDirector } from '../level/LevelDirector';
 import { LEVELS, levelOfBeat, type LevelDef } from '../level/levels';
-import type { BarkTrigger, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
+import type { BarkTrigger, DebrisPieces, EncounterDef, FxCue, FxKind, LevelBeat, MusicId, Reward, TargetSpawn } from '../level/levelTypes';
 import { isCameraBeat, type RailSettings } from '../level/rail/railTypes';
 import { patchRunUi, useRunStore, type LabelInfo } from '../state/runStore';
 import type { KeyIntent } from '../typing/keys';
@@ -32,7 +32,7 @@ import { buildResults, wordScore, type ResultsData } from './scoring';
 import { Combo } from './combo';
 import { SpeedRound } from './speedRound';
 import { MEDAL_SCORE, encounterStars } from './medals';
-import { bossForEncounter, bossForIntroBeat, bossWordTotal, type BossDef } from '../level/bosses';
+import { bossForEncounter, bossForIntroBeat, bossWordsDone, bossWordTotal, type BossDef } from '../level/bosses';
 import type { AreaId, CosmeticId, Difficulty, SpellId } from './types';
 import type { LevelId } from './types';
 
@@ -125,6 +125,8 @@ export interface FxEvent {
   readonly position: Vector3;
   readonly scale: number;
   readonly color: string | undefined;
+  readonly landY?: number;
+  readonly pieces?: DebrisPieces;
 }
 
 /** Sound for each spectacle (none for the quiet ones). */
@@ -132,7 +134,9 @@ const FX_SOUND: Partial<Record<FxKind, { id: 'boom' | 'crash' | 'firework' | 'sh
   burst: { id: 'boom', volume: 0.55 },
   debris: { id: 'crash', volume: 0.8 },
   glass: { id: 'shield-break', volume: 0.9 },
-  shockwave: { id: 'boom', volume: 0.9 },
+  dustwave: { id: 'crash', volume: 0.8 },
+  explosion: { id: 'boom', volume: 1 },
+  pulse: { id: 'boom', volume: 0.75 },
   pillar: { id: 'gate-open', volume: 0.8 },
   fireworks: { id: 'firework', volume: 0.8 },
   meteors: { id: 'boom', volume: 0.5 },
@@ -746,12 +750,12 @@ export class GameRun {
       const { fwd } = this.cameraBasis();
       position.copy(this.director.pose.position).addScaledVector(fwd, 6);
     }
-    this.fxEvents.push({ key: nextKey(), kind: cue.kind, position, scale, color: cue.color });
+    this.fxEvents.push({ key: nextKey(), kind: cue.kind, position, scale, color: cue.color, landY: cue.landY, pieces: cue.pieces });
     if (this.fxEvents.length > 64) this.fxEvents.splice(0, this.fxEvents.length - 64);
     const sound = FX_SOUND[cue.kind];
     if (cue.sound) audio.playSfx(cue.sound, { volume: 1 });
     else if (sound) audio.playSfx(sound.id, { volume: sound.volume, rate: 0.9 + Math.random() * 0.2 });
-    if (cue.kind === 'lightning' || cue.kind === 'shockwave') this.shakeTime = Math.max(this.shakeTime, SHAKE_SEC * Math.min(1.5, scale));
+    if (cue.kind === 'lightning' || cue.kind === 'dustwave' || cue.kind === 'explosion' || cue.kind === 'pulse') this.shakeTime = Math.max(this.shakeTime, SHAKE_SEC * Math.min(1.5, scale));
   }
 
   private updatePendingFx(dt: number): void {
@@ -817,12 +821,12 @@ export class GameRun {
   }
 
   /** Beam struggle (§1B): where the player's beam aims and how far it has pushed (0–1). */
-  beamStruggle(out: Vector3): { progress: number; color: string } | null {
+  beamStruggle(out: Vector3): { progress: number; color: string; follow?: 'unwriter-quill' } | null {
     const def = this.encounter?.def;
     if (!def?.beam || this.encounter?.state === 'complete') return null;
     out.set(...def.beam.to);
     const p = this.encounterProgress(def.id);
-    return { progress: p.total > 0 ? p.done / p.total : 0, color: def.beam.color };
+    return { progress: p.total > 0 ? p.done / p.total : 0, color: def.beam.color, follow: def.beam.follow };
   }
 
   private startSpeedRound(def: EncounterDef): void {
@@ -1041,11 +1045,6 @@ export class GameRun {
       this.tally.words++;
       if (this.speed) this.speedRoundWord(target.position, target.spawn.labelHeight ?? 1);
     }
-    if (runner === this.encounter && this.boss?.def.phases.includes(runner.def.id)) {
-      this.boss.done = Math.min(this.boss.total, this.boss.done + 1);
-      patchRunUi({ boss: { id: this.boss.def.id, health: 1 - this.boss.done / Math.max(1, this.boss.total) } });
-    }
-
     const shieldBreak = isShielded(target);
     const frost = perfect && this.progress.unlockedSpells.includes('frost-thread');
     this.spellEvents.push({
@@ -1061,6 +1060,13 @@ export class GameRun {
     if (shieldBreak) audio.playSfx('shield-break');
 
     const result = runner.completeWord(targetId, mistakes);
+    // Only a word that moves the boss on takes health off: a Perfect Guardian shell word typed with a
+    // mistake comes back, and counting it too emptied the bar with words still to type.
+    const counts = result.counted && !target.spawn.optional && !target.spawn.challengeOnly;
+    if (counts && runner === this.encounter && this.boss?.def.phases.includes(runner.def.id)) {
+      this.boss.done = Math.min(this.boss.total, this.boss.done + 1);
+      patchRunUi({ boss: { id: this.boss.def.id, health: 1 - this.boss.done / Math.max(1, this.boss.total) } });
+    }
 
     if (perfect && this.progress.unlockedSpells.includes('bright-quill')) {
       // Bright Quill: a splash of colour where the perfect word lands, and a little extra score.
@@ -1129,7 +1135,7 @@ export class GameRun {
     audio.playSfx('chain-spark');
     const source = runner.targets.get(sourceId)?.position.clone();
     for (const v of victims) {
-      if (runner.dispel(v.id)) {
+      if (runner.dispel(v.id, CHAIN_TRAVEL_SEC)) {
         this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), from: source, targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 25;
         // Make it obvious the spell took this word (owner: "the 3rd disappeared on its own").
@@ -1152,7 +1158,7 @@ export class GameRun {
     this.emitFx({ kind: 'meteors', scale: 0.8, color: '#ffe6a0' }, this.director.pose.position.clone().addScaledVector(fwd, 8));
     for (const v of [...runner.targets.values()]) {
       if (v.id === sourceId || v.defeated || v.phase !== 'active' || !(v.spawn.weak || v.spawn.counter)) continue;
-      if (runner.dispel(v.id)) {
+      if (runner.dispel(v.id, CHAIN_TRAVEL_SEC)) {
         // Each star falls from the sky onto its foe.
         this.spellEvents.push({ key: nextKey(), kind: 'chain', to: v.position.clone(), from: v.position.clone().add(new Vector3(0, 7, 0)), targetId: v.id, shieldBreak: false });
         this.progress.metrics.score += 40;
@@ -1621,14 +1627,11 @@ export class GameRun {
     patchRunUi({ medal: { key: nextKey(), stars, bonus }, score: m.score });
   }
 
-  /** Boss name card and health bar (§1B). Health counts words already typed in finished phases. */
+  /** Boss name card and health bar (§1B). Health counts the words of finished phases and finished rounds. */
   private startBoss(def: BossDef): void {
     const total = bossWordTotal(def, this.level.encounters);
-    let done = 0;
-    for (const id of def.phases) {
-      if (!this.progress.completedEncounterIds.includes(id)) continue;
-      done += bossWordTotal({ ...def, phases: [id] }, this.level.encounters);
-    }
+    const current = this.encounter && def.phases.includes(this.encounter.def.id) ? { id: this.encounter.def.id, waveIndex: this.encounter.waveIndex } : undefined;
+    const done = bossWordsDone(def, this.level.encounters, this.progress.completedEncounterIds, current);
     this.boss = { def, total, done };
     patchRunUi({ boss: { id: def.id, health: 1 - done / Math.max(1, total) } });
   }
@@ -1650,6 +1653,8 @@ export class GameRun {
       this.queueBark(getLine('focus-reset'));
     }
     runner.restartWave();
+    // The round starts again, so its words go back on the boss's health bar.
+    if (this.boss?.def.phases.includes(runner.def.id)) this.startBoss(this.boss.def);
     this.refreshTargets();
   }
 

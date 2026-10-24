@@ -6,10 +6,11 @@
 import { GuardianOrbs, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group, type PointLight } from 'three';
+import { AdditiveBlending, Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group } from 'three';
 import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
 import { pipWorld } from '../../player/PipCompanion';
-import { DEER, SHORE_ORIGIN, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
+import { DEER, FLOCK, SHORE_CLIFF_Z, SHORE_ORIGIN, shorePathX, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
+import { GORGE_TOP_Z, GORGE_X, ShoreVista } from './ShoreVista';
 import { FALLS_ORIGIN, GALLERY3_ORIGIN, GALLERY_ARCH, JOURNAL, LIBRARY_DOOR, MARGIN_ORIGIN, PERFECT_WARDEN, RAFT_BEACHED_BEATS, RAFT_BEATS, RAFT_HOLD_BEATS, RAFT_WAITING, SLIDE_PITCH, SLIDE_SECTION_LENGTH, SLIDE_SECTIONS, WALKWAY_LENGTH, WALKWAYS } from '../../level/areas3/journey2';
 import { CITADEL_ORIGIN, FLIGHTS, flightChunk, FORGE_LINES, FORGE_ORIGIN, GALLEONS, SEA_ORIGIN, SHIP_BEATS } from '../../level/areas3/journey3';
 import type { Vec3 } from '../../level/rail/railTypes';
@@ -18,6 +19,7 @@ import { useRunStore } from '../../state/runStore';
 import { Fire, Restorable } from '../Fire';
 import { FireRope, linePath, ringPath } from '../FireRope';
 import { Bookshelf, Box, KitModel, Slab } from '../kit';
+import { fxSprite } from '../fxSprites';
 import { CastleDoor } from '../CastleDoor';
 import { MAT } from '../materials';
 import { Mira, StaticWarden } from '../props';
@@ -26,18 +28,24 @@ import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Prop, propUrl } from '../Prop';
 import { useGLTF } from '@react-three/drei';
 import { DeadForest } from '../DeadForest';
+import { GroundMist } from '../GroundMist';
 import { moltenInk, useMoltenFlow } from '../molten';
 import { LightBeam } from '../glow';
-import { worldCylinder, worldPlane } from '../surfaces';
+import { worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { surface } from '../surfaceTextures';
 import { SceneCreature } from '../areas2/common';
+import { CreatureModel } from '../../enemies/CreatureModel';
+import { emptyPose, type TargetPose } from '../../enemies/TargetVisuals';
 import { GalleryDressing, MarginDressing } from '../areas2/dressing';
 import { GalleryArchAtLibrary, GalleryFrontDoor, LibraryDoorAtFalls, LibraryFrontDoor } from './passages';
+import { PoolLight, VirtualLight } from '../LightPool';
 
 const ashDarkFlat = new MeshStandardMaterial({ color: '#2e2a28', roughness: 0.95 });
 /** Molten ink: cooled plates with glowing seams, flowing (see molten.ts). The ink stream in the forge stays a plain glow. */
 const redInk = moltenInk();
+/** Braziers and stakes in the Blank are black iron plate, not the academy's steel. */
+const IRON = { darkSteel: MAT.ironPlate };
 const ironSeam = new MeshStandardMaterial({ color: '#2a0804', roughness: 0.4, emissive: '#ff3a10', emissiveIntensity: 2 });
 /** Glowing blue ink: the edges of everything the apprentice writes into being. */
 const inkGlow = new MeshStandardMaterial({ color: '#9ec4ff', roughness: 0.3, emissive: '#3a7cff', emissiveIntensity: 2.4 });
@@ -118,7 +126,7 @@ function BurntTree(props: { position: Vec3; height?: number; seed?: number }) {
     <ModelBoundary fallback={fallback}>
       <Suspense fallback={fallback}>
         <Prop id="dead_tree" position={props.position} height={h} rotationY={(props.seed ?? 1) * 2.39} />
-        {(props.seed ?? 1) % 3 === 0 && <Fire position={[props.position[0], props.position[1] + h * 0.55, props.position[2]]} size={1.4} count={2} spread={0.8} smoke={false} />}
+        {(props.seed ?? 1) % 3 === 0 && <Fire position={[props.position[0], props.position[1] + h * 0.55, props.position[2]]} size={1.4} count={2} spread={0.8} />}
       </Suspense>
     </ModelBoundary>
   );
@@ -140,7 +148,7 @@ function ProceduralTree({ position, height = 9, seed = 1 }: { position: Vec3; he
       <mesh position={[0, height * 0.3, 0.3]} material={ironSeam}>
         <boxGeometry args={[0.06, height * 0.3, 0.06]} />
       </mesh>
-      {seed % 3 === 0 && <Fire position={[0, height * 0.7, 0]} size={1.4} count={2} spread={0.6} smoke={false} />}
+      {seed % 3 === 0 && <Fire position={[0, height * 0.7, 0]} size={1.4} count={2} spread={0.6} />}
     </group>
   );
 }
@@ -156,32 +164,31 @@ export function ShoreScene() {
   useMoltenFlow();
   return (
     <group position={SHORE_ORIGIN}>
-      <AshGround x={[-220, 220]} z={[-4, 260]} />
-      <AshGround x={[-220, 220]} z={[-260, -16]} />
+      {/* The ash plain runs out to the fog, forested all the way (owner, 2026-10-23) */}
+      <AshGround x={[-1500, 1500]} z={[-4, 400]} />
+      <AshGround x={[-1500, 1500]} z={[GORGE_TOP_Z, -16]} />
+      {/* Either side of the inkfall gorge (ShoreVista builds the ground the gorge is cut through) */}
+      <AshGround x={[-1500, GORGE_X[0]]} z={[SHORE_CLIFF_Z, GORGE_TOP_Z]} />
+      <AshGround x={[GORGE_X[1], 1500]} z={[SHORE_CLIFF_Z, GORGE_TOP_Z]} />
       {/* The river of molten red ink */}
-      <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(440, 12)} />
+      <mesh position={[0, -0.25, -10]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(3000, 12)} />
       {/* Stepping stones written across the ink */}
       {STONES.map((s, i) => (
         <Written key={i} flag={`l3-stone-${i + 1}`}>
-          <group position={sub(s, SHORE_ORIGIN)}>
-            <mesh material={MAT.rockGround} geometry={worldCylinder(1.1, 1.25, 0.45, 32)} castShadow receiveShadow />
-            <mesh position={[0, 0.23, 0]} rotation={[-Math.PI / 2, 0, 0]} material={inkGlow}>
-              <torusGeometry args={[1.08, 0.03, 8, 48]} />
-            </mesh>
-          </group>
+          <KitModel id="stepping_stone" position={sub(s, SHORE_ORIGIN)} rotationY={i * 1.9} />
         </Written>
       ))}
       {/* Burnt shell, boat and lantern on the beach, repainted when restored */}
-      <Restorable flag="l3-shell" fire={{ position: [-5, 0.3, -26], size: 0.8, count: 2, spread: 0.5, smoke: true }}>
-        <mesh position={[-5, 0.35, -26]} scale={[1, 0.6, 0.8]} material={MAT.petal}>
-          <sphereGeometry args={[0.7, 16, 10]} />
-        </mesh>
+      <Restorable flag="l3-shell" fire={{ position: [-5, 0.3, -26], size: 0.8, count: 2, spread: 0.5 }}>
+        <KitModel id="beach_shell" position={[-5, 0, -26]} rotationY={0.6} />
       </Restorable>
       <Restorable flag="l3-boat" fire={{ position: [7, 0.4, -28], size: 1.2, count: 3, spread: 1.6 }}>
-        <Box position={[7, 0.4, -28]} size={[1.4, 0.6, 3.6]} material={MAT.blueLeather} />
+        <KitModel id="beach_boat" position={[7, 0.1, -28]} rotationY={0.15} />
       </Restorable>
-      <Restorable flag="l3-lantern" fire={{ position: [-8, 1, -22], size: 0.6, count: 2, spread: 0.3, smoke: false }}>
-        <Box position={[-8, 0.6, -22]} size={[0.5, 1.2, 0.5]} material={MAT.agedBrass} />
+      <Restorable flag="l3-lantern" fire={{ position: [-8, 1, -22], size: 0.6, count: 2, spread: 0.3 }}>
+        <group name="beach-lantern">
+          <KitModel id="beach_lantern" position={[-8, 0, -22]} rotationY={0.3} />
+        </group>
       </Restorable>
       {[[-20, -40], [14, -50], [-34, -30], [30, -36], [-12, -60]].map(([x, z], i) => (
         <BurntTree key={i} position={[x ?? 0, 0, z ?? 0]} height={7 + i} seed={i + 1} />
@@ -189,9 +196,21 @@ export function ShoreScene() {
       {/* The edge of the Cinderwood: the same dense burnt forest starts here (owner: the shore looked
           like a bare wasteland next to the forest that follows). */}
       <Suspense fallback={null}>
-        <DeadForest pathX={() => 0} clear={14} depth={90} zRange={[-24, -200]} density={2.2} avoid={[[-5, -26, 3], [7, -28, 3], [-8, -22, 2]]} seed={5} />
-        <DeadForest pathX={() => 0} clear={18} depth={70} zRange={[60, 10]} density={1.4} seed={9} />
+        <DeadForest pathX={shorePathX} clear={14} depth={90} zRange={[-24, -200]} density={2.2} avoid={[[-5, -26, 3], [7, -28, 3], [-8, -22, 2]]} seed={5} />
+        <DeadForest pathX={() => 0} clear={18} depth={68} zRange={[130, 10]} density={2.2} seed={9} />
+        {/* Forest from side to side and out to the horizon, the path still clear down the middle, so the
+            view from the Warden's palm is dense barren forest everywhere (owner, 2026-10-23). Lighter trees
+            further out: 500 triangles in the middle belt, 150 in the far fill. */}
+        <DeadForest model="dead_tree_lod3" pathX={() => 0} clear={86} depth={130} zRange={[130, -2]} density={1.6} seed={13} />
+        <DeadForest model="dead_tree_lod3" pathX={shorePathX} clear={86} depth={130} zRange={[-18, -256]} density={1.6} seed={17} />
+        <DeadForest model="dead_tree_lod2" pathX={shorePathX} clear={14} depth={72} zRange={[-200, SHORE_CLIFF_Z + 6]} density={1.6} avoid={[[shorePathX(SHORE_CLIFF_Z), SHORE_CLIFF_Z + 20, 14]]} seed={19} />
+        <DeadForest model="dead_tree_lod3" pathX={shorePathX} clear={86} depth={520} zRange={[-256, SHORE_CLIFF_Z + 6]} density={1.5} seed={23} />
+        <DeadForest model="dead_tree_lod3" pathX={() => 0} clear={216} depth={390} zRange={[130, -2]} density={1.5} seed={29} />
+        <DeadForest model="dead_tree_lod3" pathX={shorePathX} clear={216} depth={390} zRange={[-18, -256]} density={1.5} seed={31} />
       </Suspense>
+      {/* Low mist over the forest, seen from the Warden's palm: the ground hidden, the treetops above it */}
+      <GroundMist x={[-1500, 1500]} z={[SHORE_CLIFF_Z, 400]} clear={14} pathX={shorePathX} fadeFar={30} opacity={0.5} />
+      <ShoreVista />
       <AshRocks spots={[[-9, -20, 2.2], [11, -24, 3], [-16, -36, 4], [18, -44, 2.6], [-4, -52, 1.8], [24, -20, 5], [-28, -12, 4.5], [6, 14, 1.6], [-14, 12, 2.4]]} />
       <StaticWarden position={[6, 0, 2]} scale={1.1} rotationY={-0.5} />
       <Mira position={[-2, 0, 3]} rotationY={0.3} />
@@ -262,6 +281,10 @@ export function CinderwoodScene() {
           </group>
         </Restorable>
       </OnBeatsL3>
+      {/* The flock: half-erased birds over the path; each word restores one, which flies off in colour */}
+      {FLOCK.map((at, i) => (
+        <FlockBird key={i} position={sub(at, WOOD_ORIGIN)} flag={i < 2 ? `l3-bird-${i + 1}` : 'l3-flock-free'} seed={i} />
+      ))}
       {/* The wall of fire the fireproof tortoise walks straight through */}
       {[-52, -58].map((z) => (
         <Fire key={z} position={[3, 0, z]} size={3.4} count={6} spread={12} light={z === -52} />
@@ -275,6 +298,46 @@ export function CinderwoodScene() {
 }
 
 const TORTOISE_RIDE_BEATS = ['l3-tortoise-ride'] as const;
+
+const FLOCK_BIRD_URL = `${import.meta.env.BASE_URL}assets/creatures/flock_bird.glb`;
+
+/**
+ * One bird of the Cinderwood flock (owner, 2026-10-23: "what is wing and song shooting at?"): it hovers
+ * half rubbed out, beating its wings, until its word restores it; then it turns and flies off up the path.
+ */
+function FlockBird({ position, flag, seed }: { position: Vec3; flag: string; seed: number }) {
+  const fly = useRef<Group>(null);
+  const pose = useRef<TargetPose>(emptyPose());
+  const since = useRef(-1);
+  useFrame((state, delta) => {
+    const g = fly.current;
+    if (!g) return;
+    const dt = Math.min(delta, 0.1);
+    pose.current.time += dt;
+    const restored = getRun()?.flags.has(flag) ?? false;
+    if (restored && since.current < 0) since.current = 0;
+    if (since.current >= 0) since.current += dt;
+    // A slow hover while erased; it beats its wings and flies once its colour has swept back (about 1 s).
+    pose.current.moving = since.current > 0.2;
+    const t = state.clock.elapsedTime + seed * 1.7;
+    const u = Math.max(0, since.current - 1.1);
+    g.position.set(position[0] + Math.sin(t * 0.7) * 0.15 + Math.sin(u * 1.3 + seed) * u * 0.6, position[1] + Math.sin(t * 1.3) * 0.12 + u * u * 0.5 + u * 1.2, position[2] - u * u * 1.6);
+    // It faces the camera while hovering, and turns to fly away up the path.
+    g.rotation.y = Math.min(1, u * 0.8) * Math.PI;
+    g.visible = u < 7;
+  });
+  return (
+    <group ref={fly} position={position} scale={1.6}>
+      <Restorable flag={flag} burning={false} erased>
+        <ModelBoundary fallback={null}>
+          <Suspense fallback={null}>
+            <CreatureModel url={FLOCK_BIRD_URL} pose={pose} />
+          </Suspense>
+        </ModelBoundary>
+      </Restorable>
+    </group>
+  );
+}
 
 /** The giant tortoise (AI-pipeline prop, 4.5 m tall, head along −Z); a mossy dome until it loads. */
 function GiantTortoise() {
@@ -416,7 +479,7 @@ function PaperRaft() {
     return c;
   }, []);
   return (
-    <group position={[0, 0, -0.8]}>
+    <group name="paper-raft" position={[0, 0, -0.8]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} material={sheet} receiveShadow>
         <planeGeometry args={[2.6, 4]} />
       </mesh>
@@ -561,25 +624,22 @@ export function MarginScene() {
       {/* Rocky undersides: the two halves of the hall are floating ruins, torn out of the ground */}
       {([[9, 14], [-36, 24]] as const).map(([z, len]) => (
         <group key={z} position={[0, -0.4, z]}>
-          <mesh rotation={[Math.PI, 0, 0]} position={[0, -7, 0]} scale={[1, 1, len / 18]} material={MAT.rockGround}>
-            <coneGeometry args={[10.5, 14, 9, 3]} />
-          </mesh>
+          <KitModel id="floating_rock" scale={[1, 1, len / 18]} castShadow={false} />
           {[-6, 0, 5].map((x, i) => (
-            <mesh key={x} rotation={[Math.PI, i, 0]} position={[x, -12 - i * 2, (i - 1) * 2]} material={MAT.rockGround}>
-              <coneGeometry args={[2.4, 9, 7]} />
-            </mesh>
+            <KitModel key={x} id="rock_spike" position={[x, -7.5 - i * 2, (i - 1) * 2]} rotationY={i} castShadow={false} />
           ))}
         </group>
       ))}
       {/* Broken arches still reaching across the chasm */}
       {[-6.5, 6.5].map((x) => (
         <group key={x} position={[x, 0, 1.6]}>
-          <mesh rotation={[0, Math.PI / 2, 0]} position={[0, 6, -6]} material={MAT.academyStone}>
-            <torusGeometry args={[6, 0.45, 12, 32, Math.PI * 0.45]} />
-          </mesh>
-          <mesh rotation={[0, -Math.PI / 2, Math.PI]} position={[0, 6, -19]} material={MAT.academyStone}>
-            <torusGeometry args={[6, 0.45, 12, 32, Math.PI * 0.38]} />
-          </mesh>
+          {/* Voussoir arches broken off part-way (kit_scene.py) */}
+          <group rotation={[0, Math.PI / 2, 0]} position={[0, 6, -6]}>
+            <KitModel id="arch_broken_a" />
+          </group>
+          <group rotation={[0, -Math.PI / 2, Math.PI]} position={[0, 6, -19]}>
+            <KitModel id="arch_broken_b" />
+          </group>
         </group>
       ))}
       {/* Stone side walls lined with tall bookcases (only where there is floor) */}
@@ -600,20 +660,12 @@ export function MarginScene() {
         [-1, 1].map((side) => {
           const h = (i + side) % 3 === 0 ? 4.5 : 10;
           return (
-            <group key={`${z}${side}`} position={[side * 7, 0, z]}>
-              <mesh position={[0, h / 2, 0]} material={MAT.academyStone} castShadow>
-                <cylinderGeometry args={[0.55, 0.65, h, 20]} />
-              </mesh>
-              <Box position={[0, 0.25, 0]} size={[1.6, 0.5, 1.6]} material={MAT.academyStone} />
-              {h > 5 && <Box position={[0, h + 0.25, 0]} size={[1.6, 0.5, 1.6]} material={MAT.academyStone} />}
-            </group>
+            <KitModel key={`${z}${side}`} id={h > 5 ? 'column_hall' : 'column_hall_broken'} position={[side * 7, 0, z]} rotationY={i + side} />
           );
         }),
       )}
       {/* Fallen columns and burning heaps of blank books */}
-      <mesh position={[-4.5, 0.55, 10]} rotation={[0, 0.5, Math.PI / 2]} material={MAT.academyStone} castShadow>
-        <cylinderGeometry args={[0.55, 0.55, 6, 18]} />
-      </mesh>
+      <KitModel id="column_fallen" position={[-4.5, 0, 10]} rotationY={0.5} />
       <Fire position={[5, 0, 11]} size={1.6} count={3} spread={1.2} light />
       <Fire position={[-6, 0, -33]} size={1.8} count={3} spread={1.4} />
       {/* Chandeliers still hanging from broken beams, lit */}
@@ -621,7 +673,7 @@ export function MarginScene() {
         <group key={i} position={[x ?? 0, y ?? 0, z ?? 0]}>
           <Box position={[0, 2.4, 0]} size={[18, 0.5, 0.6]} material={MAT.darkOak} />
           <Prop id="lantern_chandelier_01" position={[0, -0.4, 0]} height={2.2} />
-          <pointLight color="#ffc070" intensity={14} distance={20} decay={1.6} />
+          <PoolLight color="#ffc070" intensity={14} distance={20} decay={1.6} />
         </group>
       ))}
       {/* Bookcases torn loose, floating upside down above the chasm */}
@@ -689,12 +741,8 @@ export function Gallery3Scene() {
           <Slab x={side < 0 ? [-17.5, -16] : [16, 17.5]} y={[0, 12]} z={[-26, 22]} material={MAT.volcanicStone} />
           {[-20, -12, -4, 4, 12, 20].map((z) => (
             <group key={z} position={[side * 15.2, 0, z]}>
-              <mesh position={[0, 6.5, 0]} material={MAT.academyStoneDark} castShadow>
-                <cylinderGeometry args={[0.7, 0.8, 13, 20]} />
-              </mesh>
-              <Box position={[0, 0.3, 0]} size={[2, 0.6, 2]} material={MAT.volcanicStone} />
-              <Box position={[0, 13.2, 0]} size={[2, 0.6, 2]} material={MAT.volcanicStone} />
-              {z % 8 === 4 && <Fire position={[side * -0.9, 4, 0]} size={0.7} count={2} spread={0.2} smoke={false} kind="warm" light={z === 4} />}
+              <KitModel id="column_citadel" />
+              {z % 8 === 4 && <Fire position={[side * -0.9, 4, 0]} size={0.7} count={2} spread={0.2} kind="warm" light={z === 4} />}
             </group>
           ))}
         </group>
@@ -703,11 +751,11 @@ export function Gallery3Scene() {
       <Box position={[0, 0.02, -2]} size={[3, 0.04, 40]} material={MAT.burgundyLeather} />
       {/* Stolen treasures: the courtyard fountain, the Bell Bridge bell, the Great Hall clock */}
       <Plinth position={[-6, 0, -2]} size={[4.4, 0.6, 4.4]} />
-      <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.6, -2], size: 1, count: 2, spread: 1.6, smoke: false }}>
+      <Restorable flag="l3-sculpt-1" fire={{ position: [-6, 1.6, -2], size: 1, count: 2, spread: 1.6 }}>
         <KitModel id="fountain_basin" position={[-6, 0.72, -2]} />
       </Restorable>
       <Plinth position={[6, 0, -4]} />
-      <Restorable flag="l3-sculpt-2" fire={{ position: [6, 1.6, -4], size: 1, count: 2, spread: 1.6, smoke: false }}>
+      <Restorable flag="l3-sculpt-2" fire={{ position: [6, 1.6, -4], size: 1, count: 2, spread: 1.6 }}>
         <group position={[6, 0.72, -4]}>
           {[-1.2, 1.2].map((x) => (
             <Box key={x} position={[x, 2, 0]} size={[0.25, 4, 0.25]} material={MAT.darkOak} />
@@ -819,7 +867,7 @@ function IronGiant({ height }: { height: number }) {
           <Box position={[x * 0.6, 1.4, 0]} size={[0.8, 2.8, 0.8]} material={MAT.ironPlate} />
         </group>
       ))}
-      <Fire position={[0, 4.6, 0.8]} size={1.2} count={2} spread={0.6} smoke={false} />
+      <Fire position={[0, 4.6, 0.8]} size={1.2} count={2} spread={0.6} />
     </group>
   );
 }
@@ -859,7 +907,7 @@ function Galleon({ position, index }: { position: Vec3; index: number }) {
           </Suspense>
         </ModelBoundary>
         <Fire position={[0, 1.4, 8]} size={2} count={3} spread={1} light={index === 2} />
-        <Fire position={[0, 9, 0]} size={3} count={4} spread={5} smoke fromFlag={`l3-mast-${index}-down`} />
+        <Fire position={[0, 9, 0]} size={3} count={4} spread={5} fromFlag={`l3-mast-${index}-down`} />
       </group>
     </group>
   );
@@ -936,11 +984,9 @@ function OrigamiProw() {
         </mesh>
       ))}
       {/* The bow lantern on a post at the very tip */}
-      <mesh position={[0, 0.7, -5.0]} material={MAT.darkOak}>
-        <cylinderGeometry args={[0.04, 0.05, 1.3, 8]} />
-      </mesh>
-      <Prop id="wooden_lantern_01" position={[0, 1.25, -5.05]} height={0.45} />
-      <pointLight position={[0, 1.5, -5.0]} color="#ffc070" intensity={5} distance={9} decay={2} />
+      <KitModel id="lantern_post" position={[0, 0.05, -5.0]} castShadow={false} />
+      <Prop id="wooden_lantern_01" position={[0, 1.37, -5.05]} height={0.45} />
+      <PoolLight position={[0, 1.5, -5.0]} color="#ffc070" intensity={5} distance={9} decay={2} />
     </group>
   );
 }
@@ -1001,7 +1047,7 @@ export function SeaScene() {
 
 /** A giant forge hammer machine (AI-pipeline prop); each slam flares the anvil (light pulse and sparks). */
 function Hammer({ position, phase }: { position: Vec3; phase: number }) {
-  const glow = useRef<PointLight>(null);
+  const glow = useRef<VirtualLight>(null);
   useFrame((state) => {
     const t = (state.clock.elapsedTime * 0.5 + phase) % 1;
     // Slow lift, fast slam: the anvil flares right after each strike.
@@ -1021,8 +1067,8 @@ function Hammer({ position, phase }: { position: Vec3; phase: number }) {
           <Prop id="forge_hammer" position={[0, 0, 0]} height={16} rotationY={phase * 3} />
         </Suspense>
       </ModelBoundary>
-      <pointLight ref={glow} position={[0, 6, 2]} color="#ff7a2a" intensity={30} distance={22} decay={2} />
-      <Fire position={[0, 5.6, 0]} size={2} count={3} spread={2} kind="warm" smoke={false} />
+      <PoolLight ref={glow} position={[0, 6, 2]} color="#ff7a2a" intensity={30} distance={22} decay={2} />
+      <Fire position={[0, 5.6, 0]} size={2} count={3} spread={2} kind="warm" />
     </group>
   );
 }
@@ -1063,7 +1109,7 @@ export function ForgeScene() {
             </Suspense>
           </ModelBoundary>
           <Box position={[0, 7.4, -22]} size={[4.4, 0.3, 0.3]} material={MAT.ironPlate} />
-          <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} smoke={false} />
+          <Fire position={[0, 10.6, -22]} size={1} count={2} spread={1.4} />
           {/* Molten ink pouring from the cauldron: a rendered glowing stream (was a flat-glow rod) */}
           <group position={[0, 7.4, -22]} rotation={[Math.PI, 0, 0]}>
             <LightBeam height={6.6} width={0.55} color="#ff4a12" intensity={1.4} />
@@ -1143,10 +1189,8 @@ export function CitadelScene() {
       {[1, 2, 3].map((n) => (
         <group key={n}>
           <Box position={[0, n * 8 - 0.3, -n * 12 + 2]} size={[10, 0.6, 6]} material={MAT.volcanicStone} />
-          <mesh position={[-4, n * 8 + 0.6, -n * 12 + 2]} material={MAT.ironPlate}>
-            <cylinderGeometry args={[0.6, 0.3, 1.2, 12]} />
-          </mesh>
-          <Fire position={[-4, n * 8 + 1.2, -n * 12 + 2]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} light={n === 2} />
+          <KitModel id="iron_brazier" position={[-4, n * 8, -n * 12 + 2]} rotationY={n} overrides={IRON} />
+          <Fire position={[-4, n * 8 + 1.2, -n * 12 + 2]} size={1.1} count={3} spread={0.5} kind="warm" light={n === 2} />
         </group>
       ))}
       {/* The top landing, from the last flight right up to the doors (owner: there was a gap between
@@ -1154,10 +1198,8 @@ export function CitadelScene() {
       <Box position={[0, 31.7, -50]} size={[10, 0.6, 14]} material={MAT.volcanicStone} />
       {[-1, 1].map((s) => (
         <group key={s}>
-          <mesh position={[s * 4, 32.6, -50]} material={MAT.ironPlate}>
-            <cylinderGeometry args={[0.6, 0.3, 1.2, 12]} />
-          </mesh>
-          <Fire position={[s * 4, 33.2, -50]} size={1.1} count={3} spread={0.5} kind="warm" smoke={false} />
+          <KitModel id="iron_brazier" position={[s * 4, 32, -50]} overrides={IRON} />
+          <Fire position={[s * 4, 33.2, -50]} size={1.1} count={3} spread={0.5} kind="warm" />
         </group>
       ))}
       {/* The great doors to the Throne of Blank Pages, standing on the landing */}
@@ -1165,7 +1207,7 @@ export function CitadelScene() {
       <Prop id="large_castle_door" position={[0, 32, -55.9]} height={8} />
       <Fire position={[0, 33, -55]} size={3} count={4} spread={8} light />
       <group ref={rising}>
-        <Fire position={[0, 0, -20]} size={6} count={6} spread={14} light smoke={false} />
+        <Fire position={[0, 0, -20]} size={6} count={6} spread={14} light />
       </group>
     </group>
   );
@@ -1237,16 +1279,14 @@ function BoundWarden({ position }: { position: Vec3 }) {
             <FireRope points={loops[i] ?? []} closed width={0.42} tile={0.9} speed={0.3 * ((BINDINGS[i]?.[3] ?? 1))} />
           </group>
         ))}
-        <pointLight position={[0, 1.9, 0.8]} color="#ff5a2a" intensity={40} distance={6} decay={2} />
+        <PoolLight position={[0, 1.9, 0.8]} color="#ff5a2a" intensity={40} distance={6} decay={2} />
         {chains.map((points, i) => (
           <FireRope key={i} points={points} width={0.36} tile={1.1} speed={0.4} />
         ))}
         {STAKES.map((p, i) => (
           <group key={i} position={p}>
-            <mesh position={[0, 0.3, 0]} material={MAT.ironPlate}>
-              <cylinderGeometry args={[0.08, 0.14, 0.6, 8]} />
-            </mesh>
-            <Fire position={[0, 0.6, 0]} size={0.6} count={1} spread={0.2} smoke={false} />
+            <KitModel id="iron_stake" rotationY={i} />
+            <Fire position={[0, 0.6, 0]} size={0.6} count={1} spread={0.2} />
           </group>
         ))}
       </group>
@@ -1277,7 +1317,7 @@ function UnwriterFallback() {
         <mesh rotation={[0, 0, 0.5]} material={MAT.ironPlate}>
           <coneGeometry args={[0.12, 2.4, 8]} />
         </mesh>
-        <Fire position={[0, 1, 0]} size={0.9} count={2} spread={0.3} smoke={false} />
+        <Fire position={[0, 1, 0]} size={0.9} count={2} spread={0.3} />
       </group>
     </group>
   );
@@ -1286,6 +1326,8 @@ function UnwriterFallback() {
 export function ThroneScene() {
   useMoltenFlow();
   const ring = useRef<Group>(null);
+  // A ring of burning red script (Flux-painted, fx_sprites.py script_ring).
+  const scriptRing = useMemo(() => fxSprite('script_ring'), []);
   const book = useRef<Group>(null);
   const grow = useRef<Group>(null);
   const size = useRef(1);
@@ -1323,10 +1365,8 @@ export function ThroneScene() {
       {/* Braziers ringing the platform */}
       {Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2).map((a, i) => (
         <group key={i} position={[Math.cos(a) * 12.5, 0, Math.sin(a) * 12.5]}>
-          <mesh position={[0, 0.6, 0]} material={MAT.ironPlate}>
-            <cylinderGeometry args={[0.5, 0.3, 1.2, 10]} />
-          </mesh>
-          <Fire position={[0, 1.2, 0]} size={1.4} count={2} spread={0.4} smoke={false} light={i % 4 === 0} />
+          <KitModel id="iron_brazier" rotationY={a} overrides={IRON} />
+          <Fire position={[0, 1.2, 0]} size={1.4} count={2} spread={0.4} light={i % 4 === 0} />
         </group>
       ))}
       {/* The Unwriter's throne of charred book pages (AI-pipeline prop; boxes until it loads) */}
@@ -1339,7 +1379,7 @@ export function ThroneScene() {
       {/* The sea of fire far below */}
       <mesh position={[0, -60, 0]} rotation={[-Math.PI / 2, 0, 0]} material={redInk} geometry={worldPlane(600, 600)} />
       {[[-40, -60, -30], [50, -60, -60], [0, -60, -90], [-60, -60, 20]].map((p, i) => (
-        <Fire key={i} position={p as unknown as Vec3} size={18} count={4} spread={30} smoke={false} />
+        <Fire key={i} position={p as unknown as Vec3} size={18} count={4} spread={30} />
       ))}
       <group ref={grow} position={unwriter}>
       <SceneCreature
@@ -1359,8 +1399,9 @@ export function ThroneScene() {
       </group>
       {/* Pip caught in a ring of burning red script, beside the apprentice */}
       <group ref={ring}>
-        <mesh material={ironSeam}>
-          <torusGeometry args={[0.2, 0.014, 8, 32]} />
+        <mesh>
+          <planeGeometry args={[0.5, 0.5]} />
+          <meshBasicMaterial map={scriptRing} transparent blending={AdditiveBlending} depthWrite={false} side={DoubleSide} toneMapped={false} />
         </mesh>
       </group>
       {/* The Unwriter's own blank book, slammed shut with a gold seal */}

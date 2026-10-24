@@ -122,7 +122,7 @@ export const lake: AreaScript = {
       completeFx: [
         { kind: 'flash' },
         { kind: 'pillar', at: 'LAKE_LAMP', scale: 1.8, color: '#ffd27a' },
-        { kind: 'shockwave', at: 'LAKE_LAMP', scale: 2.5, color: '#ffd27a' },
+        { kind: 'pulse', at: 'LAKE_LAMP', scale: 2.5, color: '#ffd27a' },
       ],
     },
   ],

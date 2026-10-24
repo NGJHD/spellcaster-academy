@@ -9,9 +9,8 @@ import { ModelBoundary } from './ModelBoundary';
 import { Fire } from '../scene/Fire';
 import { Guardian } from './GuardianGLB';
 import { Book, Dummy, ThornPod } from './PropTargets';
-import { APPEAR_SEC, DISPEL_SEC, isShielded, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
+import { APPEAR_SEC, DISPEL_SEC, isShielded, PROJECTILE_SEC, SHIELD_BREAK_SEC, type TargetRuntime } from './EnemyBrain';
 import {
-  ClaspModel,
   emptyPose,
   FlyingPageModel,
   MosslingModel,
@@ -46,7 +45,7 @@ function Model({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject<TargetPose
         <CreatureModel url={url} pose={pose} tint={spawn.variant} />
         {spawn.kind === 'wisp' && <WispShield pose={pose} />}
       </Suspense>
-      {spawn.kind === 'smudgehound' && <Fire position={[0, 0.6, 0]} size={0.6} count={2} spread={0.6} smoke={false} />}
+      {spawn.kind === 'smudgehound' && <Fire position={[0, 0.6, 0]} size={0.6} count={2} spread={0.6} />}
     </ModelBoundary>
   );
 }
@@ -86,8 +85,6 @@ function PlaceholderModel({ spawn, pose }: { spawn: TargetSpawn; pose: RefObject
       return <HushModel pose={pose} kind={spawn.kind} />;
     case 'gem':
       return <GemModel pose={pose} seed={spawn.id} />;
-    case 'clasp':
-      return <ClaspModel pose={pose} />;
     case 'flying-page':
       return <FlyingPageModel pose={pose} />;
     case 'plate':
@@ -104,7 +101,8 @@ function writePose(t: TargetRuntime, p: TargetPose): void {
   p.appear = t.phase === 'appearing' ? Math.min(1, t.phaseTime / APPEAR_SEC) : t.phase === 'waiting' ? 0 : 1;
   p.windup = t.attackPhase === 'windup' && t.windupTotal > 0 ? Math.min(1, t.attackTimer / t.windupTotal) : 0;
   p.hit = t.sinceHit >= 0 && t.sinceHit < HIT_SEC ? 1 - t.sinceHit / HIT_SEC : 0;
-  p.defeated = t.defeated;
+  // A foe a Chain Spark is still flying towards keeps its live pose until the last bolt-flight moment.
+  p.defeated = t.defeated && !(t.phase === 'dispelling' && t.phaseTime < -PROJECTILE_SEC);
   p.dispel = t.phase === 'dispelling' ? Math.max(0, t.phaseTime) / DISPEL_SEC : t.phase === 'gone' ? 1 : 0;
   p.stunned = t.phase === 'stunned' ? Math.max(0, t.phaseTime) / SHIELD_BREAK_SEC : 0;
   p.shielded = isShielded(t) && t.phase !== 'stunned';
@@ -123,6 +121,7 @@ const easeOutBack = (x: number) => {
 function TargetView({ id }: { id: string }) {
   const group = useRef<Group>(null);
   const pose = useRef<TargetPose>(emptyPose());
+  const faced = useRef(false);
   const spawn = getRun()?.findTarget(id)?.spawn;
 
   useFrame((state) => {
@@ -142,7 +141,12 @@ function TargetView({ id }: { id: string }) {
       const dx = state.camera.position.x - t.position.x;
       const dz = state.camera.position.z - t.position.z;
       const yaw = Math.atan2(dx, dz);
-      // Ease toward the camera rather than snapping.
+      // Already facing the camera when it first shows (owner, 2026-10-24: the reassembled stair guard
+      // turned its back for a moment), then eases round as things move rather than snapping.
+      if (!faced.current) {
+        g.rotation.y = yaw;
+        faced.current = true;
+      }
       let diff = yaw - g.rotation.y;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
       g.rotation.y += diff * 0.15;
@@ -150,7 +154,7 @@ function TargetView({ id }: { id: string }) {
     const p = pose.current;
     // Arcade targets (Practice Gallery) spin as they pop up.
     if (t.spawn.variant === 'practice' && p.appear < 1) g.rotation.y += (1 - p.appear) * 0.9;
-    let scale = easeOutBack(p.appear);
+    let scale = t.spawn.inPlace ? 1 : easeOutBack(p.appear);
     if (t.phase === 'dispelling' && !t.spawn.persist) scale *= Math.max(0, 1 - p.dispel * 1.1);
     g.scale.setScalar(Math.max(0.001, scale));
   }, -1);

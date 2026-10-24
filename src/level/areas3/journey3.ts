@@ -36,7 +36,7 @@ export const flightChunk = (i: number): { dy: number; dz: number } => ({ dy: 1 +
 const streaming = (id: string, side: number, word = len(3, 4)) => colour(id, S(0, 0, 0), word, `l3-${id}`, { follow: { ahead: 4.6, side, up: 0.1 }});
 
 /** A galleon's mast: two words bring it down in flames. */
-const mast = (id: string, at: Vec3) => target(id, 'marker', at, [len(5, 6), len(5, 6)], { labelHeight: 0.5, defeatFlag: `l3-${id}-down`, defeatFx: { kind: 'debris', scale: 2.2, color: '#1a1414' } });
+const mast = (id: string, at: Vec3) => target(id, 'marker', at, [len(5, 6), len(5, 6)], { labelHeight: 0.5, defeatFlag: `l3-${id}-down`, defeatFx: { kind: 'debris', scale: 2.2, color: '#1a1414', pieces: 'wood' } });
 
 export const sea: AreaScript = {
   nodes: {
@@ -133,7 +133,7 @@ function line(n: 1 | 2 | 3, words: readonly [string, string, string], guard: 'bl
     onComplete: { flags: [`l3-line-${n}`] },
     // The line's furnace blows out in a cascade of sparks; the stolen things drift home in colour.
     completeFx: [
-      { kind: 'shockwave', at: F(x, 3, -26), scale: 2, color: '#ff7a2a' },
+      { kind: 'pulse', at: F(x, 3, -26), scale: 2, color: '#ff7a2a' },
       { kind: 'burst', at: F(x, 4, -26), scale: 2.4, color: '#ffd24a' },
       { kind: 'pillar', at: F(x, 2, -26), scale: 1, color: '#7ae0a0' },
       { kind: 'shake', scale: 1.4 },
@@ -152,7 +152,7 @@ export const forge: AreaScript = {
   },
   beats: [
     fade('l3-forge-enter', K, 'FG_START', { music: 'citadel-battle', objective: 'l3-forge', barks: ['l3-forge-1'] }),
-    reveal('l3-forge-reveal', K, 'FG_START', ['FG_HAMMERS'], 0.8, 0.8, { attention: 'spectacle', fx: [{ kind: 'shockwave', at: 'FG_HAMMERS', atBeat: 0.5, scale: 2, color: '#ff5a1a' }, { kind: 'shake', atBeat: 0.5 }] }),
+    reveal('l3-forge-reveal', K, 'FG_START', ['FG_HAMMERS'], 0.8, 0.8, { attention: 'spectacle', fx: [{ kind: 'dustwave', at: 'FG_HAMMERS', atBeat: 0.5, scale: 2, color: '#6a625a' }, { kind: 'shake', atBeat: 0.5 }] }),
     travel('l3-forge-to-post', K, ['FG_START', 'FG_POST'], 3, { barks: ['l3-forge-levers'] }),
     fight('l3-forge-line-1', K),
     fight('l3-forge-line-2', K, { barks: ['l3-forge-2'] }),
@@ -221,8 +221,8 @@ export const citadel: AreaScript = {
     reveal('l3-doors-smash', T, 'CT_4', ['CT_DOORS'], 0.6, 0.8, {
       attention: 'spectacle',
       fx: [
-        { kind: 'shockwave', at: 'CT_DOORS', atBeat: 0.3, scale: 2.4, color: '#ff5a1a' },
-        { kind: 'debris', at: 'CT_DOORS', atBeat: 0.3, scale: 3, color: '#1a1414' },
+        { kind: 'dustwave', at: 'CT_DOORS', atBeat: 0.3, scale: 2.4, color: '#6a625a' },
+        { kind: 'debris', at: 'CT_DOORS', atBeat: 0.3, scale: 3, color: '#1a1414', pieces: 'metal' },
         { kind: 'shake', atBeat: 0.3, scale: 2 },
       ],
     }),

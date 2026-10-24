@@ -29,6 +29,8 @@ interface SurfaceSpec {
   readonly tint?: string;
   /** Brightness multiplier on top of the tint (for neutral maps coloured by vertex colour). */
   readonly gain?: number;
+  /** Texture filtering sharpness at grazing angles (8 by default); lower blurs fine detail that shimmers. */
+  readonly anisotropy?: number;
 }
 
 /** Which CC0 set dresses which shared material (material library). */
@@ -42,7 +44,10 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   darkOak: { texture: 'dark_wooden_planks', tileMetres: 2, tint: '#b49a88' },
   plaster: { texture: 'plastered_wall_04', tileMetres: 3, tint: '#fff1dc' },
   slate: { texture: 'roof_slates_02', tileMetres: 2.5, tint: '#6f7886' },
-  grass: { texture: 'leafy_grass', tileMetres: 3, tint: '#a8c87a' },
+  // Meadows painted by Flux (ground_textures.py; owner, 2026-10-24: the old grass looked like Minecraft):
+  // lush grass for lawns and fields, and a drier, wilder one for Level 2's far bank.
+  grass: { texture: 'green_meadow', tileMetres: 7, tint: '#e8f2dc', normalScale: 1.1 },
+  dryMeadow: { texture: 'wild_meadow', tileMetres: 6, normalScale: 1.2 },
   soil: { texture: 'farm_soil', tileMetres: 2 },
   burgundyLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#c25a5a' },
   greenLeather: { texture: 'brown_leather', tileMetres: 0.6, tint: '#5f9a78' },
@@ -56,19 +61,22 @@ export const SURFACES: Partial<Record<keyof typeof MAT, SurfaceSpec>> = {
   panelWood: { texture: 'dark_paneled_wood', tileMetres: 2, tint: '#d8c0a8' },
   linen: { texture: 'rough_linen', tileMetres: 0.6, tint: '#f2e8d8' },
   navyCloth: { texture: 'rough_linen', tileMetres: 0.6, tint: '#4a5f90' },
-  burntGround: { texture: 'burned_ground_01', tileMetres: 4, tint: '#c8b0a4' },
+  // Softened (ground_textures.py burned_ground_soft): the photo's fine needles shimmered as the camera moved.
+  burntGround: { texture: 'burned_ground_soft', tileMetres: 4, tint: '#c8b0a4', anisotropy: 2 },
   crackedRedGround: { texture: 'cracked_red_ground', tileMetres: 3, tint: '#e0b0a0' },
   rockGround: { texture: 'rock_ground_02', tileMetres: 3, tint: '#b8aca8' },
   earth: { texture: 'farm_soil', tileMetres: 3, tint: '#e8c8a0' },
   volcanicStone: { texture: 'volcanic_rock_tiles', tileMetres: 2.5, tint: '#8a8088', normalScale: 1.2 },
   ironPlate: { texture: 'metal_plate', tileMetres: 2, tint: '#5a5a62' },
+  weatheredBrass: { texture: 'rusty_metal_03', tileMetres: 0.8, tint: '#ffe2a8', normalScale: 1.4 },
+  scorchedIron: { texture: 'rust_coarse_01', tileMetres: 1, tint: '#7a6458', normalScale: 1.6 },
 };
 
 const loader = new TextureLoader();
 const cache = new Map<string, Texture>();
 
-function load(path: string, srgb: boolean, repeat: number): Texture {
-  const key = `${path}|${repeat}`;
+function load(path: string, srgb: boolean, repeat: number, anisotropy = 8): Texture {
+  const key = `${path}|${repeat}|${anisotropy}`;
   const cached = cache.get(key);
   if (cached) return cached;
   const tex = loader.load(path);
@@ -76,7 +84,7 @@ function load(path: string, srgb: boolean, repeat: number): Texture {
   tex.wrapS = RepeatWrapping;
   tex.wrapT = RepeatWrapping;
   tex.repeat.set(repeat, repeat);
-  tex.anisotropy = 8;
+  tex.anisotropy = anisotropy;
   cache.set(key, tex);
   return tex;
 }
@@ -92,10 +100,11 @@ export function applySurfaceTextures(): void {
     const material = MAT[key] as MeshStandardMaterial;
     const repeat = 1 / spec.tileMetres;
     const dir = `${base}${spec.texture}/`;
-    material.map = load(`${dir}diff.jpg`, true, repeat);
-    material.normalMap = load(`${dir}nor.jpg`, false, repeat);
+    const aniso = spec.anisotropy ?? 8;
+    material.map = load(`${dir}diff.jpg`, true, repeat, aniso);
+    material.normalMap = load(`${dir}nor.jpg`, false, repeat, aniso);
     material.normalScale = new Vector2(spec.normalScale ?? 1, spec.normalScale ?? 1);
-    const arm = load(`${dir}arm.jpg`, false, repeat);
+    const arm = load(`${dir}arm.jpg`, false, repeat, aniso);
     material.aoMap = arm;
     material.roughnessMap = arm;
     material.roughness = 1;

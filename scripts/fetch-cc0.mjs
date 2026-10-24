@@ -30,7 +30,6 @@ export const MANIFEST = {
     'fine_grained_wood',
     'plastered_wall_04',
     'roof_slates_02',
-    'leafy_grass',
     'farm_soil',
     'marble_01',
     'brown_leather',
@@ -47,6 +46,15 @@ export const MANIFEST = {
     'castle_brick_07',
     'worn_planks',
     'leather_white',
+    // Level 3's burnt ground, rock and volcanic tiles.
+    'burned_ground_01',
+    'cracked_red_ground',
+    'volcanic_rock_tiles',
+    'rock_ground_02',
+    'aerial_rocks_02',
+    // Weathered metal with strong local contrast for props in the gritty Level 3 scenes.
+    'rusty_metal_03',
+    'rust_coarse_01',
   ],
   models: [
     'island_tree_01',

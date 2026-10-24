@@ -26,6 +26,7 @@ export const MAT = {
   plaster: std('#e3d3b4', 0.95),
   carpet: std('#2a3a62', 0.95),
   grass: std('#6b8a48', 1),
+  dryMeadow: std('#ffffff', 1),
   hedge: std('#3d6634', 1),
   leaf: std('#4d8a3c', 0.8, 0, { side: DoubleSide }),
   moss: std('#5c7d34', 1),
@@ -48,7 +49,9 @@ export const MAT = {
   }),
   wardStone: std('#e2dccd', 0.6),
   marble: std('#ece7dd', 0.35),
-  water: new MeshPhysicalMaterial({ color: '#7fb6cf', roughness: 0.05, metalness: 0, transmission: 0.3, transparent: true, opacity: 0.85 }),
+  // Plain transparency, no refraction: any refracting material on screen re-renders the whole scene each
+  // frame with a second variant of every shader (and compiling those stalled area changes).
+  water: new MeshPhysicalMaterial({ color: '#7fb6cf', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.85 }),
   glass: new MeshPhysicalMaterial({ color: '#e4f2ee', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.14, depthWrite: false, side: DoubleSide }),
   crystal: std('#cfe8ff', 0.15, 0, { emissive: '#5aa8ff', emissiveIntensity: 1.6 }),
   crystalDim: std('#8aa0b8', 0.3, 0, { emissive: '#1d3555', emissiveIntensity: 0.4 }),
@@ -73,7 +76,8 @@ export const MAT = {
   bookLeather: std('#ffffff', 0.6, 0, { vertexColors: true }),
   pageEdge: std('#e4d2a8', 0.92),
   ink: std('#2a2018', 0.6),
-  inkGlass: std('#1d2a3f', 0.08, 0.1, { transparent: true, opacity: 0.85 }),
+  /** The spilled inkwell's bottle: bright green glass, so it stands out from the ink round it. */
+  inkGlass: new MeshPhysicalMaterial({ color: '#4fbf7a', roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, transparent: true, opacity: 0.55, depthWrite: false }),
   inkPool: std('#14183a', 0.05),
   velvet: std('#2c3f6e', 0.9),
   jacquard: std('#2a3a62', 0.85),
@@ -99,4 +103,7 @@ export const MAT = {
   volcanicStone: std('#3a3436', 0.9),
   /** Riveted dark iron plates (forge machinery). */
   ironPlate: std('#4a4a50', 0.5, 0.7),
+  /** Tarnished, grimy brass and scorched, rust-pitted iron: weathered metal for props in the gritty Blank. */
+  weatheredBrass: std('#c49a4f', 0.5, 0.9),
+  scorchedIron: std('#3a3634', 0.7, 0.7),
 };

@@ -99,35 +99,6 @@ def star_page(name, glow_name="Energy"):
     _smooth(mb.finish(name))
 
 
-def clasp(name):
-    """Book clasp (Grimoire G1 target): curved brass strap, hinge barrel, catch with a moonstone."""
-    lib = K.lib()
-    crystal = K.library_material("Crystal", "#cfe8ff", 0.1, emission="#5aa8ff", strength=2)
-    mb = K.MeshBuilder([lib["agedBrass"], crystal])
-    brass = lib["agedBrass"]
-    # Strap: a gently curved band in the XZ plane, facing -Y.
-    seg = 10
-    w, h, t = 0.14, 0.34, 0.012
-    for i in range(seg):
-        z0 = -h / 2 + h * i / seg
-        z1 = -h / 2 + h * (i + 1) / seg
-        y0 = -0.03 * math.sin(math.pi * i / seg)
-        y1 = -0.03 * math.sin(math.pi * (i + 1) / seg)
-        mb.face([(-w / 2, y0 - t, z0), (w / 2, y0 - t, z0), (w / 2, y1 - t, z1), (-w / 2, y1 - t, z1)], brass, None, (0, -1, 0))
-        mb.face([(-w / 2, y0, z0), (-w / 2, y1, z1), (w / 2, y1, z1), (w / 2, y0, z0)], brass, None, (0, 1, 0))
-        mb.face([(-w / 2, y0, z0), (-w / 2, y0 - t, z0), (-w / 2, y1 - t, z1), (-w / 2, y1, z1)], brass, None, (-1, 0, 0))
-        mb.face([(w / 2, y0, z0), (w / 2, y1, z1), (w / 2, y1 - t, z1), (w / 2, y0 - t, z0)], brass, None, (1, 0, 0))
-    # Raised border rails and rivets.
-    for x in (-w / 2 + 0.008, w / 2 - 0.008):
-        K.box_faces(mb, (x - 0.006, -0.05, -h / 2 + 0.02), (x + 0.006, -0.038, h / 2 - 0.02), brass)
-    # Hinge barrel at the top, catch plate at the bottom.
-    K.lathe(mb, [(0.02, -w / 2 - 0.01), (0.02, w / 2 + 0.01)], brass, centre=(0, 0, 0), segments=12, cap_top=True, cap_bottom=True, matrix=K.Matrix.Translation((0, -0.01, h / 2)) @ K.Matrix.Rotation(math.pi / 2, 4, "Y"))
-    K.box_faces(mb, (-0.09, -0.06, -h / 2 - 0.04), (0.09, -0.02, -h / 2 + 0.06), brass)
-    # Moonstone cabochon set into the catch.
-    K.lathe(mb, [(0.035, 0.0), (0.034, 0.012), (0.026, 0.024), (0.012, 0.031), (0.0, 0.033)], crystal, centre=(0, 0, 0), segments=20, cap_top=False, matrix=K.Matrix.Translation((0, -0.06, -h / 2 + 0.01)) @ K.Matrix.Rotation(math.pi / 2, 4, "X"))
-    return _smooth(mb.finish(name))
-
-
 def warden_plate(name):
     """Carved limestone armour plate of the Ward Warden: a curved shell with a moulded rim and a glowing motif."""
     lib = K.lib()

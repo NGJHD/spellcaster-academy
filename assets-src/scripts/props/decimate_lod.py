@@ -1,10 +1,10 @@
 """
 Writes a low-detail copy of a prop GLB for dense, instanced background use (a forest of hundreds).
 
-    blender --background --python assets-src/scripts/props/decimate_lod.py -- <prop id> <triangles>
+    blender --background --python assets-src/scripts/props/decimate_lod.py -- <prop id> <triangles> [level]
 
 Reads public/assets/props/<id>.glb, decimates to about <triangles>, keeps the texture, writes
-public/assets/props/<id>_lod1.glb.
+public/assets/props/<id>_lod<level>.glb (level 1 by default; dead_tree_lod2 is the far forest belt).
 """
 import os
 import sys
@@ -13,9 +13,10 @@ import bpy
 
 args = sys.argv[sys.argv.index("--") + 1:]
 NAME, TRIS = args[0], int(args[1])
+LEVEL = int(args[2]) if len(args) > 2 else 1
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 src = os.path.join(ROOT, "public", "assets", "props", f"{NAME}.glb")
-out = os.path.join(ROOT, "public", "assets", "props", f"{NAME}_lod1.glb")
+out = os.path.join(ROOT, "public", "assets", "props", f"{NAME}_lod{LEVEL}.glb")
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=src)
 for obj in [o for o in bpy.context.scene.objects if o.type == "MESH"]:

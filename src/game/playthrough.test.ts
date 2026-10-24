@@ -22,6 +22,8 @@ interface BotOptions {
   storage?: KeyValueStorage;
   stopAtBeat?: string;
   resume?: ReturnType<typeof readAutosave>;
+  startBeatId?: string;
+  onFrame?: (run: GameRun) => void;
 }
 
 function play(o: BotOptions) {
@@ -34,6 +36,7 @@ function play(o: BotOptions) {
     deferSavesUntilFirstCheckpoint: false,
     settings: () => ({ rail: { reducedMotion: false, travelSpeed: 1.3 } }),
     now: () => clock,
+    startBeatId: o.startBeatId,
   });
   const dt = 1 / 30;
   let sinceKey = 0;
@@ -43,6 +46,7 @@ function play(o: BotOptions) {
   for (let frame = 0; frame < limit && !run.isEnded; frame++) {
     clock += dt * 1000;
     run.update(dt);
+    o.onFrame?.(run);
     if (o.stopAtBeat && run.director.currentBeat?.id === o.stopAtBeat) break;
     const ui = useRunStore.getState();
     if (ui.choice) {
@@ -132,5 +136,31 @@ describe('full Level 1 playthrough', () => {
     for (const id of LEVEL1_ENCOUNTERS.keys()) {
       if (!optional.has(id)) expect(run.progress.completedEncounterIds, id).toContain(id);
     }
+  });
+}, 120_000);
+
+describe('boss health bar', () => {
+  it('empties only with the last word, even when Perfect Guardian words come back after mistakes', () => {
+    const phases = ['l3-pw-1', 'l3-pw-2', 'l3-pw-3'];
+    let emptyEarly = 0;
+    let lastHealth = 1;
+    const { run } = play({
+      difficulty: 'standard',
+      msPerKey: 160,
+      mistakeEvery: 4,
+      startBeatId: 'l3-perfect-warden',
+      maxMinutes: 15,
+      stopAtBeat: 'l3-unwriter-rises',
+      onFrame: (r) => {
+        const ui = useRunStore.getState();
+        if (ui.boss?.id !== 'perfect-warden') return;
+        lastHealth = ui.boss.health;
+        const fighting = phases.some((id) => !r.progress.completedEncounterIds.includes(id));
+        if (fighting && ui.boss.health <= 0.001 && ui.labels.length > 0) emptyEarly++;
+      },
+    });
+    for (const id of phases) expect(run.progress.completedEncounterIds, id).toContain(id);
+    expect(emptyEarly).toBe(0);
+    expect(lastHealth).toBeCloseTo(0, 5);
   });
 }, 120_000);

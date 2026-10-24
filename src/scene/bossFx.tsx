@@ -10,12 +10,13 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
-import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type PointLight, type Sprite, type SpriteMaterial } from 'three';
+import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type Sprite, type SpriteMaterial } from 'three';
 import { pipWorld } from '../player/PipCompanion';
 import { getRun } from '../state/gameStore';
 import { rigPoint, type CreatureRig } from './areas2/common';
 import { Fire } from './Fire';
 import { fireballTexture, glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from './glow';
+import { PoolLight, VirtualLight } from './LightPool';
 
 /**
  * 0–1+ charge: builds slowly between attacks (so the boss is always visibly gathering power), races
@@ -169,7 +170,7 @@ export function DragonFireCharge({ rig }: { rig: CreatureRig }) {
   const chest = useRef<Sprite | null>(null);
   const belly = useRef<Sprite | null>(null);
   const flames = useRef<Group>(null);
-  const light = useRef<PointLight>(null);
+  const light = useRef<VirtualLight>(null);
   const breath = useRef<Mesh>(null);
   const breathHead = useRef<Sprite | null>(null);
   const at = useMemo(() => new Vector3(), []);
@@ -240,13 +241,13 @@ export function DragonFireCharge({ rig }: { rig: CreatureRig }) {
       <GlowSprite sprite={(s) => void (belly.current = s)} color="#ff4a10" />
       <GlowSprite sprite={(s) => void (mouth.current = s)} color="#ffcf6a" />
       <group ref={flames} visible={false}>
-        <Fire position={[0, 0, 0]} size={1.4} count={3} spread={0.6} smoke={false} kind="warm" />
+        <Fire position={[0, 0, 0]} size={1.4} count={3} spread={0.6} kind="warm" />
       </group>
       <mesh ref={breath} geometry={STREAK_GEOMETRY} visible={false} frustumCulled={false}>
         <meshBasicMaterial map={streak} color="#ff7a20" transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} side={DoubleSide} />
       </mesh>
       <GlowSprite sprite={(s) => void (breathHead.current = s)} color="#ffb040" />
-      <pointLight ref={light} color="#ff7a2a" intensity={0} distance={18} decay={2} />
+      <PoolLight ref={light} color="#ff7a2a" intensity={0} distance={18} decay={2} />
     </group>
   );
 }
@@ -359,6 +360,9 @@ const QUILL_TIP = new Vector3(-1.07, 3.21, 0.39);
 
 const EMBERS = 10;
 
+/** The quill tip in world space and when it was last seen (frame time), for the final beam struggle. */
+export const unwriterQuillWorld = { at: new Vector3(), seen: -Infinity };
+
 /**
  * The quill's nib glows as he gathers power. While `burning()` he turns to face Pip, beside the
  * apprentice, points the quill and a thick stream of red fire pours from the nib to Pip, embers racing along it (owner, 2026-10-17 and
@@ -391,6 +395,11 @@ export function UnwriterQuill({ rig, burning }: { rig: CreatureRig; burning: () 
       g.rotation.y += (yaw - g.rotation.y) * (1 - Math.exp(-3 * dt));
     }
     const ok = rigPoint(rig, 'quill_l', QUILL_TIP, tip);
+    if (ok && g) {
+      unwriterQuillWorld.at.copy(tip);
+      g.localToWorld(unwriterQuillWorld.at);
+      unwriterQuillWorld.seen = state.clock.elapsedTime;
+    }
     const n = nib.current;
     if (n) {
       n.visible = ok;

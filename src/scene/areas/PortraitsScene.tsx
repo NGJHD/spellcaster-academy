@@ -1,7 +1,7 @@
 /** PLACEHOLDER Hall of Portraits. Local coordinates; see src/level/areas/portraits.ts. */
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import type { Mesh } from 'three';
+import { useMemo, useRef } from 'react';
+import { AdditiveBlending, SpriteMaterial, type Sprite } from 'three';
 import { PLAQUE_POSITIONS, PORTRAITS_ORIGIN } from '../../level/areas/portraits';
 import { Arch, Box, KitModel, Portrait, Rug, Slab, WallLamp } from '../kit';
 import { MAT } from '../materials';
@@ -9,6 +9,8 @@ import { MergeStatic } from '../MergeStatic';
 import { StaticWarden } from '../props';
 import { CastleDoor } from '../CastleDoor';
 import { Prop } from '../Prop';
+import { PoolLight } from '../LightPool';
+import { fxSprite } from '../fxSprites';
 
 const W = 3;
 const H = 5.5;
@@ -51,7 +53,7 @@ export function PortraitsScene() {
             />
           )}
           <WallLamp position={[-W + 0.02, 3.8, z - 2.6]} rotationY={Math.PI / 2} />
-          <pointLight position={[0, 4.2, z - 1]} color="#ffcf98" intensity={7} distance={8} decay={2} />
+          <PoolLight position={[0, 4.2, z - 1]} color="#ffcf98" intensity={7} distance={8} decay={2} />
         </group>
       ))}
       </MergeStatic>
@@ -81,10 +83,28 @@ export function PortraitsScene() {
   );
 }
 
+/** Sparkles of healing light rising off the fountain's top basin (painted motes). */
+const SPARKLES = 10;
+
 function FocusFountain() {
-  const glow = useRef<Mesh>(null);
+  const sparkles = useRef<(Sprite | null)[]>([]);
+  const mats = useMemo(
+    () => Array.from({ length: SPARKLES }, () => new SpriteMaterial({ map: fxSprite('mote'), color: '#bfe6ff', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, toneMapped: false })),
+    [],
+  );
   useFrame((state) => {
-    if (glow.current) glow.current.scale.y = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.05;
+    const t = state.clock.elapsedTime;
+    sparkles.current.forEach((sp, i) => {
+      const m = mats[i];
+      if (!sp || !m) return;
+      // Each one drifts up from the basin in a slow spiral, swelling and fading out.
+      const u = (t * 0.32 + i / SPARKLES) % 1;
+      const a = i * 2.4 + u * 2.5;
+      const r = 0.08 + u * 0.22;
+      sp.position.set(Math.cos(a) * r, 1.45 + u * 1.3, Math.sin(a) * r);
+      sp.scale.setScalar(0.07 + Math.sin(u * Math.PI) * 0.08);
+      m.opacity = Math.sin(u * Math.PI) * 0.9;
+    });
   });
   return (
     <group position={[2.2, 0, -14]}>
@@ -95,22 +115,47 @@ function FocusFountain() {
       <mesh position={[0, 1.38, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
         <circleGeometry args={[0.24, 24]} />
       </mesh>
-      <mesh ref={glow} position={[0, 2.05, 0]}>
-        <cylinderGeometry args={[0.04, 0.2, 1.2, 16, 1, true]} />
-        <meshBasicMaterial color="#bfe6ff" transparent opacity={0.1} depthWrite={false} toneMapped={false} />
-      </mesh>
-      <pointLight position={[0, 1.4, 0]} color="#bfe6ff" intensity={5} distance={5} />
+      {mats.map((m, i) => (
+        <sprite key={i} ref={(sp) => void (sparkles.current[i] = sp)} material={m} />
+      ))}
+      <PoolLight position={[0, 1.4, 0]} color="#bfe6ff" intensity={5} distance={5} />
     </group>
   );
 }
 
 /**
+ * Two frantic zig-zag strokes across the scratched-out nameplate (0.6 × 0.12 m), uneven in spacing,
+ * height and slant (owner, 2026-10-23: one even zig-zag looked too tidy): centre x, y, length, angle.
+ */
+const SCRATCH = (() => {
+  let seed = 7;
+  const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const strokes: (readonly [number, number, number, number])[] = [];
+  for (let pass = 0; pass < 2; pass++) {
+    const pts: [number, number][] = [];
+    let x = -0.29 + rand() * 0.02;
+    for (let i = 0; x < 0.29; i++) {
+      const reach = 0.018 + rand() * 0.03;
+      pts.push([x, (i % 2 ? 1 : -1) * reach + (rand() - 0.5) * 0.016]);
+      x += 0.015 + rand() * 0.05;
+    }
+    for (let i = 1; i < pts.length; i++) {
+      const [px, py] = pts[i - 1] ?? [0, 0];
+      const [qx, qy] = pts[i] ?? [0, 0];
+      strokes.push([(px + qx) / 2, (py + qy) / 2, Math.hypot(qx - px, qy - py) + 0.01, Math.atan2(qy - py, qx - px)]);
+    }
+  }
+  return strokes;
+})();
+
+/**
  * The clue Mira finds (por-4): the Warden's portrait, and beside it an empty frame whose brass
- * nameplate has been scratched out. The camera looks here while the line plays.
+ * nameplate has been scratched out. The camera looks here while the line plays. They hang level with
+ * the other portraits (owner, 2026-10-23: they hung much lower).
  */
 function CommunicationMirror() {
   return (
-    <group position={[-W + 0.06, 1.9, -22]} rotation={[0, Math.PI / 2, 0]}>
+    <group position={[-W + 0.06, 2.5, -22]} rotation={[0, Math.PI / 2, 0]}>
       {/* The Warden's portrait */}
       <group position={[0.9, 0, 0]}>
         <KitModel id="frame_1x1_3" scale={[1.0, 1.25, 1]} />
@@ -131,8 +176,9 @@ function CommunicationMirror() {
           <meshStandardMaterial color="#1a1612" roughness={1} />
         </mesh>
         <Box position={[0, -1.05, 0.06]} size={[0.6, 0.12, 0.02]} material={MAT.agedBrass} />
-        {[-0.18, -0.05, 0.08, 0.2].map((x, i) => (
-          <Box key={x} position={[x, -1.05, 0.075]} size={[0.16, 0.012, 0.01]} rotation={[0, 0, 0.5 - i * 0.3]} material={MAT.ink} />
+        {/* Its name scored out: a hard zig-zag from end to end of the plate (owner, 2026-10-23) */}
+        {SCRATCH.map(([x, y, length, angle]) => (
+          <Box key={`${x}-${y}`} position={[x, -1.05 + y, 0.075]} size={[length, 0.014, 0.01]} rotation={[0, 0, angle]} material={MAT.ink} />
         ))}
       </group>
     </group>

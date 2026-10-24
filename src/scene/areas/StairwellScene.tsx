@@ -14,6 +14,7 @@ import { insideCylinder, worldBox, worldCircle, worldCylinder } from '../surface
 import { MAT } from '../materials';
 import { PROJECTILE_SEC } from '../../enemies/EnemyBrain';
 import { DORM_DOORS } from '../../level/areas2/dormitory';
+import { PoolLight } from '../LightPool';
 
 const R = 6;
 const TOP = 19;
@@ -101,7 +102,7 @@ export function StairwellScene({ dormitory = false }: { dormitory?: boolean } = 
           <group key={deg}>
             <WindowPane position={[x * 0.995, floor + 3.1, z * 0.995]} size={[0.7, 2.2]} rotationY={-((deg * Math.PI) / 180) - Math.PI / 2} />
             <WallLamp position={[x * 0.97, floor + 2.2, z * 0.97]} rotationY={-((deg * Math.PI) / 180) - Math.PI / 2} />
-            <pointLight position={[x * 0.7, floor + 2.8, z * 0.7]} color={i < 2 ? '#ffc98a' : '#c9d8ff'} intensity={9} distance={11} decay={2} />
+            <PoolLight position={[x * 0.7, floor + 2.8, z * 0.7]} color={i < 2 ? '#ffc98a' : '#c9d8ff'} intensity={9} distance={11} decay={2} />
           </group>
         );
       })}
@@ -175,7 +176,8 @@ function ReassemblingGuard() {
   const group = useRef<Group>(null);
   const pose = useRef<TargetPose>(emptyPose());
   const g3 = STAIR_GUARDS[2];
-  useFrame((_, dt) => {
+  const [x, y, z] = polar(g3.deg, g3.floor);
+  useFrame((state, dt) => {
     pose.current.time += dt;
     const g = group.current;
     const run = getRun();
@@ -189,10 +191,11 @@ function ReassemblingGuard() {
     g.visible = !done && !live && !apart;
     const grow = p >= 0.6 ? Math.min(1, (p - 0.6) / 0.15) : 1;
     g.scale.setScalar(0.6 + 0.4 * grow);
+    // It faces the tray as it comes down (owner, 2026-10-23: it stood with its back to us).
+    g.rotation.y = Math.atan2(state.camera.position.x - STAIRWELL_ORIGIN[0] - x, state.camera.position.z - STAIRWELL_ORIGIN[2] - z);
   });
-  const [x, y, z] = polar(g3.deg, g3.floor);
   return (
-    <group ref={group} position={[x, y, z]} rotation={[0, -((g3.deg * Math.PI) / 180) + Math.PI, 0]}>
+    <group ref={group} position={[x, y, z]}>
       <Guardian pose={pose} />
     </group>
   );
@@ -235,7 +238,7 @@ function TeaTray() {
     g.rotateZ(Math.sin(state.clock.elapsedTime * 2.3) * 0.03);
   });
   return (
-    <group ref={tray} visible={false}>
+    <group name="slide-tray" ref={tray} visible={false}>
       <mesh scale={[1, 1, 0.72]} material={MAT.silver}>
         <cylinderGeometry args={[0.42, 0.4, 0.025, 40]} />
       </mesh>

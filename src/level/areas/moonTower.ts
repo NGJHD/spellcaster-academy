@@ -127,9 +127,9 @@ export const moonTower: AreaScript = {
           id: 'guardian',
           // The guardian smashes up through the floor of the lift landing.
           fx: [
-            { kind: 'debris', at: 'TOW_GUARD_BREACH', scale: 2, color: '#a8a39a' },
+            { kind: 'debris', at: 'TOW_GUARD_BREACH', scale: 2, color: '#a8a39a', pieces: 'stone' },
             { kind: 'dust', at: 'TOW_GUARD_BREACH', scale: 2 },
-            { kind: 'shockwave', at: 'TOW_GUARD_BREACH', scale: 0.9, color: '#c9d8ff' },
+            { kind: 'dustwave', at: 'TOW_GUARD_BREACH', scale: 0.9 },
             { kind: 'shake', scale: 1.6 },
           ],
           targets: [

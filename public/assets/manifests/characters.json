@@ -7,7 +7,8 @@
       "Idle",
       "Wave",
       "TalkShort",
-      "Celebrate"
+      "Celebrate",
+      "Run"
     ],
     "collision": {
       "shape": "capsule",
@@ -24,21 +25,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 29914,
+    "triangles": 34108,
     "materials": 7,
     "bounds": {
       "min": [
-        -0.2882615327835083,
+        -0.28827935725225196,
         -0.006639265455305576,
         -0.19246229529380798
       ],
       "max": [
-        0.28845250606536865,
+        0.288469156723662,
         1.4718432426452637,
-        0.19244448840618134
+        0.19244445860385895
       ]
     },
-    "bytes": 1233980,
+    "bytes": 1350852,
     "source": "assets-src/scripts/characters/humanoid.py"
   },
   "orin": {
@@ -49,7 +50,8 @@
       "Idle",
       "Wave",
       "TalkShort",
-      "Celebrate"
+      "Celebrate",
+      "Run"
     ],
     "collision": {
       "shape": "capsule",
@@ -66,21 +68,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 29638,
+    "triangles": 33842,
     "materials": 7,
     "bounds": {
       "min": [
-        -0.3678171932697296,
+        -0.36780449414065114,
         -0.008470757864415646,
         -0.2455553114414215
       ],
       "max": [
-        0.3680576682090759,
-        1.872150182723999,
+        0.3680465457456762,
+        1.8721394538879395,
         0.24553252756595612
       ]
     },
-    "bytes": 1196420,
+    "bytes": 1312400,
     "source": "assets-src/scripts/characters/humanoid.py"
   },
   "student_a": {
@@ -108,21 +110,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 29914,
+    "triangles": 34112,
     "materials": 7,
     "bounds": {
       "min": [
-        -0.2783215045928955,
+        -0.27845778848122693,
         -0.006410322152078152,
         -0.18582569062709808
       ],
       "max": [
-        0.2785058617591858,
+        0.27852180374264823,
         1.4210901260375977,
         0.18580842018127441
       ]
     },
-    "bytes": 1234108,
+    "bytes": 1341616,
     "source": "assets-src/scripts/characters/humanoid.py"
   },
   "student_b": {
@@ -150,21 +152,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 29912,
+    "triangles": 34120,
     "materials": 7,
     "bounds": {
       "min": [
-        -0.2982301712036133,
+        -0.29822007824105023,
         -0.006868199910968542,
-        -0.19909895956516266
+        -0.19909894466400146
       ],
       "max": [
-        0.2984251379966736,
+        0.29841626696281076,
         1.5225965976715088,
         0.1990804672241211
       ]
     },
-    "bytes": 1233964,
+    "bytes": 1342128,
     "source": "assets-src/scripts/characters/humanoid.py"
   }
 }

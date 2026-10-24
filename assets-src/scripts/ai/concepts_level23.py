@@ -72,6 +72,14 @@ CONCEPTS = {
         "arm raised up and held out to the side away from his body, elbow bent, his gloved hand gripping a long "
         "black quill pen that points upward with a glowing red nib, his other arm hanging at his side, menacing, "
         "standing facing the camera, plain grey background, no drips, no smoke, no loose flames, no gore", 35),
+    # The Cinderwood flock (owner, 2026-10-23: "what is wing and song shooting at?"): a songbird the Blank has
+    # rubbed grey, restored to colour by its word. Front view, wings raised to both sides for the dragon
+    # rig's wing bones; solid feathered wings, no gaps between feathers.
+    "flock_bird": (
+        "A small bright fantasy songbird in flight seen from the front, facing the camera, its round body upright, "
+        "both wings spread wide and raised up to either side in a V shape, broad solid wings with smooth overlapping "
+        "feathers and no gaps, a short fanned tail below, vivid red and golden yellow plumage with blue wing tips, "
+        "small dark eyes, a little orange beak, friendly, a solid unbroken silhouette", 61),
 }
 
 if __name__ == "__main__":

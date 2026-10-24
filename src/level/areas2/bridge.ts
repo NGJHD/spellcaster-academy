@@ -21,7 +21,7 @@ export const PLANK_GAPS: readonly number[] = [-12, -24, -36];
 
 /** The bridge collapses into the gorge right behind the camera. */
 const collapse = (z: number): FxCue[] => [
-  { kind: 'debris', at: B(0, 0, z), atBeat: 0.5, scale: 2.2, color: '#5a3a24' },
+  { kind: 'debris', at: B(0, 0, z), atBeat: 0.5, scale: 2.2, color: '#5a3a24', pieces: 'wood' },
   { kind: 'dust', at: B(0, 0, z), atBeat: 0.5, scale: 2 },
   { kind: 'burst', at: B(0, 0.5, z), atBeat: 0.5, scale: 1.2, color: '#ff5a1a' },
   { kind: 'shake', atBeat: 0.5, scale: 0.9 },
@@ -96,7 +96,7 @@ export const bridge: AreaScript = {
           id: 'bell',
           sequential: true,
           targets: ['ring', 'bright', 'signal'].map((word, i) =>
-            marker(`bell-word-${i + 1}`, B(0, 5.2 + i * 0.5, -50), word, { labelHeight: 0.4, defeatFx: { kind: 'shockwave', at: 'BR_BELL', scale: 0.4 + i * 0.3, color: '#ffd27a', sound: 'bell' } }),
+            marker(`bell-word-${i + 1}`, B(0, 5.2 + i * 0.5, -50), word, { labelHeight: 0.4, defeatFx: { kind: 'pulse', at: 'BR_BELL', scale: 0.4 + i * 0.3, color: '#ffd27a', sound: 'bell' } }),
           ),
         },
       ],
@@ -104,7 +104,7 @@ export const bridge: AreaScript = {
       // The bell booms: a huge shock wave and a gold beam into the sky.
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'BR_BELL', scale: 4, color: '#ffd27a', sound: 'bell' },
+        { kind: 'pulse', at: 'BR_BELL', scale: 4, color: '#ffd27a', sound: 'bell' },
         { kind: 'pillar', at: 'BR_BELL', scale: 2, color: '#ffd27a' },
         { kind: 'shake', scale: 2 },
       ],

@@ -8,9 +8,9 @@ import { initialRunUi, useRunStore } from './runStore';
 import { TRAVEL_SPEED_MULTIPLIER } from './settings';
 import { getSettings } from './settingsStore';
 
-export type GameMode = 'menu' | 'exploration' | 'combat' | 'dialogue' | 'paused' | 'results';
+export type GameMode = 'menu' | 'loading' | 'exploration' | 'combat' | 'dialogue' | 'paused' | 'results';
 
-type PlayMode = Exclude<GameMode, 'menu' | 'paused'>;
+type PlayMode = Exclude<GameMode, 'menu' | 'loading' | 'paused'>;
 
 let storage: KeyValueStorage | null = null;
 export function gameStorage(): KeyValueStorage {
@@ -63,15 +63,20 @@ interface GameState {
 
   startNewRun(difficulty: Difficulty, levelId?: LevelId): void;
   resumeSavedRun(): boolean;
+  /** The first area has loaded behind the loading screen: the level begins. */
+  finishLoading(): void;
   pause(): void;
   resume(): void;
   quitToMenu(): void;
 }
 
 export const useGameStore = create<GameState>()((set, get) => {
+  // The first run of a page session waits behind the loading screen while its world loads; later runs
+  // find most of it already loaded and start at once.
+  let loaded = false;
   const begin = (run: GameRun) => {
     currentRun = run;
-    set((s) => ({ mode: 'exploration', modeBeforePause: 'exploration', runId: s.runId + 1 }));
+    set((s) => ({ mode: loaded ? 'exploration' : 'loading', modeBeforePause: 'exploration', runId: s.runId + 1 }));
   };
 
   return {
@@ -113,9 +118,14 @@ export const useGameStore = create<GameState>()((set, get) => {
       return true;
     },
 
+    finishLoading: () => {
+      loaded = true;
+      if (get().mode === 'loading') set({ mode: 'exploration' });
+    },
+
     pause: () => {
       const { mode } = get();
-      if (mode === 'menu' || mode === 'paused' || mode === 'results') return;
+      if (mode === 'menu' || mode === 'loading' || mode === 'paused' || mode === 'results') return;
       currentRun?.setPaused(true);
       set({ mode: 'paused', modeBeforePause: mode });
     },
@@ -135,6 +145,6 @@ export const useGameStore = create<GameState>()((set, get) => {
   };
 });
 
-export const isGameplayActive = (mode: GameMode): boolean => mode !== 'menu' && mode !== 'paused' && mode !== 'results';
+export const isGameplayActive = (mode: GameMode): boolean => mode !== 'menu' && mode !== 'loading' && mode !== 'paused' && mode !== 'results';
 
 export const FIRST_BEAT_ID = LEVELS['level-1'].route.beats[0]?.id ?? '';

@@ -262,11 +262,11 @@
     "file": "/assets/creatures/grey_herald.glb",
     "unitScaleMeters": 1,
     "animations": [
-      "Idle",
       "Move",
-      "Attack",
       "Hit",
-      "Dispel"
+      "Dispel",
+      "Idle",
+      "Attack"
     ],
     "collision": {
       "shape": "capsule",
@@ -283,21 +283,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 39999,
+    "triangles": 40000,
     "materials": 1,
     "bounds": {
       "min": [
-        -1.01837158203125,
-        -0.008700652047991753,
-        -0.7399993538856506
+        -0.9660438895225525,
+        -0.005243565421551466,
+        -0.7917032241821289
       ],
       "max": [
-        1.0142650604248047,
-        3.0048828125,
-        0.7512815594673157
+        0.9636760950088501,
+        3.0020968914031982,
+        0.7914029955863953
       ]
     },
-    "bytes": 7529692,
+    "bytes": 7264868,
     "source": "assets-src/scripts/creatures/grey_herald.py"
   },
   "correction_moth": {
@@ -350,9 +350,9 @@
     "animations": [
       "Idle",
       "Move",
-      "Attack",
       "Hit",
-      "Dispel"
+      "Dispel",
+      "Attack"
     ],
     "collision": {
       "shape": "capsule",
@@ -383,7 +383,7 @@
         0.9058458805084229
       ]
     },
-    "bytes": 5312456,
+    "bytes": 5316140,
     "source": "assets-src/scripts/creatures/foreman.py"
   },
   "perfect_warden": {
@@ -391,11 +391,11 @@
     "file": "/assets/creatures/perfect_warden.glb",
     "unitScaleMeters": 1,
     "animations": [
-      "Idle",
       "Move",
-      "Attack",
       "Hit",
-      "Dispel"
+      "Dispel",
+      "Idle",
+      "Attack"
     ],
     "collision": {
       "shape": "capsule",
@@ -412,21 +412,21 @@
     ],
     "textureSet": "vertex-colour + shared PBR",
     "license": "original-project-asset",
-    "triangles": 49999,
+    "triangles": 50000,
     "materials": 1,
     "bounds": {
       "min": [
-        -0.8978872895240784,
-        -0.01822436787188053,
-        -0.4073711335659027
+        -1.457038164138794,
+        -0.03286266326904297,
+        -0.602345883846283
       ],
       "max": [
-        0.895510196685791,
-        4.003541469573975,
-        0.40466442704200745
+        1.4622935056686401,
+        4.02448844909668,
+        0.6001906394958496
       ]
     },
-    "bytes": 11250304,
+    "bytes": 18963524,
     "source": "assets-src/scripts/creatures/perfect_warden.py"
   },
   "unwriter": {
@@ -434,11 +434,13 @@
     "file": "/assets/creatures/unwriter.glb",
     "unitScaleMeters": 1,
     "animations": [
-      "Idle",
       "Move",
-      "Attack",
       "Hit",
-      "Dispel"
+      "Dispel",
+      "Idle",
+      "Laugh",
+      "Point",
+      "Attack"
     ],
     "collision": {
       "shape": "capsule",
@@ -459,17 +461,17 @@
     "materials": 1,
     "bounds": {
       "min": [
-        -1.1410588026046753,
-        -0.000005694320407201303,
-        -0.8932328224182129
+        -1.1360225677490234,
+        -0.000272618664894253,
+        -0.6143431067466736
       ],
       "max": [
-        1.1433640718460083,
-        3.3963301181793213,
-        0.892866313457489
+        1.13773775100708,
+        3.406454563140869,
+        0.6192998886108398
       ]
     },
-    "bytes": 9605516,
+    "bytes": 18521800,
     "source": "assets-src/scripts/creatures/unwriter.py"
   },
   "blotling": {
@@ -545,17 +547,17 @@
     "materials": 1,
     "bounds": {
       "min": [
-        -0.6783560514450073,
-        -0.007853561080992222,
-        -0.2341230809688568
+        -0.23379932343959808,
+        -0.007853490300476551,
+        -0.6783561706542969
       ],
       "max": [
-        0.6780943274497986,
+        0.2341231256723404,
         1.0985515117645264,
-        0.2337992936372757
+        0.6780945658683777
       ]
     },
-    "bytes": 3393236,
+    "bytes": 3389980,
     "source": "assets-src/scripts/creatures/smudgehound.py"
   },
   "redactor": {

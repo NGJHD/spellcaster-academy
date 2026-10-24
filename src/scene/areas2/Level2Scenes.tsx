@@ -6,7 +6,7 @@
 import { DragonFireCharge, HeraldWisps } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, SpriteMaterial, Vector3, type Group, type PointLight } from 'three';
+import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, SpriteMaterial, Vector3, type Group } from 'three';
 import { BELL_POSITION, BRIDGE_ORIGIN, PLANK_GAPS } from '../../level/areas2/bridge';
 import { HALL_ORIGIN, HERALD_POSITION, LANE_DOORS } from '../../level/areas2/greatHall';
 import { BOAT_BEATS, LAKE_ORIGIN, LIFT_BEATS_L2, LIGHTHOUSE_HEIGHT, MOORED_BEATS } from '../../level/areas2/lake';
@@ -28,11 +28,15 @@ import { FloatingLantern, KeeperOrin, Mira, StaticWarden, Student, useBeatIndex,
 import { CreatureModel, creatureUrl } from '../../enemies/CreatureModel';
 import { emptyPose } from '../../enemies/TargetVisuals';
 import { LakeWater } from '../LakeWater';
+import { GrassField } from '../GrassField';
 import { AftermathDressing, HallDressing, LakeDressing, LawnDressing, RampartDressing, WorkshopDressing } from './dressing';
 import { BeaconBrazier, StoneHall, BurningSkyline, HeraldFallback, SceneCreature, WyrmFallback, useReached } from './common';
+import { PoolLight, VirtualLight } from '../LightPool';
 
 /** Dark red crystal with a hot inner glow. */
 const SHARD_MAT = new MeshStandardMaterial({ color: '#3a0606', roughness: 0.15, metalness: 0.2, emissive: '#ff2a10', emissiveIntensity: 1.6 });
+/** The Quill shard's crystal points (kit_scene.py quill_shard) glow red. */
+const SHARD_OVERRIDE = { crystal: SHARD_MAT };
 
 const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const nightWater = new MeshStandardMaterial({ color: '#0a0606', roughness: 0.35, metalness: 0.1, emissive: '#4a0c04', emissiveIntensity: 0.35, envMapIntensity: 0.15 });
@@ -48,7 +52,7 @@ export function LawnScene() {
       <mesh position={[0, -0.3, -140]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 240]} />
       </mesh>
-      {/* Festival stalls: striped awnings on timber frames; the left one burns until restored */}
+      {/* Festival stalls: the two nearest burn until restored (stall, booth); the far one keeps burning */}
       {STALL_POSITIONS.map((p, i) => {
         const local = sub(p, LAWN_ORIGIN);
         const boxes = (
@@ -81,12 +85,8 @@ export function LawnScene() {
       <Boathouse position={[18, 0, -28]} rotationY={-0.5} />
       {/* Dormitory tower to the east, its door burning */}
       <group position={sub(DORM_DOOR, LAWN_ORIGIN)}>
-        <mesh position={[4.6, 12, 0]} material={MAT.academyStone} castShadow>
-          <cylinderGeometry args={[4.6, 4.8, 24, 32]} />
-        </mesh>
-        <mesh position={[4.6, 27, 0]} material={MAT.slate}>
-          <coneGeometry args={[5.4, 7, 32]} />
-        </mesh>
+        {/* Round stone tower with lit windows and a conical slate roof (kit_scene.py round_tower) */}
+        <KitModel id="round_tower" position={[4.6, 0, 0]} />
         <Box position={[0, 1.4, 0]} size={[0.2, 2.8, 1.8]} material={MAT.darkOak} />
         <Fire position={[0.4, 0.2, 0]} size={2.4} count={4} spread={1.6} light />
         <Fire position={[4.6, 24, 0]} size={5} count={4} spread={6} />
@@ -126,7 +126,7 @@ function Boathouse({ position, rotationY = 0 }: { position: Vec3; rotationY?: nu
       {/* A short jetty */}
       <Box position={[0, 0.3, 6]} size={[2.4, 0.2, 5.6]} material={MAT.lightOak} />
       <Fire position={[0, 5.6, 0]} size={4.5} count={5} spread={6} light />
-      <Fire position={[-2.5, 0.6, 3.6]} size={1.4} count={2} spread={1} smoke={false} />
+      <Fire position={[-2.5, 0.6, 3.6]} size={1.4} count={2} spread={1} />
     </group>
   );
 }
@@ -203,17 +203,18 @@ const BANK_ROCKS: readonly (readonly [number, number, number])[] = [
 
 export function BridgeScene() {
   const bellLit = useMemo(() => MAT.agedBrass.clone() as MeshStandardMaterial, []);
-  // Greener than the daytime grass, so it still reads as grass under the red night sky.
+  // A real-looking wild meadow (owner, 2026-10-24: the flat grass "looks like minecraft"), a touch greener
+  // so it still reads as grass under the red night sky.
   const bankGrass = useMemo(() => {
-    const m = MAT.grass.clone() as MeshStandardMaterial;
-    m.color.set('#78c050');
+    const m = MAT.dryMeadow.clone() as MeshStandardMaterial;
+    m.color.set('#b8e09a');
     // Matte: lit by the red sky, its sheen glared orange like water.
     m.envMapIntensity = 0.1;
     m.roughnessMap = null;
     m.roughness = 1;
     return m;
   }, []);
-  const bellGlow = useRef<PointLight>(null);
+  const bellGlow = useRef<VirtualLight>(null);
   useFrame(() => {
     const lit = getRun()?.flags.has('l2-beacon-bell') ?? false;
     bellLit.emissive.set(lit ? '#ffb640' : '#000000');
@@ -230,21 +231,28 @@ export function BridgeScene() {
           <Box position={[0, -0.15, z]} size={[5.2, 0.3, SEG]} material={MAT.darkOak} />
         </Restorable>
       ))}
-      {/* Gorge walls and the far floor */}
-      {/* Grass on the gorge's rims, the same as the far bank, with rock cliffs below (owner, 2026-10-16:
-          the flat grey rims looked like water) */}
-      {([[-90, -22], [22, 90]] as const).map((x) => (
-        <group key={x[0]}>
-          <Slab x={x} y={[-80, -2.5]} z={[-80, 20]} material={MAT.rockGround} />
-          <Slab x={x} y={[-2.5, -2]} z={[-80, 20]} material={bankGrass} />
-        </group>
-      ))}
+      {/* The gorge: craggy rock slopes rising at each side of the view and falling in ledges towards the
+          bridge, stopping well short of it so the drop stays open below (kit_scene.py gorge_slope; owner,
+          2026-10-24: the flat grassy rims with straight walls looked dull). */}
+      <KitModel id="gorge_slope" castShadow={false} />
+      <KitModel id="gorge_slope" castShadow={false} scale={[-1, 1, 1]} />
+      {/* The gorge's far wall under the bank: a craggy face slumping to scree, not a flat slab (kit_scene.py gorge_end) */}
+      <KitModel id="gorge_end" position={[0, -0.05, -64]} castShadow={false} />
       {/* The far bank the bridge reaches: a rocky cliff, a strip of trodden earth where the bridge lands,
           then grassy ground with rocky outcrops under the burning castle (owner, 2026-10-16: the
           buildings looked like they floated on water; then "nobody builds on sand") */}
-      <Slab x={[-160, 160]} y={[-80, -0.6]} z={[-260, -64]} material={MAT.rockGround} />
-      <Slab x={[-160, 160]} y={[-0.6, 0]} z={[-80, -64]} material={MAT.earth} />
+      {/* Set back behind the craggy far wall (gorge_end), so no flat face shows where its lip bites back */}
+      <Slab x={[-160, 160]} y={[-80, -0.6]} z={[-260, -72]} material={MAT.rockGround} />
+      <Slab x={[-160, 160]} y={[-0.6, 0.02]} z={[-80, -72]} material={bankGrass} />
+      {/* Where the bridge lands: trodden earth from the deck's end onto the bank, on the cliff's jutting lip */}
+      <Slab x={[-6, 6]} y={[-0.6, 0]} z={[-72, -64]} material={MAT.earth} />
+      <Slab x={[-3.5, 3.5]} y={[-0.6, 0.03]} z={[-100, -72]} material={MAT.earth} />
       <Slab x={[-160, 160]} y={[-0.6, 0.02]} z={[-260, -80]} material={bankGrass} />
+      {/* Wild grass over the bank, thickest at the near edge where the camera sees it up close, with the
+          path from the bridge left bare */}
+      <Suspense fallback={null}>
+        <GrassField x={[-70, 70]} z={[-66, -125]} y={0.02} nearZ={-66} density={3} tint="#8a9a70" avoid={[[0, -66, 4], [0, -74, 4], [0, -84, 4], [0, -95, 3.5]]} />
+      </Suspense>
       {/* Rocks breaking up the line where the earth meets the grass, and round the buildings' feet */}
       {BANK_ROCKS.map(([x, z, h], i) => (
         <Prop key={i} id={i % 3 === 0 ? 'ash_rock' : 'rock_moss_set_01'} position={[x, -0.2, z]} height={h} rotationY={i * 2.1} shadows={false} />
@@ -255,22 +263,20 @@ export function BridgeScene() {
           <Box key={s} position={[s * 3.4, 5, 0]} size={[1.4, 10, 3]} material={MAT.academyStone} />
         ))}
         <Box position={[0, 10.4, 0]} size={[8.2, 1, 3.4]} material={MAT.academyStoneDark} />
-        <mesh position={[0, 12.6, 0]} material={MAT.slate}>
-          <coneGeometry args={[4.4, 4, 4]} />
-        </mesh>
+        <KitModel id="belfry_roof" position={[0, 10.9, 0]} />
         {/* The great bronze bell in its oak yoke (AI-pipeline prop); glows gold once the beacon is lit */}
         <ModelBoundary fallback={<BellShape y={bell[1]} material={bellLit} />}>
           <Suspense fallback={<BellShape y={bell[1]} material={bellLit} />}>
             <Prop id="bronze_bell" position={[0, bell[1] - 2.3, 0]} height={3.6} />
           </Suspense>
         </ModelBoundary>
-        <pointLight ref={bellGlow} position={[0, bell[1], 1.6]} color="#ffb640" intensity={0} distance={14} decay={2} />
+        <PoolLight ref={bellGlow} position={[0, bell[1], 1.6]} color="#ffb640" intensity={0} distance={14} decay={2} />
       </group>
       {/* Fires along the roof and in the gorge below */}
       {[2, -8, -20, -30, -44, -58].map((z, i) => (
         <Fire key={z} position={[i % 2 ? 2 : -2, 4.2, z]} size={2} count={3} spread={1.5} />
       ))}
-      <Fire position={[-10, -30, -30]} size={8} count={4} spread={8} smoke={false} />
+      <Fire position={[-10, -30, -30]} size={8} count={4} spread={8} />
       {/* On the ground, not sunk 10 m into it (owner: the castle behind the bell looked half sunken). */}
       <BurningSkyline position={[0, 0, -110]} seed={3} />
     </group>
@@ -335,7 +341,7 @@ export function HallScene() {
       {[-30, -38, -46].map((z, i) => (
         <group key={z}>
           <Banner position={[-8.8, 5, z]} rotationY={Math.PI / 2} />
-          {i !== 1 && <Fire position={[-8.6, 3.4, z]} size={1.6} count={2} spread={0.6} smoke={false} />}
+          {i !== 1 && <Fire position={[-8.6, 3.4, z]} size={1.6} count={2} spread={0.6} />}
         </group>
       ))}
       {[-6, -30, -38].map((z) => (
@@ -388,7 +394,7 @@ export function WorkshopScene() {
       {[-8, 0, 8].map((x) => (
         <Prop key={x} id="Chandelier_01" position={[x * 0.8, 6.2, -12 - Math.abs(x)]} height={1.6} />
       ))}
-      <pointLight position={[0, 6, -14]} color="#ffb070" intensity={18} distance={22} decay={1.6} />
+      <PoolLight position={[0, 6, -14]} color="#ffb070" intensity={18} distance={22} decay={1.6} />
       {/* Benches in two rows with glassware and instruments */}
       {[-14, -20].map((z) =>
         [-6, 6].map((x) => (
@@ -416,7 +422,7 @@ export function WorkshopScene() {
         </mesh>
       </Restorable>
       {[-24, -12, 0].map((z) => (
-        <Fire key={z} position={[-10.5, 6, z]} size={0.9} count={2} spread={1.4} smoke={false} untilFlag="l2-beacon-furnace" />
+        <Fire key={z} position={[-10.5, 6, z]} size={0.9} count={2} spread={1.4} untilFlag="l2-beacon-furnace" />
       ))}
       {/* The great furnace: ash-choked until the beacon roars back */}
       <group position={furnace}>
@@ -488,7 +494,7 @@ export function LakeScene() {
         {[[-6, -20], [7, -28], [-9, -52], [5, -66], [-3, -90], [9, -104]].map(([x, z], i) => (
           <group key={i} position={[x ?? 0, 0.2, z ?? 0]}>
             <FloatingLantern position={[0, 0.2, 0]} seed={i + 9} />
-            <Fire position={[0, 0.5, 0]} size={0.7} count={2} spread={0.3} smoke={false} />
+            <Fire position={[0, 0.5, 0]} size={0.7} count={2} spread={0.3} />
           </group>
         ))}
         {/* The boathouse and jetty, on fire */}
@@ -577,7 +583,7 @@ function LighthouseLift() {
       ))}
       {/* Pulley house and wheel at the top */}
       <Box position={[0, top + 3.2, 0]} size={[3.2, 0.4, 3.2]} material={MAT.darkSteel} />
-      <mesh position={[0, top + 3.8, 0]} rotation={[0, 0, Math.PI / 2]} material={MAT.agedBrass}>
+      <mesh name="pulley-wheel" position={[0, top + 3.8, 0]} rotation={[0, 0, Math.PI / 2]} material={MAT.agedBrass}>
         <torusGeometry args={[0.6, 0.08, 8, 24]} />
       </mesh>
       {/* Gangway across to the lantern gallery */}
@@ -693,7 +699,7 @@ function OarsbyBoat() {
   return (
     // Gunwale about 0.55 m above the water, floorboards above the waterline (owner: the boat looked
     // half sunk and full of water). Carried drops it 0.78 m below the eye.
-    <group position={[0, -0.16, 0]}>
+    <group name="rowing-boat" position={[0, -0.16, 0]}>
       <mesh geometry={hull} material={hullMaterial} castShadow receiveShadow />
       <mesh geometry={floor} material={hullMaterial} receiveShadow />
       {/* Gunwale rails and the transom */}
@@ -726,7 +732,7 @@ function OarsbyBoat() {
         <cylinderGeometry args={[0.025, 0.03, 0.6, 8]} />
       </mesh>
       <Prop id="wooden_lantern_01" position={[0, 0.6, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} height={0.4} />
-      <pointLight position={[0, 0.9, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} color="#ffc070" intensity={3} distance={6} decay={2} />
+      <PoolLight position={[0, 0.9, BOAT_STERN_Z - BOAT_LENGTH + 0.25]} color="#ffc070" intensity={3} distance={6} decay={2} />
     </group>
   );
 }
@@ -810,7 +816,7 @@ function LibraryWyrmPass() {
     <group ref={group} visible={false}>
       {/* Smaller indoors, side-on and flying (wingbeats), heading the way it moves (+X). */}
       <SceneCreature file="vellum_dragon.glb" position={[0, -2.5, 0]} rotationY={Math.PI / 2} scale={0.42} fromBeat="l2-lib-enter" goneFlag="l2-wyrm-defeated" fallback={<WyrmFallback />} flying={() => true} />
-      <Fire position={[-1.5, 0.2, 0]} size={1.4} count={2} spread={1} smoke={false} />
+      <Fire position={[-1.5, 0.2, 0]} size={1.4} count={2} spread={1} />
     </group>
   );
 }
@@ -973,7 +979,7 @@ export function RampartScene() {
       <Slab x={[-40, 40]} y={[-34, -1]} z={[-12, -3]} material={MAT.rockGround} />
       {LADDERS.map((l, i) => {
         const q = sub(l, RAMPART_ORIGIN);
-        return <Fire key={i} position={[q[0], q[1] + 2, q[2] + 2.4]} size={1.4} count={3} spread={0.6} smoke={false} />;
+        return <Fire key={i} position={[q[0], q[1] + 2, q[2] + 2.4]} size={1.4} count={3} spread={0.6} />;
       })}
       <mesh position={[0, -30, -120]} rotation={[-Math.PI / 2, 0, 0]} material={nightWater}>
         <planeGeometry args={[400, 220]} />
@@ -981,7 +987,7 @@ export function RampartScene() {
       <WardenHoldsTheWall position={warden} />
       <BeaconBrazier position={sub(RAMPART_BEACON, RAMPART_ORIGIN)} flag="l2-beacon-rampart" />
       {[1, 2, 3].map((n) => (
-        <Fire key={n} position={[warden[0] + (n - 2) * 0.5, 2 + n * 0.6, warden[2] + 0.3]} size={0.9} count={2} spread={0.4} smoke={false} untilFlag={`l2-warden-${n}`} />
+        <Fire key={n} position={[warden[0] + (n - 2) * 0.5, 2 + n * 0.6, warden[2] + 0.3]} size={0.9} count={2} spread={0.4} untilFlag={`l2-warden-${n}`} />
       ))}
       <BurningSkyline position={[0, -30, 70]} rotationY={Math.PI} seed={5} />
     </group>
@@ -1011,14 +1017,7 @@ function RoofBase() {
         <Box key={i} position={[Math.cos(a) * 8.95, 1.55, Math.sin(a) * 8.95]} size={[0.62, 0.8, 1.05]} rotation={[0, -a, 0]} material={MAT.academyStone} />
       ))}
       {[0.6, 2.2, 3.8, 5.4].map((a) => (
-        <group key={a} position={[Math.cos(a) * 7.6, 0, Math.sin(a) * 7.6]}>
-          <mesh position={[0, 0.5, 0]} material={MAT.darkSteel}>
-            <cylinderGeometry args={[0.12, 0.2, 1, 16]} />
-          </mesh>
-          <mesh position={[0, 1.05, 0]} material={MAT.darkSteel}>
-            <cylinderGeometry args={[0.45, 0.25, 0.3, 24, 1, true]} />
-          </mesh>
-        </group>
+        <KitModel key={a} id="iron_brazier" position={[Math.cos(a) * 7.6, 0, Math.sin(a) * 7.6]} rotationY={a} />
       ))}
     </>
   );
@@ -1111,11 +1110,7 @@ export function AftermathScene() {
       <mesh position={[0, 0.04, 0]} material={MAT.marble} geometry={worldCylinder(0.55, 0.6, 0.08, 32)} />
       {/* The Quill shard: a cluster of red crystal points, glowing */}
       <group ref={shard} position={[0, 1.12, 0]}>
-        {([[0, 0, 0, 0.34, 0], [0.07, 0, 0.04, 0.2, 0.5], [-0.06, 0, -0.05, 0.24, -0.45]] as const).map(([x, y, z, h, tilt], i) => (
-          <mesh key={i} position={[x, y + h / 2, z]} rotation={[tilt * 0.6, i, tilt]} material={SHARD_MAT}>
-            <cylinderGeometry args={[0, 0.05 + h * 0.12, h, 6]} />
-          </mesh>
-        ))}
+        <KitModel id="quill_shard" overrides={SHARD_OVERRIDE} castShadow={false} />
         <sprite position={[0, 0.18, 0]} scale={1.1}>
           <spriteMaterial map={glow} color="#ff4a20" transparent blending={AdditiveBlending} depthWrite={false} toneMapped={false} />
         </sprite>
@@ -1123,7 +1118,7 @@ export function AftermathScene() {
       <group position={[0, 1.1, 0]}>
         <LightBeam height={6} width={0.7} color="#ff6a3a" intensity={0.5} />
       </group>
-      <pointLight position={[0, 1.5, 0]} color="#ff4a20" intensity={3} distance={5} decay={2} />
+      <PoolLight position={[0, 1.5, 0]} color="#ff4a20" intensity={3} distance={5} decay={2} />
       <KeeperOrin position={[1.4, 0, -1.2]} rotationY={-0.6} />
       <Mira position={[-1.6, 0, -0.8]} rotationY={0.7} />
       <StaticWarden position={[4, 0, -5]} scale={1} rotationY={-0.5} />

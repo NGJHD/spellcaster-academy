@@ -86,8 +86,8 @@ export const library: AreaScript = {
     // Look at the mosaic while Pip and Mira talk about it.
     reveal('library-mosaic', A, 'LIB_CLUE_VIEW', ['LIB_MOSAIC'], 1.4, 3.0, { barks: ['lib-mosaic', 'lib-mosaic-2'] }),
     travel('library-to-grimoire', A, ['LIB_CLUE_VIEW', 'LIB_GRIMOIRE_ARENA'], 4, { reducedMotion: 'glide' }),
-    // Boss intro: the chains snap one by one, the Grimoire rises and roars a gust of pages that blows
-    // out the lamps, and the name card appears.
+    // Boss intro: the chains snap one by one, the Grimoire rises and roars a burst of violet magic that
+    // blows out the lamps, and the name card appears (sparkles, not pages: owner, 2026-10-24).
     reveal('library-grimoire-wakes', A, 'LIB_GRIMOIRE_ARENA', ['LIB_GRIMOIRE_HIGH'], 0.8, 10, {
       music: 'grimoire-battle',
       objective: 'calm-grimoire',
@@ -97,8 +97,9 @@ export const library: AreaScript = {
         { kind: 'sparks', at: 'LIB_CHAIN_LEFT', atBeat: 0.12, scale: 1.2 },
         { kind: 'sparks', at: 'LIB_CHAIN_RIGHT', atBeat: 0.26, scale: 1.2 },
         { kind: 'shake', atBeat: 0.26, scale: 0.8 },
-        { kind: 'leaves', at: 'LIB_GRIMOIRE_HIGH', atBeat: 0.55, scale: 2.4, color: '#f3ead2' },
-        { kind: 'shockwave', at: 'LIB_GRIMOIRE', atBeat: 0.55, scale: 1.4, color: '#d9c7ff' },
+        { kind: 'burst', at: 'LIB_GRIMOIRE_HIGH', atBeat: 0.55, scale: 2.2, color: '#c9b0ff' },
+        { kind: 'sparks', at: 'LIB_GRIMOIRE_HIGH', atBeat: 0.55, scale: 1.6, color: '#e6dcff' },
+        { kind: 'pulse', at: 'LIB_GRIMOIRE', atBeat: 0.55, scale: 1.4, color: '#d9c7ff' },
         { kind: 'shake', atBeat: 0.55, scale: 1.6 },
       ],
     }),
@@ -158,8 +159,8 @@ export const library: AreaScript = {
           id: 'books-3',
           // A whole shelf topples in slow motion and spills a swarm of books.
           fx: [
-            { kind: 'debris', at: 'LIB_TOPPLE_SHELF', delaySec: 0.9, scale: 1.8, color: '#7a2f2a' },
-            { kind: 'debris', at: 'LIB_TOPPLE_SHELF', delaySec: 1.1, scale: 1.4, color: '#2f4a7a' },
+            { kind: 'debris', at: 'LIB_TOPPLE_SHELF', delaySec: 0.9, scale: 1.8, color: '#7a2f2a', pieces: 'book' },
+            { kind: 'debris', at: 'LIB_TOPPLE_SHELF', delaySec: 1.1, scale: 1.4, color: '#2f4a7a', pieces: 'book' },
             { kind: 'dust', at: 'LIB_TOPPLE_SHELF', delaySec: 1.0, scale: 2 },
             { kind: 'shake', delaySec: 1.0, scale: 1.4 },
           ],
@@ -202,19 +203,22 @@ export const library: AreaScript = {
       kind: 'combat',
       bossPhase: 'grimoire-clasps',
       hazard: { attacks: ['gust'], firstDelaySec: 7, intervalSec: 10, windupSec: 1.8, damage: 6 },
+      // The two clasps strapped over the hovering book's edge (LibraryScene GrimoireClasp): each word
+      // sits on a clasp's moonstone lock and springs that clasp open, one after the other.
       waves: [
         {
           id: 'clasps',
+          sequential: true,
           targets: (
             [
-              ['clasp-left', L(-1.15, 2.6, -19.2)],
-              ['clasp-right', L(1.15, 2.6, -19.2)],
-              ['clasp-top', L(0, 3.55, -19.2)],
+              ['clasp-1', L(-0.2, 2.83, -19.77)],
+              ['clasp-2', L(-0.2, 2.14, -19.46)],
             ] as const
           ).map(([id, p]) =>
-            target(id, 'clasp', p, [len(4, 5)], {
-              labelHeight: 0.35,
-              defeatFx: { kind: 'sparks', scale: 1.2 },
+            marker(id, p, len(4, 5), {
+              labelHeight: 0.3,
+              defeatFlag: `grimoire-${id}`,
+              defeatFx: { kind: 'sparks', scale: 1.2, color: '#ffd88a' },
             }),
           ),
         },
@@ -233,9 +237,9 @@ export const library: AreaScript = {
         windupSec: 1.6,
         damage: 7,
         fx: [
-          { kind: 'debris', at: 'LIB_TABLE_LEFT', scale: 1.5, color: '#6e4a2c' },
-          { kind: 'debris', at: 'LIB_TABLE_RIGHT', scale: 1.5, color: '#6e4a2c' },
-          { kind: 'debris', at: 'LIB_SHELF_AISLE', scale: 1.4, color: '#7a2f2a' },
+          { kind: 'debris', at: 'LIB_TABLE_LEFT', scale: 1.5, color: '#6e4a2c', pieces: 'wood' },
+          { kind: 'debris', at: 'LIB_TABLE_RIGHT', scale: 1.5, color: '#6e4a2c', pieces: 'wood' },
+          { kind: 'debris', at: 'LIB_SHELF_AISLE', scale: 1.4, color: '#7a2f2a', pieces: 'book' },
         ],
       },
       waves: [
@@ -260,9 +264,9 @@ export const library: AreaScript = {
       beam: { to: L(0, 2.9, -19.6), color: '#d9c7ff' },
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'LIB_GRIMOIRE', scale: 1.6, color: '#ffe6a0' },
+        { kind: 'pulse', at: 'LIB_GRIMOIRE', scale: 1.6, color: '#ffe6a0' },
         { kind: 'burst', at: 'LIB_GRIMOIRE_HIGH', scale: 2.6 },
-        { kind: 'leaves', at: 'LIB_GRIMOIRE_HIGH', scale: 2, color: '#f3ead2' },
+        { kind: 'sparks', at: 'LIB_GRIMOIRE_HIGH', scale: 1.8, color: '#ffe6a0' },
         { kind: 'shake', scale: 1.6 },
       ],
       waves: [

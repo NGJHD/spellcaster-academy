@@ -30,6 +30,8 @@ async function startFromTitle(page: Page, query: string, difficulty: string) {
   if (await confirm.isVisible().catch(() => false)) await confirm.click();
   await page.getByRole('radio', { name: new RegExp(difficulty) }).click();
   await page.getByRole('button', { name: 'BEGIN', exact: true }).click();
+  // The first run of a page opens behind the loading screen; the level begins when it fades.
+  await expect(page.locator('.loading-screen')).toHaveCount(0, { timeout: 60_000 });
 }
 
 /** Plays like a child: Enter on blocking lines, otherwise the next letter of the locked (or first) word. */

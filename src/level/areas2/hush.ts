@@ -75,7 +75,7 @@ export const knight = (id: string, path: Vec3[], words: readonly WordSpec[] = [l
     entrance: { kind: 'dust', scale: 1.2, color: '#2a2220' },
     // A beaten knight bursts apart; it used to stay standing and looked like a mob nobody could target
     // (owner, 2026-10-08: "it just... exists").
-    defeatFx: { kind: 'shockwave', scale: 0.8, color: '#ff5a1a' },
+    defeatFx: { kind: 'pulse', scale: 0.8, color: '#ff5a1a' },
     ...options,
   });
 
@@ -92,7 +92,7 @@ export const fireball = (id: string, from: Vec3, to: Vec3, options: Partial<Targ
     labelHeight: 0.9,
     counter: true,
     weak: true,
-    defeatFx: { kind: 'shockwave', scale: 0.4, color: '#9fd8ff' },
+    defeatFx: { kind: 'pulse', scale: 0.4, color: '#9fd8ff' },
     ...options,
   });
 

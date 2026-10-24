@@ -27,7 +27,7 @@ export function creatureUrl(kind: string, variant?: string): string | null {
   if (AI_MOB_KINDS.has(kind) && !BUILT_AI_MOBS.has(kind)) return null;
   switch (kind) {
     case 'sprite':
-      // One realistic model (assets-src/scripts/ai); grey and teal variants are tints (CreatureModel `tint`).
+      // One realistic model (assets-src/scripts/ai); the grey variant is a tint (CreatureModel `tint`).
       void variant;
       return `${base}mischief_sprite.glb`;
     case 'mossling':
@@ -71,23 +71,27 @@ function chooseClip(p: TargetPose, has: (name: string) => boolean): ClipName {
  * A skinned creature GLB driven by gameplay state. Each target gets its own skeleton clone and mixer;
  * the Attack clip's anticipation is scrubbed by the gameplay wind-up so the telegraph matches timing.
  */
-/** Colour variants of one realistic model (grey sprite, teal bonus sprite) without extra downloads. */
+/** Colour variants of one realistic model (grey sprite, book covers) without extra downloads. */
 const TINTS: Readonly<Record<string, { color: string; emissive?: string; emissiveIntensity?: number }>> = {
   grey: { color: '#9a9aa4' },
-  teal: { color: '#c9e8e2', emissive: '#1fa594', emissiveIntensity: 0.35 },
   'book-blue': { color: '#7fa0ff' },
   'book-green': { color: '#8fd09a' },
+  'book-purple': { color: '#b48ad8' },
+  'book-gold': { color: '#e8c070' },
 };
 
 export function CreatureModel({
   url,
   pose,
   tint,
+  phase = 0,
   onScene,
 }: {
   url: string;
   pose: RefObject<TargetPose>;
   tint?: string;
+  /** Seconds to start the clips in, so a crowd of the same model does not move in step. */
+  phase?: number;
   /** Hands over the model's own scene (bones for effects that follow the body), and null on unmount. */
   onScene?: (scene: Object3D | null) => void;
 }) {
@@ -150,6 +154,7 @@ export function CreatureModel({
       next.setLoop(oneShot ? LoopOnce : LoopRepeat, oneShot ? 1 : Infinity);
       next.clampWhenFinished = oneShot;
       if (want === 'Attack' && p.recovering) next.time = next.getClip().duration * ATTACK_ANTICIPATION;
+      if (!oneShot && phase > 0) next.time = phase % next.getClip().duration;
       next.play();
       if (prev) next.crossFadeFrom(prev, FADE_SEC, false);
       state.current = want;

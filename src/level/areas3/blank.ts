@@ -37,7 +37,7 @@ export const foreman = (id: string, path: Vec3[], options: Partial<TargetSpawn> 
     attack: HUSH_ATTACKS.knightSweep,
     labelHeight: 3.1,
     entrance: { kind: 'dust', scale: 1.6, color: '#2a2220' },
-    defeatFx: { kind: 'shockwave', scale: 1.2, color: '#ff5a1a' },
+    defeatFx: { kind: 'pulse', scale: 1.2, color: '#ff5a1a' },
     persist: true,
     ...options,
   });
@@ -78,7 +78,7 @@ export const fireTide = (id: string, from: Vec3, to: Vec3, words: readonly [stri
     labelHeight: 0.8,
     // Drawn as a towering wall of flame (FireWallModel), not a fireball.
     variant: 'wall',
-    defeatFx: { kind: 'shockwave', scale: 2.2, color: '#9fd8ff' },
+    defeatFx: { kind: 'pulse', scale: 2.2, color: '#9fd8ff' },
     ...options,
   });
 

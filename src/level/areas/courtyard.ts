@@ -45,7 +45,7 @@ export function anchorBlast(ground: string, color: string): FxCue[] {
   return [
     { kind: 'flash' },
     { kind: 'pillar', at: ground, scale: 1.8, color },
-    { kind: 'shockwave', at: ground, scale: 1.2, color },
+    { kind: 'pulse', at: ground, scale: 1.2, color },
     { kind: 'burst', at: ground, scale: 2, color },
     { kind: 'shake', scale: 1.2 },
   ];
@@ -61,7 +61,9 @@ export const courtyard: AreaScript = {
     COURTYARD_ROOF_RUN_A: { position: [-8.5, 6.4, 17.4], lookAt: [6, 6.2, 17.4] },
     COURTYARD_ROOF_RUN_B: { position: [8, 6.4, 17.4], lookAt: [16, 6.2, 16] },
     COURTYARD_ROOF_END: { position: [11, 6.4, 13.5], lookAt: [3, 1.6, -10] },
-    COURTYARD_MID_01: { position: [0, 1.6, -5], lookAt: [4, 1.5, -8] },
+    // On the way down from the roof to the anchor (owner, 2026-10-24: it sat beyond and left of the anchor,
+    // so the camera swung past it and snapped back).
+    COURTYARD_MID_01: { position: [7.5, 2.6, 4], lookAt: [7, 1.4, -8] },
     COURTYARD_ANCHOR: { position: [4, 1.6, -3.5], lookAt: [7, 1.4, -8] },
     COURTYARD_EXIT_EAST_HALL: { position: [10, 1.6, -0.5], lookAt: [14, 2, 0] },
   },
@@ -96,8 +98,8 @@ export const courtyard: AreaScript = {
         chase: [
           {
             at: 0.12,
+            // The ordinary sprite colours (owner, 2026-10-23: a pale teal tint read as see-through).
             target: target('roof-thief', 'sprite', [0, 0, 0], [len(3, 4), len(3, 4)], {
-              variant: 'teal',
               optional: true,
               follow: { ahead: 5.5, side: 0.3, up: -1.5 },
               labelHeight: 0.95,
@@ -114,9 +116,9 @@ export const courtyard: AreaScript = {
       barks: ['court-warden-say', 'court-warden'],
       returnToNode: false,
       fx: [
-        { kind: 'shockwave', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.4 },
+        { kind: 'dustwave', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.4 },
         { kind: 'dust', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 2.2 },
-        { kind: 'debris', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.2, color: '#b9a58a' },
+        { kind: 'debris', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.15, scale: 1.2, color: '#b9a58a', pieces: 'stone' },
         { kind: 'shake', atBeat: 0.15, scale: 1.6 },
         // Pigeons scatter from the roofs and the paving as it lands.
         { kind: 'birds', at: 'COURTYARD_WARDEN_GROUND', atBeat: 0.16, scale: 1.4 },

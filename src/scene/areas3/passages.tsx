@@ -18,6 +18,7 @@ import { Bookshelf, Box, KitModel, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { Mira } from '../props';
+import { PoolLight } from '../LightPool';
 
 const HALF = 2;
 const SPRING = 3.8;
@@ -70,16 +71,11 @@ export function BookHall({ length = 12, seed = 1 }: { length?: number; seed?: nu
             <Bookshelf key={i} position={[s * 2.6, 0, -1.8 - i * 3.2]} rotationY={s < 0 ? Math.PI / 2 : -Math.PI / 2} width={3} height={4.4} shelves={5} seed={seed + i + (s > 0 ? 10 : 0)} />
           ))}
           {/* Broken columns where the walk opens out */}
-          <group position={[s * 2.4, 0, -length - 1.5]}>
-            <mesh position={[0, s < 0 ? 2.6 : 1.6, 0]} material={MAT.academyStone} castShadow>
-              <cylinderGeometry args={[0.45, 0.55, s < 0 ? 5.2 : 3.2, 18]} />
-            </mesh>
-            <Box position={[0, 0.2, 0]} size={[1.3, 0.4, 1.3]} material={MAT.academyStone} />
-          </group>
+          <KitModel id={s < 0 ? 'column_passage_tall' : 'column_passage_short'} position={[s * 2.4, 0, -length - 1.5]} rotationY={s} />
         </group>
       ))}
       <Fire position={[1.6, 0, -length + 1]} size={1.2} count={2} spread={0.8} />
-      <pointLight position={[0, 3.2, -1.5]} color="#ffb060" intensity={10} distance={8} decay={1.6} />
+      <PoolLight position={[0, 3.2, -1.5]} color="#ffb060" intensity={10} distance={8} decay={1.6} />
     </group>
   );
 }
@@ -169,7 +165,7 @@ export function LibraryDoorAtFalls({ door, ashoreBeat }: { door: Vec3; ashoreBea
         </group>
         {/* Lanterns either side of the door, so it reads from the top of the slide */}
         {[-1, 1].map((s) => (
-          <Fire key={s} position={[s * 3.2, 0.2, 1.4]} size={1.2} count={2} spread={0.3} smoke={false} kind="warm" light={s < 0} />
+          <Fire key={s} position={[s * 3.2, 0.2, 1.4]} size={1.2} count={2} spread={0.3} kind="warm" light={s < 0} />
         ))}
       </group>
       <StreamingPages door={door} />
@@ -232,13 +228,13 @@ function GalleryFoyer() {
       {[-1, 1].map((s) => (
         <group key={s}>
           <Slab x={s < 0 ? [-5.6, -5] : [5, 5.6]} y={[0, 8]} z={[-10, 0]} material={MAT.volcanicStone} />
-          <Fire position={[s * 4.4, 2.6, -5]} size={0.8} count={2} spread={0.2} smoke={false} kind="warm" light={s < 0} />
+          <Fire position={[s * 4.4, 2.6, -5]} size={0.8} count={2} spread={0.2} kind="warm" light={s < 0} />
         </group>
       ))}
       <Slab x={[-5.6, 5.6]} y={[8, 8.6]} z={[-10, 0]} material={MAT.volcanicStone} />
       <Slab x={[-5.6, 5.6]} y={[0, 8.6]} z={[-10.6, -10]} material={MAT.volcanicStone} />
       <Exhibit id="marble_bust_01" position={[0, 0, -8.6]} height={1.3} rotationY={0} />
-      <pointLight position={[0, 4, -4]} color="#ff9a5a" intensity={24} distance={14} decay={1.6} />
+      <PoolLight position={[0, 4, -4]} color="#ff9a5a" intensity={24} distance={14} decay={1.6} />
     </group>
   );
 }

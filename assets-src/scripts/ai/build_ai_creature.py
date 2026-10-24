@@ -118,6 +118,8 @@ CONFIG = {
     "dorm_bed": dict(out="dorm_bed", folder="props", rig="none", defeat="vanish", height=2.4, fit="width", width=2.3, tris=14000, tex=1024),
     "wardrobe": dict(out="wardrobe", folder="props", rig="none", defeat="vanish", height=2.2, tris=10000, tex=1024),
     "beacon_brazier": dict(out="beacon_brazier", folder="props", rig="none", defeat="vanish", height=2.6, tris=12000, tex=1024, metallic=0.5, roughness=0.5),
+    # The Cinderwood flock (owner, 2026-10-23): wings raised to both sides, so the dragon rig's wing bones beat them.
+    "flock_bird": dict(out="flock_bird", normal_map=True, height=1.05, fit="width", width=1.4, tris=24000, tex=1024, rig="dragon", defeat="vanish"),
     "snapvine": dict(out="snapvine_head", height=1.6, tris=30000, tex=1024, rig="rigid", defeat="vanish"),
 }
 cfg = CONFIG[NAME]

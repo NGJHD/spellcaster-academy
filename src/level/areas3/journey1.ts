@@ -20,9 +20,28 @@ const R = origin(SHORE_ORIGIN);
 const C = origin(WOOD_ORIGIN);
 /** The Cinder Citadel on the horizon, seen from the whole Blank. */
 export const CITADEL_FAR: Vec3 = [2400, 120, -900];
+/**
+ * The view from the Warden's palm over the shore (owner, 2026-10-23: "the scene doesn't make sense"): a
+ * dirt path winds from the shore through the forest to the edge of the plain, where an inkfall cascades
+ * down in shallow tiers (so it stays in view from high up) into the paper sea, with the Citadel small on its far shore. Area-local, along −Z.
+ */
+export const SHORE_CLIFF_Z = -330;
+/** Below the cliff: the paper sea's surface (area-local height). */
+export const SHORE_SEA_Y = -16;
+/** The Citadel across the paper sea, as the opening sees it (area-local). */
+export const SHORE_CITADEL_AT: Vec3 = [40, SHORE_SEA_Y - 5, -760];
+/** The path's centre line: straight past the shore fights, then winding through the forest to the falls. */
+export function shorePathX(z: number): number {
+  const s = -40 - z;
+  if (s <= 0) return 0;
+  const a = Math.min(1, s / 60);
+  return a * (26 * Math.sin(s / 70) + 10 * Math.sin(s / 31));
+}
 export const STONES: readonly Vec3[] = [R(0.5, 0, -6), R(-0.6, 0, -10), R(0.4, 0, -14)];
 export const DEER: Vec3 = C(-2.2, 0, -8);
 export const TORTOISE: Vec3 = C(3, 0, -40);
+/** The half-erased birds of the Cinderwood flock, hovering over the path (world space). */
+export const FLOCK: readonly Vec3[] = [C(-2.4, 3.4, -27), C(2.3, 4.0, -28), C(0.2, 5.2, -30.5)];
 
 /** Burning debris tumbling out of the Rift with a counter-word, beside the camera. */
 const debris = (id: string, side: number, up: number) =>
@@ -36,7 +55,8 @@ export const shore: AreaScript = {
     SHORE_FAR: { position: R(0, 1.6, -18), lookAt: R(0, 1.4, -34) },
   },
   lookPoints: {
-    BLANK_CITADEL: CITADEL_FAR,
+    // The Citadel across the paper sea, beyond the inkfall (high up, so the pan takes in the falls too).
+    BLANK_CITADEL: R(SHORE_CITADEL_AT[0], 40, SHORE_CITADEL_AT[2]),
     SHORE_ASH: R(0, 0.5, -24),
     SURGE_SKY: R(0, 70, 40),
   },
@@ -194,9 +214,15 @@ export const cinderwood: AreaScript = {
         {
           id: 'birds',
           sequential: true,
-          targets: (['wing', 'song', 'feather'] as const).map((word, i) => marker(`bird-${i + 1}`, C(-3 + i * 3, 6 + (i % 2), -30), word, { labelHeight: 0.3, defeatFx: { kind: 'burst', scale: 1, color: ['#ff6a5a', '#ffd24a', '#4ab8ff'][i] } })),
+          // Each word restores one half-erased bird of the flock (FLOCK); the young-typist trim keeps a
+          // sequence to two words, so two are authored. A third bird joins them when the flock is free.
+          targets: (['wing', 'song'] as const).map((word, i) => {
+            const at = FLOCK[i] ?? C(0, 6, -30);
+            return marker(`bird-${i + 1}`, [at[0], at[1] + 0.55, at[2]], word, { labelHeight: 0.3, defeatFlag: `l3-bird-${i + 1}`, defeatFx: { kind: 'burst', scale: 1, color: ['#ff6a5a', '#ffd24a'][i] } });
+          }),
         },
       ],
+      onComplete: { flags: ['l3-flock-free'] },
     },
     {
       id: 'l3-tortoise',

@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "audio": "node scripts/generate-audio.mjs"
+    "audio": "node scripts/generate-audio.mjs",
+    "gen:fire": "node scripts/generate-fire.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

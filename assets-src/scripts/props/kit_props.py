@@ -507,39 +507,60 @@ def greenhouse_bay(name, half_width=10.5, wall_h=8.0, rise=4.7, length=4.0):
 
 
 def greenhouse_end(name, half_width=10.5, wall_h=8.0, rise=4.7):
-    """Glazed gable end in the XZ plane (faces -Y): dwarf wall, iron grid following the roof, double doors."""
+    """Glazed gable end in the XZ plane (faces -Y): dwarf wall, iron grid following the roof, double doors.
+    It follows the bays' own 12-sided roof arch exactly (owner, 2026-10-24: the bars did not line up where
+    the end wall met the roof), with a rib round its edge and transoms at the bays' purlin heights."""
     m = K.lib()
     iron, glass, stone, oak = m["greenIron"], m["glass"], m["academyStoneDark"], m["darkOak"]
     mb = K.MeshBuilder([iron, glass, stone, oak])
-    outline = [(-half_width, 0.6), (half_width, 0.6), (half_width, wall_h)]
-    for k in range(1, 16):
-        a = math.pi * k / 16
-        outline.append((half_width * math.cos(a), wall_h + rise * math.sin(a)))
-    outline.append((-half_width, wall_h))
+    # The roof arch as greenhouse_bay builds it: 12 straight segments from eave to eave.
+    arch = [(half_width * math.cos(math.pi - math.pi * k / 12), wall_h + rise * math.sin(math.pi * k / 12)) for k in range(13)]
+
+    def roof_z(x):
+        """Height of the arch above x."""
+        for (x0, z0), (x1, z1) in zip(arch, arch[1:]):
+            if x0 <= x <= x1:
+                return z0 + (z1 - z0) * (x - x0) / max(1e-6, x1 - x0)
+        return wall_h
+
+    def roof_x(z):
+        """Half-width of the arch at height z (right side)."""
+        if z <= wall_h:
+            return half_width
+        right = arch[6:]
+        for (x0, z0), (x1, z1) in zip(right, right[1:]):
+            if z1 <= z <= z0:
+                return x0 + (x1 - x0) * (z0 - z) / max(1e-6, z0 - z1)
+        return 0.0
+
+    outline = [(-half_width, 0.6), (half_width, 0.6)] + list(reversed(arch))
     # Glass as a fan of triangles from the centre of the gable.
     c = (0.0, (wall_h + 0.6) / 2)
     for k in range(len(outline)):
         p0, p1 = outline[k], outline[(k + 1) % len(outline)]
         mb.face([(c[0], 0.0, c[1]), (p0[0], 0.0, p0[1]), (p1[0], 0.0, p1[1])], glass, None, (0, -1, 0))
-    # Mullions every 1.5 m clipped to the outline, transoms every 1.2 m.
+    # The edge rib: up each side wall and round the arch, as deep as the bays' main ribs.
+    edge = [(-half_width, 0.6)] + arch + [(half_width, 0.6)]
+    for (x0, z0), (x1, z1) in zip(edge, edge[1:]):
+        mid = Vector(((x0 + x1) / 2, 0, (z0 + z1) / 2))
+        out = Vector((mid.x, 0, mid.z - wall_h * 0.5)) if abs(mid.x) < half_width - 0.01 else Vector((math.copysign(1, mid.x), 0, 0))
+        bar_between(mb, (x0, -0.06, z0), (x1, -0.06, z1), 0.12, iron, out)
+    # Mullions every 1.5 m up to the arch.
     x = -half_width + 1.5
     while x < half_width - 0.1:
-        top = wall_h + rise * math.sqrt(max(0.0, 1 - (x / half_width) ** 2))
         bottom = 3.2 if abs(x) < 1.35 else 0.6  # keep the doorway clear
-        K.box_faces(mb, (x - 0.04, -0.08, bottom), (x + 0.04, 0.0, top), iron)
+        K.box_faces(mb, (x - 0.04, -0.08, bottom), (x + 0.04, 0.0, roof_z(x)), iron)
         x += 1.5
-    z = 1.8
-    while z < wall_h + rise - 0.3:
-        if z <= wall_h:
-            hw = half_width
-        else:
-            hw = half_width * math.sqrt(max(0.0, 1 - ((z - wall_h) / rise) ** 2))
+    # Transoms at the bays' purlin heights, so the bars run on round the corners: the side wall's four
+    # courses, then each corner of the roof arch.
+    heights = [0.6 + (wall_h - 0.6) * k / 4 for k in range(1, 5)] + [z for _, z in arch[7:12]]
+    for z in heights:
+        hw = roof_x(z)
         if z < 3.25:
             for a, b in ((-hw, -1.3), (1.3, hw)):
                 K.box_faces(mb, (a, -0.07, z - 0.03), (b, 0.0, z + 0.03), iron)
         else:
             K.box_faces(mb, (-hw, -0.07, z - 0.03), (hw, 0.0, z + 0.03), iron)
-        z += 1.2
     K.box_faces(mb, (-half_width, -0.3, 0.0), (half_width, 0.0, 0.55), stone)
     K.box_faces(mb, (-half_width - 0.05, -0.35, 0.55), (half_width + 0.05, 0.05, 0.62), stone)
     # Double door with an iron frame and glazed upper panels.
@@ -790,7 +811,6 @@ BUILDERS["pedestal_grimoire"] = lambda: pedestal("pedestal_grimoire")
 BUILDERS["page_loose"] = lambda: S.page_loose("page_loose")
 BUILDERS["star_page"] = lambda: S.star_page("star_page")
 BUILDERS["star_page_teal"] = lambda: S.star_page("star_page_teal", glow_name="TealGlow")
-BUILDERS["clasp"] = lambda: S.clasp("clasp")
 BUILDERS["greenhouse_bay"] = lambda: greenhouse_bay("greenhouse_bay")
 BUILDERS["greenhouse_end"] = lambda: greenhouse_end("greenhouse_end")
 BUILDERS["observatory_dome"] = lambda: observatory_dome("observatory_dome")

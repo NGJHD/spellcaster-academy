@@ -11,6 +11,7 @@ import { kitUrl, libraryMaterial, useKit } from './kitGlb';
 import { Prop } from './Prop';
 import { MAT } from './materials';
 import { worldBox, worldCylinder, worldPlane } from './surfaces';
+import { PoolLight } from './LightPool';
 
 type V3 = readonly [number, number, number];
 
@@ -133,7 +134,7 @@ export function WallLamp({ position, rotationY = 0, light = false, color = '#ffc
       <mesh position={[0, -0.04, 0.2]} material={MAT.lampGlow}>
         <sphereGeometry args={[0.035, 12, 8]} />
       </mesh>
-      {light && <pointLight position={[0, 0.2, 0.45]} color={color} intensity={intensity} distance={8} decay={2} />}
+      {light && <PoolLight position={[0, 0.2, 0.45]} color={color} intensity={intensity} distance={8} decay={2} />}
     </group>
   );
 }
@@ -143,7 +144,7 @@ export function StandingLamp({ position, light = false }: { position: V3; light?
     <group position={position}>
       {/* A cast-iron lamp post (CC0 model) */}
       <Prop id="street_lamp_01" position={[0, 0, 0]} height={2.7} />
-      {light && <pointLight position={[0, 2.5, 0]} color="#ffc98a" intensity={7} distance={9} decay={2} />}
+      {light && <PoolLight position={[0, 2.5, 0]} color="#ffc98a" intensity={7} distance={9} decay={2} />}
     </group>
   );
 }
@@ -255,7 +256,9 @@ export function Planter({ position, size = 1.4, seed = 1 }: { position: V3; size
 export function Banner({ position, rotationY = 0, width = 1.1, height = 3 }: { position: V3; rotationY?: number; width?: number; height?: number }) {
   const ref = useRef<Object3D>(null);
   useFrame((state) => {
-    if (ref.current) ref.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.9 + position[0]) * 0.03;
+    // It swings out from the wall it hangs on and back, never into it (owner, 2026-10-23: swinging both
+    // ways tipped the lower half into the stone, so the banner seemed to shrink, grow and vanish).
+    if (ref.current) ref.current.rotation.x = -(0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 0.9 + position[0])) * 0.04;
   });
   // Cloth banner (kit_props banner_cloth: folds, forked tail, gilt border, emblem) swaying from its rod.
   return (

@@ -1,4 +1,4 @@
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Group } from 'three';
 import type { AreaId } from '../game/types';
@@ -14,6 +14,8 @@ import { PortraitsScene } from './areas/PortraitsScene';
 import { StairwellScene } from './areas/StairwellScene';
 import { TowerScene } from './areas/TowerScene';
 import { Atmosphere } from './Atmosphere';
+import { countDrawables, warmUp } from './warmUp';
+import { CreatureWarmup, creatureUrlsFor } from '../enemies/CreatureWarmup';
 import { CinderwoodScene, CitadelScene, ForgeScene, Gallery3Scene, InkfallScene, MarginScene, SeaScene, ShoreScene, ThroneScene } from './areas3/Level3Scenes';
 import { DormBedroom } from './areas2/bedroom';
 import { AftermathScene, BridgeScene, DormitoryFires, HallScene, LakeScene, LawnScene, LibraryFires, RampartScene, RoofScene, WorkshopScene } from './areas2/Level2Scenes';
@@ -103,23 +105,43 @@ const KEEP_PREVIOUS_MS = 2500;
  * never reveals an empty world — is mounted at a time.
  */
 /**
- * Holds one area's scene. While it is only being staged (the next area) it is hidden, and its
- * materials are compiled once in the background so showing it later costs no frame-rate dip.
+ * Holds one area's scene. While it is only being staged (the next area) it is hidden, and its shaders
+ * and textures are readied in the background — again whenever more of it has loaded (models inside it
+ * stream in after it mounts) — so showing it later costs no stall.
  */
-function Staged({ shown, children }: { shown: boolean; children: ReactNode }) {
+function Staged({ shown, retiring = false, children }: { shown: boolean; retiring?: boolean; children: ReactNode }) {
   const group = useRef<Group>(null);
-  const { gl, camera, scene } = useThree();
-  const compiled = useRef(false);
-  useEffect(() => {
+  // The area being left only covers the fade-out: once the screen is fully black the camera has cut to the
+  // new place, which can lie inside the old area's scenery (owner, 2026-10-24: entering Cinderwood "in the
+  // bushes", the Rift Shore's forest standing round the camera until it unloaded).
+  const blackedOut = useRef(false);
+  useFrame(() => {
     const g = group.current;
-    if (!g || shown || compiled.current) return;
-    compiled.current = true;
-    const id = window.setTimeout(() => {
-      g.visible = true;
-      gl.compile(scene, camera);
-      g.visible = false;
-    }, 500);
-    return () => window.clearTimeout(id);
+    if (!g) return;
+    if (!retiring) {
+      blackedOut.current = false;
+      return;
+    }
+    if ((getRun()?.director.pose.fade ?? 0) >= 0.999) blackedOut.current = true;
+    g.visible = shown && !blackedOut.current;
+  });
+  const { gl, camera, scene } = useThree();
+  const warmed = useRef(-1);
+  useEffect(() => {
+    if (shown) return;
+    let busy = false;
+    const id = window.setInterval(() => {
+      const g = group.current;
+      if (!g || busy) return;
+      const n = countDrawables(g);
+      if (n === warmed.current) return;
+      warmed.current = n;
+      busy = true;
+      void warmUp(gl, g, camera, scene).finally(() => {
+        busy = false;
+      });
+    }, 700);
+    return () => window.clearInterval(id);
   }, [gl, camera, scene, shown]);
   return (
     <group ref={group} visible={shown}>
@@ -158,6 +180,16 @@ export function World() {
     }
     return null;
   }, [beatId, current]);
+  // The creatures of every fight from here to the end of the next area load ahead of their spawn.
+  const creatures = useMemo(() => {
+    const run = getRun();
+    if (!run || !beatId) return [];
+    const beats = run.level.route.beats;
+    const i = Math.max(0, run.level.beatIndexOf(beatId));
+    let end = i;
+    while (end < beats.length && [current, next].includes(sceneFor(beats[end]?.areaId ?? area))) end++;
+    return creatureUrlsFor(run.level, beats.slice(i, end));
+  }, [beatId, current, next, area]);
 
   const scenes: Record<SceneKey, ReactNode> = {
     exterior: <ExteriorScene celebration={area === 'celebration-courtyard'} />,
@@ -211,12 +243,15 @@ export function World() {
       <Suspense fallback={null}>
         <Atmosphere areaId={area} />
       </Suspense>
+      <CreatureWarmup urls={creatures} />
       {/* The upcoming area is mounted hidden under the same key, so when the story reaches it the very
           same scene simply becomes visible: assets loaded and materials compiled, no remount. */}
       {[...mounted, ...(next && !mounted.has(next) ? [next] : [])].map((key) => (
         // Each area streams its own assets; one area loading never blanks another.
         <Suspense key={key} fallback={null}>
-          <Staged shown={mounted.has(key)}>{scenes[key]}</Staged>
+          <Staged shown={mounted.has(key)} retiring={key === shown.previous && key !== current}>
+            {scenes[key]}
+          </Staged>
         </Suspense>
       ))}
     </>

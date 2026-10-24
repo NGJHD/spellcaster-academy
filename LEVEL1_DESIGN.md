@@ -59,10 +59,10 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 - Runaway books dive from the galleries (two words); a shelf topples in slow motion and spills more.
 - Ink wisps erupt from a spilled inkwell (two shielded wisps).
 - **The mosaic:** the Warden locking a man with a pen behind the sky.
-- **Boss: THE GREAT GRIMOIRE** ("Keeper of a Thousand Pages"). It snaps its chains, rises and roars a gust of pages that blows out the lamps.
-  - **G1 Clasps:** two clasp words; paper gusts are telegraphed attacks.
+- **Boss: THE GREAT GRIMOIRE** ("Keeper of a Thousand Pages"). Chained to its pedestal and bound shut by two clasps, it snaps its chains, rises and roars a burst of violet sparkles that blows out the lamps.
+  - **G1 Clasps:** two clasp words, one after the other, each on a clasp strapped over the book's edge; each word springs that clasp open. Paper gusts are telegraphed attacks.
   - **G2 Flying pages:** two page words while gusts smash furniture.
-  - **G3 Sentence:** a beam struggle, `bright minds make strong magic`. It settles on its pedestal and whispers "Unwriter".
+  - **G3 Sentence:** a beam struggle, `bright minds make strong magic`. It settles on its pedestal in a shower of golden sparkles and whispers "Unwriter".
 - **Library Anchor:** `read`, `listen`, `learn`. Frost Thread, then three easy books. Checkpoint `library-restored`.
 - Mira: the last anchor is in the greenhouse, through the Hall of Portraits.
 
@@ -76,9 +76,9 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 
 ### Enchanted Greenhouse
 
-- **The Snapvine Chase:** a giant snapping vine lunges from the water; each word (`leaf`, `root`, `bloom`) grows the bridge and the camera hops forward just out of reach.
+- **The Snapvine Chase:** a giant snapping vine, already lurking in the water as we come in, rears up and lunges; each word (`leaf`, `root`, `bloom`) grows a section of the bridge, shown for a moment, and the camera hops onto it just out of reach.
 - A thorn pod glows before it shoots (type its word first) with a mossling; then a mossling stampede (two). The mosslings look scared, not angry.
-- **The turning point:** a roof panel shatters, the Warden smashes down through the glass, catches the falling sheet, sets it down and leaps away. Pip: it is trying to protect everything at once.
+- **The turning point:** a roof panel shatters and drifts down ("Look out, the roof is breaking!"); a moment later the Warden drops in through the hole, catches the falling sheet, sets it down and leaps away. Pip: it is trying to protect everything at once.
 - **Greenhouse Anchor**, tied up in vines that loosen with each knot: `rain`, `fern`, `amber`. The vines sink away; Chain Spark, then three easy mosslings. Checkpoint `greenhouse-restored`.
 - Pip: if the anchors are fixed, why is the sky still cracked? Mira: the Warden flew to the Moon Tower.
 
@@ -112,7 +112,7 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 
 ### Celebration Courtyard
 
-At dawn, with fireworks. Keeper Orin introduces himself and names the Unwriter; Pip links him to the man with the pen; Orin: "That's a story for another night." Then the results.
+At dawn, with fireworks; the students cheer, each jumping twice with hands up and resting between. Keeper Orin introduces himself and names the Unwriter; Pip links him to the man with the pen; Orin: "That's a story for another night." Then the results.
 
 ## Checkpoints
 

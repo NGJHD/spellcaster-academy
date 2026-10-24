@@ -28,6 +28,30 @@ export function bossWordTotal(boss: BossDef, encounters: ReadonlyMap<string, Enc
   return total;
 }
 
+/**
+ * Words already off the boss's health bar: every finished phase, plus the rounds of the current phase
+ * before `current.waveIndex` (a reset or a reload restarts the current round, so its words come back).
+ */
+export function bossWordsDone(
+  boss: BossDef,
+  encounters: ReadonlyMap<string, EncounterDef>,
+  completed: readonly string[],
+  current?: { readonly id: string; readonly waveIndex: number },
+): number {
+  let done = 0;
+  for (const id of boss.phases) {
+    if (completed.includes(id)) {
+      done += bossWordTotal({ ...boss, phases: [id] }, encounters);
+    } else if (current?.id === id) {
+      const def = encounters.get(id);
+      for (const wave of def?.waves.slice(0, current.waveIndex) ?? []) {
+        for (const t of wave.targets) if (!t.optional && !t.challengeOnly) done += t.words.length;
+      }
+    }
+  }
+  return done;
+}
+
 export function bossForEncounter(encounterId: string, bosses: readonly BossDef[] = LEVEL1_BOSSES): BossDef | undefined {
   return bosses.find((b) => b.phases.includes(encounterId));
 }

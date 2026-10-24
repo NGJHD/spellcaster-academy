@@ -102,17 +102,21 @@ export const greenhouse: AreaScript = {
     travel('greenhouse-to-vine', A, ['GH_REVEAL', 'GH_VINE'], 4, { reducedMotion: 'glide' }),
     // The Snapvine Chase: a giant snapping plant lunges; each word hops the camera forward in time.
     fight('greenhouse-vine', A, { barks: ['gh-1'], music: 'greenhouse-action' }),
+    // A moment to see each new section grow across the water before the camera hops onto it.
+    hold('greenhouse-vine-grow-1', A, 'GH_VINE', 0.9),
     travel('greenhouse-vine-hop-1', A, ['GH_VINE', 'GH_VINE_STEP_1'], 2.2, {
       easing: 'easeOutCubic',
       fx: snap('GH_SNAP_1'),
     }),
     fight('greenhouse-vine-2', A),
+    hold('greenhouse-vine-grow-2', A, 'GH_VINE_STEP_1', 0.9),
     travel('greenhouse-vine-hop-2', A, ['GH_VINE_STEP_1', 'GH_VINE_STEP_2'], 1.8, {
       easing: 'easeOutCubic',
       barks: ['gh-snap'],
       fx: snap('GH_SNAP_2'),
     }),
     fight('greenhouse-vine-3', A),
+    hold('greenhouse-vine-grow-3', A, 'GH_VINE_STEP_2', 0.9),
     travel('greenhouse-cross-bridge', A, ['GH_VINE_STEP_2', 'GH_BRIDGE_MID', 'GH_COMBAT'], 5, {
       easing: 'easeOutCubic',
       fx: snap('GH_SNAP_3'),
@@ -120,16 +124,18 @@ export const greenhouse: AreaScript = {
     fight('greenhouse-h1', A, { barks: ['gh-pods'] }),
     // Both lines play over the mossling fight, so the Warden scene that follows keeps its own line.
     fight('greenhouse-h2', A, { barks: ['gh-stampede', 'gh-moss'] }),
-    // The Warden smashes down through the glass roof, catches the falling panel, and leaps away.
-    reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_DOWN'], 2.0, 2.6, {
-      barks: ['gh-warden'],
+    // A roof panel breaks loose and drifts down; a moment later the Warden drops in through the hole,
+    // catches it, sets it down and leaps away (GreenhouseScene WardenRescue).
+    // Long holds: the glass needs time to fall, with a clear gap before the Warden arrives.
+    reveal('greenhouse-warden-scene', A, 'GH_COMBAT', ['GH_ROOF_PANEL', 'GH_PANEL_DOWN'], 2.4, 7, {
+      barks: ['gh-glass', 'gh-warden'],
       music: 'greenhouse-wonder',
       fx: [
-        { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.08, scale: 2 },
-        { kind: 'flash', atBeat: 0.08 },
-        { kind: 'shake', atBeat: 0.08, scale: 1.3 },
-        { kind: 'dust', at: 'GH_PANEL_DOWN', atBeat: 0.4, scale: 1.2 },
-        { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.86, scale: 0.8 },
+        { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.12, scale: 2 },
+        { kind: 'flash', atBeat: 0.12 },
+        { kind: 'shake', atBeat: 0.12, scale: 1.3 },
+        { kind: 'dust', at: 'GH_PANEL_DOWN', atBeat: 0.46, scale: 1.2 },
+        { kind: 'glass', at: 'GH_ROOF_PANEL', atBeat: 0.9, scale: 0.8 },
       ],
     }),
     travel('greenhouse-to-anchor', A, ['GH_COMBAT', 'GH_ANCHOR'], 5, { barks: ['gh-anchor-intro'] }),

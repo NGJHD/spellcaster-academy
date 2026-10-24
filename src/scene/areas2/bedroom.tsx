@@ -6,13 +6,14 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef } from 'react';
-import { SphereGeometry, type PointLight } from 'three';
+import { SphereGeometry } from 'three';
 import { BEDROOM_CENTRE, BEDROOM_HALF as H, BEDROOM_HEIGHT as T } from '../../level/areas2/bedroom';
 import { ModelBoundary } from '../../enemies/ModelBoundary';
 import { Box, Slab } from '../kit';
 import { MAT } from '../materials';
 import { Prop } from '../Prop';
 import { worldCylinder } from '../surfaces';
+import { PoolLight, VirtualLight } from '../LightPool';
 
 const W = 0.3; // wall thickness
 /** Window opening on the −Z wall. */
@@ -37,12 +38,12 @@ function Furniture({ id, position, size, height, rotationY = 0 }: { id: string; 
 
 /** Firelight from outside flickers through the window. */
 function FireGlow() {
-  const light = useRef<PointLight>(null);
+  const light = useRef<VirtualLight>(null);
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     if (light.current) light.current.intensity = 22 + Math.sin(t * 7) * 5 + Math.sin(t * 13.3) * 4;
   });
-  return <pointLight ref={light} position={[0, 2.2, -H - 1.5]} color="#ff6a2a" distance={12} decay={1.6} />;
+  return <PoolLight ref={light} position={[0, 2.2, -H - 1.5]} color="#ff6a2a" distance={12} decay={1.6} />;
 }
 
 /**
@@ -53,7 +54,7 @@ function FireGlow() {
 function FourPosterBed({ position }: { position: [number, number, number] }) {
   const pillow = useMemo(() => new SphereGeometry(0.5, 24, 12).scale(0.62, 0.16, 0.34), []);
   return (
-    <group position={position}>
+    <group name="four-poster-bed" position={position}>
       {[[-0.72, -1.05], [0.72, -1.05], [-0.72, 1.05], [0.72, 1.05]].map(([x, z]) => (
         <group key={`${x}${z}`} position={[x ?? 0, 0, z ?? 0]}>
           <mesh position={[0, 1.05, 0]} material={MAT.darkOak} geometry={worldCylinder(0.05, 0.06, 2.1, 16)} castShadow />
@@ -130,7 +131,7 @@ export function DormBedroom() {
       <mesh position={[-1.6, 0.86, -2.1]} material={MAT.linen}>
         <cylinderGeometry args={[0.03, 0.03, 0.18, 12]} />
       </mesh>
-      <pointLight position={[-1.6, 1.1, -2.1]} color="#ffc070" intensity={1.6} distance={5} decay={2} />
+      <PoolLight position={[-1.6, 1.1, -2.1]} color="#ffc070" intensity={1.6} distance={5} decay={2} />
       {/* Beyond the door: a stone landing and the top of the spiral stairs going down, lit by fire
           from below (Chrome playtest: the doorway showed open sky 16 m up). */}
       <group position={[-H - W, 0, (DOOR.z[0] + DOOR.z[1]) / 2]}>
@@ -143,7 +144,7 @@ export function DormBedroom() {
         {[0, 1, 2, 3].map((k) => (
           <Box key={k} position={[-2.4, -0.25 - k * 0.25, 1.0 - k * 0.0]} size={[1.4, 0.12, 0.5]} material={MAT.paving} />
         ))}
-        <pointLight position={[-2.2, 0.4, 0.6]} color="#ff6a2a" intensity={8} distance={6} decay={1.8} />
+        <PoolLight position={[-2.2, 0.4, 0.6]} color="#ff6a2a" intensity={8} distance={6} decay={1.8} />
       </group>
       <FireGlow />
     </group>

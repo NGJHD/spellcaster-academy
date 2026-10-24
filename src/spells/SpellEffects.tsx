@@ -7,6 +7,7 @@ import {
   Color,
   DoubleSide,
   MeshBasicMaterial as BasicMaterial,
+  NormalBlending,
   Points,
   Sprite,
   SpriteMaterial,
@@ -15,7 +16,7 @@ import {
   type Group,
   type Mesh,
 } from 'three';
-import { PROJECTILE_SEC } from '../enemies/EnemyBrain';
+import { CHAIN_TRAVEL_SEC, PROJECTILE_SEC } from '../enemies/EnemyBrain';
 import { getRun } from '../state/gameStore';
 import { castSignal, wandTip } from '../player/Wand';
 import { glintTexture, glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from '../scene/glow';
@@ -25,10 +26,13 @@ const TRAIL = 7;
 const BURSTS = 8;
 const BURST_PARTICLES = 28;
 const BURST_SEC = 0.55;
-/** A Chain Spark bolt: it races from the struck foe to the next in CHAIN_TRAVEL, then fades. */
-const CHAIN_SEC = 0.6;
-const CHAIN_TRAVEL = 0.22;
-const CHAIN_BEADS = 22;
+/**
+ * A Chain Spark bolt: it crackles from the struck foe to the next in CHAIN_TRAVEL (slow enough to follow;
+ * owner, 2026-10-23: "I don't see anything"), the foe bursts as it lands, then it fades.
+ */
+const CHAIN_TRAVEL = CHAIN_TRAVEL_SEC;
+const CHAIN_SEC = CHAIN_TRAVEL + 0.5;
+const CHAIN_BEADS = 28;
 
 interface ChainBolt {
   group: Group | null;
@@ -139,7 +143,8 @@ export function SpellEffects() {
       Array.from({ length: 6 }, () => ({
         group: null,
         beads: [],
-        material: new SpriteMaterial({ map: glowTexture(), color: '#9ff4ff', transparent: true, opacity: 1, blending: AdditiveBlending, depthWrite: false, toneMapped: false }),
+        // Normal blending: an additive glow vanished against the bright Level 1 rooms.
+        material: new SpriteMaterial({ map: glowTexture(), color: '#3fd2ff', transparent: true, opacity: 1, blending: NormalBlending, depthWrite: false, toneMapped: false }),
         path: Array.from({ length: CHAIN_BEADS }, () => new Vector3()),
         to: new Vector3(),
         t: 99,
@@ -277,8 +282,8 @@ export function SpellEffects() {
         const p = c.path[i];
         if (p) m.position.set(p.x + (Math.random() - 0.5) * 0.05, p.y + (Math.random() - 0.5) * 0.05, p.z + (Math.random() - 0.5) * 0.05);
         // A bright head races ahead of a crackling trail.
-        const atHead = Math.abs(u - head) < 0.08 && head < 1;
-        m.scale.setScalar(atHead ? 0.38 : 0.16 + Math.random() * 0.08);
+        const atHead = Math.abs(u - head) < 0.06 && head < 1;
+        m.scale.setScalar(atHead ? 1.0 : 0.38 + Math.random() * 0.16);
       });
       if (!c.landed && head >= 1) {
         c.landed = true;

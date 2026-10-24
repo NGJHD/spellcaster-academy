@@ -180,7 +180,7 @@ export function HeraldFallback() {
       <mesh position={[0.55, 2.3, 0.3]} rotation={[0, 0, -0.9]} material={MAT.agedBrass}>
         <coneGeometry args={[0.16, 0.9, 12, 1, true]} />
       </mesh>
-      <Fire position={[0.75, 2.6, 0.3]} size={0.5} count={2} spread={0.2} smoke={false} />
+      <Fire position={[0.75, 2.6, 0.3]} size={0.5} count={2} spread={0.2} />
     </group>
   );
 }

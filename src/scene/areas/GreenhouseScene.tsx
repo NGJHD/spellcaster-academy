@@ -24,7 +24,13 @@ const SNAPVINE_LUNGES: Readonly<Record<string, readonly [number, number, number]
   'greenhouse-vine-hop-2': [0.8, 1.7, -20.4],
   'greenhouse-cross-bridge': [0.8, 1.7, -22.4],
 };
-const SNAPVINE_VISIBLE = new Set(['greenhouse-to-vine', 'greenhouse-vine', 'greenhouse-vine-2', 'greenhouse-vine-3', ...Object.keys(SNAPVINE_LUNGES)]);
+const SNAPVINE_VISIBLE = new Set(['greenhouse-enter', 'greenhouse-entry', 'greenhouse-to-vine', 'greenhouse-vine', 'greenhouse-vine-grow-1', 'greenhouse-vine-2', 'greenhouse-vine-grow-2', 'greenhouse-vine-3', 'greenhouse-vine-grow-3', ...Object.keys(SNAPVINE_LUNGES)]);
+/**
+ * Before the chase it lurks low in the channel, only its jaws above the water, so it is already there
+ * when we come in (owner, 2026-10-24: it "appeared suddenly"); it rears up as we walk to the bridge.
+ */
+const SNAPVINE_LURKING = new Set(['greenhouse-enter', 'greenhouse-entry']);
+const LURK_DEPTH = 2.6;
 
 export function GreenhouseScene() {
   return (
@@ -167,7 +173,7 @@ function Channel() {
   );
 }
 
-/** Grows as the three vine words are typed; the camera then crosses it on rails. */
+/** Grows as the three vine words are typed; the camera pauses to show each new section, then crosses it. */
 function VineBridge() {
   const segments = useRef<(Group | null)[]>([]);
   useFrame((_, dt) => {
@@ -177,7 +183,7 @@ function VineBridge() {
     segments.current.forEach((g, i) => {
       if (!g) return;
       const goal = grown > i ? 1 : 0.02;
-      g.scale.z += (goal - g.scale.z) * (1 - Math.exp(-3 * Math.min(dt, 0.1)));
+      g.scale.z += (goal - g.scale.z) * (1 - Math.exp(-4.5 * Math.min(dt, 0.1)));
       g.visible = g.scale.z > 0.03;
     });
   });
@@ -185,25 +191,8 @@ function VineBridge() {
     <group position={[0, -0.05, -20]}>
       {[0, 1, 2].map((i) => (
         <group key={i} position={[0, 0, -i * 2]} ref={(g) => void (segments.current[i] = g)} scale={[1, 1, 0.02]}>
-          {/* A woven deck of thick vine stems, slightly bowed. */}
-          {[-0.56, -0.28, 0, 0.28, 0.56].map((x, k) => (
-            <mesh key={x} position={[x, -0.02 - Math.abs(x) * 0.08, -1]} rotation={[Math.PI / 2, 0, (k - 2) * 0.03]} material={MAT.stem} castShadow receiveShadow>
-              <cylinderGeometry args={[0.12, 0.13, 2.08, 10]} />
-            </mesh>
-          ))}
-          {[-0.5, 0.5].map((z) => (
-            <mesh key={z} position={[0, -0.04, -1 + z]} rotation={[0, 0, Math.PI / 2]} material={MAT.stem}>
-              <cylinderGeometry args={[0.06, 0.06, 1.5, 8]} />
-            </mesh>
-          ))}
-          {[-0.85, 0.85].map((x) => (
-            <mesh key={x} position={[x, 0.5, -1]} rotation={[Math.PI / 2, 0, 0]} material={MAT.leaf}>
-              <cylinderGeometry args={[0.05, 0.05, 2.05, 6]} />
-            </mesh>
-          ))}
-          <mesh position={[0.6, 0.25, -0.6]} rotation={[0.4, 0.3, 0.8]} scale={[0.6, 0.08, 0.3]} material={MAT.leaf}>
-            <sphereGeometry args={[0.4, 10, 6]} />
-          </mesh>
+          {/* A woven deck of twisted vine stems with leafy hand-rails (kit_scene.py vine_deck). */}
+          <KitModel id="vine_deck" />
         </group>
       ))}
     </group>
@@ -211,8 +200,10 @@ function VineBridge() {
 }
 
 /**
- * The story's turning point: the roof panel shatters, the Warden smashes down through
- * the glass, catches the falling sheet in one hand, sets it down safely and leaps away.
+ * The story's turning point: the roof panel shatters on its own and drifts down; a moment later the
+ * Warden drops in through the hole, catches the falling sheet in one hand, sets it down safely and
+ * leaps away (owner, 2026-10-24: breaking and arriving together made it look like the Warden broke it).
+ * Beat progress: the camera reaches the roof at 0.08 and looks down at the floor from 0.41.
  */
 function WardenRescue() {
   const beat = useBeatIndex();
@@ -221,24 +212,26 @@ function WardenRescue() {
   useFrame(() => {
     if (!panel.current) return;
     const t = beat === WARDEN_BEAT ? (getRun()?.beatProgress() ?? 0) : beat > WARDEN_BEAT ? 1 : 0;
-    // Falls (0.08–0.3), is caught in the Warden's hand (0.3–0.45), then set down by 0.6.
-    const fall = Math.min(1, Math.max(0, (t - 0.08) / 0.22));
-    const set = Math.min(1, Math.max(0, (t - 0.45) / 0.15));
+    // Breaks (0.12), drifts slowly down tumbling (0.12–0.48), is caught (0.48), then set down by 0.66.
+    const fall = Math.min(1, Math.max(0, (t - 0.12) / 0.36));
+    const set = Math.min(1, Math.max(0, (t - 0.5) / 0.16));
     const caught: [number, number, number] = [6.2, 2.6, -37];
-    if (t >= 0.6 || beat > WARDEN_BEAT) {
+    if (t >= 0.66 || beat > WARDEN_BEAT) {
       panel.current.position.set(6.5, 0.6, -38);
       panel.current.rotation.set(0, 0, 1.3);
-    } else if (t >= 0.3) {
+    } else if (t >= 0.48) {
       panel.current.position.set(caught[0] + (6.5 - caught[0]) * set, caught[1] + (0.6 - caught[1]) * set, caught[2] + (-38 - caught[2]) * set);
       panel.current.rotation.set(0, 0, 0.6 + 0.7 * set);
     } else {
-      panel.current.position.set(panelHome[0] + (caught[0] - panelHome[0]) * fall, panelHome[1] + (caught[1] - panelHome[1]) * fall * fall, panelHome[2] + (caught[2] - panelHome[2]) * fall);
-      panel.current.rotation.set(fall * 0.4, 0, fall * 0.6);
+      // Slow at first, like a sheet slipping loose, gathering speed as it drops.
+      const drop = fall ** 1.6;
+      panel.current.position.set(panelHome[0] + (caught[0] - panelHome[0]) * fall, panelHome[1] + (caught[1] - panelHome[1]) * drop, panelHome[2] + (caught[2] - panelHome[2]) * fall);
+      panel.current.rotation.set(Math.sin(fall * 5) * 0.25, 0, fall * 0.6);
     }
   });
   return (
     <group>
-      <group ref={panel}>
+      <group name="glass-panel" ref={panel}>
         <mesh material={MAT.glass}>
           <boxGeometry args={[1.4, 0.04, 1.0]} />
         </mesh>
@@ -251,12 +244,13 @@ function WardenRescue() {
         scale={0.8}
         rotationY={-1.9}
         keys={[
-          { t: 0, position: [5.5, 13, -36] },
-          { t: 0.08, position: [5.5, 9, -36] },
-          { t: 0.3, position: [7.2, 0.3, -37] },
-          { t: 0.38, position: [7.2, 0.3, -37], arm: 1 },
-          { t: 0.6, position: [7.2, 0.3, -37.5], arm: 0.4 },
-          { t: 0.78, position: [7.2, 0.3, -37.5] },
+          // Out of sight above the roof until the glass has broken and begun to fall.
+          { t: 0, position: [5.5, 26, -36] },
+          { t: 0.32, position: [5.5, 15, -36] },
+          { t: 0.46, position: [7.2, 0.3, -37] },
+          { t: 0.5, position: [7.2, 0.3, -37], arm: 1 },
+          { t: 0.66, position: [7.2, 0.3, -37.5], arm: 0.4 },
+          { t: 0.8, position: [7.2, 0.3, -37.5] },
           { t: 1, position: [5.5, 16, -36] },
         ]}
       />
@@ -431,7 +425,8 @@ function Snapvine() {
       goal.set(SNAPVINE_COIL[0] + (lunge[0] - SNAPVINE_COIL[0]) * u, SNAPVINE_COIL[1] + (lunge[1] - SNAPVINE_COIL[1]) * u, SNAPVINE_COIL[2] + (lunge[2] - SNAPVINE_COIL[2]) * u);
     } else {
       const coil = lunge && p <= 0.25 ? 1 + p * 2 : 1;
-      goal.set(SNAPVINE_COIL[0] + Math.sin(t * 1.3) * 0.4 * coil, SNAPVINE_COIL[1] + Math.sin(t * 2.1) * 0.25, SNAPVINE_COIL[2] - (lunge ? p * 1.2 : 0));
+      const lurk = SNAPVINE_LURKING.has(id) ? LURK_DEPTH : 0;
+      goal.set(SNAPVINE_COIL[0] + Math.sin(t * 1.3) * 0.4 * coil, SNAPVINE_COIL[1] - lurk + Math.sin(t * 2.1) * 0.25, SNAPVINE_COIL[2] - (lunge ? p * 1.2 : 0));
     }
     if (strike !== striking.current) {
       striking.current = strike;

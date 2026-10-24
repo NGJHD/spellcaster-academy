@@ -43,7 +43,7 @@ const O = origin(AFTERMATH_ORIGIN);
 const scale = (id: string, position: Vec3, word: TargetSpawn['words'][number], options: Partial<TargetSpawn> = {}): TargetSpawn =>
   marker(id, position, word, {
     labelHeight: 0.4,
-    defeatFx: { kind: 'leaves', scale: 1.4, color: '#f3ead2' },
+    defeatFx: { kind: 'leaves', scale: 1.4, color: '#f3ead2', pieces: 'page' },
     ...options,
   });
 
@@ -89,19 +89,19 @@ export const towerRoof: AreaScript = {
         { kind: 'flash', atBeat: 0.15, color: '#ff4a12' },
         { kind: 'shake', atBeat: 0.15, scale: 2 },
         { kind: 'burst', at: 'ROOF_WYRM_HEAD', atBeat: 0.2, scale: 3, color: '#ff5a1a' },
-        { kind: 'leaves', at: 'ROOF_WYRM_HEAD', atBeat: 0.3, scale: 2.4, color: '#f3ead2' },
+        { kind: 'leaves', at: 'ROOF_WYRM_HEAD', atBeat: 0.3, scale: 2.4, color: '#f3ead2', pieces: 'page' },
       ],
     }),
     fight('l2-wyrm-v1', A, { barks: ['l2-voice-wyrm'] }),
-    travel('l2-wyrm-takeoff', A, ['ROOF_FIGHT', 'ROOF_ORBIT_A'], 2.5, { fx: [{ kind: 'shockwave', at: 'ROOF_FLOOR', atBeat: 0.1, scale: 2, color: '#ff5a1a' }] }),
+    travel('l2-wyrm-takeoff', A, ['ROOF_FIGHT', 'ROOF_ORBIT_A'], 2.5, { fx: [{ kind: 'dustwave', at: 'ROOF_FLOOR', atBeat: 0.1, scale: 2, color: '#8a7a6a' }] }),
     fight('l2-wyrm-v2a', A, { barks: ['l2-wyrm-glands'] }),
     travel('l2-wyrm-orbit', A, ['ROOF_ORBIT_A', 'ROOF_ORBIT_B'], 3.5),
     fight('l2-wyrm-v2b', A),
     travel('l2-wyrm-dives', A, ['ROOF_ORBIT_B', 'ROOF_FIGHT'], 2),
     reveal('l2-wyrm-crash', A, 'ROOF_FIGHT', ['ROOF_WYRM_HEART'], 0.6, 0.8, {
       fx: [
-        { kind: 'shockwave', at: 'ROOF_FLOOR', atBeat: 0.05, scale: 3, color: '#ff5a1a' },
-        { kind: 'debris', at: 'ROOF_FLOOR', atBeat: 0.05, scale: 2.4, color: '#5a5a62' },
+        { kind: 'dustwave', at: 'ROOF_FLOOR', atBeat: 0.05, scale: 3, color: '#8a7a6a', pieces: 'slate' },
+        { kind: 'debris', at: 'ROOF_FLOOR', atBeat: 0.05, scale: 2.4, color: '#5a5a62', pieces: 'slate' },
         { kind: 'shake', atBeat: 0.05, scale: 2.2 },
       ],
     }),
@@ -201,9 +201,9 @@ export const towerRoof: AreaScript = {
       onComplete: { flags: ['l2-wyrm-defeated'] },
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'ROOF_WYRM_HEART', scale: 4, color: '#ffe6a0' },
+        { kind: 'pulse', at: 'ROOF_WYRM_HEART', scale: 4, color: '#ffe6a0' },
         { kind: 'burst', at: 'ROOF_WYRM_HEAD', scale: 4, color: '#ff8a3a' },
-        { kind: 'leaves', at: 'ROOF_WYRM_HEART', scale: 4, color: '#f3ead2' },
+        { kind: 'leaves', at: 'ROOF_WYRM_HEART', scale: 4, color: '#f3ead2', pieces: 'page' },
         { kind: 'dust', at: 'ROOF_FLOOR', scale: 3, color: '#3a3330' },
         { kind: 'shake', scale: 2.4 },
       ],

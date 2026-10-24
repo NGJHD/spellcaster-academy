@@ -120,7 +120,7 @@ export const ramparts: AreaScript = {
         { kind: 'flash' },
         { kind: 'pillar', at: 'RP_BEACON', scale: 1.6, color: '#ffd27a' },
         { kind: 'pillar', at: 'RP_WARDEN', scale: 2, color: '#ffd27a' },
-        { kind: 'shockwave', at: 'RP_DOME', scale: 6, color: '#ffd27a' },
+        { kind: 'pulse', at: 'RP_DOME', scale: 6, color: '#ffd27a' },
         { kind: 'shake', scale: 1.4 },
       ],
     },

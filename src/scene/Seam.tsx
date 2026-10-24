@@ -35,5 +35,5 @@ export function Seam({
   const last = points[points.length - 1] ?? first;
   const on = fromBeat >= 0 && beat >= fromBeat && (untilBeat < 0 || beat < untilBeat);
   const wide = beat < wideUntilBeat;
-  return <SkyTear from={first} to={last} width={radius * 14} seed={Math.round(first[0] * 7 + last[1])} open={() => (wide ? 1 : 0.55)} opacity={() => (on ? strength : 0)} />;
+  return <SkyTear from={first} to={last} width={radius * 14} painting={2} open={() => (wide ? 1 : 0.55)} opacity={() => (on ? strength : 0)} />;
 }

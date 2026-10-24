@@ -78,7 +78,7 @@
         -0.04857563599944115
       ]
     },
-    "bytes": 608444,
+    "bytes": 608348,
     "file": "/assets/props/Lantern_01.glb",
     "id": "Lantern_01",
     "license": "CC0-1.0 (Poly Haven)",
@@ -596,7 +596,7 @@
         -0.28728485107421875
       ]
     },
-    "bytes": 1534980,
+    "bytes": 1514768,
     "file": "/assets/props/lantern_chandelier_01.glb",
     "id": "lantern_chandelier_01",
     "license": "CC0-1.0 (Poly Haven)",
@@ -618,14 +618,14 @@
         -0.11142875254154205
       ]
     },
-    "bytes": 1049224,
+    "bytes": 1007600,
     "file": "/assets/props/large_castle_door.glb",
     "id": "large_castle_door",
     "license": "CC0-1.0 (Poly Haven)",
     "materials": 1,
-    "sourceTriangles": 12640,
+    "sourceTriangles": 11704,
     "textureMax": 1024,
-    "triangles": 11996
+    "triangles": 11704
   },
   "magnifying_glass_01": {
     "bounds": {
@@ -640,7 +640,7 @@
         -0.013358986005187035
       ]
     },
-    "bytes": 149176,
+    "bytes": 149080,
     "file": "/assets/props/magnifying_glass_01.glb",
     "id": "magnifying_glass_01",
     "license": "CC0-1.0 (Poly Haven)",

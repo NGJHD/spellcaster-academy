@@ -50,8 +50,15 @@ export type FxKind =
   /** Tumbling chunks with gravity (wood, stone, books, crates: tinted by `color`). */
   | 'debris'
   | 'dust'
-  /** Expanding ring of light along the ground. */
-  | 'shockwave'
+  /**
+   * Impacts (owner, 2026-10-23: the flat rings of light were replaced by what each impact really throws up):
+   * a ring of dust rolling out along the ground (a landing, a slam, something bursting through a floor)…
+   */
+  | 'dustwave'
+  /** …a flash, chunks flung out that arc and fall (`landY` is where they come to rest), and smoke… */
+  | 'explosion'
+  /** …or a sphere of glowing motes bursting outwards (magic: wards, bells, spells, defeats). */
+  | 'pulse'
   /** Column of light into the sky. */
   | 'pillar'
   | 'fireworks'
@@ -70,6 +77,9 @@ export type FxKind =
   /** Camera shake. */
   | 'shake';
 
+/** What flies out of a 'debris' or 'explosion' effect (modelled pieces, assets-src/scripts/props/fx_debris.py). */
+export type DebrisPieces = 'stone' | 'slate' | 'wood' | 'earth' | 'glass' | 'book' | 'page' | 'metal' | 'leaf';
+
 export interface FxCue {
   readonly kind: FxKind;
   /** World position or a named look point. Omitted: a few metres in front of the camera. */
@@ -80,6 +90,10 @@ export interface FxCue {
   /** Size (or strength for shake). Default 1. */
   readonly scale?: number;
   readonly color?: string;
+  /** Explosions: the height where the flung chunks land (default a little below the blast). */
+  readonly landY?: number;
+  /** Debris and explosions: what the pieces are (default stone; glass for 'glass'). */
+  readonly pieces?: DebrisPieces;
   /** Plays this sound (at full volume) instead of the effect's usual one. */
   readonly sound?: SfxId;
 }
@@ -181,7 +195,6 @@ export type TargetKind =
   | 'guardian'
   /** A glowing page from Corvane's journal. */
   | 'journal-page'
-  | 'clasp'
   | 'flying-page'
   | 'plate'
   | 'rune'
@@ -270,6 +283,8 @@ export interface TargetSpawn {
   readonly follow?: { readonly ahead: number; readonly side: number; readonly up: number };
   /** Spectacle when the target appears (bursting out of soil, smashing through a door). */
   readonly entrance?: FxCue;
+  /** Already standing in the scene (it takes over from a scenery model), so it shows at full size at once. */
+  readonly inPlace?: boolean;
   /** Spectacle when the target is beaten. */
   readonly defeatFx?: FxCue;
   /** Pip is held by this target until it is beaten (the opening cold open). */
@@ -365,7 +380,12 @@ export interface EncounterDef {
   /** Optional speed round (§1B): a countdown for bonus score. Never a fail state. */
   readonly speedRound?: { readonly sec: number };
   /** Beam struggle (§1B): each word pushes the player's beam towards this point. */
-  readonly beam?: { readonly to: Vec3; readonly color: string };
+  readonly beam?: {
+    readonly to: Vec3;
+    readonly color: string;
+    /** Aim at this live point in the scene instead, falling back to `to` (the Unwriter's quill moves as he rears). */
+    readonly follow?: 'unwriter-quill';
+  };
   /** Spectacle when the encounter completes. */
   readonly completeFx?: readonly FxCue[];
 }

@@ -62,7 +62,7 @@ function useGlowPulse(pose: PoseRef, material: MeshStandardMaterial, base: numbe
 
 // ---------- Training dummy ----------
 
-preloadKit(['star_page', 'clasp', 'page_loose', 'warden_plate']);
+preloadKit(['star_page', 'page_loose', 'warden_plate', 'rune_ring', 'grimoire_clasp']);
 
 /** useGlowPulse for every per-instance glow material of a kit model. */
 function useGlowPulses(pose: PoseRef, materials: readonly MeshStandardMaterial[], base: number): void {
@@ -784,7 +784,7 @@ export function FireWallModel({ pose }: { pose: PoseRef }) {
       <group position={[0, -2.5, 0]}>
         <sprite ref={base} material={glowMat} position={[0, 5, -1.2]} />
         {WALL_COLUMNS.map((c, i) => (
-          <Fire key={i} position={[c.x, 0, c.z]} size={c.size} count={2} spread={1.9} smoke={i % 4 === 0} light={i === 5} />
+          <Fire key={i} position={[c.x, 0, c.z]} size={c.size} count={2} spread={1.9} light={i === 5} />
         ))}
       </group>
     </group>
@@ -855,23 +855,6 @@ function softGlowGem() {
   return softGlow();
 }
 
-export function ClaspModel({ pose }: { pose: PoseRef }) {
-  const body = useRef<Group>(null);
-  const { root, glow } = useKitGlow('clasp', ['Crystal']);
-  useGlowPulses(pose, glow, 1.8);
-  useFrame(() => {
-    const p = pose.current;
-    if (!body.current) return;
-    // Straining against the book: a fast shiver that grows when struck.
-    body.current.rotation.z = Math.sin(p.time * 14) * 0.04 * (1 + p.hit * 4);
-  });
-  return (
-    <group ref={body}>
-      <primitive object={root} />
-    </group>
-  );
-}
-
 export function FlyingPageModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
   const page = useKit('page_loose');
@@ -906,8 +889,8 @@ export function PlateModel({ pose }: { pose: PoseRef }) {
 
 export function RuneModel({ pose }: { pose: PoseRef }) {
   const body = useRef<Group>(null);
-  const glow = useOwnMaterial(MAT.wardBlue);
-  useGlowPulse(pose, glow, 1.8, 1);
+  const { root, glow } = useKitGlow('rune_ring', ['runeGlow']);
+  useGlowPulses(pose, glow, 1.8);
   useFrame(() => {
     const p = pose.current;
     if (!body.current) return;
@@ -915,16 +898,7 @@ export function RuneModel({ pose }: { pose: PoseRef }) {
   });
   return (
     <group ref={body}>
-      <mesh material={glow}>
-        <torusGeometry args={[0.26, 0.025, 10, 40]} />
-      </mesh>
-      <mesh material={glow} rotation={[0, 0, Math.PI / 4]}>
-        <torusGeometry args={[0.16, 0.015, 6, 4]} />
-      </mesh>
-      <mesh>
-        <circleGeometry args={[0.26, 32]} />
-        <meshBasicMaterial color="#9fd0ff" transparent opacity={0.18} depthWrite={false} />
-      </mesh>
+      <primitive object={root} />
     </group>
   );
 }

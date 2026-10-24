@@ -31,6 +31,21 @@ export const strings = {
     welcomeBack: 'Welcome back.',
     welcomeBackBody: 'Your journey will continue from the last safe moment.',
   },
+  /** The painted screen shown while the game first loads, with a tip at the bottom. */
+  loading: {
+    label: 'Loading',
+    readying: 'Readying spells',
+    tip: 'Tip:',
+    tips: [
+      'Type the first letter of a word to aim your spell at it.',
+      'Press Tab to switch to another word, even halfway through one.',
+      'A mistake only halves your combo. Keep going!',
+      'Perfect words with no mistakes build your perfect streak.',
+      'Backspace fixes a wrong letter.',
+      'Press Escape at any time to pause.',
+      'Words never run away. Take your time and type carefully.',
+    ],
+  },
   levels: {
     'level-1': { number: 'Level 1', name: 'First Day, First Spell' },
     'level-2': { number: 'Level 2', name: 'The Siege of Asterfall' },

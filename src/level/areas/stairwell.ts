@@ -114,7 +114,7 @@ export const stairwell: AreaScript = {
       attention: 'spectacle',
       barks: ['st-3'],
       fx: [
-        { kind: 'debris', at: 'ST_GUARD_3', scale: 1.5, color: '#8a8f98' },
+        { kind: 'debris', at: 'ST_GUARD_3', scale: 1.5, color: '#8a8f98', pieces: 'metal' },
         { kind: 'dust', at: 'ST_GUARD_3', scale: 1.2 },
         { kind: 'shake' },
         { kind: 'sparks', at: 'ST_GUARD_3', atBeat: 0.6, scale: 1.4, color: '#9fd8ff' },
@@ -142,6 +142,8 @@ export const stairwell: AreaScript = {
               attack: { ...ATTACKS.guardianSweep, intervalSec: 6 },
               labelHeight: 2.3,
               persist: true,
+              // It is the reassembled guard already standing there, not a second one appearing.
+              inPlace: true,
             }),
           ],
         },

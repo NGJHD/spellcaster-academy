@@ -2,16 +2,18 @@
 import { LightBeam } from '../glow';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
-import type { Group, Object3D, PointLight } from 'three';
+import type { Group, Object3D } from 'three';
 import { INKWELL_POSITION, LIBRARY_ORIGIN } from '../../level/areas/library';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
-import { Bookshelf, Box, Column, KitModel, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
+import { Bookshelf, Column, KitModel, Rug, Slab, StandingLamp, WallLamp, WindowPane } from '../kit';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
 import { WardAnchor, useBeatIndex } from '../props';
 import { Prop } from '../Prop';
 import { useParts } from '../partsGlb';
+import { useKitGlow } from '../kitGlb';
+import { PoolLight, VirtualLight } from '../LightPool';
 
 const WAKE_BEAT = beatIndexOf('library-grimoire-wakes');
 /** Fractions of the intro beat where each chain snaps (match the sparks in library.ts). */
@@ -86,7 +88,7 @@ function Shell() {
           <WallLamp position={[11.95, 3.2, z]} rotationY={-Math.PI / 2} />
         </group>
       ))}
-      <pointLight position={[0, 7, -14]} color="#ffd6a0" intensity={30} distance={30} decay={2} />
+      <PoolLight position={[0, 7, -14]} color="#ffd6a0" intensity={30} distance={30} decay={2} />
     </group>
   );
 }
@@ -142,67 +144,12 @@ function ReadingArea() {
 /**
  * The clue mosaic (lib-mosaic): the Warden below the arc of the sky-ward, holding it shut, and a man with
  * a glowing pen locked outside it. A tall panel that fits the gap between the wall shelves (it was wide
- * and hidden behind them).
+ * and hidden behind them): a Flux-painted tile mosaic (mosaic.py) set in a brass frame (kit_scene.py).
  */
 function Mosaic() {
-  const pale = { color: '#e2dccd', roughness: 0.5 } as const;
   return (
     <group position={[-11.45, 2.55, -13]} rotation={[0, Math.PI / 2, 0]}>
-      <Box position={[0, 0, -0.03]} size={[1.36, 3.2, 0.05]} material={MAT.agedBrass} />
-      <mesh position={[0, 0, 0.0]}>
-        <planeGeometry args={[1.22, 3.06]} />
-        <meshStandardMaterial color="#21365e" roughness={0.6} />
-      </mesh>
-      {/* Stars in the sky above */}
-      {[[-0.4, 1.3], [0.35, 1.1], [-0.15, 0.95], [0.45, 1.4]].map(([x = 0, y = 0]) => (
-        <mesh key={`${x}${y}`} position={[x, y, 0.01]} material={MAT.wardGold}>
-          <circleGeometry args={[0.04, 8]} />
-        </mesh>
-      ))}
-      {/* The man with the pen, outside the ward: a dark cloaked figure holding up a glowing red quill */}
-      <mesh position={[0.05, 0.62, 0.012]} scale={[1, 1.5, 1]}>
-        <circleGeometry args={[0.17, 20]} />
-        <meshStandardMaterial color="#111018" roughness={0.7} />
-      </mesh>
-      <mesh position={[0.05, 0.96, 0.013]}>
-        <circleGeometry args={[0.1, 16]} />
-        <meshStandardMaterial color="#111018" roughness={0.7} />
-      </mesh>
-      <mesh position={[0.3, 0.92, 0.014]} rotation={[0, 0, -0.5]}>
-        <planeGeometry args={[0.045, 0.42]} />
-        <meshStandardMaterial color="#ff4a2a" emissive="#ff3a1a" emissiveIntensity={1.4} />
-      </mesh>
-      {/* The arc of the ward, sealing him out */}
-      <mesh position={[0, -0.1, 0.015]} material={MAT.wardBlue}>
-        <torusGeometry args={[0.55, 0.035, 8, 48, Math.PI]} />
-      </mesh>
-      {[-0.4, 0, 0.4].map((x) => (
-        <mesh key={x} position={[x, 0.36 - Math.abs(x) * 0.5, 0.016]} material={MAT.wardGold}>
-          <circleGeometry args={[0.05, 10]} />
-        </mesh>
-      ))}
-      {/* The Warden below it, arms raised, holding the ward shut */}
-      <mesh position={[0, -0.75, 0.012]} scale={[1, 1.35, 1]}>
-        <circleGeometry args={[0.24, 24]} />
-        <meshStandardMaterial {...pale} />
-      </mesh>
-      <mesh position={[0, -0.33, 0.012]}>
-        <circleGeometry args={[0.12, 20]} />
-        <meshStandardMaterial {...pale} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <mesh key={s} position={[s * 0.25, -0.33, 0.013]} rotation={[0, 0, s * -0.5]}>
-          <planeGeometry args={[0.07, 0.42]} />
-          <meshStandardMaterial {...pale} />
-        </mesh>
-      ))}
-      {/* The academy towers at the bottom */}
-      {[-0.35, 0, 0.35].map((x, i) => (
-        <mesh key={x} position={[x, -1.3 + (i === 1 ? 0.06 : 0), 0.012]}>
-          <planeGeometry args={[0.22, 0.4 + (i === 1 ? 0.12 : 0)]} />
-          <meshStandardMaterial color="#8a7a5c" roughness={0.8} />
-        </mesh>
-      ))}
+      <KitModel id="mosaic_clue" castShadow={false} />
     </group>
   );
 }
@@ -258,8 +205,8 @@ interface GrimoireRig {
 
 /**
  * The Great Grimoire: closed and chained on its pedestal until it wakes; rises, turns its
- * cover to the player and strains against its clasps; once the clasps break the heavy front board
- * swings open; afterwards it closes and settles back.
+ * cover to the player and strains against its two clasps; each clasp word springs one open; once both
+ * are gone the heavy front board swings open; afterwards it closes and settles back.
  */
 function Grimoire() {
   const root = useRef<Group>(null);
@@ -286,17 +233,20 @@ function Grimoire() {
       root.current.position.y = 1.06 + h * (1.25 + Math.sin(t * 1.1) * 0.1);
       // Tilt the cover (or the open pages) towards the player while airborne.
       root.current.rotation.x = h * 1.15;
-      root.current.rotation.z = Math.sin(t * 0.7) * 0.05 * h;
+      // While its clasps hold, it strains against them in a fast shiver of the whole book.
+      const strain = awake && !opened ? Math.sin(t * 38) * 0.012 + Math.sin(t * 23) * 0.008 : 0;
+      root.current.rotation.z = Math.sin(t * 0.7) * 0.05 * h + strain;
     }
-    // Heavy board: slow to swing; strains against the clasps while bound; pages flutter when open.
-    const goal = settled || !awake ? 1 : opened ? 0.08 + Math.sin(t * 2.2) * 0.04 : 0.985 - Math.abs(Math.sin(t * 9)) * 0.02;
+    // Heavy board: held shut while the clasps hold (lifting it hid the straps); pages flutter when open.
+    const goal = settled || !awake || !opened ? 1 : 0.08 + Math.sin(t * 2.2) * 0.04;
     closed.current += (goal - closed.current) * (1 - Math.exp(-2.2 * Math.min(dt, 0.1)));
     const c = closed.current;
     const { front, spine, clasps, centre } = rig.current;
     if (front) front.rotation.z = Math.PI * c;
     if (spine) spine.scale.set(0.2 + 0.8 * c, 0.55 + 0.45 * c, 1);
     if (centre) centre.position.x = 0.5 * c;
-    for (const clasp of clasps) clasp.visible = !opened || settled;
+    // The model's own small clasp tabs give way to the two big strap clasps (GrimoireClasp).
+    for (const clasp of clasps) clasp.visible = false;
     if (chains.current) {
       chains.current.children.forEach((chain, i) => {
         chain.visible = wakeProgress < (CHAIN_SNAP[i] ?? 1);
@@ -308,15 +258,69 @@ function Grimoire() {
       <group ref={root} position={[0, 1.06, 0]}>
         <Suspense fallback={null}>
           <GrimoireGLB rig={rig} />
+          {GRIMOIRE_CLASPS.map((c) => (
+            <GrimoireClasp key={c.flag} z={c.z} flag={c.flag} />
+          ))}
         </Suspense>
       </group>
       <group ref={chains}>
+        {/* Forged chain loops (kit_scene.py grimoire_chain) */}
         {[-0.35, 0.35].map((z) => (
-          <mesh key={z} position={[0, 1.24, z]} rotation={[0, Math.PI / 2, 0]} material={MAT.steel}>
-            <torusGeometry args={[0.62, 0.022, 8, 40]} />
-          </mesh>
+          <group key={z} position={[0, 1.24, z]} rotation={[0, Math.PI / 2, 0]}>
+            <KitModel id="grimoire_chain" castShadow={false} />
+          </group>
         ))}
       </group>
+    </group>
+  );
+}
+
+/**
+ * The Grimoire's clasps (owner, 2026-10-24: "can the clasp be on the grimoire to show that it's
+ * bounded"): straps over the fore-edge (x -0.51 in the closed book's frame) at each end of the cover.
+ * Each clasp's word (library.ts grimoire-g1) sets its flag and the strap springs open and flies off.
+ */
+const GRIMOIRE_CLASPS = [
+  // The first word breaks the upper clasp (the end tilted away as the book faces us), then the lower.
+  { z: -0.38, flag: 'grimoire-clasp-1' },
+  { z: 0.38, flag: 'grimoire-clasp-2' },
+] as const;
+const CLASP_OPEN_SEC = 0.9;
+
+function GrimoireClasp({ z, flag }: { z: number; flag: string }) {
+  const hinge = useRef<Group>(null);
+  const { root, glow } = useKitGlow('grimoire_clasp', ['claspGlow']);
+  const since = useRef(-1);
+  useFrame((state, dt) => {
+    const g = hinge.current;
+    if (!g) return;
+    const run = getRun();
+    // Only Level 1 binds the book; later levels reuse this room with the Grimoire open (owner, 2026-10-24).
+    if (run?.level.id !== 'level-1') {
+      g.visible = false;
+      return;
+    }
+    const broken = run.flags.has(flag);
+    if (!broken) {
+      since.current = -1;
+      g.visible = true;
+      g.rotation.z = 0;
+      g.position.set(-0.51, 0, z);
+      // The moonstone throbs as the book strains against it.
+      for (const m of glow) m.emissiveIntensity = 1.6 + Math.sin(state.clock.elapsedTime * 6 + z * 5) * 0.6;
+      return;
+    }
+    since.current = since.current < 0 ? 0 : since.current + Math.min(dt, 0.1);
+    const u = since.current / CLASP_OPEN_SEC;
+    g.visible = u < 1;
+    // Springs open about its hinge, then is flung clear of the book, falling away.
+    g.rotation.z = Math.min(1, u * 4) * 2.4 + u * 3;
+    g.position.set(-0.51 - u * 1.6, -u * u * 1.4, z + Math.sign(z) * u * 0.6);
+    for (const m of glow) m.emissiveIntensity = 4 * (1 - u);
+  });
+  return (
+    <group ref={hinge}>
+      <primitive object={root} />
     </group>
   );
 }
@@ -372,20 +376,12 @@ function TopplingShelf() {
   );
 }
 
-/** The overturned inkwell the ink wisps erupt from (code-built glass bottle and spilled ink). */
+/** The overturned inkwell the ink wisps erupt from: its glass bottle, cork and spilled ink. */
 function Inkwell() {
   const [x, , z] = INKWELL_POSITION;
   return (
-    <group position={[x - LIBRARY_ORIGIN[0], 0, z - LIBRARY_ORIGIN[2]]} rotation={[0, 0.6, 0]}>
-      <mesh position={[0, 0.11, 0]} rotation={[0, 0, Math.PI / 2 - 0.15]} material={MAT.inkGlass} castShadow>
-        <cylinderGeometry args={[0.09, 0.11, 0.2, 24]} />
-      </mesh>
-      <mesh position={[-0.14, 0.11, 0]} rotation={[0, 0, Math.PI / 2 - 0.15]} material={MAT.agedBrass}>
-        <cylinderGeometry args={[0.035, 0.045, 0.07, 16]} />
-      </mesh>
-      <mesh position={[-0.55, 0.012, 0.05]} rotation={[-Math.PI / 2, 0, 0.3]} scale={[1.6, 1, 1]} material={MAT.inkPool}>
-        <circleGeometry args={[0.35, 32]} />
-      </mesh>
+    <group name="inkwell" position={[x - LIBRARY_ORIGIN[0], 0.01, z - LIBRARY_ORIGIN[2]]} rotation={[0, 0.6, 0]}>
+      <KitModel id="inkwell" />
     </group>
   );
 }
@@ -394,7 +390,7 @@ const WAKE_DARK = 0.12;
 
 /** Standing lamps: the Grimoire's roar blows them down to embers until it is calmed. */
 function LibraryLamp({ position }: { position: [number, number, number] }) {
-  const light = useRef<PointLight>(null);
+  const light = useRef<VirtualLight>(null);
   const beat = useBeatIndex();
   useFrame((_, dt) => {
     const l = light.current;
@@ -408,7 +404,7 @@ function LibraryLamp({ position }: { position: [number, number, number] }) {
   return (
     <group>
       <StandingLamp position={position} />
-      <pointLight ref={light} position={[position[0], 2.5, position[2]]} color="#ffc98a" intensity={7} distance={9} decay={2} />
+      <PoolLight ref={light} position={[position[0], 2.5, position[2]]} color="#ffc98a" intensity={7} distance={9} decay={2} />
     </group>
   );
 }

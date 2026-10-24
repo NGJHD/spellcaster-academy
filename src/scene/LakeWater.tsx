@@ -10,6 +10,14 @@ import { CanvasTexture, MeshStandardMaterial, PlaneGeometry, RepeatWrapping, Vec
 
 const TILE = 256;
 
+let ripples: CanvasTexture | null = null;
+
+/** The ripple map, painted once per session (it took about half a second each time the lake mounted). */
+function sharedRippleNormals(): CanvasTexture {
+  ripples ??= rippleNormals();
+  return ripples;
+}
+
 /** A tiling normal map of small wind ripples: a height field of whole-number waves, differentiated. */
 function rippleNormals(): CanvasTexture {
   const height = new Float32Array(TILE * TILE);
@@ -56,7 +64,7 @@ export function LakeWater({ position, size }: { position: readonly [number, numb
   const { geometry, material, base, ripples } = useMemo(() => {
     const g = new PlaneGeometry(size[0], size[1], 200, 160);
     g.rotateX(-Math.PI / 2);
-    const normals = rippleNormals();
+    const normals = sharedRippleNormals();
     // One ripple tile every 9 m.
     normals.repeat.set(size[0] / 9, size[1] / 9);
     const m = new MeshStandardMaterial({

@@ -56,8 +56,8 @@ export const greatHall: AreaScript = {
       barks: ['l2-voice-herald'],
       objective: 'l2-herald',
       fx: [
-        { kind: 'shockwave', at: 'HALL_EAST_DOORS', atBeat: 0.08, scale: 1.4, color: '#ff5a1a' },
-        { kind: 'debris', at: 'HALL_EAST_DOORS', atBeat: 0.08, scale: 2.4, color: '#4a3020' },
+        { kind: 'explosion', at: 'HALL_EAST_DOORS', atBeat: 0.08, scale: 1.4, color: '#5a3a22', pieces: 'wood' },
+        { kind: 'debris', at: 'HALL_EAST_DOORS', atBeat: 0.08, scale: 2.4, color: '#4a3020', pieces: 'wood' },
         { kind: 'flash', atBeat: 0.08 },
         { kind: 'shake', atBeat: 0.08, scale: 1.8 },
         { kind: 'dust', at: 'HALL_HERALD_FLOOR', atBeat: 0.5, scale: 2 },
@@ -143,8 +143,8 @@ export const greatHall: AreaScript = {
           targets: [
             fireball('blast-2', HERALD_WISPS, H(-1.4, 1.6, -4.6)),
             fireball('blast-3', HERALD_WISPS, H(-0.4, 1.8, -4.4), { delaySec: 1.6 }),
-            // The word sits beside its book, outside its body; the shockwave still bursts on the book.
-            target('herald-horn', 'marker', BESIDE_BOOK, [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'shockwave', at: HERALD_BOOK, scale: 0.8, color: '#ffd27a' } }),
+            // The word sits beside its book, outside its body; the pulse still bursts on the book.
+            target('herald-horn', 'marker', BESIDE_BOOK, [len(5, 6)], { labelHeight: 0.3, defeatFx: { kind: 'pulse', at: HERALD_BOOK, scale: 0.8, color: '#ffd27a' } }),
           ],
         },
       ],

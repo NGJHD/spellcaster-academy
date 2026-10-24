@@ -47,7 +47,7 @@ Spark Bolt, Frost Thread and Chain Spark carry over from Level 1.
 
 - Keeper Orin: "Watch the sky!" **Fireballs:** the counter-word tutorial (`ink`, then `run` and another), time freezing on the first.
 - The lawn burns. Orin names the Hush; a blotling and a fireball.
-- A festival stall on fire: `stall` puts it out and repaints it.
+- Two festival stalls on fire: `stall`, then `booth`, puts each out and repaints it.
 - An eraser moth and a blotling while the students cross. Orin explains the four beacons and the Lantern Ward. Checkpoint `festival-lawn-complete`. The Bell Bridge beacon is closest.
 
 ### Bell Bridge (Beacon 1)

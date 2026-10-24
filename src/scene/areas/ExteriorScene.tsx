@@ -4,8 +4,8 @@
  */
 import { Fireworks } from '../Fireworks';
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { BackSide, type Group, type MeshBasicMaterial } from 'three';
+import { Suspense, useMemo, useRef } from 'react';
+import { BackSide, ExtrudeGeometry, Shape, Vector2, type Group, type MeshBasicMaterial, type Sprite, type SpriteMaterial } from 'three';
 import { CRYSTAL_POSITIONS, WARDEN_HELLO_POSITION } from '../../level/areas/arrivalGate';
 import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../level/areas/courtyard';
 import { CHEST_POSITION, MIRA_EAST_HALL_END, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
@@ -18,6 +18,7 @@ import { BookSwarm } from '../Swarm';
 import { Seam } from '../Seam';
 import { MergeStatic } from '../MergeStatic';
 import { Prop } from '../Prop';
+import { smokePuffTexture } from '../Fire';
 import { worldBox, worldCylinder, worldPlane } from '../surfaces';
 import {
   DormantTarget,
@@ -31,6 +32,9 @@ import {
   WardAnchor,
   useBeatIndex,
 } from '../props';
+import { PoolLight, VirtualLight } from '../LightPool';
+import { GrassField } from '../GrassField';
+import { Woodland } from '../Woodland';
 
 const TOWER_GLASS = { windowGlass: MAT.windowGlassDay };
 const GATE_Z = 20;
@@ -105,22 +109,31 @@ function Campus() {
     const rand = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     const kinds = ['island_tree_01', 'island_tree_02'] as const;
     const out: { id: string; x: number; z: number; h: number; r: number }[] = [];
-    // Broadleaf trees framing the arrival path, then a ring of firs in the distance.
+    // Broadleaf trees framing the arrival path; the forest beyond is the Woodland below.
     while (out.length < 18) {
       const x = (rand() < 0.5 ? -1 : 1) * (9 + rand() * 26);
       const z = 26 + rand() * 60;
       out.push({ id: kinds[out.length % 2] ?? 'island_tree_01', x, z, h: 8 + rand() * 4, r: rand() * Math.PI * 2 });
-    }
-    for (let i = 0; i < 26; i++) {
-      const a = (i / 26) * Math.PI * 1.2 - Math.PI * 0.1;
-      const radius = 110 + rand() * 40;
-      out.push({ id: 'fir_tree_01', x: Math.cos(a) * radius, z: Math.sin(a) * radius * 0.6 + 40, h: 13 + rand() * 6, r: rand() * 6 });
     }
     return out;
   }, []);
   return (
     <group name="campus">
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.02, 0]} material={MAT.grass} geometry={worldPlane(900, 900)} receiveShadow />
+      {/* The forest the sprites fly out of: dense woods either side of the meadow in front of the gate */}
+      {!indoors && (
+        <Suspense fallback={null}>
+          <Woodland clear={20} depth={110} zRange={[24, 190]} density={1.6} seed={2} />
+        </Suspense>
+      )}
+      {/* Wild grass either side of the path up to the gate, where the camera comes down to land */}
+      {!indoors && (
+        <Suspense fallback={null}>
+          {([[-30, -2.4], [2.4, 30]] as const).map((x) => (
+            <GrassField key={x[0]} x={x} z={[20.8, 75]} nearZ={36} density={1.8} avoid={[[-6.5, 25, 1.2]]} seed={x[0] < 0 ? 3 : 4} />
+          ))}
+        </Suspense>
+      )}
       <MergeStatic>
       <Slab x={[-1.8, 1.8]} y={[-0.01, 0.03]} z={[20.6, 120]} material={MAT.paving} shadows={false} />
       {/* Main academy wing behind the courtyard */}
@@ -153,7 +166,7 @@ function Campus() {
           <torusGeometry args={[7.3, 0.25, 8, 40]} />
         </mesh>
       ))}
-      <mesh position={[0, 44, -60]} material={MAT.agedBrass} castShadow>
+      <mesh name="moon-tower-dome" position={[0, 44, -60]} material={MAT.agedBrass} castShadow>
         <sphereGeometry args={[7.4, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} />
       </mesh>
       {/* Cornice and parapet under the dome, gilded dome ribs and a lantern on top */}
@@ -227,7 +240,7 @@ function ArrivalGate() {
         ))}
       </MergeStatic>
       {[-1, 1].map((s) => (
-        <Banner key={s} position={[3.95 * s, 8.6, GATE_Z + 1.24]} height={3.6} />
+        <Banner key={s} position={[3.95 * s, 8.6, GATE_Z + 1.28]} height={3.6} />
       ))}
       <GateDoors />
       {(['left', 'right'] as const).map((k, i) => (
@@ -237,7 +250,7 @@ function ArrivalGate() {
         <Prop key={x} id={`shrub_0${(i % 4) + 1}`} position={[x, 0, 22.3]} height={1.5} rotationY={i * 2.1} />
       ))}
       {/* Decorative fallen banner pole (no jump tutorial). */}
-      <mesh position={[-6.5, 0.12, 25]} rotation={[Math.PI / 2, 0, 0.7]} material={MAT.darkOak} castShadow>
+      <mesh name="fallen-banner-pole" position={[-6.5, 0.12, 25]} rotation={[Math.PI / 2, 0, 0.7]} material={MAT.darkOak} castShadow>
         <cylinderGeometry args={[0.07, 0.07, 3.4, 10]} />
       </mesh>
     </group>
@@ -262,7 +275,7 @@ function GateDoors() {
   const door = (sign: number) => (
     <>
       <KitModel id="door_leaf" position={[0, 0, 0.12]} scale={[(-sign * GATE_HALF) / 1.2, GATE_HEIGHT / 3.2, 3]} />
-      <mesh position={[sign * -0.25, GATE_HEIGHT * 0.55, 0.16]} rotation={[0, 0, 0]} material={MAT.agedBrass}>
+      <mesh name="gate-lock-ring" position={[sign * -0.25, GATE_HEIGHT * 0.55, 0.16]} rotation={[0, 0, 0]} material={MAT.agedBrass}>
         <torusGeometry args={[0.35, 0.04, 8, 32]} />
       </mesh>
     </>
@@ -359,7 +372,7 @@ function Fountain({ celebration }: { celebration: boolean }) {
       <mesh position={[0, 2.86, 0]} rotation={[-Math.PI / 2, 0, 0]} material={MAT.water}>
         <circleGeometry args={[0.58, 24]} />
       </mesh>
-      {celebration && <pointLight position={[0, 1.5, 0]} color="#9fd6ff" intensity={6} distance={10} />}
+      {celebration && <PoolLight position={[0, 1.5, 0]} color="#9fd6ff" intensity={6} distance={10} />}
     </group>
   );
 }
@@ -390,8 +403,11 @@ function EastHall() {
       <Slab x={[15, 44]} y={[-0.01, 0.02]} z={[-W, W]} material={MAT.paving} shadows={false} />
       <Rug position={[29.5, 0.02, 0]} size={[29, 1.8]} />
       <Slab x={[15, 44]} y={[0, H]} z={[-W - 0.3, -W]} material={MAT.plaster} />
-      <Slab x={[15, 44]} y={[0, H]} z={[W, W + 0.3]} material={MAT.plaster} />
-      <Slab x={[14, 44.3]} y={[H, H + 0.4]} z={[-W - 0.3, W + 0.3]} material={MAT.slate} />
+      {/* The right wall; BlastHole builds the section between BLAST_WALL with the hole in it */}
+      <Slab x={[15, BLAST_WALL[0]]} y={[0, H]} z={[W, W + 0.3]} material={MAT.plaster} />
+      <Slab x={[BLAST_WALL[1], 44]} y={[0, H]} z={[W, W + 0.3]} material={MAT.plaster} />
+      {/* Starts inside the courtyard wall (x 14..15): ending flush with its face flickered against it */}
+      <Slab x={[14.5, 44.3]} y={[H, H + 0.4]} z={[-W - 0.3, W + 0.3]} material={MAT.slate} />
       <Slab x={[44, 44.3]} y={[0, H]} z={[-W, W]} material={MAT.academyStone} />
       {Array.from({ length: 10 }, (_, i) => 16.5 + i * 3).map((x) => (
         <group key={x}>
@@ -407,14 +423,18 @@ function EastHall() {
         <group key={x}>
           <WallLamp position={[x, 3.0, -W + 0.02]} />
           <WallLamp position={[x, 3.0, W - 0.02]} rotationY={Math.PI} />
-          <pointLight position={[x, 3.7, 0]} color="#ffc98a" intensity={10} distance={10} decay={2} />
+          <PoolLight position={[x, 3.7, 0]} color="#ffc98a" intensity={10} distance={10} decay={2} />
         </group>
       ))}
       <MergeStatic shadows={false}>
         {[-1, 1].map((side) => (
           <group key={side}>
-            <Slab x={[15, 44]} y={[0, 1.15]} z={side < 0 ? [-W, -W + 0.04] : [W - 0.04, W]} material={MAT.panelWood} shadows={false} />
-            <Slab x={[15, 44]} y={[1.15, 1.22]} z={side < 0 ? [-W, -W + 0.07] : [W - 0.07, W]} material={MAT.darkOak} shadows={false} />
+            {(side < 0 ? [[15, 44]] : [[15, BLAST_HOLE[0]], [BLAST_HOLE[1], 44]]).map(([x0 = 0, x1 = 0]) => (
+              <group key={x0}>
+                <Slab x={[x0, x1]} y={[0, 1.15]} z={side < 0 ? [-W, -W + 0.04] : [W - 0.04, W]} material={MAT.panelWood} shadows={false} />
+                <Slab x={[x0, x1]} y={[1.15, 1.22]} z={side < 0 ? [-W, -W + 0.07] : [W - 0.07, W]} material={MAT.darkOak} shadows={false} />
+              </group>
+            ))}
           </group>
         ))}
         {[22, 39].map((x) => (
@@ -431,6 +451,7 @@ function EastHall() {
         <Portrait key={x} position={[x, 2.2, W - 0.05]} rotationY={Math.PI} painting={painting} size={size} />
       ))}
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
+      <BlastHole />
       <EastHallMira inHall={inHall} />
       <BookSwarm beats={['east-hall-stampede', 'east-hall-chest', 'east-hall-stampede-2']} startAt={0.3} />
       <Chest />
@@ -440,6 +461,115 @@ function EastHall() {
       <Prop id="book_encyclopedia_set_01" position={[35, 0.78, W - 0.5]} height={0.3} rotationY={Math.PI} />
       <Prop id="Lantern_01" position={[34.6, 0.78, W - 0.35]} height={0.4} />
       <Prop id="potted_plant_02" position={[16.5, 0, W - 0.5]} height={1.3} />
+    </group>
+  );
+}
+
+/** The stretch of right wall the books blasted through (x range), and the hole's own x range. */
+const BLAST_WALL = [19.6, 22.4] as const;
+const BLAST_HOLE = [20.15, 22.05] as const;
+
+/** The ragged outline of the hole (hall x, height), round from the floor on the left. */
+const HOLE_OUTLINE: readonly (readonly [number, number])[] = [
+  [20.15, 0], [20.3, 0.55], [20.12, 1.0], [20.35, 1.45], [20.25, 1.9], [20.55, 2.25], [20.75, 2.6],
+  [21.05, 2.45], [21.3, 2.75], [21.55, 2.5], [21.8, 2.6], [21.9, 2.2], [22.08, 1.85], [21.92, 1.4],
+  [22.05, 0.9], [21.9, 0.45], [22.05, 0],
+];
+
+/** Fixed rubble chunks below the hole: x, z, size, turn. */
+const RUBBLE: readonly (readonly [number, number, number, number])[] = [
+  [20.3, 2.2, 0.22, 0.3], [20.7, 1.9, 0.16, 1.2], [21.2, 2.25, 0.28, 2.0], [21.6, 1.7, 0.14, 0.7],
+  [21.9, 2.15, 0.2, 2.6], [20.9, 1.4, 0.1, 1.9], [22.3, 1.9, 0.12, 0.4], [21.4, 1.1, 0.09, 1.4],
+];
+
+/**
+ * The hole the runaway books blasted through the wall from the library side (owner, 2026-10-23: they
+ * burst out of a solid wall, and a nook with a bookshelf did not look like the library). Thick dust keeps
+ * rolling out of it and fills the hole, so nothing behind it needs to be drawn.
+ */
+function BlastHole() {
+  const W = 2.5;
+  const H = 5;
+  const wall = useMemo(() => {
+    const [x0, x1] = BLAST_WALL;
+    // The hole touches the floor, so it is a notch in the wall's outline rather than a closed hole.
+    const shape = new Shape([new Vector2(0, 0), ...HOLE_OUTLINE.map(([x, y]) => new Vector2(x - x0, y)), new Vector2(x1 - x0, 0), new Vector2(x1 - x0, H), new Vector2(0, H)]);
+    return new ExtrudeGeometry(shape, { depth: 0.3, bevelEnabled: false });
+  }, []);
+  const pages: readonly (readonly [number, number, number])[] = [
+    [20.5, 1.6, 0.4],
+    [21.3, 1.2, 2.1],
+    [21.8, 0.9, 1.2],
+    [22.6, 1.5, 0.9],
+    [20.9, 0.6, 1.7],
+  ];
+  return (
+    <group name="blast-hole">
+      <mesh geometry={wall} position={[BLAST_WALL[0], 0, W]} material={MAT.plaster} castShadow receiveShadow />
+      {/* A dark, smoke-filled cavity behind the hole, with the floor carried through the broken wall */}
+      <Slab x={[BLAST_HOLE[0] - 0.3, BLAST_HOLE[1] + 0.3]} y={[-0.01, 0.02]} z={[W, W + 1.6]} material={MAT.paving} shadows={false} />
+      <mesh position={[(BLAST_HOLE[0] + BLAST_HOLE[1]) / 2, 1.63, W + 0.8]}>
+        <boxGeometry args={[2.4, 3.2, 1.6]} />
+        {/* The colour of the dust itself, so no gap in the smoke ever shows anything behind it */}
+        <meshBasicMaterial color="#9f968a" side={BackSide} />
+      </mesh>
+      {RUBBLE.map(([x, z, size, turn]) => (
+        <mesh key={`${x}-${z}`} position={[x, size * 0.35, z]} rotation={[turn * 0.6, turn, turn * 0.3]} scale={[size, size * 0.7, size * 0.9]} material={MAT.plaster} castShadow receiveShadow>
+          <dodecahedronGeometry args={[1, 0]} />
+        </mesh>
+      ))}
+      {pages.map(([x, z, r]) => (
+        <KitModel key={`${x}-${z}`} id="page_loose" position={[x, 0.025, z]} rotationY={r} castShadow={false} />
+      ))}
+      <HoleSmoke />
+    </group>
+  );
+}
+
+const PLUG = 10;
+const PUFFS = 12;
+
+/** Dust that fills the hole and keeps billowing out into the hall, rising as it spreads. */
+function HoleSmoke() {
+  const W = 2.5;
+  const tex = useMemo(() => smokePuffTexture([196, 186, 172]), []);
+  const plug = useRef<(Sprite | null)[]>([]);
+  const puffs = useRef<(Sprite | null)[]>([]);
+  const cx = (BLAST_HOLE[0] + BLAST_HOLE[1]) / 2;
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    plug.current.forEach((sp, i) => {
+      if (!sp) return;
+      const a = (i / PLUG) * Math.PI * 2;
+      sp.position.set(cx + Math.cos(a + t * 0.2) * 0.4, 1.3 + Math.sin(a * 1.7 + t * 0.15) * 0.7, W + 0.05 + (i % 3) * 0.15);
+      const s = 2.4 + Math.sin(t * 0.6 + i) * 0.25;
+      sp.scale.set(s, s, 1);
+      (sp.material as SpriteMaterial).rotation = t * 0.05 * (i % 2 ? 1 : -1) + i;
+    });
+    puffs.current.forEach((sp, i) => {
+      if (!sp) return;
+      const u = (t * 0.16 + i / PUFFS) % 1;
+      const side = Math.sin(i * 2.3) * 0.6;
+      sp.position.set(cx + side * (0.4 + u), 0.9 + (i % 3) * 0.5 + u * 1.6, W + 0.1 - u * 1.9);
+      const s = 0.9 + u * 2.2;
+      sp.scale.set(s, s, 1);
+      const m = sp.material as SpriteMaterial;
+      m.opacity = Math.min(1, u * 6) * (1 - u) * 0.9;
+      m.rotation = i + u * 0.8;
+    });
+  });
+  return (
+    <group>
+      {Array.from({ length: PLUG }, (_, i) => (
+        <sprite key={`p${i}`} ref={(sp) => void (plug.current[i] = sp)}>
+          <spriteMaterial map={tex} transparent depthWrite={false} opacity={1} />
+        </sprite>
+      ))}
+      {Array.from({ length: PUFFS }, (_, i) => (
+        <sprite key={`s${i}`} ref={(sp) => void (puffs.current[i] = sp)}>
+          <spriteMaterial map={tex} transparent depthWrite={false} opacity={0} />
+        </sprite>
+      ))}
     </group>
   );
 }
@@ -483,7 +613,7 @@ function MiraRunsOff() {
 }
 
 function Chest() {
-  const glow = useRef<import('three').PointLight>(null);
+  const glow = useRef<VirtualLight>(null);
   useFrame((_, dt) => {
     const open = getRun()?.flags.has('chest-open') ?? false;
     if (glow.current) glow.current.intensity += ((open ? 6 : 0) - glow.current.intensity) * (1 - Math.exp(-3 * Math.min(dt, 0.1)));
@@ -492,7 +622,7 @@ function Chest() {
   return (
     <group position={[x, 0, z]}>
       <Prop id="treasure_chest" position={[0, 0, 0]} height={0.6} rotationY={-0.84} />
-      <pointLight ref={glow} position={[0, 0.8, 0.2]} color="#ffd88a" intensity={0} distance={4} />
+      <PoolLight ref={glow} position={[0, 0.8, 0.2]} color="#ffd88a" intensity={0} distance={4} />
     </group>
   );
 }
@@ -506,14 +636,13 @@ function CelebrationDressing({ cheering }: { cheering: boolean }) {
       <KeeperOrin position={[3.5, 0, 3.2]} rotationY={-1.9} />
       {[[-8, 2, 0.6], [-9, -4, 1.2], [8, -2, -1.2], [9, 3, -1.6], [-6, 9, 2.4], [7, 10, -2.6], [4, -9, 0.2], [-3, -10, 0.4]].map(
         ([x = 0, z = 0, r = 0], i) => (
-          <Student key={i} position={[x, 0, z]} rotationY={r} robe={i % 3 === 0 ? MAT.burgundyLeather : MAT.navyCloth} height={1.35 + (i % 3) * 0.12} calm={!cheering} cheering={cheering} />
+          <Student key={i} position={[x, 0, z]} rotationY={r} robe={i % 3 === 0 ? MAT.burgundyLeather : MAT.navyCloth} height={1.35 + (i % 3) * 0.12} hopping={!cheering} cheering={cheering} />
         ),
       )}
       {/* Night celebration light: warm lamplight across the courtyard and a soft fill so faces read */}
-      <pointLight position={[0, 6, 2]} color="#ffc070" intensity={60} distance={40} decay={1.4} />
-      <pointLight position={[-10, 4, -6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
-      <pointLight position={[10, 4, 6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
-      <hemisphereLight args={['#8090c8', '#3a2a20', 0.6]} />
+      <PoolLight position={[0, 6, 2]} color="#ffc070" intensity={60} distance={40} decay={1.4} />
+      <PoolLight position={[-10, 4, -6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
+      <PoolLight position={[10, 4, 6]} color="#ffb060" intensity={30} distance={26} decay={1.5} />
       {/* Fireworks over the hall roof, all through the night homecoming */}
       <Fireworks origin={[0, 18, -45]} spread={70} height={[16, 34]} active={() => getRun()?.level.id === 'level-3'} />
       {Array.from({ length: 14 }, (_, i) => (

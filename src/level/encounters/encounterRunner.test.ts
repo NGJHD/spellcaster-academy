@@ -56,6 +56,26 @@ describe('EncounterRunner fairness (owner bug reports)', () => {
   });
 });
 
+describe('Chain Spark dispel', () => {
+  it('a chained foe waits for the bolt before it bursts (owner, 2026-10-23: the leap was too quick to see)', () => {
+    const r = runner([
+      { id: 'a', kind: 'sprite', position: [0, 0, -5], words: ['moss'], weak: true },
+      { id: 'b', kind: 'sprite', position: [2, 0, -5], words: ['fern'], weak: true },
+    ]);
+    step(r, 1);
+    expect(r.dispel('b', 1.1)).toBe(true);
+    const b = r.targets.get('b');
+    expect(b?.defeated).toBe(true);
+    step(r, 1);
+    // Still in flight: the burst (DISPEL_SEC) has not begun.
+    expect(b?.phase).toBe('dispelling');
+    expect(b?.phaseTime).toBeLessThan(0);
+    step(r, 0.4);
+    expect(b?.phase).toBe('dispelling');
+    expect(b?.phaseTime).toBeGreaterThan(0);
+  });
+});
+
 describe('perfect-only targets (Perfect Warden shell)', () => {
   const shell: TargetSpawn = { id: 'shell', kind: 'marker', position: [0, 0, -5], words: ['flawless'], perfectOnly: true };
 
@@ -70,6 +90,13 @@ describe('perfect-only targets (Perfect Warden shell)', () => {
     step(r, 1);
     expect(r.completeWord('shell', 2).defeated).toBe(false);
     expect(r.completeWord('shell', 1).defeated).toBe(true);
+  });
+
+  it('the word that comes back is not counted as progress (the boss bar stays in step)', () => {
+    const r = runner([shell]);
+    step(r, 1);
+    expect(r.completeWord('shell', 1).counted).toBe(false);
+    expect(r.completeWord('shell', 0).counted).toBe(true);
   });
 
   it('on Gentle every word counts in full', () => {

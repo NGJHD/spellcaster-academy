@@ -3,8 +3,8 @@
  * … those beams need a proper render. I don't want a plain rectangle of solid colour").
  *
  * - SkyTear: a split in the sky. A jagged opening, white-hot at its centre through gold to red at its
- *   torn edges, with a bright rim, branching hairline cracks and a soft glow, painted procedurally on a
- *   canvas. It lies along its two end points and turns about that axis to face the camera.
+ *   torn edges, with branching hairline cracks (Flux-painted, fx_sprites.py). It lies along its two end
+ *   points and turns about that axis to face the camera.
  * - LightBeam: a shaft of light that is brightest down its middle and fades softly to nothing at its
  *   sides and top, with faint motes drifting up it. It turns about its vertical axis to face the camera.
  */
@@ -12,6 +12,7 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { AdditiveBlending, BufferGeometry, CanvasTexture, Float32BufferAttribute, Matrix4, Mesh, PlaneGeometry, RepeatWrapping, SRGBColorSpace, Vector3, type MeshBasicMaterial } from 'three';
 import type { Vec3 } from '../level/rail/railTypes';
+import { fxSprite } from './fxSprites';
 
 /** Deterministic pseudo-random numbers (render must stay pure and repeatable). */
 /** Exported for tests. */
@@ -28,128 +29,11 @@ function rng(seed: number) {
 
 // ---------- The tear ----------
 
-export interface TearPalette {
-  readonly core: string;
-  readonly mid: string;
-  readonly edge: string;
-  readonly glow: string;
-}
-
-export const TEAR_FIRE: TearPalette = { core: '#fff6d8', mid: '#ffb040', edge: '#ff3a0a', glow: 'rgba(255, 70, 15, 0.9)' };
-
-const tearCache = new Map<string, CanvasTexture>();
-
-/** A painted tear across a 1024×512 canvas, centred on its middle line. */
-function tearTexture(seed: number, palette: TearPalette): CanvasTexture {
-  const key = `${seed}:${palette.core}:${palette.edge}`;
-  const hit = tearCache.get(key);
-  if (hit) return hit;
-  const W = 1024;
-  const H = 512;
-  const cy = H / 2;
-  const c = document.createElement('canvas');
-  c.width = W;
-  c.height = H;
-  const g = c.getContext('2d');
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tearCache.set(key, tex);
-  if (!g) return tex;
-  const r = rng(seed);
-  // The opening: widest in the middle, pinched to a point at both ends, with jagged torn edges.
-  const top: [number, number][] = [];
-  const bottom: [number, number][] = [];
-  const steps = 70;
-  let wobble = 0;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const x = 40 + t * (W - 80);
-    wobble += (r() - 0.5) * 18;
-    wobble *= 0.85;
-    const half = Math.pow(Math.sin(Math.PI * t), 0.9) * (H * 0.2) * (0.65 + 0.35 * r());
-    const centre = cy + wobble + Math.sin(t * 9 + seed) * 10;
-    top.push([x, centre - half - r() * 10]);
-    bottom.push([x, centre + half + r() * 10]);
-  }
-  const outline = () => {
-    g.beginPath();
-    top.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
-    for (let i = bottom.length - 1; i >= 0; i--) {
-      const p = bottom[i];
-      if (p) g.lineTo(p[0], p[1]);
-    }
-    g.closePath();
-  };
-  // Hairline cracks branching out from the torn edges.
-  g.lineCap = 'round';
-  for (let k = 0; k < 26; k++) {
-    const fromTop = r() < 0.5;
-    const pts = fromTop ? top : bottom;
-    const start = pts[Math.floor(4 + r() * (pts.length - 8))];
-    if (!start) continue;
-    let [x, y] = start;
-    const dir = fromTop ? -1 : 1;
-    const len = 4 + Math.floor(r() * 8);
-    g.beginPath();
-    g.moveTo(x, y);
-    for (let s = 0; s < len; s++) {
-      x += (r() - 0.5) * 34;
-      y += dir * (6 + r() * 16);
-      g.lineTo(x, y);
-    }
-    g.strokeStyle = palette.mid;
-    g.shadowColor = palette.glow;
-    g.shadowBlur = 14;
-    g.lineWidth = 1.5 + r() * 2;
-    g.globalAlpha = 0.55 + r() * 0.4;
-    g.stroke();
-  }
-  g.globalAlpha = 1;
-  // Wide soft glow around the opening.
-  for (const blur of [90, 50, 24]) {
-    outline();
-    g.shadowColor = palette.glow;
-    g.shadowBlur = blur;
-    g.fillStyle = palette.edge;
-    g.fill();
-  }
-  // The inside: white-hot down the middle, gold, then red at the torn edges.
-  g.shadowBlur = 0;
-  outline();
-  const grad = g.createLinearGradient(0, cy - H * 0.26, 0, cy + H * 0.26);
-  grad.addColorStop(0, palette.edge);
-  grad.addColorStop(0.32, palette.mid);
-  grad.addColorStop(0.5, palette.core);
-  grad.addColorStop(0.68, palette.mid);
-  grad.addColorStop(1, palette.edge);
-  g.fillStyle = grad;
-  g.fill();
-  // Soft swirls of brighter and darker light inside the split, so it looks like churning fire.
-  g.save();
-  outline();
-  g.clip();
-  for (let k = 0; k < 70; k++) {
-    const x = 60 + r() * (W - 120);
-    const y = cy + (r() - 0.5) * H * 0.3;
-    const rad = 12 + r() * 46;
-    const bright = r() < 0.6;
-    const blob = g.createRadialGradient(x, y, 0, x, y, rad);
-    blob.addColorStop(0, bright ? `rgba(255, 245, 210, ${0.18 + r() * 0.25})` : `rgba(150, 20, 0, ${0.2 + r() * 0.3})`);
-    blob.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    g.fillStyle = blob;
-    g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  g.restore();
-  // A bright rim along the torn edges.
-  outline();
-  g.strokeStyle = palette.core;
-  g.shadowColor = palette.glow;
-  g.shadowBlur = 18;
-  g.lineWidth = 3;
-  g.stroke();
-  tex.needsUpdate = true;
-  return tex;
-}
+/** The painted tears (fx_sprites.py tear_1, tear_2) and how much of each painting's height the opening fills. */
+const TEARS = [
+  { sprite: 'tear_1', opening: 0.4 },
+  { sprite: 'tear_2', opening: 0.34 },
+] as const;
 
 const axis = new Vector3();
 const toCam = new Vector3();
@@ -160,14 +44,14 @@ const camLocal = new Vector3();
 
 /**
  * A split in the sky between `from` and `to` (in the parent's space), `width` metres across at its
- * widest. `open` (0–1) is read every frame: 0 is a hairline seam, 1 fully torn open.
+ * widest. `open` (0–1) is read every frame: 0 is a hairline seam, 1 fully torn open. `painting` picks
+ * the wide burning rift (1) or the narrower ragged crack (2).
  */
 export function SkyTear({
   from,
   to,
   width,
-  seed = 1,
-  palette = TEAR_FIRE,
+  painting = 1,
   open = () => 1,
   opacity = () => 1,
   renderOrder = -9,
@@ -175,8 +59,7 @@ export function SkyTear({
   from: Vec3;
   to: Vec3;
   width: number;
-  seed?: number;
-  palette?: TearPalette;
+  painting?: 1 | 2;
   open?: () => number;
   opacity?: () => number;
   renderOrder?: number;
@@ -184,7 +67,8 @@ export function SkyTear({
   const mesh = useRef<Mesh>(null);
   const mat = useRef<MeshBasicMaterial>(null);
   const time = useRef(0);
-  const texture = useMemo(() => tearTexture(seed, palette), [seed, palette]);
+  const tear = TEARS[painting - 1] ?? TEARS[0];
+  const texture = useMemo(() => fxSprite(tear.sprite), [tear]);
   const geometry = useMemo(() => new PlaneGeometry(1, 1), []);
   const centre = useMemo(() => new Vector3((from[0] + to[0]) / 2, (from[1] + to[1]) / 2, (from[2] + to[2]) / 2), [from, to]);
   const length = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
@@ -202,9 +86,8 @@ export function SkyTear({
     basis.makeBasis(axis, yAxis, zAxis);
     m.quaternion.setFromRotationMatrix(basis);
     m.position.copy(centre);
-    // The texture's opening fills about 46% of its height.
     const o = Math.max(0.04, Math.min(1, open()));
-    m.scale.set(length, (width / 0.46) * o, 1);
+    m.scale.set(length, (width / tear.opening) * o, 1);
     const t = time.current;
     const flicker = 0.85 + Math.sin(t * 5.3) * 0.08 + Math.sin(t * 13.7) * 0.05;
     if (mat.current) mat.current.opacity = Math.max(0, opacity()) * flicker;
@@ -420,8 +303,9 @@ export function placeStreak(mesh: Mesh, a: Vector3, b: Vector3, width: number, c
 
 // ---------- Fireball and gem sparkle textures ----------
 
-let fireballTex: CanvasTexture | null = null;
 let glintTex: CanvasTexture | null = null;
+
+let fireballTex: CanvasTexture | null = null;
 
 /** Smooth 2D value noise for the fireball (tiles around the circle by angle). */
 function vnoise(x: number, y: number, period: number): number {
@@ -442,9 +326,9 @@ function vnoise(x: number, y: number, period: number): number {
 }
 
 /**
- * A ball of fire (owner, 2026-10-07: the fireball read as a white light bulb): a churning orange body
- * with a yellow-white heart, its edge broken into licking tongues of flame, fading to nothing. Drawn
- * per pixel from noise around the circle, so the outline is ragged fire, not a disc.
+ * A ball of fire for the fireballs and the bosses' fire orbs (owner, 2026-10-24: kept over a painted one): a churning
+ * orange body with a yellow-white heart, its edge broken into licking tongues of flame, fading to
+ * nothing. Drawn per pixel from noise around the circle, so the outline is ragged fire, not a disc.
  */
 export function fireballTexture(): CanvasTexture {
   if (fireballTex) return fireballTex;
@@ -485,6 +369,7 @@ export function fireballTexture(): CanvasTexture {
   fireballTex.colorSpace = SRGBColorSpace;
   return fireballTex;
 }
+
 
 /** A four-pointed sparkle (the glint that flashes across a cut gem). */
 export function glintTexture(): CanvasTexture {

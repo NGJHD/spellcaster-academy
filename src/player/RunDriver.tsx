@@ -17,11 +17,15 @@ const SAFE_MARGIN = 56;
 const SUBTITLE_BAND = 150;
 
 /** Last frame's render statistics (read by the `?test` hook for performance checks). */
-export const renderStats = { triangles: 0, calls: 0, frameMs: 0 };
+export const renderStats = { triangles: 0, calls: 0, frameMs: 0, programs: 0 };
 /** Scene handle for the `?test` hook's triangle breakdown. */
 export const debugScene: { current: import('three').Object3D | null } = { current: null };
 /** The live camera, for `?test` measurements (camera steadiness). */
 export const debugCamera: { current: import('three').Camera | null } = { current: null };
+/** A `?test` override that holds the camera at a chosen view (screenshots of scenery in its setting). */
+export const debugView: { current: { position: [number, number, number]; lookAt: [number, number, number] } | null } = { current: null };
+/** The renderer, for `?test` shader-program checks. */
+export const debugGl: { current: import('three').WebGLRenderer | null } = { current: null };
 
 const look = new Vector3();
 /** How quickly the framing point pans to a new target (per second). */
@@ -49,6 +53,7 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
   const scene = useThree((s) => s.scene);
   debugScene.current = scene;
   debugCamera.current = camera;
+  debugGl.current = gl;
   const blend = useRef(0);
   const time = useRef(0);
 
@@ -75,6 +80,7 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
     renderStats.triangles = gl.info.render.triangles;
     renderStats.calls = gl.info.render.calls;
     renderStats.frameMs = delta * 1000;
+    renderStats.programs = gl.info.programs?.length ?? 0;
     const run = getRun();
     if (!run) return;
     time.current += delta;
@@ -105,6 +111,10 @@ export function RunDriver({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nul
       const k = Math.sin((run.kickTime / KICK_SEC) * Math.PI) * KICK_DISTANCE;
       kick.copy(look).sub(camera.position).normalize();
       camera.position.addScaledVector(kick, k);
+    }
+    if (debugView.current) {
+      camera.position.set(...debugView.current.position);
+      look.set(...debugView.current.lookAt);
     }
     camera.lookAt(look);
     camera.updateMatrixWorld();

@@ -77,22 +77,14 @@ function Instruments() {
       {/* The great refractor, aimed up through the open shutter. */}
       <KitModel id="telescope" position={[-9, 0, -6]} rotationY={Math.PI + 0.6} scale={1.3} />
       <group ref={orrery} position={[9, 2.2, -6]}>
-        <mesh material={MAT.wardGold}>
-          <sphereGeometry args={[0.35, 20, 16]} />
-        </mesh>
-        {[1, 1.6, 2.2].map((r, i) => (
-          <group key={r} rotation={[0, i * 1.7, 0]}>
-            <mesh rotation={[Math.PI / 2, 0, 0]} material={MAT.agedBrass}>
-              <torusGeometry args={[r, 0.02, 6, 48]} />
-            </mesh>
-            <mesh position={[r, 0, 0]} material={i === 1 ? MAT.wardBlue : MAT.academyStone}>
-              <sphereGeometry args={[0.12, 12, 10]} />
-            </mesh>
+        {/* A brass orrery (kit_scene.py): the glowing sun, three orbit arms and its iron stand */}
+        <KitModel id="orrery_sun" />
+        {[1, 2, 3].map((n, i) => (
+          <group key={n} rotation={[0, i * 1.7, 0]}>
+            <KitModel id={`orrery_arm_${n}`} />
           </group>
         ))}
-        <mesh position={[0, -1.2, 0]} material={MAT.darkSteel}>
-          <cylinderGeometry args={[0.08, 0.2, 2, 10]} />
-        </mesh>
+        <KitModel id="orrery_stand" />
       </group>
       <Box position={[0, 0.6, 13.2]} size={[3, 1.2, 0.4]} material={MAT.academyStoneDark} />
     </group>

@@ -22,7 +22,7 @@ installBrowserVoice(() => {
 
 // Test hook for Playwright (`?test` only): read-only access to the live run.
 if (new URLSearchParams(window.location.search).has('test')) {
-  void Promise.all([import('./state/gameStore'), import('./player/RunDriver'), import('./state/runStore')]).then(([{ getRun }, { renderStats, debugScene, debugCamera }, { useRunStore }]) => {
+  void Promise.all([import('./state/gameStore'), import('./player/RunDriver'), import('./state/runStore'), import('./scene/LightPool')]).then(([{ getRun }, { renderStats, debugScene, debugCamera, debugGl, debugView }, { useRunStore }, { poolStats }]) => {
     (window as unknown as { __spellcaster: unknown }).__spellcaster = {
       beat: () => getRun()?.director.currentBeat?.id ?? null,
       /** Words on screen, the subtitle and any choice (for scripted play-throughs). */
@@ -34,9 +34,17 @@ if (new URLSearchParams(window.location.search).has('test')) {
       focus: () => getRun()?.focus ?? null,
       /** The live encounter's targets (id, phase, world position). */
       targets: () => [...(getRun()?.encounter?.targets.values() ?? [])].map((t) => ({ id: t.id, phase: t.phase, at: t.position.toArray().map((v) => Math.round(v * 10) / 10), attack: t.attackPhase })),
-      render: () => ({ ...renderStats }),
+      render: () => ({ ...renderStats, poolLights: poolStats.live }),
+      /** Plays a spectacle effect, by default a few metres in front of the camera (checking effects). */
+      fx: (cue: import('./level/levelTypes').FxCue) => (getRun() as unknown as { emitFx(c: import('./level/levelTypes').FxCue): void } | null)?.emitFx(cue),
       scene: () => debugScene.current,
       camera: () => debugCamera.current,
+      flag: (name: string) => getRun()?.flags.add(name),
+      view: (position: [number, number, number] | null, lookAt?: [number, number, number]) => {
+        debugView.current = position && lookAt ? { position, lookAt } : null;
+      },
+      /** Shader programs compiled so far (name and a short key), to find what compiles late. */
+      programs: () => (debugGl.current?.info.programs ?? []).map((p) => `${p.name} ${String(p.cacheKey).length}`),
       /** Visible triangles per top-level named group (performance investigation). */
       breakdown: () => {
         const out: Record<string, number> = {};

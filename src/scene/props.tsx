@@ -18,7 +18,7 @@ import { useRunStore } from '../state/runStore';
 import { CharacterModel, type CharacterClip } from './CharacterModel';
 import { Guardian } from '../enemies/GuardianGLB';
 import { CreatureModel, creatureUrl } from '../enemies/CreatureModel';
-import { useKitGlow } from './kitGlb';
+import { useKit, useKitGlow } from './kitGlb';
 import { MAT } from './materials';
 import { useParts } from './partsGlb';
 
@@ -480,17 +480,14 @@ function StudentFallback({ position, rotationY = 0, robe = MAT.navyCloth, height
 
 export function FloatingLantern({ position, seed = 1 }: { position: Vec3; seed?: number }) {
   const ref = useRef<Group>(null);
+  // A paper sky lantern on bamboo ribs (kit_scene.py sky_lantern).
+  const lantern = useKit('sky_lantern', false);
   useFrame((state) => {
     if (ref.current) ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.7 + seed) * 0.15;
   });
   return (
     <group ref={ref} position={position}>
-      <mesh material={MAT.lampGlow}>
-        <cylinderGeometry args={[0.14, 0.11, 0.3, 12]} />
-      </mesh>
-      <mesh position={[0, 0.17, 0]} material={MAT.agedBrass}>
-        <coneGeometry args={[0.15, 0.1, 12]} />
-      </mesh>
+      <primitive object={lantern} />
     </group>
   );
 }
@@ -562,6 +559,31 @@ function cheerClip(seed: number): () => CharacterClip {
   };
 }
 
+/** One round of hopping: two jumps with hands up, then a rest (owner, 2026-10-24: "jump twice, rest a while"). */
+const HOP_SEC = 0.45;
+const HOP_HEIGHT = 0.28;
+
+/**
+ * Where a hopping student is in their cycle at `t` seconds: two hops of HOP_SEC, then a rest of 2.5–4 s
+ * that changes each round, so the crowd never jumps in unison. `lift` is the height off the ground.
+ */
+function hopAt(seed: number, t: number): { clip: CharacterClip; lift: number } {
+  // Walk forward through whole rounds from a per-student start; each round's rest is its own length.
+  let start = -hash01(seed + 4.1) * 4;
+  for (let n = 0; ; n++) {
+    const round = HOP_SEC * 2 + 2.5 + hash01(seed * 5.3 + n) * 1.5;
+    if (t < start + round) {
+      const into = t - start;
+      if (into >= HOP_SEC * 2) return { clip: 'Idle', lift: 0 };
+      const u = (into % HOP_SEC) / HOP_SEC;
+      // Arms go up a beat before the first hop and stay up through both (the clip's raise is 1.35 s).
+      return { clip: 'Celebrate', lift: Math.sin(u * Math.PI) * HOP_HEIGHT };
+    }
+    start += round;
+    if (n > 100000) return { clip: 'Idle', lift: 0 };
+  }
+}
+
 export function Student({
   position,
   rotationY = 0,
@@ -570,6 +592,7 @@ export function Student({
   raising = false,
   calm = false,
   cheering = false,
+  hopping = false,
 }: {
   position: Vec3;
   rotationY?: number;
@@ -579,10 +602,21 @@ export function Student({
   calm?: boolean;
   /** Raises their hands now and then, at random (a celebrating crowd). */
   cheering?: boolean;
+  /** Jumps twice with hands up, rests a while, and again (each on their own timing). */
+  hopping?: boolean;
 }) {
   const id = robe === MAT.navyCloth ? 'student_a' : 'student_b';
   const phase = position[0] * 0.9 + position[2] * 0.3;
-  const clip = calm
+  const hopper = useRef<Group>(null);
+  const clock = useMemo(() => ({ t: 0 }), []);
+  useFrame((_, dt) => {
+    if (!hopping || !hopper.current) return;
+    clock.t += Math.min(dt, 0.1);
+    hopper.current.position.y = hopAt(phase, clock.t).lift;
+  });
+  const clip = hopping
+    ? () => hopAt(phase, clock.t).clip
+    : calm
     ? 'Idle'
     : cheering
       ? cheerClip(phase)
@@ -592,8 +626,10 @@ export function Student({
   return (
     <Suspense fallback={<StudentFallback position={position} rotationY={rotationY} robe={robe} height={height} />}>
       <group position={position} rotation={[0, rotationY, 0]} scale={height / (id === 'student_a' ? 1.4 : 1.5)}>
-        {/* Background students always use the lighter LOD1 (§14.6). */}
-        <CharacterModel id={id === 'student_a' ? 'student_a_lod1' : 'student_b_lod1'} clip={clip} />
+        <group ref={hopper}>
+          {/* Background students always use the lighter LOD1 (§14.6). */}
+          <CharacterModel id={id === 'student_a' ? 'student_a_lod1' : 'student_b_lod1'} clip={clip} />
+        </group>
       </group>
     </Suspense>
   );

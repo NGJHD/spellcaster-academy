@@ -86,7 +86,7 @@ export const workshops: AreaScript = {
       onComplete: { flags: ['l2-beacon-furnace'], unlockSpell: 'starfall' },
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'WS_FURNACE_MOUTH', scale: 1.6, color: '#ffa040' },
+        { kind: 'pulse', at: 'WS_FURNACE_MOUTH', scale: 1.6, color: '#ffa040' },
         { kind: 'pillar', at: 'WS_FURNACE_MOUTH', scale: 1.5, color: '#ffd27a' },
         { kind: 'shake', scale: 1.4 },
       ],

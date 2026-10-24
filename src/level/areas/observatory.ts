@@ -62,7 +62,7 @@ export const observatory: AreaScript = {
     reveal('observatory-dome-reveal', O, 'OBS_ENTRY', ['OBS_DOME', 'OBS_WARDEN'], 2.2, 2.4, {
       attention: 'spectacle',
       fx: [
-        { kind: 'shockwave', at: 'OBS_DOME', atBeat: 0.2, scale: 3, color: '#9fd8ff' },
+        { kind: 'pulse', at: 'OBS_DOME', atBeat: 0.2, scale: 3, color: '#9fd8ff' },
         { kind: 'flash', atBeat: 0.2 },
         { kind: 'lightning', at: 'OBS_DOME', atBeat: 0.25 },
         { kind: 'meteors', at: 'OBS_DOME', atBeat: 0.3, scale: 0.6, color: '#9fd8ff' },
@@ -76,7 +76,7 @@ export const observatory: AreaScript = {
       barks: ['obs-1', 'obs-symbol'],
       fx: [
         { kind: 'pillar', at: 'OBS_FLOOR', atBeat: 0.15, scale: 1.6, color: '#ffe6a0' },
-        { kind: 'shockwave', at: 'OBS_FLOOR', atBeat: 0.3, scale: 1.6, color: '#ffe6a0' },
+        { kind: 'pulse', at: 'OBS_FLOOR', atBeat: 0.3, scale: 1.6, color: '#ffe6a0' },
         { kind: 'shake', atBeat: 0.3, scale: 1.6 },
         { kind: 'burst', at: 'OBS_WARDEN_HIGH', atBeat: 0.55, scale: 2.4, color: '#ffe6a0' },
       ],
@@ -123,7 +123,7 @@ export const observatory: AreaScript = {
         fx: [
           { kind: 'sparks', at: 'OBS_ARC_LEFT', scale: 1.6, color: '#ffe6a0' },
           { kind: 'sparks', at: 'OBS_ARC_RIGHT', scale: 1.6, color: '#ffe6a0' },
-          { kind: 'shockwave', at: 'OBS_RING', scale: 0.8, color: '#ffe6a0' },
+          { kind: 'pulse', at: 'OBS_RING', scale: 0.8, color: '#ffe6a0' },
         ],
       },
       waves: [
@@ -134,7 +134,7 @@ export const observatory: AreaScript = {
             target(`warden-plate-${i + 1}`, 'plate', W(o[0], o[1], o[2]), [len(4, 6)], {
               labelHeight: 0.4,
               // Plates blast off the Warden (then orbit safely).
-              defeatFx: { kind: 'debris', scale: 0.7, color: '#d8d0c0' },
+              defeatFx: { kind: 'debris', scale: 0.7, color: '#d8d0c0', pieces: 'stone' },
             }),
           ),
         },
@@ -155,7 +155,7 @@ export const observatory: AreaScript = {
         windupSec: 1.8,
         damage: 12,
         fx: [
-          { kind: 'shockwave', at: 'OBS_RING', scale: 0.8, color: '#ffe6a0' },
+          { kind: 'pulse', at: 'OBS_RING', scale: 0.8, color: '#ffe6a0' },
           { kind: 'sparks', at: 'OBS_ARC_RIGHT', scale: 1.6, color: '#ffe6a0' },
           { kind: 'sparks', at: 'OBS_ARC_LEFT', scale: 1.6, color: '#ffe6a0' },
         ],
@@ -176,7 +176,7 @@ export const observatory: AreaScript = {
       beam: { to: W(0, 10, -6), color: '#ff9f7a' },
       completeFx: [
         { kind: 'flash' },
-        { kind: 'shockwave', at: 'OBS_FLOOR', scale: 3.4, color: '#ffe6a0' },
+        { kind: 'pulse', at: 'OBS_FLOOR', scale: 3.4, color: '#ffe6a0' },
         { kind: 'burst', at: 'OBS_FRACTURE', scale: 3.4, color: '#ffe6a0' },
         { kind: 'pillar', at: 'OBS_FLOOR', scale: 2.2, color: '#ffe6a0' },
         { kind: 'shake', scale: 2 },

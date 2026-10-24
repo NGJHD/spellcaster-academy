@@ -1,6 +1,6 @@
 /**
  * Fire for Levels 2 and 3: camera-facing flame sprites animated from a
- * procedurally rendered flipbook (turbulent noise coloured by heat), with a flickering light for big fires and rising smoke.
+ * flipbook rendered from turbulent noise coloured by heat (fireSheets.ts, baked to image files), with a flickering light for big fires and painted smoke (fxSprites) billowing up from every fire.
  * - 'ink': the enemy's inkfire, red-orange with dark smoky cores.
  * - 'warm': ordinary flame (furnace, beacons, braziers).
  * Restorable objects burn to grey ash until their restore word is typed (flag set), then blaze back
@@ -8,135 +8,50 @@
  */
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { AdditiveBlending, Box3, CanvasTexture, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, NormalBlending, Plane, SRGBColorSpace, Vector3, type Group, type PointLight, type Sprite } from 'three';
+import { AdditiveBlending, Box3, CanvasTexture, Color, Mesh, MeshBasicMaterial, MeshStandardMaterial, Plane, SpriteMaterial, SRGBColorSpace, Texture, TextureLoader, Vector3, type Group, type Sprite } from 'three';
+import { fxSprite } from './fxSprites';
 import type { Vec3 } from '../level/rail/railTypes';
 import { getRun } from '../state/gameStore';
-
-const FRAMES = 16;
-const FRAME_PX = 128;
-
-let flameSheets: Record<'ink' | 'warm', CanvasTexture> | null = null;
-let smokeTexture: CanvasTexture | null = null;
-
-/** Deterministic noise so the flipbook is the same every run. */
-const hash = (a: number, b: number) => {
-  const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
-
-/** Smooth value noise that tiles every `period` cells vertically (so the flipbook loops). */
-function noise(x: number, y: number, period: number): number {
-  const xi = Math.floor(x);
-  const yi = Math.floor(y);
-  const xf = x - xi;
-  const yf = y - yi;
-  const wrap = (v: number) => ((v % period) + period) % period;
-  const h = (i: number, j: number) => hash(i, wrap(j));
-  const sx = xf * xf * (3 - 2 * xf);
-  const sy = yf * yf * (3 - 2 * yf);
-  const a = h(xi, yi) + (h(xi + 1, yi) - h(xi, yi)) * sx;
-  const b = h(xi, yi + 1) + (h(xi + 1, yi + 1) - h(xi, yi + 1)) * sx;
-  return a + (b - a) * sy;
-}
-
-/** Turbulence: four octaves of noise (each tiles vertically). */
-function fbm(x: number, y: number): number {
-  let sum = 0;
-  let amp = 0.5;
-  let f = 1;
-  for (let o = 0; o < 4; o++) {
-    sum += amp * noise(x * f, y * f, 4 * f);
-    amp *= 0.5;
-    f *= 2;
-  }
-  return sum;
-}
-
-/** Heat to colour (r, g, b in 0–255, a in 0–1). */
-const RAMPS: Record<'ink' | 'warm', readonly (readonly [number, number, number, number, number])[]> = {
-  // [heat, r, g, b, alpha]
-  warm: [
-    [0.0, 90, 10, 0, 0],
-    [0.18, 150, 25, 5, 0.35],
-    [0.4, 235, 85, 15, 0.85],
-    [0.65, 255, 170, 45, 1],
-    [0.85, 255, 230, 140, 1],
-    [1.0, 255, 255, 235, 1],
-  ],
-  // Inkfire: redder, with a deep crimson body.
-  ink: [
-    [0.0, 60, 0, 0, 0],
-    [0.18, 120, 10, 5, 0.4],
-    [0.4, 215, 45, 15, 0.85],
-    [0.65, 255, 120, 35, 1],
-    [0.85, 255, 200, 110, 1],
-    [1.0, 255, 245, 215, 1],
-  ],
-};
-
-function ramp(kind: 'ink' | 'warm', heat: number): [number, number, number, number] {
-  const stops = RAMPS[kind];
-  for (let i = 1; i < stops.length; i++) {
-    const b = stops[i];
-    const a = stops[i - 1];
-    if (!a || !b) continue;
-    if (heat <= b[0]) {
-      const t = (heat - a[0]) / (b[0] - a[0]);
-      return [a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t, a[4] + (b[4] - a[4]) * t];
-    }
-  }
-  return [255, 255, 235, 1];
-}
+import { PoolLight, VirtualLight } from './LightPool';
+import { fbm, FRAMES, hash } from './fireSheets';
 
 /**
- * A rendered flame flipbook (owner, 2026-10-07: the old bezier teardrops "look polygon"): every pixel
- * is computed from turbulent noise rising through a flame-shaped falloff and coloured by heat, so the
- * flames have soft edges, licking tongues and a white-hot core. Frames scroll the noise upwards and
- * loop seamlessly.
+ * The flame flipbooks, rendered once at build time (`npm run gen:fire`) and loaded with the rest of the
+ * game's files, so the loading screen waits for them and no fire stalls the game when it first appears.
  */
-function paintFlames(kind: 'ink' | 'warm'): CanvasTexture {
-  const W = FRAME_PX;
-  const H = FRAME_PX * 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = W * FRAMES;
-  canvas.height = H;
-  const g = canvas.getContext('2d');
-  if (!g) return new CanvasTexture(canvas);
-  const img = g.createImageData(W * FRAMES, H);
-  for (let f = 0; f < FRAMES; f++) {
-    const scroll = (f / FRAMES) * 4; // one full noise period per loop
-    for (let py = 0; py < H; py++) {
-      const v = 1 - py / (H - 1); // 0 at the base, 1 at the top
-      for (let px = 0; px < W; px++) {
-        const u = (px / (W - 1)) * 2 - 1;
-        // Turbulence sways the flame sideways more the higher it rises.
-        const n = fbm(u * 2.2 + 7, v * 3.2 - scroll);
-        const uu = u + (n - 0.5) * 0.9 * v;
-        // A teardrop body: wide at the base, licking to a point at the top.
-        const halfWidth = 0.62 * Math.pow(1 - v, 0.55) + 0.02;
-        const body = Math.max(0, 1 - Math.abs(uu) / halfWidth);
-        const tongue = fbm(u * 4 + 3, v * 6 - scroll * 2);
-        let heat = body * 1.35 - v * 0.85 + (tongue - 0.5) * 0.8;
-        heat *= Math.min(1, v * 14 + 0.3); // soft at the very bottom edge
-        heat = Math.max(0, Math.min(1, heat));
-        const [r, gg, b, a] = ramp(kind, heat);
-        const i = (py * W * FRAMES + f * W + px) * 4;
-        img.data[i] = r;
-        img.data[i + 1] = gg;
-        img.data[i + 2] = b;
-        img.data[i + 3] = Math.round(a * 255);
-      }
-    }
-  }
-  g.putImageData(img, 0, 0);
-  const tex = new CanvasTexture(canvas);
+const flameUrl = (kind: 'ink' | 'warm') => `${import.meta.env.BASE_URL}assets/textures/fx/flames_${kind}.png`;
+/** Per-sprite copies made before their flipbook arrived; refreshed when it does. */
+const waitingCopies = new Set<Texture>();
+function loadFlames(kind: 'ink' | 'warm'): Texture {
+  const tex = new TextureLoader().load(flameUrl(kind), () => {
+    for (const t of waitingCopies) t.needsUpdate = true;
+    waitingCopies.clear();
+  });
   tex.colorSpace = SRGBColorSpace;
   tex.repeat.set(1 / FRAMES, 1);
   return tex;
 }
+let flameSheets: Record<'ink' | 'warm', Texture> | null = null;
+/** Starts loading the flipbooks (the game canvas calls this as it mounts, behind the loading screen). */
+export function preloadFlames(): Record<'ink' | 'warm', Texture> {
+  flameSheets ??= { ink: loadFlames('ink'), warm: loadFlames('warm') };
+  return flameSheets;
+}
+const smokePuffs = new Map<string, CanvasTexture>();
+
+/** A soft smoke puff of the given colour (cached), for smoke and dust that is not part of a fire. */
+export function smokePuffTexture(rgb: readonly [number, number, number] = [42, 38, 36]): CanvasTexture {
+  const key = rgb.join(',');
+  let tex = smokePuffs.get(key);
+  if (!tex) {
+    tex = paintSmoke(rgb);
+    smokePuffs.set(key, tex);
+  }
+  return tex;
+}
 
 /** A soft, billowing smoke puff (noise-shaped, not a plain disc). */
-function paintSmoke(): CanvasTexture {
+function paintSmoke([r, gr, b]: readonly [number, number, number] = [42, 38, 36]): CanvasTexture {
   const S = 96;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = S;
@@ -151,9 +66,9 @@ function paintSmoke(): CanvasTexture {
         const n = fbm(dx * 2 + 11, dy * 2 + 5);
         const a = Math.max(0, 1 - d * (1.1 - (n - 0.5) * 0.9)) ** 1.6 * 0.75;
         const i = (y * S + x) * 4;
-        img.data[i] = 42;
-        img.data[i + 1] = 38;
-        img.data[i + 2] = 36;
+        img.data[i] = r;
+        img.data[i + 1] = gr;
+        img.data[i + 2] = b;
         img.data[i + 3] = Math.round(a * 255);
       }
     }
@@ -162,11 +77,16 @@ function paintSmoke(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-function sheets() {
-  if (!flameSheets) flameSheets = { ink: paintFlames('ink'), warm: paintFlames('warm') };
-  if (!smokeTexture) smokeTexture = paintSmoke();
-  return { flames: flameSheets, smoke: smokeTexture };
-}
+/**
+ * Puffs of smoke over every fire: painted smoke sprites, each rising and spreading over SMOKE_SEC. Small
+ * fires get a few; only big ones a full column (owner, 2026-10-24: hundreds of puffs over the Blank's many
+ * small fires cost frames, and the frame drops made every camera move judder).
+ */
+const puffsFor = (size: number) => (size < 1.5 ? 3 : size < 4 ? 5 : 8);
+const SMOKE_SEC = 4.2;
+/** Smoke glows with the fire's colour just above the flames and cools to grey as it rises. */
+const SMOKE_LIT: Record<'ink' | 'warm', Color> = { ink: new Color('#b0583c'), warm: new Color('#b8844e') };
+const SMOKE_COOL = new Color('#45403d');
 
 export interface FireProps {
   readonly position: Vec3;
@@ -187,23 +107,36 @@ export interface FireProps {
 
 export function Fire({ position, size = 1.6, kind = 'ink', count = 4, spread = 0.8, light = false, smoke = true, untilFlag, fromFlag }: FireProps) {
   const group = useRef<Group>(null);
-  const lamp = useRef<PointLight>(null);
+  const lamp = useRef<VirtualLight>(null);
   const flames = useRef<(Sprite | null)[]>([]);
   const puffs = useRef<(Sprite | null)[]>([]);
   const time = useRef(0);
   const level = useRef(1);
-  const { textures, smokeTex } = useMemo(() => {
-    const s = sheets();
-    return {
-      textures: Array.from({ length: count }, () => {
-        const t = s.flames[kind].clone();
-        t.needsUpdate = true;
-        return t;
-      }),
-      smokeTex: s.smoke,
-    };
+  const textures = useMemo(() => {
+    const flamesheets = preloadFlames();
+    return Array.from({ length: count }, () => {
+      const t = flamesheets[kind].clone();
+      if (t.image) t.needsUpdate = true;
+      else waitingCopies.add(t);
+      return t;
+    });
   }, [count, kind]);
-  useEffect(() => () => textures.forEach((t) => t.dispose()), [textures]);
+  const smokeMats = useMemo(
+    () =>
+      smoke
+        ? Array.from({ length: puffsFor(size) }, (_, i) => new SpriteMaterial({ map: fxSprite(i % 2 ? 'smoke_2' : 'smoke_1'), transparent: true, depthWrite: false, opacity: 0, fog: false }))
+        : [],
+    [smoke, size],
+  );
+  useEffect(() => () => smokeMats.forEach((m) => m.dispose()), [smokeMats]);
+  useEffect(
+    () => () =>
+      textures.forEach((t) => {
+        waitingCopies.delete(t);
+        t.dispose();
+      }),
+    [textures],
+  );
   const seeds = useMemo(() => Array.from({ length: count }, (_, i) => ({ x: (hash(i, 1) - 0.5) * spread, z: (hash(i, 2) - 0.5) * spread, s: 0.7 + hash(i, 3) * 0.5, rate: 9 + hash(i, 4) * 6, phase: hash(i, 5) * FRAMES })), [count, spread]);
 
   useFrame((_, delta) => {
@@ -228,12 +161,20 @@ export function Fire({ position, size = 1.6, kind = 'ink', count = 4, spread = 0
       sp.position.set(seed.x, h * 0.45, seed.z);
     });
     puffs.current.forEach((sp, i) => {
-      if (!sp) return;
-      const u = (time.current * 0.35 + i / 3) % 1;
-      sp.position.set(Math.sin(i * 2 + time.current * 0.3) * 0.3, size * (0.8 + u * 2.2), Math.cos(i * 3) * 0.3);
-      const s = size * (0.6 + u * 1.6);
+      const m = smokeMats[i];
+      if (!sp || !m) return;
+      // Each puff loops: born just over the flames, it billows up, swells, drifts downwind and thins out.
+      const n = smokeMats.length;
+      const u = (time.current / SMOKE_SEC + i / n + hash(i, 9) * 0.05) % 1;
+      const loop = Math.floor(time.current / SMOKE_SEC + i / n);
+      const x0 = (hash(i, loop + 11) - 0.5) * spread * 0.7;
+      const z0 = (hash(i, loop + 23) - 0.5) * spread * 0.7;
+      sp.position.set(x0 + u * u * size * 0.9, size * (0.7 + u * 3.6), z0 + Math.sin(u * 3 + i) * size * 0.15);
+      const s = size * (0.9 + u * 2.6) + spread * 0.3;
       sp.scale.set(s, s, 1);
-      (sp.material as { opacity: number }).opacity = (1 - u) * 0.5 * level.current;
+      m.rotation = hash(i, loop) * Math.PI * 2 + u * (i % 2 ? 0.6 : -0.6);
+      m.color.copy(SMOKE_LIT[kind]).lerp(SMOKE_COOL, Math.min(1, u * 4));
+      m.opacity = Math.min(1, u / 0.08) * (1 - u) ** 0.7 * level.current;
     });
     if (lamp.current) lamp.current.intensity = level.current * (14 + Math.sin(time.current * 13) * 3 + Math.sin(time.current * 31) * 2) * size;
   });
@@ -245,13 +186,10 @@ export function Fire({ position, size = 1.6, kind = 'ink', count = 4, spread = 0
           <spriteMaterial map={textures[i]} transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} fog={false} />
         </sprite>
       ))}
-      {smoke &&
-        [0, 1, 2].map((i) => (
-          <sprite key={`s${i}`} ref={(s) => void (puffs.current[i] = s)}>
-            <spriteMaterial map={smokeTex} transparent depthWrite={false} blending={NormalBlending} opacity={0} />
-          </sprite>
-        ))}
-      {light && <pointLight ref={lamp} position={[0, size * 0.6, 0]} color={kind === 'ink' ? '#ff5a2a' : '#ffa040'} intensity={0} distance={size * 9} decay={2} />}
+      {smokeMats.map((m, i) => (
+        <sprite key={`s${i}`} ref={(s) => void (puffs.current[i] = s)} material={m} />
+      ))}
+      {light && <PoolLight ref={lamp} position={[0, size * 0.6, 0]} color={kind === 'ink' ? '#ff5a2a' : '#ffa040'} intensity={0} distance={size * 9} decay={2} />}
     </group>
   );
 }
@@ -293,7 +231,9 @@ export function Restorable({ flag, children, fire, burning = true, erased = fals
         mats.current.push({ m, color: m.color.clone(), emissive: m.emissive.clone() });
       }
       if (erased) {
-        g.updateMatrixWorld(true);
+        // Parents too: a model can arrive while its area is staged and its ancestors' world matrices are
+        // not yet computed, which put the cut metres away (the whole deer rubbed out, restoring late).
+        g.updateWorldMatrix(true, true);
         const box = new Box3().setFromObject(g);
         const centre = box.getCenter(new Vector3());
         const reach = box.getSize(new Vector3()).length() / 2 + 0.2;
@@ -327,8 +267,10 @@ export function Restorable({ flag, children, fire, burning = true, erased = fals
     }
     const e = erase.current;
     if (e) {
-      // The cut sits at the middle while erased and sweeps out past the far side as it is restored.
-      const d = e.centre.dot(ERASE_NORMAL) + level.current * e.reach;
+      // The cut sits at the middle while erased and sweeps out past the far side as it is restored. Once
+      // fully restored it is dropped, so a restored creature can move off (the flock flies away).
+      const done = restored && level.current > 0.98;
+      const d = e.centre.dot(ERASE_NORMAL) + (done ? 1e6 : level.current * e.reach);
       e.solid.constant = d;
       e.ghost.constant = -d;
     }

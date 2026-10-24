@@ -4,12 +4,13 @@ import { useRef } from 'react';
 import type { Group } from 'three';
 import { GALLERY_ORIGIN, GALLERY_ZONES, MIRA_GALLERY_POSITION } from '../../level/areas/gallery';
 import { getRun } from '../../state/gameStore';
-import { Arch, Column, Slab, StandingLamp, WindowPane } from '../kit';
+import { Arch, Column, KitModel, Slab, StandingLamp, WindowPane } from '../kit';
 import { CastleDoor } from '../CastleDoor';
 import { MAT } from '../materials';
 import { MergeStatic } from '../MergeStatic';
-import { Mira, Student } from '../props';
+import { Mira } from '../props';
 import { Prop } from '../Prop';
+import { PoolLight } from '../LightPool';
 
 const W = 6;
 const H = 9;
@@ -41,9 +42,6 @@ export function GalleryScene() {
       {/* Observation balcony silhouettes */}
       <Slab x={[-W, -W + 1.6]} y={[4.6, 4.8]} z={[-60, -2]} material={MAT.darkOak} />
       </MergeStatic>
-      {[-10, -22, -35, -47].map((z, i) => (
-        <Student key={z} position={[-W + 0.8, 4.8, z]} rotationY={Math.PI / 2} height={1.4 + (i % 2) * 0.1} raising />
-      ))}
       {GALLERY_ZONES.map((z, i) => (
         <ZoneEmblem key={z} z={z} index={i} />
       ))}
@@ -56,20 +54,13 @@ export function GalleryScene() {
           {/* A wand rack: real display shelves (CC0) with practice wands resting on them */}
           <Prop id="wooden_display_shelves_01" position={[0, 0, 0]} height={2} rotationY={-Math.PI / 2} />
           {[-0.6, 0, 0.6].map((dz) => (
-            <mesh key={dz} position={[-0.2, 1.35, dz]} rotation={[0, 0, 0.3]} material={MAT.lightOak}>
-              <cylinderGeometry args={[0.015, 0.025, 1.0, 12]} />
-            </mesh>
+            <group key={dz} position={[-0.2, 1.0, dz]} rotation={[0, 0, 0.3]}>
+              <KitModel id="practice_wand" castShadow={false} />
+            </group>
           ))}
         </group>
       ))}
-      <group position={[3.2, 0, -55]}>
-        <mesh position={[0, 0.5, 0]} material={MAT.academyStone}>
-          <cylinderGeometry args={[0.4, 0.5, 1, 20]} />
-        </mesh>
-        <mesh position={[0, 1.25, 0]} material={MAT.crystal}>
-          <octahedronGeometry args={[0.25]} />
-        </mesh>
-      </group>
+      <KitModel id="crystal_pedestal" position={[3.2, 0, -55]} />
       {/* Mira's station: a table with practice books and a candle (was a flat brass panel) */}
       <Prop id="WoodenTable_01" position={[-4.6, 0, -8.2]} height={0.85} />
       <Prop id="book_encyclopedia_set_01" position={[-4.9, 0.86, -8.2]} height={0.3} rotationY={0.4} />
@@ -79,7 +70,7 @@ export function GalleryScene() {
         <CastleDoor height={3.8} />
       </group>
       <Mira position={mira} rotationY={0.8} />
-      <pointLight position={[0, 7, -30]} color="#ffe9c8" intensity={40} distance={50} decay={2} />
+      <PoolLight position={[0, 7, -30]} color="#ffe9c8" intensity={40} distance={50} decay={2} />
     </group>
   );
 }

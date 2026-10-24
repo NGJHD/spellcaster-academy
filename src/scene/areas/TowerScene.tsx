@@ -11,6 +11,7 @@ import { Box, KitModel, Portrait, WallLamp, WindowPane } from '../kit';
 import { Prop } from '../Prop';
 import { MAT } from '../materials';
 import { scaleUv, worldCircle, worldCylinder } from '../surfaces';
+import { PoolLight } from '../LightPool';
 
 /** Inside face of the round tower wall (same textured stone, rendered from within). */
 let towerWall: import('three').MeshStandardMaterial | null = null;
@@ -60,7 +61,7 @@ function Floor({ floor }: { floor: number }) {
         </group>
       ))}
       {/* Hanging celestial instruments (off to the side on the top floor, clear of the door view) */}
-      <group position={floor === 2 ? [4, 7, 1] : [0, 6.5, -2]}>
+      <group name="celestial-rings" position={floor === 2 ? [4, 7, 1] : [0, 6.5, -2]}>
         <mesh material={MAT.agedBrass}>
           <torusGeometry args={[1.2, 0.03, 8, 48]} />
         </mesh>
@@ -88,7 +89,7 @@ function Floor({ floor }: { floor: number }) {
       <Prop id="lantern_chandelier_01" position={[-3, 8.6, 0.5]} height={1.6} shadows={false} />
       {floor === 1 && <Prop id="vintage_grandfather_clock_01" position={[-6.5, 0, -5]} height={2.2} rotationY={0.9} />}
       {floor === 2 && <Prop id="brass_candleholders" position={[3, 0, -6.8]} height={0.9} />}
-      <pointLight position={[0, 6, 0]} color={light} intensity={22} distance={18} decay={2} />
+      <PoolLight position={[0, 6, 0]} color={light} intensity={22} distance={18} decay={2} />
     </group>
   );
 }
@@ -188,8 +189,8 @@ function Door() {
         <meshBasicMaterial color="#9fb8ff" />
       </mesh>
       <Box position={[0, 3, -8.6]} size={[3.4, 6, 0.2]} material={MAT.academyStone} />
-      <pointLight position={[0, 4.4, -7.4]} color="#a9c4ff" intensity={10} distance={8} decay={2} />
-      <pointLight position={[0, 2.2, -2]} color="#a9c4ff" intensity={4} distance={6} decay={2} />
+      <PoolLight position={[0, 4.4, -7.4]} color="#a9c4ff" intensity={10} distance={8} decay={2} />
+      <PoolLight position={[0, 2.2, -2]} color="#a9c4ff" intensity={4} distance={6} decay={2} />
     </group>
   );
 }
@@ -266,7 +267,7 @@ function Lift() {
     g.rotation.z = Math.sin(state.clock.elapsedTime * 9) * 0.006;
   });
   return (
-    <group ref={lift} visible={false}>
+    <group name="lift-cage" ref={lift} visible={false}>
       <mesh position={[0, -0.06, 0]} material={MAT.agedBrass} castShadow receiveShadow>
         <cylinderGeometry args={[1.25, 1.25, 0.12, 40]} />
       </mesh>

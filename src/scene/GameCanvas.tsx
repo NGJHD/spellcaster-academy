@@ -5,6 +5,8 @@ import { ACESFilmicToneMapping, PCFShadowMap, SRGBColorSpace } from 'three';
 import { EnemyManager } from '../enemies/EnemyManager';
 import { PipCompanion } from '../player/PipCompanion';
 import { RunDriver } from '../player/RunDriver';
+import { LightPool } from './LightPool';
+import { LoadTracker } from './LoadTracker';
 import { Wand } from '../player/Wand';
 import { BeamStruggle } from '../spells/BeamStruggle';
 import { FxLayer } from '../spells/FxLayer';
@@ -28,7 +30,7 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       className="game-canvas"
       shadows={quality === 'low' ? false : { type: PCFShadowMap }}
       dpr={[...DPR[quality]]}
-      camera={{ fov: 62, near: 0.05, far: 900, position: [0, 24, 95] }}
+      camera={{ fov: 62, near: 0.05, far: 2000, position: [0, 24, 95] }}
       // Per-material clipping: half-erased creatures in Level 3 (see Restorable `erased`).
       onCreated={({ gl }) => {
         gl.localClippingEnabled = true;
@@ -36,6 +38,9 @@ export function GameCanvas({ fadeRef }: { fadeRef: RefObject<HTMLDivElement | nu
       gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace }}
     >
       <RunDriver fadeRef={fadeRef} />
+      {/* The fixed set of point lights every scene shares (LightPool.tsx) */}
+      <LightPool />
+      <LoadTracker />
       <Suspense fallback={null}>
         <World />
       </Suspense>

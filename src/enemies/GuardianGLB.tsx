@@ -2,7 +2,7 @@ import { Suspense, type RefObject } from 'react';
 import { CreatureModel } from './CreatureModel';
 import { GuardianModel, type TargetPose } from './TargetVisuals';
 
-const URL = `${import.meta.env.BASE_URL}assets/creatures/armour_guardian.glb`;
+export const GUARDIAN_URL = `${import.meta.env.BASE_URL}assets/creatures/armour_guardian.glb`;
 
 /**
  * Animated armour guardian (realistic AI-pipeline model, assets-src/scripts/ai/build_ai_creature.py):
@@ -12,7 +12,7 @@ const URL = `${import.meta.env.BASE_URL}assets/creatures/armour_guardian.glb`;
 export function Guardian({ pose }: { pose: RefObject<TargetPose> }) {
   return (
     <Suspense fallback={<GuardianModel pose={pose} />}>
-      <CreatureModel url={URL} pose={pose} />
+      <CreatureModel url={GUARDIAN_URL} pose={pose} />
     </Suspense>
   );
 }

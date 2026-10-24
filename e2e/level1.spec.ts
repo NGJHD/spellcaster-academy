@@ -8,13 +8,16 @@ declare global {
 
 const beat = (page: Page) => page.evaluate(() => window.__spellcaster?.beat() ?? null);
 
-async function startNewGame(page: Page, query = '', difficulty = 'Standard') {
+async function startNewGame(page: Page, query = '', difficulty = 'Standard', wait: 'loaded' | 'begun' = 'loaded') {
   await page.goto(`/?test${query}`);
   await page.getByRole('button', { name: 'START', exact: true }).click();
   const confirm = page.getByRole('button', { name: 'START FROM BEGINNING' });
   if (await confirm.isVisible().catch(() => false)) await confirm.click();
   await page.getByRole('radio', { name: new RegExp(difficulty) }).click();
   await page.getByRole('button', { name: 'BEGIN', exact: true }).click();
+  // The first run of a page opens behind the loading screen; the level begins as it starts to fade.
+  if (wait === 'begun') await expect(page.locator('.loading-screen--out')).toHaveCount(1, { timeout: 60_000 });
+  else await expect(page.locator('.loading-screen')).toHaveCount(0, { timeout: 60_000 });
 }
 
 /**
@@ -64,9 +67,24 @@ test('completes the Arrival Gate tutorial by typing', async ({ page }) => {
   await expect(page.locator('.area-card')).toHaveText('Sunlit Courtyard');
 });
 
+test('the first load shows the loading screen, then the level begins', async ({ page }) => {
+  await page.goto('/?test');
+  await page.getByRole('button', { name: 'START', exact: true }).click();
+  await page.getByRole('radio', { name: /Standard/ }).click();
+  await page.getByRole('button', { name: 'BEGIN', exact: true }).click();
+  const loading = page.locator('.loading-screen');
+  await expect(loading).toBeVisible();
+  await expect(loading.getByRole('heading', { name: 'Spellcaster Academy' })).toBeVisible();
+  await expect(loading).toContainText('Level 1: First Day, First Spell');
+  // Nothing plays behind it: the run waits at its first beat until loading ends.
+  expect(await beat(page)).toBe('arrival-opening-fade');
+  await expect(loading).toHaveCount(0, { timeout: 60_000 });
+  await expect.poll(() => beat(page), { timeout: 30_000 }).not.toBe('arrival-opening-fade');
+});
+
 test('locks a target by typing and completes a combat encounter', async ({ page }) => {
   await startNewGame(page, '&beat=courtyard-c1&speed=3');
-  await expect(page.locator('.word-label')).toHaveCount(1, { timeout: 15_000 });
+  await expect(page.locator('.word-label').first()).toBeVisible({ timeout: 15_000 });
   const first = (await page.locator('.word-label__current').first().textContent()) ?? '';
   await page.keyboard.press(first || 'a');
   await expect(page.locator('.word-label--locked')).toHaveCount(1);
@@ -101,8 +119,8 @@ test('restores an anchor, saves a checkpoint and resumes after a reload', async 
 });
 
 test('changes difficulty at a checkpoint from the pause menu', async ({ page }) => {
-  await startNewGame(page, '&beat=library-checkpoint');
-  await page.waitForTimeout(800);
+  // Paused the moment the level begins: the route reaches the next fight about a second later.
+  await startNewGame(page, '&beat=library-checkpoint', 'Standard', 'begun');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Difficulty' }).click();
   await page.getByRole('radio', { name: /Gentle/ }).click();

@@ -169,7 +169,9 @@ export const LEVEL_LOOKS: Record<Exclude<AreaId, keyof typeof AREA_LOOKS_L1>, Ar
     envIntensity: 0.8,
     hdri: 'belfast_sunset_puresky',
   },
-  'l3-rift-shore': BLANK,
+  // Fog far out, so the forest reads all the way to the horizon from the Warden's palm (owner, 2026-10-23).
+  // The real Citadel stands across the paper sea in this scene, so no horizon copy.
+  'l3-rift-shore': { ...BLANK, fog: ['#8a3018', 300, 1700], citadelOnHorizon: false },
   'l3-cinderwood': BLANK,
   'l3-inkfall': BLANK,
   // Roofless ruins under the fire sky (owner: the flat red backdrop looked unrendered).

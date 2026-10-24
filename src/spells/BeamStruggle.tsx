@@ -6,6 +6,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import { AdditiveBlending, Color, DoubleSide, Vector3, type Group, type Mesh, type MeshBasicMaterial, type Sprite } from 'three';
+import { unwriterQuillWorld } from '../scene/bossFx';
 import { glowTexture, placeStreak, STREAK_GEOMETRY, streakTexture } from '../scene/glow';
 import { getRun } from '../state/gameStore';
 
@@ -39,6 +40,7 @@ export function BeamStruggle() {
     shown.current += ((beam ? 1 : 0) - shown.current) * (1 - Math.exp(-6 * dt));
     g.visible = shown.current > 0.02;
     if (!g.visible || !beam) return;
+    if (beam.follow === 'unwriter-quill' && state.clock.elapsedTime - unwriterQuillWorld.seen < 0.5) target.copy(unwriterQuillWorld.at);
 
     // The clash point eases forward with each word, with a little back-and-forth tussle.
     push.current += (beam.progress - push.current) * (1 - Math.exp(-3 * dt));
