@@ -454,7 +454,7 @@ function EastHall() {
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
       <BlastHole />
       <EastHallMira inHall={inHall} />
-      <BookSwarm beats={['east-hall-stampede', 'east-hall-stampede-2']} startAt={0.3} />
+      <BookSwarm beats={['east-hall-stampede', 'east-hall-stampede-2']} startAt={0.3} primeBeats={['east-hall-door']} />
       <Prop id="GothicCabinet_01" position={[21, 0, -W + 0.35]} height={2.1} />
       <Prop id="vintage_grandfather_clock_01" position={[36.5, 0, -W + 0.3]} height={2.2} />
       <Prop id="WoodenTable_01" position={[35, 0, W - 0.5]} height={0.78} rotationY={Math.PI / 2} />

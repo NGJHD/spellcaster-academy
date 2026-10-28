@@ -49,12 +49,19 @@ interface SwarmProps {
   spread?: number;
   /** Fraction of the first listed beat before the swarm appears (e.g. after the camera turns round). */
   startAt?: number;
+  /**
+   * Beats behind a fade where the books are drawn parked behind the camera, unseen. Their shadow-pass
+   * shaders cannot be compiled ahead (warmUp only covers the main pass), and compiling them when the
+   * swarm first appeared froze the stampede's turn for a quarter of a second.
+   */
+  primeBeats?: readonly string[];
 }
 
-function Swarm({ beats, count = 18, near = 4.5, far = 9.5, spread = 1.7, startAt = 0 }: SwarmProps) {
+function Swarm({ beats, count = 18, near = 4.5, far = 9.5, spread = 1.7, startAt = 0, primeBeats }: SwarmProps) {
   const root = useRef<Group>(null);
   const books = useRef<(Group | null)[]>([]);
   const active = useRunStore((s) => s.beatId !== null && beats.includes(s.beatId));
+  const priming = useRunStore((s) => s.beatId !== null && (primeBeats?.includes(s.beatId) ?? false));
   const { scene } = useGLTF(BOOK_URL);
   const scale = useMemo(() => {
     const size = new Box3().setFromObject(scene).getSize(new Vector3());
@@ -81,7 +88,7 @@ function Swarm({ beats, count = 18, near = 4.5, far = 9.5, spread = 1.7, startAt
     if (!g) return;
     const run = getRun();
     const waiting = startAt > 0 && run?.director.currentBeat?.id === beats[0] && (run?.beatProgress() ?? 1) < startAt;
-    g.visible = active && !waiting;
+    g.visible = (active && !waiting) || priming;
     if (!g.visible) {
       placed.current = false;
       return;
@@ -104,6 +111,7 @@ function Swarm({ beats, count = 18, near = 4.5, far = 9.5, spread = 1.7, startAt
         .addScaledVector(right, f.side + Math.sin(t * 0.9) * 0.5)
         .addScaledVector(up, f.height + Math.sin(t * 2.1) * 0.35);
       if (!placed.current) f.position.copy(goal).addScaledVector(forward, 6);
+      if (priming) f.position.copy(cam.position).addScaledVector(forward, -3);
       f.position.lerp(goal, k);
       b.position.copy(f.position);
       // Facing the camera with its covers spread, rocking a little as it flies.
