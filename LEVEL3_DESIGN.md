@@ -106,7 +106,7 @@ All earlier spells carry over (Spark Bolt, Frost Thread, Chain Spark, Starfall).
   - **U1 Erasure:** seal pages around him, while his quill strokes fly at the camera as fireballs.
   - **U2 Perfect copies:** black-iron "perfect" copies of past foes rise from the flames: a training dummy, then the Page Dragon's motto, `every page`.
   - **U3 Correcting Pip:** the camera steps closer. He raises his quill overhead, then thrusts it at Pip, who stays beside the apprentice; a stream of fire runs from the quill's tip to Pip and a ring of burning script closes round Pip. Pip's ring words float beside Pip: `brave`, `curious`, `kind`, between his strokes and a fire tide (`hold on`). A hollow knight joins in (a bonus target). Pip breaks free: "I am Pip. I am wrong sometimes. And I am staying exactly like this."
-  - **U4 The first lesson:** a beam struggle, `every mistake teaches us something new`. The Quill shatters, his fire is torn out of him and his own book seals him. Pip: "Correction: you're done."
+  - **U4 The first lesson:** a beam struggle, `every mistake teaches us something new`. The Quill shatters. His own book flies up and bursts open; he is dragged into it, stretching and spinning as his fire is torn off him ("No! Not my own book! Not the blank pages!"), and it slams shut on him and drops to the floor, its gold seal blazing. Pip: "Correction: you're done."
 - Colour pours back across the Blank; the ropes binding the Warden break. "THE WAY HOME IS OPEN. HOLD ON TO ME." Finishing unlocks the Bright Quill wand trail. Checkpoint `unwriter-sealed`.
 
 ### Homecoming

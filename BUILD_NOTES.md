@@ -41,6 +41,7 @@ blender --background --python assets-src/scripts/props/kit_scene.py -- [ids…] 
 python assets-src/scripts/ai/fx_sprites.py [names…] / mosaic.py [seeds…]                  # Flux 3 effect sprites, the clue mosaic
 python assets-src/scripts/ai/ground_textures.py [name] [seeds…]                         # Flux 3 tiling ground textures (green_meadow: the grass; wild_meadow: Level 2's far bank)
 python assets-src/scripts/ai/tree_cards.py [names…]                                     # Flux 3 tree impostors (beech, lime) for far forest rows
+python assets-src/scripts/ai/book_cover.py [seeds…]                                     # Flux 3 cover and blank pages of the book that seals the Unwriter
 node scripts/build-manifests.mjs                   # refresh public/assets/manifests/*.json
 node scripts/perf.mjs / scripts/breakdown.mjs      # frame rate and triangles per object
 powershell -ExecutionPolicy Bypass -File scripts/release/package.ps1   # the release zip (RELEASE_GUIDE.md)

@@ -292,6 +292,7 @@ export const LINES = {
   'l3-pip-ring-3': line('pip', 'And kind. Always kind!'),
   'l3-pip-staying': line('pip', 'I am Pip. I am wrong sometimes. And I am staying exactly like this.'),
   'l3-final-spell': line('pip', 'Now the six words he forgot: every mistake teaches us something new!'),
+  'l3-u-sealed-cry': line('unwriter', 'No! Not my own book! Not the blank pages!'),
   'l3-pip-done': line('pip', 'Correction: you\'re done.'),
   'l3-colour': line('mira', 'He\'s sealed in his own book! Look at that light... we did it!'),
   'l3-home-1': line('pip', 'Home! Asterfall is safe, and everyone came out to cheer!'),

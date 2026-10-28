@@ -6,7 +6,7 @@
 import { GuardianOrbs, UnwriterQuill } from '../bossFx';
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AdditiveBlending, Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3, type Group } from 'three';
+import { AdditiveBlending, Box3, BufferGeometry, CanvasTexture, DoubleSide, Float32BufferAttribute, MeshStandardMaterial, PlaneGeometry, SpriteMaterial, SRGBColorSpace, Vector3, type Group, type Sprite } from 'three';
 import { THRONE_ORIGIN, UNWRITER } from '../../level/areas3/finale';
 import { pipWorld } from '../../player/PipCompanion';
 import { DEER, FLOCK, SHORE_CLIFF_Z, SHORE_ORIGIN, shorePathX, STONES, TORTOISE, WOOD_ORIGIN } from '../../level/areas3/journey1';
@@ -30,7 +30,8 @@ import { useGLTF } from '@react-three/drei';
 import { DeadForest } from '../DeadForest';
 import { GroundMist } from '../GroundMist';
 import { moltenInk, useMoltenFlow } from '../molten';
-import { LightBeam } from '../glow';
+import { glowTexture, LightBeam } from '../glow';
+import { useKit, useKitGlow } from '../kitGlb';
 import { worldGroundTiles, worldPlane } from '../surfaces';
 import { CinderCitadel } from '../CinderCitadel';
 import { surface } from '../surfaceTextures';
@@ -1335,21 +1336,108 @@ function UnwriterFallback() {
   );
 }
 
+/**
+ * The sealing (beat `l3-sealing`), as fractions of the beat: the book rises into the air, bursts open, drags the
+ * Unwriter in, slams shut and drops to the floor. The route's fx cues are timed to the same marks.
+ */
+const SEAL = { rise: 0.15, open: [0.14, 0.24], pullFrom: 0.26, shut: 0.64, slam: [0.62, 0.66], fall: [0.86, 0.95] } as const;
+/** Where the book hangs in the air and where it lands (throne-local; the route's TH_BOOK and TH_BOOK_FLOOR). */
+const BOOK_AIR: Vec3 = [0, 1.1, -7.8];
+const BOOK_FLOOR: Vec3 = [0, 0.2, -7.8];
+/** The book's closed thickness (kit_scene.py: two boards and the page block) and its width. */
+const BOOK_THICK = 0.35;
+const BOOK_WIDTH = 1.2;
+/** Shown larger than the model: a great tome, big enough to swallow him, low enough to keep him in view. */
+const BOOK_SCALE = 1.7;
+
+/** The sealing beat's progress: -1 before it, 0–1 during it, 2 after it. */
+function sealProgress(): number {
+  const run = getRun();
+  if (!run) return -1;
+  const at = run.level.beatIndexOf('l3-sealing');
+  if (at < 0) return -1;
+  const now = run.director.currentIndex;
+  return now < at ? -1 : now > at ? 2 : run.beatProgress();
+}
+
+/** The Unwriter has gone into the book once its cover slams shut. */
+const unwriterGone = () => sealProgress() >= SEAL.shut;
+
+const ease = (u: number) => u * u * (3 - 2 * u);
+const span = (p: number, [a, b]: readonly [number, number]) => Math.min(1, Math.max(0, (p - a) / (b - a)));
+
+function SealingBook() {
+  const root = useRef<Group>(null);
+  const cover = useRef<Group>(null);
+  const glowSprite = useRef<Sprite>(null);
+  const lamp = useRef<VirtualLight>(null);
+  const body = useKit('sealed_book_body');
+  const { root: coverModel, glow } = useKitGlow('sealed_book_cover', ['sealGlow']);
+  const light = useMemo(() => new SpriteMaterial({ map: glowTexture(), color: '#ffe0a0', transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, toneMapped: false }), []);
+  useFrame((state) => {
+    const g = root.current;
+    if (!g) return;
+    const p = sealProgress();
+    g.visible = p >= 0;
+    if (p < 0) return;
+    const t = state.clock.elapsedTime;
+    // Rise from the floor, spinning up to face the camera; hang trembling; fall and settle flat.
+    const rise = p >= 1 ? 1 : ease(Math.min(1, p / SEAL.rise));
+    const fall = p >= 1 ? 1 : ease(span(p, SEAL.fall));
+    const air = rise * (1 - fall);
+    const shake = p > SEAL.pullFrom && p < SEAL.shut ? Math.sin(t * 40) * 0.03 : 0;
+    g.position.set(BOOK_FLOOR[0] + shake, BOOK_FLOOR[1] + (BOOK_AIR[1] - BOOK_FLOOR[1]) * air, BOOK_FLOOR[2]);
+    // Hanging low in front with its pages tipped up to us, so he is seen dropping over its top edge into them.
+    g.rotation.set(air * 0.7, (1 - rise) * Math.PI * 3, shake * 2);
+    // The cover bursts open, stays open while he is dragged in, then slams.
+    const open = span(p, SEAL.open) * (1 - span(p, SEAL.slam));
+    if (cover.current) cover.current.rotation.z = Math.PI * 0.9 * ease(open);
+    // Light pours out of the open pages; the seal blazes as it shuts, then glows on.
+    if (glowSprite.current) glowSprite.current.scale.setScalar(1 + open * 2.2 + Math.sin(t * 9) * 0.15 * open);
+    light.opacity = open * 0.3;
+    const slammed = span(p, [SEAL.slam[1], SEAL.slam[1] + 0.1]);
+    const seal = p >= SEAL.slam[1] ? 6 * (1 - slammed) + 1.6 + Math.sin(t * 2) * 0.4 : 1.2;
+    for (const m of glow) m.emissiveIntensity = seal;
+    if (lamp.current) lamp.current.intensity = open * 9 + (p >= SEAL.slam[1] ? 10 * (1 - slammed) : 0);
+  });
+  return (
+    <group ref={root} visible={false} scale={BOOK_SCALE}>
+      {/* Pivot at the book's middle, so it turns about its centre in the air */}
+      <group position={[0, -BOOK_THICK / 2, 0]}>
+        <primitive object={body} />
+        <group ref={cover} position={[-BOOK_WIDTH / 2, BOOK_THICK, 0]}>
+          <primitive object={coverModel} />
+        </group>
+        <sprite ref={glowSprite} material={light} position={[0, BOOK_THICK + 1.8, -0.6]} />
+      </group>
+      <PoolLight ref={lamp} position={[0, 2.2, -1.2]} color="#ffd27a" intensity={0} distance={14} decay={2} />
+    </group>
+  );
+}
+
 export function ThroneScene() {
   useMoltenFlow();
   const ring = useRef<Group>(null);
   // A ring of burning red script (Flux-painted, fx_sprites.py script_ring).
   const scriptRing = useMemo(() => fxSprite('script_ring'), []);
-  const book = useRef<Group>(null);
   const grow = useRef<Group>(null);
   const size = useRef(1);
   useFrame((state, delta) => {
     const run = getRun();
     const id = run?.director.currentBeat?.id ?? '';
     // He grows larger and more fiery as the fight goes on: full height for the final clash.
-    const target = id === 'l3-u4' ? 1.7 : id === 'l3-u3' || id === 'l3-pip-seized' || id === 'l3-pip-free' ? 1.35 : 1;
+    const target = id === 'l3-u4' || id === 'l3-sealing' ? 1.7 : id === 'l3-u3' || id === 'l3-pip-seized' || id === 'l3-pip-free' ? 1.35 : 1;
     size.current += (target - size.current) * (1 - Math.exp(-1.2 * Math.min(delta, 0.1)));
-    grow.current?.scale.setScalar(size.current);
+    const g = grow.current;
+    if (g) {
+      // Sealed: dragged into his own book (SEAL), stretching thin and spinning faster as he shrinks into it.
+      const u = id === 'l3-sealing' ? Math.min(1, Math.max(0, ((run?.beatProgress() ?? 0) - SEAL.pullFrom) / (SEAL.shut - SEAL.pullFrom))) : 0;
+      const e = u * u;
+      g.position.set(unwriter[0] + (BOOK_AIR[0] - unwriter[0]) * e, unwriter[1] + (BOOK_AIR[1] - unwriter[1]) * e, unwriter[2] + (BOOK_AIR[2] - unwriter[2]) * e);
+      const k = size.current * Math.max(0.02, 1 - e);
+      g.scale.set(k * (1 - 0.55 * u), k * (1 + 0.7 * u), k * (1 - 0.55 * u));
+      g.rotation.set(-0.5 * u, e * 14, 0);
+    }
     const seized = (id === 'l3-pip-seized' || id === 'l3-u3') && !(run?.flags.has('l3-pip-free') ?? false);
     if (ring.current) {
       // The ring of burning script closes round Pip, beside the apprentice (owner, 2026-10-19).
@@ -1358,7 +1446,6 @@ export function ThroneScene() {
       ring.current.lookAt(state.camera.position);
       ring.current.rotateZ(state.clock.elapsedTime * 2);
     }
-    if (book.current) book.current.visible = run?.flags.has('l3-unwriter-sealed') ?? false;
   });
   const unwriter = sub(UNWRITER, THRONE_ORIGIN);
   const pipSeized = () => {
@@ -1400,6 +1487,7 @@ export function ThroneScene() {
         scale={1.6}
         fromBeat="l3-unwriter-rises"
         goneFlag="l3-unwriter-sealed"
+        gone={unwriterGone}
         fallback={<UnwriterFallback />}
         rearing={() => (getRun()?.director.currentBeat?.id ?? '') === 'l3-u4'}
         // Owner (2026-10-17): he laughs as he talks, charges his quill before he attacks, and points it
@@ -1416,11 +1504,10 @@ export function ThroneScene() {
           <meshBasicMaterial map={scriptRing} transparent blending={AdditiveBlending} depthWrite={false} side={DoubleSide} toneMapped={false} />
         </mesh>
       </group>
-      {/* The Unwriter's own blank book, slammed shut with a gold seal */}
-      <group ref={book} position={[0, 0.2, -10]}>
-        <Box position={[0, 0, 0]} size={[1.6, 0.4, 2.2]} material={MAT.burgundyLeather} />
-        <Box position={[0, 0.21, 0]} size={[0.6, 0.02, 0.6]} material={MAT.wardGold} />
-      </group>
+      {/* The Unwriter's own book: it flies up, opens, swallows him, slams shut and drops (kit_scene.py sealed_book) */}
+      <Suspense fallback={null}>
+        <SealingBook />
+      </Suspense>
       <BoundWarden position={[13, 0, -10]} />
       <Mira position={[4, 0, 3]} rotationY={-0.8} />
     </group>

@@ -228,7 +228,7 @@ export const cinderwood: AreaScript = {
       id: 'l3-tortoise',
       areaId: W,
       kind: 'interaction',
-      waves: [{ id: 'tortoise', targets: [marker('tortoise-restore', [TORTOISE[0], 7, TORTOISE[2]], 'ancient', { labelHeight: 0.4, defeatFlag: 'l3-tortoise-free', defeatFx: { kind: 'pillar', scale: 1.2, color: '#7ae0a0' } })] }],
+      waves: [{ id: 'tortoise', targets: [marker('tortoise-restore', [TORTOISE[0], 7, TORTOISE[2]], 'ancient', { labelHeight: 0.4, defeatFlag: 'l3-tortoise-free', defeatFx: { kind: 'pulse', scale: 1.6, color: '#7ae0a0' } })] }],
     },
   ],
 };

@@ -36,6 +36,8 @@ Outputs public/assets/kit/<id>.glb:
                         fluted columns with moulded bases and capitals, whole or broken off
   beach_lantern         a hexagonal storm lantern on the sand: a globe glowing behind clear panes (1.3 m)
   inkwell               the library's overturned green glass inkwell, its cork and the spilled ink
+  sealed_book_body      the book that seals the Unwriter: back board, gilt page block, banded spine (1.2 x 1.65 m)
+  sealed_book_cover     its front cover: painted tooled leather (book_cover.py), brass corners, a glowing gold seal
   rune_ring             the Warden fight's ward rune: a brass band of glowing glyphs round a star
   grimoire_clasp        a clasp of the Great Grimoire: a brass-edged leather strap over the fore-edge, moonstone lock
 """
@@ -683,6 +685,132 @@ def rune_ring(name):
     smooth(obj, 30)
 
 
+# ---------------------------------------------------------------------------- the sealing book (Level 3 finale)
+
+# The book that seals the Unwriter, in game axes: x across from the spine (-x) to the fore-edge (+x), z from the
+# top of the book (-z) to its foot, y up through the closed book.
+BOOK_W, BOOK_L, BOARD, PAGES = 1.2, 1.65, 0.035, 0.28
+BOOK_COVER = os.path.join(ROOT, "assets-src", "concepts", "book", "cover.png")
+BOOK_PAGES = os.path.join(ROOT, "assets-src", "concepts", "book", "pages.png")
+
+
+def image_material(name, path, roughness, size=(768, 1056)):
+    """A material showing a painted image (book_cover.py), packed into the GLB at `size`."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    img = bpy.data.images.load(path)
+    img.scale(*size)
+    img.pack()
+    node = nt.nodes.new("ShaderNodeTexImage")
+    node.image = img
+    nt.links.new(node.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = roughness
+    return m
+
+
+def fit_image_uvs(obj, material, x0, x1, z0, z1):
+    """Stretch the painting across the faces of `material`: u from x0 to x1, v from the book's foot (z1) to its top
+    (z0), in game axes (Blender y = -game z)."""
+    slot = list(obj.data.materials).index(material)
+    uvs = obj.data.uv_layers.active.data
+    for poly in obj.data.polygons:
+        if poly.material_index != slot:
+            continue
+        for li in poly.loop_indices:
+            v = obj.data.vertices[obj.data.loops[li].vertex_index].co
+            uvs[li].uv = ((v.x - x0) / (x1 - x0), (-v.y - z1) / (z0 - z1))
+
+
+def g3(x, y, z):
+    """Game axes to Blender's (the exporter turns Blender z-up back into game y-up)."""
+    return (x, -z, y)
+
+
+def book_corners(mb, y, brass, flip=False):
+    """Brass corner caps on a board at height y: an L of two plates at each of the fore-edge corners."""
+    for sz in (-1, 1):
+        cx, cz = BOOK_W / 2 - 0.06, sz * (BOOK_L / 2 - 0.06)
+        h = 0.012 * (-1 if flip else 1)
+        obox(mb, g3(cx, y + h / 2, cz), (0.16, 0.04, abs(h) + 0.004), brass)
+        obox(mb, g3(cx + 0.06, y + h / 2, cz - sz * 0.05), (0.04, 0.16, abs(h) + 0.004), brass)
+
+
+def sealed_book_body(name):
+    """The sealing book without its front cover, lying flat with its spine on -X: the back board, the page block
+    (pages slightly hollowed, gilt edges) and a rounded spine with raised bands. Origin under the centre of the
+    book on the floor; the front cover (sealed_book_cover) hinges at the top of the spine."""
+    lib = K.lib()
+    leather, brass = lib["burgundyLeather"], lib["agedBrass"]
+    pages = mat("pageEdge", "#e4d2a8", 0.9)
+    gilt = mat("wardGold", "#ffe3a0", 0.3, emission="#ffb640", strength=0.6)
+    parchment = image_material("bookPagesArt", BOOK_PAGES, 0.85)
+    mb = K.MeshBuilder([leather, brass, pages, gilt, parchment])
+    obox(mb, g3(0, BOARD / 2, 0), (BOOK_W, BOOK_L, BOARD), leather)
+    book_corners(mb, BOARD, brass)
+    # The page block, set in from three edges, with gilt edges on top and bottom.
+    px0, px1 = -BOOK_W / 2 + 0.02, BOOK_W / 2 - 0.04
+    obox(mb, g3((px0 + px1) / 2, BOARD + PAGES / 2 - 0.001, 0), (px1 - px0, BOOK_L - 0.07, PAGES - 0.002), pages)
+    # The top page: the painted blank parchment, the first thing seen when the book bursts open.
+    pz = (BOOK_L - 0.07) / 2
+    mb.face([g3(px0, BOARD + PAGES, -pz), g3(px1, BOARD + PAGES, -pz), g3(px1, BOARD + PAGES, pz), g3(px0, BOARD + PAGES, pz)], parchment, None, (0, 0, 1))
+    obox(mb, g3(px1 + 0.004, BOARD + PAGES / 2, 0), (0.008, BOOK_L - 0.08, PAGES - 0.01), gilt)
+    # The spine: a half-round from the back board up to where the front cover hinges, with four raised bands.
+    top = BOARD * 2 + PAGES
+    r = top / 2
+    N = 12
+    for k in range(N):
+        a0, a1 = math.pi / 2 + math.pi * k / N, math.pi / 2 + math.pi * (k + 1) / N
+        p0 = (-BOOK_W / 2 + math.cos(a0) * r * 0.5, r + math.sin(a0) * r)
+        p1 = (-BOOK_W / 2 + math.cos(a1) * r * 0.5, r + math.sin(a1) * r)
+        mid = ((math.cos(a0) + math.cos(a1)) / 2, (math.sin(a0) + math.sin(a1)) / 2)
+        mb.face([g3(p0[0], p0[1], -BOOK_L / 2), g3(p1[0], p1[1], -BOOK_L / 2), g3(p1[0], p1[1], BOOK_L / 2), g3(p0[0], p0[1], BOOK_L / 2)], leather, None, g3(mid[0], mid[1], 0))
+    for bz in (-0.45, -0.15, 0.15, 0.45):
+        sweep(mb, [g3(-BOOK_W / 2 + math.cos(math.pi / 2 + math.pi * k / 10) * (r * 0.5 + 0.012), r + math.sin(math.pi / 2 + math.pi * k / 10) * (r + 0.012), bz * BOOK_L) for k in range(11)], 0.016, leather, sides=6)
+    obj = mb.finish(name)
+    fit_image_uvs(obj, parchment, px0, px1, -pz, pz)
+    smooth(obj, 35)
+
+
+def sealed_book_cover(name):
+    """The front cover of the sealing book, its origin at the hinge (the top of the spine, -X edge). The painted
+    tooled-leather art (book_cover.py) is on top; a raised gold seal sits in the painted circle, its star glowing
+    (material 'sealGlow', which the game pulses). The game swings it open about z."""
+    lib = K.lib()
+    leather, brass = lib["burgundyLeather"], lib["agedBrass"]
+    art = image_material("bookCoverArt", BOOK_COVER, 0.55)
+    glow = mat("sealGlow", "#ffe3a0", 0.25, emission="#ffb640", strength=2.5)
+    mb = K.MeshBuilder([leather, art, brass, glow])
+    # The board, hinge at x=0: it reaches to the fore-edge at x=BOOK_W; its top face carries the art.
+    x0, x1, t = 0.0, BOOK_W, BOARD
+    obox(mb, g3((x0 + x1) / 2, -t / 2, 0), (BOOK_W, BOOK_L, t - 0.002), leather)
+    top = [g3(x0, 0.0, -BOOK_L / 2), g3(x1, 0.0, -BOOK_L / 2), g3(x1, 0.0, BOOK_L / 2), g3(x0, 0.0, BOOK_L / 2)]
+    mb.face(top, art, None, (0, 0, 1))
+    for sz in (-1, 1):
+        cx, cz = BOOK_W - 0.06, sz * (BOOK_L / 2 - 0.06)
+        obox(mb, g3(cx, 0.006, cz), (0.16, 0.04, 0.016), brass)
+        obox(mb, g3(cx + 0.06, 0.006, cz - sz * 0.05), (0.04, 0.16, 0.016), brass)
+    # The seal: a brass ring in the painted circle and an eight-pointed star of light inside it.
+    cx = BOOK_W / 2
+    K.lathe(mb, [(0.24, 0.0), (0.26, 0.0), (0.27, 0.02), (0.25, 0.035), (0.22, 0.035), (0.21, 0.02), (0.22, 0.0)], brass, segments=48, cap_top=False, matrix=Matrix.Translation(g3(cx, 0.0, 0.0)))
+    star = []
+    for i in range(16):
+        a = math.tau * i / 16
+        r = 0.19 if i % 2 == 0 else 0.07
+        star.append((cx + math.cos(a) * r, math.sin(a) * r))
+    front = [g3(x, 0.03, z) for x, z in star]
+    back = [g3(x, 0.004, z) for x, z in star]
+    mb.face(front, glow, None, (0, 0, 1))
+    for i in range(16):
+        j = (i + 1) % 16
+        mid = ((star[i][0] + star[j][0]) / 2 - cx, (star[i][1] + star[j][1]) / 2)
+        mb.face([back[i], back[j], front[j], front[i]], glow, None, g3(mid[0], 0, mid[1]))
+    obj = mb.finish(name)
+    fit_image_uvs(obj, art, 0.0, BOOK_W, -BOOK_L / 2, BOOK_L / 2)
+    smooth(obj, 35)
+
+
 # ---------------------------------------------------------------------------- level 2 buildings
 
 def radial(a, r, z):
@@ -1278,6 +1406,8 @@ BUILDERS = {
     "beach_lantern": lambda: beach_lantern("beach_lantern"),
     "inkwell": lambda: inkwell("inkwell"),
     "rune_ring": lambda: rune_ring("rune_ring"),
+    "sealed_book_body": lambda: sealed_book_body("sealed_book_body"),
+    "sealed_book_cover": lambda: sealed_book_cover("sealed_book_cover"),
     "grimoire_clasp": lambda: grimoire_clasp("grimoire_clasp"),
 }
 

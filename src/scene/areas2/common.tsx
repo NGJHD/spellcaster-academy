@@ -76,6 +76,7 @@ export function SceneCreature({
   scale = 1,
   fromBeat,
   goneFlag,
+  gone: goneNow,
   fallback,
   rearing,
   flying,
@@ -90,6 +91,8 @@ export function SceneCreature({
   scale?: number;
   fromBeat: string;
   goneFlag: string;
+  /** Overrides `goneFlag` when given: true once the creature should have left (a scripted exit). */
+  gone?: () => boolean;
   fallback: ReactNode;
   rearing?: () => boolean;
   /** While true the creature plays its Move clip (the dragon's wingbeats). */
@@ -115,7 +118,7 @@ export function SceneCreature({
     p.time += dt;
     rig.group = group.current;
     const run = getRun();
-    const gone = run?.flags.has(goneFlag) ?? false;
+    const gone = goneNow ? goneNow() : (run?.flags.has(goneFlag) ?? false);
     const override = clip?.() ?? null;
     // An extra clip (the Unwriter pointing at Pip) wins over the attack animations.
     const th = threat && run && !override ? run.bossThreat() : null;

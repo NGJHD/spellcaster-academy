@@ -39,12 +39,17 @@ export const throne: AreaScript = {
     TH_PIP: { position: O(1, 1.7, 5), lookAt: O(-2, 3, -6) },
     // Closer for the last phases, so his raised arm and quill read as he points at Pip (owner, 2026-10-20).
     TH_CLOSE: { position: O(0.5, 1.8, -0.5), lookAt: O(-0.5, 4.2, -12) },
+    // The same spot, still looking at the sealed book on the floor (the sealing ends here).
+    TH_SEALED: { position: O(0.5, 1.8, -0.5), lookAt: O(0, 1.1, -7.8) },
   },
   lookPoints: {
     TH_THRONE: O(0, 2, -12),
     TH_HEAD: O(0, 6, -12),
     TH_QUILL: QUILL,
     TH_FLOOR: O(0, 0.2, -4),
+    // The sealing book: where it hangs open in the air, and where it falls once shut (ThroneScene SealingBook).
+    TH_BOOK: O(0, 1.1, -7.8),
+    TH_BOOK_FLOOR: O(0, 0.2, -7.8),
     TH_SKY: O(0, 30, -40),
   },
   beats: [
@@ -68,8 +73,31 @@ export const throne: AreaScript = {
     fight('l3-u3', A, { barks: ['l3-save-pip'] }),
     talk('l3-pip-free', A, ['l3-pip-staying']),
     fight('l3-u4', A, { barks: ['l3-final-spell'] }),
+    // The sealing (owner, 2026-10-28: "make him getting sucked into the book more obvious and epic"): his own book
+    // flies up and bursts open, he is dragged into it, stretching and spinning as his fire is torn off him, and it
+    // slams shut and drops to the floor. ThroneScene times the book and the Unwriter to this beat's progress.
+    reveal('l3-sealing', A, 'TH_CLOSE', ['TH_BOOK'], 1, 20, {
+      attention: 'ending',
+      returnToNode: false,
+      barks: ['l3-u-sealed-cry'],
+      fx: [
+        { kind: 'pulse', at: 'TH_BOOK', atBeat: 0.06, scale: 1.2, color: '#ffd27a' },
+        { kind: 'burst', at: 'TH_BOOK', atBeat: 0.22, scale: 2.4, color: '#ffe6a0' },
+        { kind: 'shake', atBeat: 0.22, scale: 0.8 },
+        { kind: 'sparks', at: 'TH_THRONE', atBeat: 0.3, scale: 2.2, color: '#ff5a1a' },
+        { kind: 'sparks', at: 'TH_HEAD', atBeat: 0.38, scale: 2.2, color: '#ff3a10' },
+        { kind: 'shake', atBeat: 0.38, scale: 1.2 },
+        { kind: 'burst', at: 'TH_BOOK', atBeat: 0.46, scale: 2.2, color: '#ff5a1a' },
+        { kind: 'sparks', at: 'TH_BOOK', atBeat: 0.54, scale: 2.4, color: '#ff8a3a' },
+        { kind: 'flash', atBeat: 0.66, color: '#fff2c8' },
+        { kind: 'pulse', at: 'TH_BOOK', atBeat: 0.66, scale: 3.2, color: '#ffd27a' },
+        { kind: 'shake', atBeat: 0.66, scale: 2.2 },
+        { kind: 'sparks', at: 'TH_BOOK_FLOOR', atBeat: 0.93, scale: 1.6, color: '#ffd27a' },
+        { kind: 'shake', atBeat: 0.92, scale: 1 },
+      ],
+    }),
     talk('l3-sealed', A, ['l3-pip-done'], { attention: 'ending' }),
-    reveal('l3-colour-returns', A, 'TH_CLOSE', ['TH_SKY'], 1.2, 3, {
+    reveal('l3-colour-returns', A, 'TH_SEALED', ['TH_SKY'], 1.2, 3, {
       attention: 'ending',
       music: 'homecoming',
       barks: ['l3-colour'],
@@ -175,7 +203,6 @@ export const throne: AreaScript = {
         { kind: 'flash', color: '#ffffff' },
         { kind: 'pulse', at: QUILL, scale: 5, color: '#ffe6a0' },
         { kind: 'burst', at: CHEST, scale: 5, color: '#ff5a1a' },
-        { kind: 'pillar', at: UNWRITER, scale: 3, color: '#ffd27a' },
         { kind: 'shake', scale: 2.6 },
       ],
     },
