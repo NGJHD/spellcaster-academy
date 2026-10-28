@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { beatIndexOf, resolveBeatId } from '../level/level1Route';
 import { GameRun } from './GameRun';
-import { AUTOSAVE_KEY, newAutosave, readAutosave, type KeyValueStorage } from './saveData';
+import { AUTOSAVE_KEY, newAutosave, PROFILE_KEY, readAutosave, readProfile, type KeyValueStorage } from './saveData';
 
 function memoryStorage(): KeyValueStorage {
   const map = new Map<string, string>();
@@ -54,5 +54,19 @@ describe('medal totals in saves', () => {
     delete older.metrics.threeStarMedals;
     storage.setItem(AUTOSAVE_KEY, JSON.stringify(older));
     expect(readAutosave(storage, (id) => resolveBeatId(id) !== null)?.metrics.medalStars).toBe(0);
+  });
+});
+
+describe('the Starlight trail in older profiles', () => {
+  it('is given to a profile that finished Level 1 before the chest was removed', () => {
+    const storage = memoryStorage();
+    storage.setItem(PROFILE_KEY, JSON.stringify({ completedLevels: ['level-1'], cosmetics: [] }));
+    expect(readProfile(storage).cosmetics).toEqual(['trail-starlight']);
+  });
+
+  it('is not given before Level 1 is finished', () => {
+    const storage = memoryStorage();
+    storage.setItem(PROFILE_KEY, JSON.stringify({ completedLevels: [], cosmetics: [] }));
+    expect(readProfile(storage).cosmetics).toEqual([]);
   });
 });

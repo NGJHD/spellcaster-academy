@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
-import { Suspense, useRef, type ReactNode, type RefObject } from 'react';
-import type { Group } from 'three';
+import { Suspense, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Vector3, type Group } from 'three';
+import { KitModel } from '../scene/kit';
 import { getRun } from '../state/gameStore';
 import { useRunStore } from '../state/runStore';
 import type { TargetSpawn } from '../level/levelTypes';
@@ -118,10 +119,77 @@ const easeOutBack = (x: number) => {
   return 1 + c3 * (x - 1) ** 3 + c1 * (x - 1) ** 2;
 };
 
+/** A stolen page, half its writing rubbed out, held in front of the thief's chest (the kit page stands upright, facing +z). */
+const HELD_PAGE = { position: [0.02, 0.42, 0.2] as const, scale: 0.85 };
+/** The page flies back to us and sweeps down past the bottom of the view, tucked away. */
+const RETURN_SEC = 1.3;
+
+interface ReturningPage {
+  key: number;
+  from: Vector3;
+  age: number;
+}
+const returning: ReturningPage[] = [];
+let returnKey = 0;
+
+function HeldPage() {
+  return (
+    <group rotation={[-0.15, 0, 0.12]}>
+      <KitModel id="page_half_erased" scale={HELD_PAGE.scale} castShadow={false} />
+    </group>
+  );
+}
+
+/**
+ * Pages won back from thieves (owner, 2026-10-28: "when we defeat him can the page fly back to us?"): each
+ * flutters from where the thief let go up to the camera, spinning, and sweeps down out of view as if tucked away.
+ */
+function ReturningPages() {
+  const refs = useRef<(Group | null)[]>([]);
+  const to = useRef(new Vector3());
+  const [, rerender] = useState(0);
+  const count = useRef(0);
+  useFrame((state, delta) => {
+    if (returning.length !== count.current) {
+      count.current = returning.length;
+      rerender((n) => n + 1);
+    }
+    const cam = state.camera;
+    for (let i = returning.length - 1; i >= 0; i--) {
+      const r = returning[i];
+      if (!r) continue;
+      r.age += Math.min(delta, 0.1);
+      const u = Math.min(1, r.age / RETURN_SEC);
+      const g = refs.current[i];
+      if (g) {
+        to.current.set(0.25, -0.75, -0.7).applyQuaternion(cam.quaternion).add(cam.position);
+        const e = u * u * (3 - 2 * u);
+        g.position.lerpVectors(r.from, to.current, e);
+        g.position.y += Math.sin(u * Math.PI) * 0.8;
+        g.quaternion.copy(cam.quaternion);
+        g.rotateX(-0.4 * (1 - u));
+        g.rotateZ(Math.sin(r.age * 9) * 0.5 * (1 - u) + (1 - e) * Math.PI * 2);
+        g.scale.setScalar(HELD_PAGE.scale);
+      }
+      if (u >= 1) returning.splice(i, 1);
+    }
+  });
+  return (
+    <>
+      {returning.map((r, i) => (
+        <group key={r.key} ref={(o) => void (refs.current[i] = o)} position={r.from}>
+          <KitModel id="page_half_erased" castShadow={false} />
+        </group>
+      ))}
+    </>
+  );
+}
+
 function TargetView({ id }: { id: string }) {
   const group = useRef<Group>(null);
   const pose = useRef<TargetPose>(emptyPose());
   const faced = useRef(false);
+  const page = useRef<Group>(null);
   const spawn = getRun()?.findTarget(id)?.spawn;
 
   useFrame((state) => {
@@ -152,6 +220,13 @@ function TargetView({ id }: { id: string }) {
       g.rotation.y += diff * 0.15;
     }
     const p = pose.current;
+    // The held page turns to face the camera (seen from the roof, it was edge-on); the thief lets go of
+    // it as it is beaten, and it flies back to us.
+    if (page.current?.visible) page.current.quaternion.copy(g.quaternion).invert().multiply(state.camera.quaternion);
+    if (page.current && page.current.visible && p.defeated) {
+      page.current.visible = false;
+      returning.push({ key: returnKey++, from: page.current.getWorldPosition(new Vector3()), age: 0 });
+    }
     // Arcade targets (Practice Gallery) spin as they pop up.
     if (t.spawn.variant === 'practice' && p.appear < 1) g.rotation.y += (1 - p.appear) * 0.9;
     let scale = t.spawn.inPlace ? 1 : easeOutBack(p.appear);
@@ -163,6 +238,13 @@ function TargetView({ id }: { id: string }) {
   return (
     <group ref={group}>
       <Model spawn={spawn} pose={pose} />
+      {spawn.holdsPage && (
+        <group ref={page} position={HELD_PAGE.position}>
+          <Suspense fallback={null}>
+            <HeldPage />
+          </Suspense>
+        </group>
+      )}
     </group>
   );
 }
@@ -201,6 +283,9 @@ export function EnemyManager() {
       {retired.map((r) => (
         <RetiredView key={`retired-${r.id}`} spawn={r.spawn} position={r.position} />
       ))}
+      <Suspense fallback={null}>
+        <ReturningPages />
+      </Suspense>
     </group>
   );
 }

@@ -101,6 +101,7 @@ export const courtyard: AreaScript = {
             // The ordinary sprite colours (owner, 2026-10-23: a pale teal tint read as see-through).
             target: target('roof-thief', 'sprite', [0, 0, 0], [len(3, 4), len(3, 4)], {
               optional: true,
+              holdsPage: true,
               follow: { ahead: 5.5, side: 0.3, up: -1.5 },
               labelHeight: 0.95,
               defeatFx: { kind: 'leaves', scale: 0.9 },

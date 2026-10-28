@@ -253,13 +253,17 @@ export function readProfile(storage: KeyValueStorage): Profile {
     }
   }
   if (level1Best && !bestByLevel['level-1']) bestByLevel['level-1'] = level1Best;
+  // Finishing Level 1 wins the Starlight trail (it used to be the East Hall chest's prize, which could be
+  // missed), so anyone who has finished it already has it.
+  const cosmetics = cosmeticArray(raw.cosmetics);
+  if (completed.includes('level-1') && !cosmetics.includes('trail-starlight')) cosmetics.unshift('trail-starlight');
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     levelCompleted: completed.includes('level-1'),
     bestResults: bestByLevel['level-1'] ?? null,
     completedLevels: completed,
     bestByLevel,
-    cosmetics: cosmeticArray(raw.cosmetics),
+    cosmetics,
     selectedTrail: ALL_COSMETICS.includes(raw.selectedTrail as CosmeticId) ? (raw.selectedTrail as CosmeticId) : null,
     tutorialSeen: raw.tutorialSeen === true,
   };

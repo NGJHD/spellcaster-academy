@@ -289,6 +289,8 @@ export interface TargetSpawn {
   readonly defeatFx?: FxCue;
   /** Pip is held by this target until it is beaten (the opening cold open). */
   readonly carriesPip?: boolean;
+  /** Holds a stolen page in front of its chest; beaten, it lets go and the page flies back to the camera. */
+  readonly holdsPage?: boolean;
   /** Floats beside Pip, wherever Pip is on screen (metres across and up from Pip, facing the camera). */
   readonly aroundPip?: { readonly side: number; readonly up: number };
   /**

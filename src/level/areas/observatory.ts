@@ -193,7 +193,8 @@ export const observatory: AreaScript = {
           ),
         },
       ],
-      onComplete: { flags: ['ward-repaired'] },
+      // Finishing Level 1 wins the Starlight wand trail.
+      onComplete: { flags: ['ward-repaired'], reward: { cosmetic: 'trail-starlight' } },
     },
   ],
 };

@@ -33,7 +33,7 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 ### Arrival Gate
 
 - A fast swoop over the trees to the academy while Pip introduces themself.
-- **Cold open:** a sprite dives straight through Pip and carries Pip off in its chest; its word, `drop`, makes it let go.
+- **Cold open:** Pip floats in the middle of the view through the swoop; a sprite dives in from a top corner straight through Pip and carries Pip off in its chest; its word, `drop`, makes it let go.
 - The gate crystals are dark: two crystals, `star` and `open`, blast the gate open. Pip's tips play on the first correct letter and the first mistake.
 - Just inside, the Warden floats down; the player types `hi`. A boom from the tower makes it turn, say where it is going ("I MUST CHECK THE TOWER") and fly there at a pace you can follow.
 - **The ward cracks:** the sky splits, pieces of the dome fall like shooting stars, and a tear stays above the Moon Tower until the Warden is helped. Checkpoint `arrival-gate-complete`.
@@ -42,15 +42,14 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 
 - Training dummies hop off their stands at the player (two words).
 - Sprites burst out of the planters (two sprites).
-- **Rooftop chase:** a sprite has grabbed a page; the camera chases it along the arcade roof (a bonus sprite with two words). Caught, the page is half erased: a clue.
+- **Rooftop chase:** a sprite has grabbed a page and flies off holding it; the camera chases it along the arcade roof (a bonus sprite with two words). Caught, it lets go and the page flies back to us, half erased: a clue.
 - The Warden crash-lands, points at the broken anchor ("THREE ANCHORS HOLD THE WARD. THIS ONE IS BROKEN. HELP, APPRENTICE.") and leaps back to the tower.
 - **Courtyard Anchor:** `light`, `steady`, `shine`, one at a time. A pillar of light, then Spark Bolt and three easy sprites. Checkpoint `courtyard-restored`.
 - Leaving: Pip notices the scratches look new, and says the next anchor is in the library.
 
 ### East Hall: the Book Stampede
 
-- Mira bursts out of an alcove: "Run, the library books are loose!" The camera runs backwards down the hall with Mira while books swoop in (two chase words per stretch). The books are fleeing, and their words are disappearing.
-- **Speed round:** a treasure chest, `lock` and `key` in 8 seconds, for the Starlight wand trail.
+- Through the courtyard door Mira is already in sight, staring at a hole the books blasted in the hall wall. As we come in, books burst out of it and she spins round: "Run, the library books are loose!" The camera runs backwards down the hall with Mira while books swoop in (two chase words per stretch). The books are fleeing, and their words are disappearing.
 - Mira runs off down the hall to the library doors and turns to hold the line; the doors slam on the last books. Checkpoint `east-hall-complete`.
 
 ### Whispering Library
@@ -76,7 +75,7 @@ Typing a word, locking by its first letter, Backspace, Tab, shielded targets (sh
 
 ### Enchanted Greenhouse
 
-- **The Snapvine Chase:** a giant snapping vine, already lurking in the water as we come in, rears up and lunges; each word (`leaf`, `root`, `bloom`) grows a section of the bridge, shown for a moment, and the camera hops onto it just out of reach.
+- **The Snapvine Chase:** a giant snapping vine, already lurking in the water as we come in, rears up as we reach the bridge and lunges; each word (`leaf`, `root`, `bloom`) grows a section of the bridge, shown for a moment, and the camera hops onto it just out of reach.
 - A thorn pod glows before it shoots (type its word first) with a mossling; then a mossling stampede (two). The mosslings look scared, not angry.
 - **The turning point:** a roof panel shatters and drifts down ("Look out, the roof is breaking!"); a moment later the Warden drops in through the hole, catches the falling sheet, sets it down and leaps away. Pip: it is trying to protect everything at once.
 - **Greenhouse Anchor**, tied up in vines that loosen with each knot: `rain`, `fern`, `amber`. The vines sink away; Chain Spark, then three easy mosslings. Checkpoint `greenhouse-restored`.

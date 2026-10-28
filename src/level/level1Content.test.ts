@@ -19,7 +19,7 @@ describe('Level 1 content', () => {
     expect(missing).toEqual([]);
   });
 
-  it('the Starlight trail can be won', () => {
+  it('the Starlight trail is won by finishing the level', () => {
     const cosmetics = new Set<string>();
     for (const beat of LEVEL1_ROUTE.beats) if ('chase' in beat) for (const c of beat.chase ?? []) if (c.target.reward?.cosmetic) cosmetics.add(c.target.reward.cosmetic);
     for (const e of LEVEL1_ENCOUNTERS.values()) {

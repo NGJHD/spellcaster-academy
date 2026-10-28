@@ -241,7 +241,6 @@ export const strings = {
     } as Record<string, string>,
   },
   prompts: {
-    chest: 'Speed round! Open the chest!',
     constellations: 'Speed round! Name the constellations!',
     'l2-valves': 'Speed round! Open the valves!',
     'l2-shelves': 'Speed round! Save the shelves!',

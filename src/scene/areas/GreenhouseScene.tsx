@@ -27,9 +27,11 @@ const SNAPVINE_LUNGES: Readonly<Record<string, readonly [number, number, number]
 const SNAPVINE_VISIBLE = new Set(['greenhouse-enter', 'greenhouse-entry', 'greenhouse-to-vine', 'greenhouse-vine', 'greenhouse-vine-grow-1', 'greenhouse-vine-2', 'greenhouse-vine-grow-2', 'greenhouse-vine-3', 'greenhouse-vine-grow-3', ...Object.keys(SNAPVINE_LUNGES)]);
 /**
  * Before the chase it lurks low in the channel, only its jaws above the water, so it is already there
- * when we come in (owner, 2026-10-24: it "appeared suddenly"); it rears up as we walk to the bridge.
+ * when we come in (owner, 2026-10-24: it "appeared suddenly"); it rears up near the end of the walk to the
+ * bridge, just before Pip asks if it is trying to eat us (owner, 2026-10-28: it rose too early).
  */
 const SNAPVINE_LURKING = new Set(['greenhouse-enter', 'greenhouse-entry']);
+const SNAPVINE_REARS = { beat: 'greenhouse-to-vine', at: 0.7 } as const;
 const LURK_DEPTH = 2.6;
 
 export function GreenhouseScene() {
@@ -425,7 +427,8 @@ function Snapvine() {
       goal.set(SNAPVINE_COIL[0] + (lunge[0] - SNAPVINE_COIL[0]) * u, SNAPVINE_COIL[1] + (lunge[1] - SNAPVINE_COIL[1]) * u, SNAPVINE_COIL[2] + (lunge[2] - SNAPVINE_COIL[2]) * u);
     } else {
       const coil = lunge && p <= 0.25 ? 1 + p * 2 : 1;
-      const lurk = SNAPVINE_LURKING.has(id) ? LURK_DEPTH : 0;
+      const lurking = SNAPVINE_LURKING.has(id) || (id === SNAPVINE_REARS.beat && run.beatProgress() < SNAPVINE_REARS.at);
+      const lurk = lurking ? LURK_DEPTH : 0;
       goal.set(SNAPVINE_COIL[0] + Math.sin(t * 1.3) * 0.4 * coil, SNAPVINE_COIL[1] - lurk + Math.sin(t * 2.1) * 0.25, SNAPVINE_COIL[2] - (lunge ? p * 1.2 : 0));
     }
     if (strike !== striking.current) {

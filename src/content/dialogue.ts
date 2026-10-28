@@ -71,8 +71,6 @@ export const LINES = {
   'east-3': line('mira', 'Your plan began after the ward broke.'),
   'east-4': line('pip', 'The best plans are flexible.'),
   'east-5': line('mira', 'The library anchor is next. Watch the floating books. They hate being read backwards.'),
-  'east-chest': line('pip', 'A treasure chest! Open it before the time runs out!'),
-  'east-chest-done': line('pip', 'Ooh, a Starlight wand trail! Shiny!'),
   'east-6': line('mira', 'These books ran away from the library. Something in there scared them.'),
   'east-7': line('pip', 'And the next anchor is in the library too. Let\'s go and see!'),
   'east-8': line('mira', 'That one did.'),

@@ -18,8 +18,10 @@ def _smooth(obj, degrees=35):
     return obj
 
 
-def _sheet(mb, lib, w, h, curl, twist, material, text=True, seed=1, gilt=None):
-    """A slightly curled sheet in the XZ plane (faces -Y), origin at its centre. Two-sided material."""
+def _sheet(mb, lib, w, h, curl, twist, material, text=True, seed=1, gilt=None, erased=False):
+    """A slightly curled sheet in the XZ plane (faces -Y), origin at its centre. Two-sided material.
+    `erased`: the writing is rubbed out below a diagonal from the bottom-left corner to the top-right one,
+    the strokes breaking up into fragments along it."""
     nx, nz = 6, 8
     pts = {}
     for i in range(nx + 1):
@@ -37,26 +39,35 @@ def _sheet(mb, lib, w, h, curl, twist, material, text=True, seed=1, gilt=None):
             mb.face(quad, material, None, (0, -1, 0))
     if text:
         rnd = K.rng(seed)
+        ghost = K.library_material("inkGhost", "#9c8c72", 0.9) if erased else None
         line_h = h * 0.035
         z = h * 0.36
         while z > -h * 0.38:
-            length = w * (0.5 + rnd.random() * 0.25)
+            length = w * ((0.62 + rnd.random() * 0.1) if erased else (0.5 + rnd.random() * 0.25))
             x0 = -w * 0.36
             if rnd.random() < 0.1:
                 z -= line_h * 1.8
                 continue
             # Split each stroke along the curl so it never dips behind the paper.
             pieces = 6
+            # Erased: nothing below the diagonal; just above it the strokes break up into fragments.
+            wobble = h * 0.05 * (rnd.random() - 0.5)
             for k in range(pieces):
                 xa = x0 + length * k / pieces
                 xb = x0 + length * (k + 1) / pieces
+                ink = lib["ink"]
+                if erased:
+                    above = z - ((xa + xb) / 2 / w * h * 1.1 + wobble)
+                    # Below the diagonal only a faint grey ghost of the writing is left.
+                    if above < 0 or (above < h * 0.08 and rnd.random() < 0.5):
+                        ink = ghost
                 quad = []
                 for x, dz in ((xa, -line_h * 0.35), (xb, -line_h * 0.35), (xb, 0), (xa, 0)):
                     u = x / w
                     v = (z + dz) / h
                     y = curl * (u * 2) ** 2 + twist * u * v * 4 - 0.0015
                     quad.append((x, y, z + dz))
-                mb.face(quad, lib["ink"], None, (0, -1, 0))
+                mb.face(quad, ink, None, (0, -1, 0))
             z -= line_h * 1.55
     if gilt:
         # Gold-leaf edge along the border.
@@ -76,6 +87,14 @@ def page_loose(name):
     lib = K.lib()
     mb = K.MeshBuilder([lib["parchment"], lib["ink"]])
     _sheet(mb, lib, 0.3, 0.4, 0.03, 0.02, lib["parchment"], seed=5)
+    _smooth(mb.finish(name))
+
+
+def page_half_erased(name):
+    """The page the rooftop sprite steals (Level 1): its writing stops halfway down, rubbed out."""
+    lib = K.lib()
+    mb = K.MeshBuilder([lib["parchment"], lib["ink"], K.library_material("inkGhost", "#9c8c72", 0.9)])
+    _sheet(mb, lib, 0.3, 0.4, 0.03, 0.02, lib["parchment"], seed=5, erased=True)
     _smooth(mb.finish(name))
 
 

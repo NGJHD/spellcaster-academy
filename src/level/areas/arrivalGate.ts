@@ -16,6 +16,14 @@ export const CRYSTAL_POSITIONS = {
   right: [3.6, 2.2, 21.3],
 } as const;
 
+/**
+ * The cold open (owner, 2026-10-28: "can Pip be already on the screen (centered) and the sprite enters and
+ * snatches him?"): through these beats Pip floats in the middle of the view, camera-relative [ahead, side, up],
+ * until the sprite grabs it there (GameRun snatchPath).
+ */
+export const PIP_OPENING_BEATS: ReadonlySet<string> = new Set(['arrival-opening-fade', 'arrival-flyover', 'arrival-snatch']);
+export const PIP_OPENING_SPOT = [1.5, 0, -0.12] as const;
+
 const crystalBurst = { kind: 'burst', scale: 0.9, color: '#a8dcff' } as const;
 
 export const arrivalGate: AreaScript = {
@@ -33,7 +41,6 @@ export const arrivalGate: AreaScript = {
     ARRIVAL_CRYSTAL_RIGHT: CRYSTAL_POSITIONS.right,
     ACADEMY_TOWER_TOP: [0, 42, -60],
     ARRIVAL_GATE_CENTRE: [0, 3.2, 20.4],
-    ARRIVAL_GATE_GROUND: [0, 0.1, 20.4],
     ARRIVAL_HILLS_EAST: [70, 4, -40],
     ARRIVAL_HILLS_WEST: [-80, 4, -20],
   },
@@ -137,12 +144,10 @@ export const arrivalGate: AreaScript = {
         { when: { on: 'first-mistake' }, line: 'gate-first-mistake' },
       ],
       onComplete: { flags: ['gate-open'] },
-      // The doors blow open in an explosion of light and leaves.
+      // The doors blow open in a burst of light and leaves (owner, 2026-10-28: no flash or dust wave).
       completeFx: [
-        { kind: 'flash' },
         { kind: 'burst', at: 'ARRIVAL_GATE_CENTRE', scale: 2.6, color: '#ffe6a0' },
         { kind: 'leaves', at: 'ARRIVAL_GATE_CENTRE', scale: 1.8 },
-        { kind: 'dustwave', at: 'ARRIVAL_GATE_GROUND', scale: 1.1 },
         { kind: 'shake', scale: 1.4 },
       ],
     },

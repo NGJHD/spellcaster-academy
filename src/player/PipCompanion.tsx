@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, type RefObject } from 'react';
 import { Color, Vector3, type Group, type MeshStandardMaterial, type Object3D } from 'three';
+import { PIP_OPENING_BEATS, PIP_OPENING_SPOT } from '../level/areas/arrivalGate';
 import { MAT } from '../scene/materials';
 import { useParts } from '../scene/partsGlb';
 import { getRun } from '../state/gameStore';
@@ -9,6 +10,8 @@ import { useRunStore } from '../state/runStore';
 /** Pip floats to the right of the view, clear of word labels (lower-right third of the screen). */
 const OFFSET_CALM = new Vector3(0.85, -0.05, -1.7);
 const OFFSET_COMBAT = new Vector3(1.15, -0.32, -1.9);
+/** Centred in the view for the cold open, where the sprite snatches it (arrivalGate PIP_OPENING_SPOT). */
+const OFFSET_OPENING = new Vector3(PIP_OPENING_SPOT[1], PIP_OPENING_SPOT[2], -PIP_OPENING_SPOT[0]);
 const FOLLOW_RATE = 2.6;
 /**
  * Where Pip re-enters from when it has fallen out of view (a camera cut or a big turn): just past the
@@ -23,6 +26,7 @@ const goal = new Vector3();
 const seen = new Vector3();
 const offset = new Vector3();
 const carried = new Vector3();
+const lastCamera = new Vector3();
 /** Where Pip is in the world this frame (the Unwriter aims his quill at it). */
 export const pipWorld = new Vector3();
 
@@ -43,6 +47,8 @@ export function PipCompanion() {
   const placed = useRef(false);
   /** Floating back in from the bottom right: not checked for being lost until it has arrived. */
   const entering = useRef(false);
+  /** Snatched in the cold open: once freed, Pip leaves the centre for its usual place. */
+  const freed = useRef(false);
   const warm = useMemo(() => new Color('#ffb640'), []);
   const cool = useMemo(() => new Color('#bfe0ff'), []);
 
@@ -52,20 +58,31 @@ export function PipCompanion() {
     time.current += delta;
     const run = getRun();
     const combat = run?.isEncounterActive ?? false;
-    offset.copy(combat ? OFFSET_COMBAT : OFFSET_CALM).applyQuaternion(state.camera.quaternion);
+    const inOpening = PIP_OPENING_BEATS.has(run?.director.currentBeat?.id ?? '');
+    if (!inOpening) freed.current = false;
+    const opening = inOpening && !freed.current;
+    offset.copy(opening ? OFFSET_OPENING : combat ? OFFSET_COMBAT : OFFSET_CALM).applyQuaternion(state.camera.quaternion);
     goal.copy(state.camera.position).add(offset);
     goal.y += Math.sin(time.current * 1.6) * 0.04;
     // Snatched! A creature is carrying Pip off (cold open): Pip dangles and struggles.
     const snatched = run?.pipCarrier(carried) ?? false;
     if (snatched) {
+      freed.current = true;
       goal.copy(carried);
       goal.x += Math.sin(time.current * 13) * 0.03;
       goal.y += Math.sin(time.current * 17) * 0.02;
     }
     if (!placed.current) {
       g.position.copy(goal);
+      lastCamera.copy(state.camera.position);
       placed.current = true;
     }
+    // Pip travels with the camera and lags only as it turns: on a fast flight it otherwise trailed behind
+    // out of view (owner, 2026-10-28: Pip was heard in the opening swoop but not seen). A cut is a jump
+    // too big to carry, so Pip is left behind and re-enters.
+    const moved = lastCamera.distanceTo(state.camera.position);
+    if (moved < 3) g.position.add(seen.copy(state.camera.position).sub(lastCamera));
+    lastCamera.copy(state.camera.position);
     if (entering.current && g.position.distanceTo(goal) < 0.35) entering.current = false;
     if (!snatched && !entering.current) {
       // Out of view, or far from its place: re-enter from the bottom right instead of sweeping across.

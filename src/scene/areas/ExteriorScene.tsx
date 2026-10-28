@@ -8,7 +8,7 @@ import { Suspense, useMemo, useRef } from 'react';
 import { BackSide, ExtrudeGeometry, Shape, Vector2, type Group, type MeshBasicMaterial, type Sprite, type SpriteMaterial } from 'three';
 import { CRYSTAL_POSITIONS, WARDEN_HELLO_POSITION } from '../../level/areas/arrivalGate';
 import { COURTYARD_ANCHOR_POSITION, COURTYARD_DUMMY_POSITIONS } from '../../level/areas/courtyard';
-import { CHEST_POSITION, MIRA_EAST_HALL_END, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
+import { MIRA_EAST_HALL_END, MIRA_EAST_HALL_POSITION } from '../../level/areas/eastHall';
 import { beatIndexOf } from '../../level/level1Route';
 import { getRun } from '../../state/gameStore';
 import { useRunStore } from '../../state/runStore';
@@ -32,7 +32,7 @@ import {
   WardAnchor,
   useBeatIndex,
 } from '../props';
-import { PoolLight, VirtualLight } from '../LightPool';
+import { PoolLight } from '../LightPool';
 import { GrassField } from '../GrassField';
 import { Woodland } from '../Woodland';
 
@@ -454,8 +454,7 @@ function EastHall() {
       <Bookshelf position={[26, 0, W - 0.05]} rotationY={Math.PI} width={2.4} height={2.6} shelves={4} seed={3} />
       <BlastHole />
       <EastHallMira inHall={inHall} />
-      <BookSwarm beats={['east-hall-stampede', 'east-hall-chest', 'east-hall-stampede-2']} startAt={0.3} />
-      <Chest />
+      <BookSwarm beats={['east-hall-stampede', 'east-hall-stampede-2']} startAt={0.3} />
       <Prop id="GothicCabinet_01" position={[21, 0, -W + 0.35]} height={2.1} />
       <Prop id="vintage_grandfather_clock_01" position={[36.5, 0, -W + 0.3]} height={2.2} />
       <Prop id="WoodenTable_01" position={[35, 0, W - 0.5]} height={0.78} rotationY={Math.PI / 2} />
@@ -584,13 +583,38 @@ const MIRA_SLAM = beatIndexOf('east-hall-slam');
  */
 function EastHallMira({ inHall }: { inHall: boolean }) {
   const beat = useBeatIndex();
+  const beatId = useRunStore((s) => s.beatId);
+  // Seen through the door as we leave the courtyard (owner, 2026-10-28): she is already there, in front
+  // of the blasted wall, staring at it.
+  if (beatId === 'courtyard-exit') return <MiraAtTheWall />;
   if (!inHall) return null;
-  if (beat <= MIRA_BURST_LAST) return <Mira position={MIRA_EAST_HALL_POSITION} rotationY={-1.9} waving />;
+  if (beat <= MIRA_BURST_LAST) return <MiraAtTheWall />;
   if (beat >= MIRA_SLAM) return <Mira position={MIRA_EAST_HALL_END} rotationY={-1.4} />;
   return <MiraRunsOff />;
 }
 
 const MIRA_RUN_SPEED = 4.2;
+/** Facing the blasted wall; then turned to the camera as the books burst out of it. */
+const MIRA_AT_WALL = 0;
+const MIRA_TO_CAMERA = -1.9;
+
+/** Mira staring at the hole in the wall, who spins round to the camera and waves when the books burst out. */
+function MiraAtTheWall() {
+  const ref = useRef<Group>(null);
+  const turned = useRef(false);
+  useFrame((_, dt) => {
+    const g = ref.current;
+    if (!g) return;
+    const want = useRunStore.getState().beatId === 'east-hall-mira-burst' ? MIRA_TO_CAMERA : MIRA_AT_WALL;
+    g.rotation.y += (want - g.rotation.y) * (1 - Math.exp(-7 * Math.min(dt, 0.1)));
+    turned.current = Math.abs(g.rotation.y - MIRA_TO_CAMERA) < 0.4;
+  });
+  return (
+    <group ref={ref} position={MIRA_EAST_HALL_POSITION} rotation={[0, MIRA_AT_WALL, 0]}>
+      <Mira position={[0, 0, 0]} clip={() => (turned.current ? 'Wave' : 'Idle')} />
+    </group>
+  );
+}
 
 function MiraRunsOff() {
   const ref = useRef<Group>(null);
@@ -609,21 +633,6 @@ function MiraRunsOff() {
   return (
     <group ref={ref} position={MIRA_EAST_HALL_POSITION} rotation={[0, -1.9, 0]}>
       <Mira position={[0, 0, 0]} clip={() => (run.arrived ? 'Idle' : 'Run')} />
-    </group>
-  );
-}
-
-function Chest() {
-  const glow = useRef<VirtualLight>(null);
-  useFrame((_, dt) => {
-    const open = getRun()?.flags.has('chest-open') ?? false;
-    if (glow.current) glow.current.intensity += ((open ? 6 : 0) - glow.current.intensity) * (1 - Math.exp(-3 * Math.min(dt, 0.1)));
-  });
-  const [x, , z] = CHEST_POSITION;
-  return (
-    <group position={[x, 0, z]}>
-      <Prop id="treasure_chest" position={[0, 0, 0]} height={0.6} rotationY={-0.84} />
-      <PoolLight ref={glow} position={[0, 0.8, 0.2]} color="#ffd88a" intensity={0} distance={4} />
     </group>
   );
 }

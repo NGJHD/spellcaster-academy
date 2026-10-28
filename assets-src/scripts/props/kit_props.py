@@ -809,6 +809,7 @@ for w, h in ((2.2, 5.0), (1.4, 2.4), (1.8, 4.0), (2.4, 4.0), (0.7, 3.0), (0.8, 3
 BUILDERS["balustrade_2m"] = lambda: balustrade("balustrade_2m")
 BUILDERS["pedestal_grimoire"] = lambda: pedestal("pedestal_grimoire")
 BUILDERS["page_loose"] = lambda: S.page_loose("page_loose")
+BUILDERS["page_half_erased"] = lambda: S.page_half_erased("page_half_erased")
 BUILDERS["star_page"] = lambda: S.star_page("star_page")
 BUILDERS["star_page_teal"] = lambda: S.star_page("star_page_teal", glow_name="TealGlow")
 BUILDERS["greenhouse_bay"] = lambda: greenhouse_bay("greenhouse_bay")

@@ -87,7 +87,7 @@ describe('full Level 1 playthrough', () => {
       expect.arrayContaining(['grimoire-clasps', 'grimoire-pages', 'grimoire-sentence', 'warden-shell', 'warden-runes', 'warden-repair']),
     );
     expect(run.progress.unlockedSpells).toEqual(expect.arrayContaining(['spark-bolt', 'frost-thread', 'chain-spark']));
-    // The bot types every visible word, so it wins the chest's Starlight trail.
+    // Finishing Level 1 wins the Starlight trail.
     expect(run.progress.unlockedCosmeticIds).toEqual(['trail-starlight']);
     expect(results?.accuracy).toBe(100);
     expect(results?.averageWpm ?? 0).toBeGreaterThan(40);

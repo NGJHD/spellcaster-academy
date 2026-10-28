@@ -8,6 +8,7 @@ import { voice } from '../audio/voice';
 import { RESUME_SUMMARY, getLine, type DialogueLine } from '../content/dialogue';
 import { strings } from '../content/strings';
 import { CHAIN_TRAVEL_SEC, FROST_SEC, isShielded, type TargetRuntime } from '../enemies/EnemyBrain';
+import { PIP_OPENING_SPOT } from '../level/areas/arrivalGate';
 import { EncounterRunner, type EncounterEvent } from '../level/encounters/EncounterRunner';
 import { closeInEncounter } from '../level/encounters/closeIn';
 import { LevelDirector } from '../level/LevelDirector';
@@ -56,10 +57,10 @@ const SNATCH_CARRY_SEC = 1.2;
 const SNATCH_CHEST = 0.42;
 /**
  * Camera-relative [ahead, side, up]: off screen at a top corner, and the point that puts the sprite's
- * chest on Pip (PipCompanion OFFSET_CALM: 1.7 ahead, 0.85 aside, 0.05 below the eye).
+ * chest on Pip, floating in the middle of the view for the cold open (PIP_OPENING_SPOT).
  */
 const SNATCH_FROM = [2.4, -3.6, 1.8] as const;
-const SNATCH_GRAB = [1.7, 0.85, -0.05 - SNATCH_CHEST] as const;
+const SNATCH_GRAB = [PIP_OPENING_SPOT[0], PIP_OPENING_SPOT[1], PIP_OPENING_SPOT[2] - SNATCH_CHEST] as const;
 
 /**
  * The thief's camera-relative point at `age` (owner, 2026-10-19: "let the sprite go through Pip, then

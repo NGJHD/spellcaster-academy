@@ -190,7 +190,7 @@ Average and peak WPM, average word time, fastest word, active typing time, accur
 
 ### Cosmetics
 
-Wand trails: Starlight (Level 1, the East Hall chest), Inkwell (Level 2, the library shelves), Bright Quill (finishing Level 3).
+Wand trails: Starlight (finishing Level 1), Inkwell (Level 2, the library shelves), Bright Quill (finishing Level 3).
 
 ## 13. Source layout
 
