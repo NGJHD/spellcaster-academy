@@ -1,5 +1,8 @@
 # Spellcaster Academy: The Broken Ward
 
+![Uploading project-spellcaster-academy.webp…]()
+
+
 A first-person 3D typing adventure for children aged about 8–10. You play a new apprentice at Asterfall Academy, and you cast spells by typing words. The game moves the camera and aims for you, so typing is the only skill you need.
 
 The campaign has three levels and takes about 30–45 minutes:
